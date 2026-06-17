@@ -8,7 +8,7 @@ export default function DashboardSupportPage() {
   return (
     <DashboardShell active="support">
       <DashboardHeader eyebrow={t("dashboardPages.support.eyebrow")} title={t("dashboardPages.support.title")} />
-      <div className="full-width-section">
+      <div className="w-full">
         <HelpDeskPanel expanded />
       </div>
     </DashboardShell>

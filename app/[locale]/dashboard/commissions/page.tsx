@@ -9,7 +9,7 @@ export default function DashboardCommissionsPage() {
     <DashboardShell active="commissions">
       <DashboardHeader eyebrow={t("dashboardPages.commissions.eyebrow")} title={t("dashboardPages.commissions.title")} />
       <MetricsGrid />
-      <div className="full-width-section">
+      <div className="w-full">
         <CommissionTable expanded />
       </div>
     </DashboardShell>

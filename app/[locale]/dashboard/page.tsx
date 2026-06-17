@@ -13,7 +13,7 @@ export default function DashboardOverviewPage() {
         action={t("dashboard.createQuote")}
       />
       <MetricsGrid />
-      <div className="dashboard-grid single-dashboard-grid">
+      <div className="grid grid-cols-1">
         <PerformanceChart />
       </div>
     </DashboardShell>

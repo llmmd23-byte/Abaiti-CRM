@@ -2,6 +2,7 @@
 
 import {useLocale, useTranslations} from "next-intl";
 import {Link} from "@/i18n/navigation";
+import {cn, theme} from "@/components/ui";
 
 type DashboardSection =
   | "overview"
@@ -100,8 +101,11 @@ function NavItemIcon({icon}: {icon: NavItem["icon"]}) {
   }
 
   return (
-    <span className="sidebar-nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24">
+    <span
+      className="inline-grid size-[30px] flex-none place-items-center rounded-[10px] bg-white/[0.06] text-current transition group-hover:bg-white/[0.08] group-[.active]:bg-[#00a19d]/15"
+      aria-hidden="true"
+    >
+      <svg className="size-[18px] fill-none stroke-current stroke-[1.9] [stroke-linecap:round] [stroke-linejoin:round]" viewBox="0 0 24 24">
         {icon === "dashboard" ? (
           <>
             <rect x="4" y="4" width="7" height="7" rx="2" />
@@ -186,47 +190,76 @@ export default function DashboardShell({
   const activityLevel = locale === "ar" ? "\u0645\u062d\u062a\u0631\u0641 \u0630\u0647\u0628\u064a" : "Gold Pro";
 
   return (
-    <section className="dashboard-shell dashboard-route-shell" dir={direction} data-locale={locale}>
-      <aside className="sidebar">
-        <Link className="sidebar-brand sidebar-official-brand cursor-pointer" href="/" aria-label={t("brand.home")}>
-          <span className="sidebar-logo-word">
-            Midda<span className="sidebar-logo-accent">r</span>
+    <section
+      className={cn(
+        "flex min-h-screen flex-col border-t border-[#dde6ee] md:grid md:grid-cols-[252px_minmax(0,1fr)]",
+        "rtl:md:grid-cols-[minmax(0,1fr)_252px]",
+        theme.dashboardBg
+      )}
+      dir={direction}
+      data-locale={locale}
+    >
+      <aside
+        className={cn(
+          "flex flex-col gap-2 p-3 text-white/75 md:sticky md:top-[77px] md:h-[calc(100vh-77px)] md:p-6",
+          "md:col-start-1 rtl:md:col-start-2",
+          theme.darkPanel
+        )}
+      >
+        <Link
+          className="mb-6 inline-flex min-h-[58px] w-full max-w-[248px] cursor-pointer items-center justify-center gap-4 rounded-[18px] border border-slate-200/80 bg-[#f8fcfd]/95 px-3 py-2 shadow-[0_18px_40px_rgba(0,0,0,0.16),0_0_26px_rgba(34,184,184,0.12)] transition hover:bg-white hover:shadow-[0_20px_46px_rgba(0,0,0,0.18),0_0_30px_rgba(34,184,184,0.15)]"
+          href="/"
+          aria-label={t("brand.home")}
+        >
+          <span className="inline-flex items-baseline font-['Cairo','Plus_Jakarta_Sans',Inter,sans-serif] text-[29px] font-black leading-none text-[#0b1f3a]">
+            Midda<span className="text-[#22b8b8]">r</span>
           </span>
-          <span className="sidebar-brand-divider" aria-hidden="true" />
-          <span className="sidebar-logo-mark" aria-hidden="true">
-            <svg viewBox="0 0 64 64" role="img">
-              <path className="logo-arc logo-arc-accent" d="M15 20a23 23 0 0 1 14-9" />
-              <path className="logo-arc logo-arc-primary" d="M36 11a23 23 0 0 1 14 9" />
-              <path className="logo-arc logo-arc-accent" d="M52 28a23 23 0 0 1-5 18" />
-              <path className="logo-arc logo-arc-primary" d="M39 52a23 23 0 0 1-18-2" />
-              <path className="logo-arc logo-arc-accent" d="M13 43a23 23 0 0 1-1-16" />
-              <circle className="logo-dot-accent" cx="14" cy="25" r="4" />
-              <circle className="logo-dot-primary" cx="32" cy="10" r="4" />
-              <circle className="logo-dot-accent" cx="50" cy="25" r="4" />
-              <circle className="logo-dot-primary" cx="46" cy="48" r="4" />
-              <circle className="logo-dot-accent" cx="22" cy="50" r="4" />
-              <circle className="logo-dot-primary" cx="12" cy="42" r="4" />
-              <circle className="logo-dot-accent" cx="32" cy="32" r="5" />
+          <span className="h-[38px] w-0.5 flex-none bg-[#0b1f3a]/85" aria-hidden="true" />
+          <span className="inline-flex size-11 flex-none items-center justify-center" aria-hidden="true">
+            <svg className="size-full overflow-visible drop-shadow-[0_10px_24px_rgba(34,184,184,0.18)]" viewBox="0 0 64 64" role="img">
+              <path className="fill-none stroke-[#22b8b8] stroke-[6.4] [stroke-linecap:round]" d="M15 20a23 23 0 0 1 14-9" />
+              <path className="fill-none stroke-[#0b1f3a] stroke-[6.4] [stroke-linecap:round]" d="M36 11a23 23 0 0 1 14 9" />
+              <path className="fill-none stroke-[#22b8b8] stroke-[6.4] [stroke-linecap:round]" d="M52 28a23 23 0 0 1-5 18" />
+              <path className="fill-none stroke-[#0b1f3a] stroke-[6.4] [stroke-linecap:round]" d="M39 52a23 23 0 0 1-18-2" />
+              <path className="fill-none stroke-[#22b8b8] stroke-[6.4] [stroke-linecap:round]" d="M13 43a23 23 0 0 1-1-16" />
+              <circle className="fill-[#22b8b8]" cx="14" cy="25" r="4" />
+              <circle className="fill-[#0b1f3a]" cx="32" cy="10" r="4" />
+              <circle className="fill-[#22b8b8]" cx="50" cy="25" r="4" />
+              <circle className="fill-[#0b1f3a]" cx="46" cy="48" r="4" />
+              <circle className="fill-[#22b8b8]" cx="22" cy="50" r="4" />
+              <circle className="fill-[#0b1f3a]" cx="12" cy="42" r="4" />
+              <circle className="fill-[#22b8b8]" cx="32" cy="32" r="5" />
             </svg>
           </span>
         </Link>
 
-        <nav className="sidebar-nav" aria-label={t("nav.dashboard")}>
-          <div className="sidebar-nav-item">
-            <Link className={`sidebar-overview-link ${active === overviewItem.key ? "active" : ""}`} href={overviewItem.href}>
+        <nav className="grid gap-2" aria-label={t("nav.dashboard")}>
+          <div>
+            <Link
+              className={cn(
+                "group flex items-center gap-3 rounded-[14px] px-4 py-3 text-sm font-bold leading-[1.35] text-[#00a19d] transition",
+                "bg-[#e6f6f6] hover:bg-[#e6f6f6] hover:shadow-[0_16px_30px_rgba(0,161,157,0.14)]",
+                active === overviewItem.key && "active"
+              )}
+              href={overviewItem.href}
+            >
               <NavItemIcon icon={overviewItem.icon} />
               {t(overviewItem.label)}
             </Link>
           </div>
 
-          <div className="sidebar-nav-group core-growth-group">
+          <div className="flex flex-col gap-2">
             {coreGrowthItems.map((item) => {
               const itemLabel = t(item.label);
 
               return (
-                <div className="sidebar-nav-item" key={item.key}>
+                <div key={item.key}>
                   <Link
-                    className={`${active === item.key ? "active" : ""} ${item.icon ? "has-nav-icon" : ""}`}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-[14px] px-4 py-3 text-sm font-semibold leading-[1.35] text-slate-200/85 transition hover:bg-white/[0.05] hover:text-white",
+                      active === item.key &&
+                        "active bg-[#e6f6f6] text-[#00a19d] shadow-[0_14px_28px_rgba(34,184,184,0.12)] hover:bg-[#e6f6f6] hover:text-[#00a19d]"
+                    )}
                     href={item.href}
                   >
                     <NavItemIcon icon={item.icon} />
@@ -237,16 +270,20 @@ export default function DashboardShell({
             })}
           </div>
 
-          <div className="sidebar-nav-divider" aria-hidden="true" />
+          <div className="my-3 h-px bg-white/10" aria-hidden="true" />
 
-          <div className="sidebar-nav-group support-resource-group">
+          <div className="flex flex-col gap-2 pb-2">
             {supportResourceItems.map((item) => {
               const itemLabel = t(item.label);
 
               return (
-                <div className="sidebar-nav-item" key={item.key}>
+                <div key={item.key}>
                   <Link
-                    className={`${active === item.key ? "active" : ""} ${item.icon ? "has-nav-icon" : ""}`}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-[14px] px-4 py-3 text-sm font-semibold leading-[1.35] text-slate-200/85 transition hover:bg-white/[0.05] hover:text-white",
+                      active === item.key &&
+                        "active bg-[#e6f6f6] text-[#00a19d] shadow-[0_14px_28px_rgba(34,184,184,0.12)] hover:bg-[#e6f6f6] hover:text-[#00a19d]"
+                    )}
                     href={item.href}
                   >
                     <NavItemIcon icon={item.icon} />
@@ -258,17 +295,17 @@ export default function DashboardShell({
           </div>
         </nav>
 
-        <div className="sidebar-meta">
-          <div className="sidebar-profile-stack">
-            <strong className="sidebar-profile-name">{accountOwnerName}</strong>
-            <div className="sidebar-profile-row">
-              <span>{activityLabel}</span>
-              <b>{activityLevel}</b>
+        <div className="mt-auto grid rounded-lg border border-white/10 bg-white/[0.05] p-4 text-white/70">
+          <div className="flex flex-col gap-2">
+            <strong className="text-[15px] font-extrabold leading-[1.45] text-white">{accountOwnerName}</strong>
+            <div className="flex items-center justify-between gap-2.5">
+              <span className="text-xs font-semibold leading-normal text-slate-200/70">{activityLabel}</span>
+              <b className="text-xs font-extrabold leading-normal text-[#f6d77a]">{activityLevel}</b>
             </div>
-            <div className="sidebar-profile-row sidebar-status-row">
-              <span>{t("dashboardPages.sidebar.accountStatus")}</span>
-              <strong>
-                <i aria-hidden="true" />
+            <div className="flex items-center justify-between gap-2.5">
+              <span className="text-xs font-semibold leading-normal text-slate-200/70">{t("dashboardPages.sidebar.accountStatus")}</span>
+              <strong className="inline-flex items-center gap-2 text-[13px] font-extrabold text-white">
+                <i className="inline-block size-2 rounded-full bg-[#22c55e] shadow-[0_0_12px_rgba(34,197,94,0.72)]" aria-hidden="true" />
                 {t("dashboardPages.sidebar.active")}
               </strong>
             </div>
@@ -276,7 +313,9 @@ export default function DashboardShell({
         </div>
       </aside>
 
-      <section className="dashboard-main dashboard-page">{children}</section>
+      <section className="min-w-0 flex-1 p-[clamp(32px,4vw,56px)] md:col-start-2 rtl:md:col-start-1">
+        <div className="grid content-start gap-[18px]">{children}</div>
+      </section>
     </section>
   );
 }

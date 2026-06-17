@@ -2,7 +2,9 @@
 
 import {useLocale} from "next-intl";
 import {useState, type CSSProperties, type ReactNode} from "react";
+import {CardTitle, DashboardCard, TabButton, dashboardField, dashboardLabel} from "@/components/DashboardPrimitives";
 import {DemoView} from "@/components/DashboardNewSections";
+import {cn, Eyebrow, theme} from "@/components/ui";
 
 type ProductWorkspaceView = "catalog" | "form";
 type MarketingTab = "sectors" | "social" | "library";
@@ -210,8 +212,8 @@ const socialPlatforms = [
 function SocialLogoIcon({logo}: {logo: SocialLogo}) {
   if (logo === "instagram") {
     return (
-      <span className="social-platform-logo social-platform-logo-instagram" aria-hidden="true">
-        <svg viewBox="0 0 48 48">
+      <span className="grid size-12 place-items-center rounded-2xl bg-[#E1306C]/10 text-[#E1306C]" aria-hidden="true">
+        <svg className="size-8 fill-none stroke-current stroke-2" viewBox="0 0 48 48">
           <rect x="11" y="11" width="26" height="26" rx="8" />
           <circle cx="24" cy="24" r="7" />
           <circle cx="32" cy="16" r="2.2" />
@@ -222,8 +224,8 @@ function SocialLogoIcon({logo}: {logo: SocialLogo}) {
 
   if (logo === "snapchat") {
     return (
-      <span className="social-platform-logo social-platform-logo-snapchat" aria-hidden="true">
-        <svg viewBox="0 0 48 48">
+      <span className="grid size-12 place-items-center rounded-2xl bg-[#FFFC00]/20 text-[#d4a400]" aria-hidden="true">
+        <svg className="size-8 fill-current" viewBox="0 0 48 48">
           <path d="M24 9c5.9 0 9.1 4.4 9.1 9.6 0 1.2-.2 2.8-.2 4.2 0 .8.4 1.2 1.2 1.2 1.5 0 2.5-.7 3.3-.7.9 0 1.7.6 1.7 1.5 0 1.7-3.8 2.5-4.6 3.2.2 2.1 3.6 6.3 7.3 7 .8.2 1.2.7 1.2 1.4 0 1.4-3.4 2.2-5.4 2.5-.6.2-.8 2.1-2.1 2.1-1.1 0-2.9-.8-5-.8-2.3 0-3.4 2.8-6.5 2.8s-4.2-2.8-6.5-2.8c-2.1 0-3.9.8-5 .8-1.3 0-1.5-1.9-2.1-2.1-2-.3-5.4-1.1-5.4-2.5 0-.7.4-1.2 1.2-1.4 3.7-.7 7.1-4.9 7.3-7-.8-.7-4.6-1.5-4.6-3.2 0-.9.8-1.5 1.7-1.5.8 0 1.8.7 3.3.7.8 0 1.2-.4 1.2-1.2 0-1.4-.2-3-.2-4.2C14.9 13.4 18.1 9 24 9Z" />
         </svg>
       </span>
@@ -232,19 +234,19 @@ function SocialLogoIcon({logo}: {logo: SocialLogo}) {
 
   if (logo === "tiktok") {
     return (
-      <span className="social-platform-logo social-platform-logo-tiktok" aria-hidden="true">
-        <svg viewBox="0 0 48 48">
-          <path className="tiktok-shadow-cyan" d="M29 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10h5.8Z" />
-          <path className="tiktok-shadow-magenta" d="M31 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10H31Z" />
-          <path className="tiktok-note" d="M30 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10H30Z" />
+      <span className="grid size-12 place-items-center rounded-2xl bg-slate-950 text-white" aria-hidden="true">
+        <svg className="size-8" viewBox="0 0 48 48">
+          <path className="fill-[#00F2EA]" d="M29 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10h5.8Z" />
+          <path className="fill-[#FF0050]" d="M31 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10H31Z" />
+          <path className="fill-white" d="M30 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10H30Z" />
         </svg>
       </span>
     );
   }
 
   return (
-    <span className="social-platform-logo social-platform-logo-x" aria-hidden="true">
-      <svg viewBox="0 0 48 48">
+    <span className="grid size-12 place-items-center rounded-2xl bg-slate-950 text-white" aria-hidden="true">
+      <svg className="size-8 fill-current" viewBox="0 0 48 48">
         <path d="M28.2 21.2 39.6 8h-5.1l-8.6 10-6.8-10H8l12.1 17.7L7.8 40h5.1l9.5-11 7.5 11H41L28.2 21.2Zm-3.4 3.9-1.4-2L14.8 11.8h2.4l7 10.2 1.4 2 9.2 12.2h-2.4l-7.6-11.1Z" />
       </svg>
     </span>
@@ -407,7 +409,7 @@ function IndustryIcon({shape, className}: {shape: IconShape; className: string})
 
   return (
     <span className={className} aria-hidden="true">
-      <svg {...iconProps}>{glyphs[shape]}</svg>
+      <svg className="size-7" {...iconProps}>{glyphs[shape]}</svg>
     </span>
   );
 }
@@ -430,44 +432,35 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   }
 
   return (
-    <section className="products-workspace" dir={isArabic ? "rtl" : "ltr"}>
-      <div className="marketing-hub-hero">
+    <section className="grid gap-[18px]" dir={isArabic ? "rtl" : "ltr"}>
+      <div className="flex flex-col items-start justify-between gap-5 rounded-[22px] border border-slate-200 bg-[linear-gradient(135deg,#ffffff,#f8fcfd)] p-6 shadow-[0_18px_42px_rgba(15,23,42,0.055)] lg:flex-row">
         <div>
-          <p className="eyebrow">{"\u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}</p>
-          <h2>{"\u062a\u0633\u0648\u064a\u0642 \u0645\u064a\u062f\u0627\u0631 \u0648\u0625\u062f\u0627\u0631\u0629 \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0646\u0645\u0648"}</h2>
-          <p>{"\u0645\u0633\u0627\u062d\u0629 \u0645\u0648\u062d\u062f\u0629 \u0644\u0631\u0648\u0627\u0628\u0637 \u0627\u0644\u0642\u0637\u0627\u0639\u0627\u062a\u060c \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627\u060c \u0648\u0627\u0644\u0623\u0635\u0648\u0644 \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629 \u0627\u0644\u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0633\u0648\u0642\u064a\u0646."}</p>
+          <Eyebrow>{"\u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}</Eyebrow>
+          <h2 className="m-0 text-[clamp(28px,3.2vw,44px)] font-black leading-tight text-[#0b1f3a]">{"\u062a\u0633\u0648\u064a\u0642 \u0645\u064a\u062f\u0627\u0631 \u0648\u0625\u062f\u0627\u0631\u0629 \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0646\u0645\u0648"}</h2>
+          <p className="m-0 mt-3 max-w-3xl text-sm leading-7 text-[#647280]">{"\u0645\u0633\u0627\u062d\u0629 \u0645\u0648\u062d\u062f\u0629 \u0644\u0631\u0648\u0627\u0628\u0637 \u0627\u0644\u0642\u0637\u0627\u0639\u0627\u062a\u060c \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627\u060c \u0648\u0627\u0644\u0623\u0635\u0648\u0644 \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629 \u0627\u0644\u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0633\u0648\u0642\u064a\u0646."}</p>
         </div>
-        <span>{"Growth Hub"}</span>
+        <span className="rounded-full bg-[#e0f8f8] px-4 py-2 text-xs font-black text-[#168f97]">{"Growth Hub"}</span>
       </div>
 
-      <div className="marketing-tabs" role="tablist" aria-label={"\u062a\u0628\u0648\u064a\u0628\u0627\u062a \u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}>
+      <div className="grid grid-cols-1 gap-3 rounded-[20px] border border-slate-200/90 bg-white/80 p-2.5 shadow-[0_18px_42px_rgba(15,23,42,0.05)] lg:grid-cols-3" role="tablist" aria-label={"\u062a\u0628\u0648\u064a\u0628\u0627\u062a \u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}>
         {marketingTabs.map((tab) => (
-          <button
-            className={activeTab === tab.id ? "active" : ""}
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            role="tab"
-            type="button"
-          >
-            <strong>{tab.label}</strong>
-            <span>{tab.hint}</span>
-          </button>
+          <TabButton active={activeTab === tab.id} key={tab.id} onClick={() => setActiveTab(tab.id)} title={tab.label} subtitle={tab.hint} />
         ))}
       </div>
 
-      <div className="marketing-tab-panel">
+      <div>
         {activeTab === "sectors" ? (
           <>
-            <div className="products-workspace-head compact">
-              <p className="eyebrow">{copy.eyebrow}</p>
-              <h2>{copy.heading}</h2>
-              <p>{copy.subheading}</p>
+            <div className="mb-5 grid gap-2">
+              <Eyebrow>{copy.eyebrow}</Eyebrow>
+              <h2 className="m-0 text-[clamp(26px,3vw,40px)] font-black leading-tight text-[#0b1f3a]">{copy.heading}</h2>
+              <p className="m-0 max-w-3xl text-sm leading-7 text-[#647280]">{copy.subheading}</p>
             </div>
 
-            <div className="industry-sector-grid">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               {industriesData.map((industry) => (
                 <article
-                  className="industry-sector-card"
+                  className={cn("grid min-h-[220px] cursor-pointer gap-4 rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_18px_42px_rgba(15,23,42,0.055)] transition hover:-translate-y-0.5 hover:border-[#22b8b8]/35 hover:shadow-[0_20px_46px_rgba(34,184,184,0.12)]")}
                   key={industry.id}
                   onClick={() => {
                     window.open(industry.url, "_blank", "noopener,noreferrer");
@@ -481,10 +474,13 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                   role="button"
                   tabIndex={0}
                 >
-                  <div className="industry-sector-card-top">
-                    <IndustryIcon className="industry-sector-icon" shape={industry.icon} />
+                  <div className="flex items-start justify-between gap-3">
+                    <IndustryIcon className="grid size-12 place-items-center rounded-2xl bg-[#e0f8f8] text-[#168f97]" shape={industry.icon} />
                     <button
-                      className={`industry-copy-link ${copiedSectorId === industry.id ? "copied" : ""}`}
+                      className={cn(
+                        "rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#0b1f3a] transition hover:bg-slate-50",
+                        copiedSectorId === industry.id && "border-[#22b8b8]/40 bg-[#e0f8f8] text-[#168f97]"
+                      )}
                       onClick={(event) => {
                         event.stopPropagation();
                         void handleCopyLink(industry.url, industry.id);
@@ -496,12 +492,12 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                         : "\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637"}
                     </button>
                   </div>
-                  <div className="industry-sector-card-body">
+                  <div className="grid gap-3">
                     <div>
-                      <h3>{industry.title}</h3>
-                      <p>{industry.subtitle}</p>
+                      <h3 className="m-0 text-base font-black leading-snug text-[#0b1f3a]">{industry.title}</h3>
+                      <p className="m-0 mt-2 text-sm leading-7 text-[#647280]">{industry.subtitle}</p>
                     </div>
-                    <strong>{copy.explore}</strong>
+                    <strong className="text-sm font-black text-[#168f97]">{copy.explore}</strong>
                   </div>
                 </article>
               ))}
@@ -510,76 +506,75 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
         ) : null}
 
         {activeTab === "social" ? (
-          <div className="social-platform-grid">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             {socialPlatforms.map((platform) => (
-              <article className="social-platform-card" key={platform.name} style={{"--platform-accent": platform.accent} as CSSProperties}>
-                <div className="social-platform-head">
+              <DashboardCard className="rounded-[18px]" key={platform.name} style={{"--platform-accent": platform.accent} as CSSProperties}>
+                <div className="flex items-center gap-3">
                   <SocialLogoIcon logo={platform.logo} />
                   <div>
-                    <h3>{platform.name}</h3>
-                    <p>{platform.handle}</p>
+                    <h3 className="m-0 text-base font-black text-[#0b1f3a]">{platform.name}</h3>
+                    <p className="m-0 text-xs font-semibold text-[#647280]">{platform.handle}</p>
                   </div>
                 </div>
-                <div className="social-stat-grid">
-                  <div>
-                    <span>{"Reach"}</span>
-                    <strong>{platform.reach}</strong>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-slate-50 p-3">
+                    <span className="text-xs font-semibold text-[#647280]">{"Reach"}</span>
+                    <strong className="block text-lg font-black text-[#0b1f3a]">{platform.reach}</strong>
                   </div>
-                  <div>
-                    <span>{"Engagement"}</span>
-                    <strong>{platform.engagement}</strong>
+                  <div className="rounded-2xl bg-slate-50 p-3">
+                    <span className="text-xs font-semibold text-[#647280]">{"Engagement"}</span>
+                    <strong className="block text-lg font-black text-[#0b1f3a]">{platform.engagement}</strong>
                   </div>
                 </div>
-                <button type="button">{"\u062a\u062c\u0647\u064a\u0632 \u062d\u0645\u0644\u0629"}</button>
-              </article>
+                <button className={theme.darkButton} type="button">{"\u062a\u062c\u0647\u064a\u0632 \u062d\u0645\u0644\u0629"}</button>
+              </DashboardCard>
             ))}
           </div>
         ) : null}
 
         {activeTab === "library" ? (
-          <div className="marketing-library">
-            <div className="asset-filter-row">
+          <div className="grid gap-4">
+            <div className="flex flex-wrap gap-2">
               {assetFilters.map((filter) => (
-                <button key={filter} type="button">{filter}</button>
+                <button className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black text-[#0b1f3a]" key={filter} type="button">{filter}</button>
               ))}
             </div>
-            <div className="asset-library-grid">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {imageAssets.map((asset, index) => (
-                <article className="asset-card image-asset" key={asset}>
-                  <span>{`0${index + 1}`}</span>
-                  <h3>{asset}</h3>
-                  <p>{"\u0635\u0648\u0631 \u062a\u0631\u0648\u064a\u062c\u064a\u0629 \u0639\u0627\u0644\u064a\u0629 \u0627\u0644\u062f\u0642\u0629 \u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0634\u0627\u0631\u0643\u0629."}</p>
-                  <button type="button">{"\u062a\u0646\u0632\u064a\u0644"}</button>
-                </article>
+                <DashboardCard className="rounded-[18px]" key={asset}>
+                  <span className="text-sm font-black text-[#22b8b8]">{`0${index + 1}`}</span>
+                  <h3 className="m-0 text-base font-black text-[#0b1f3a]">{asset}</h3>
+                  <p className="m-0 text-sm leading-7 text-[#647280]">{"\u0635\u0648\u0631 \u062a\u0631\u0648\u064a\u062c\u064a\u0629 \u0639\u0627\u0644\u064a\u0629 \u0627\u0644\u062f\u0642\u0629 \u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0634\u0627\u0631\u0643\u0629."}</p>
+                  <button className={theme.primaryButton} type="button">{"\u062a\u0646\u0632\u064a\u0644"}</button>
+                </DashboardCard>
               ))}
               {videoAssets.map((asset, index) => (
-                <article className="asset-card video-asset" key={asset}>
-                  <span>{`0${index + 1}`}</span>
-                  <h3>{asset}</h3>
-                  <p>{"\u0645\u0639\u0627\u064a\u0646\u0629 \u0633\u064a\u0646\u0645\u0627\u0626\u064a\u0629 \u0645\u062e\u062a\u0635\u0631\u0629 \u0644\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062a \u0648\u0627\u0644\u0631\u064a\u0644\u0632."}</p>
-                  <button type="button">{"\u0645\u0634\u0627\u0631\u0643\u0629"}</button>
-                </article>
+                <DashboardCard className="rounded-[18px]" key={asset}>
+                  <span className="text-sm font-black text-[#22b8b8]">{`0${index + 1}`}</span>
+                  <h3 className="m-0 text-base font-black text-[#0b1f3a]">{asset}</h3>
+                  <p className="m-0 text-sm leading-7 text-[#647280]">{"\u0645\u0639\u0627\u064a\u0646\u0629 \u0633\u064a\u0646\u0645\u0627\u0626\u064a\u0629 \u0645\u062e\u062a\u0635\u0631\u0629 \u0644\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062a \u0648\u0627\u0644\u0631\u064a\u0644\u0632."}</p>
+                  <button className={theme.primaryButton} type="button">{"\u0645\u0634\u0627\u0631\u0643\u0629"}</button>
+                </DashboardCard>
               ))}
             </div>
           </div>
         ) : null}
       </div>
 
-      <section className="dashboard-lead-request" dir="rtl">
-        <div className="dashboard-lead-request-inner">
-          <div className="dashboard-lead-request-card">
-            <h2>{"\u0637\u0644\u0628 \u0639\u0631\u0636 \u062a\u062c\u0631\u064a\u0628\u064a \u0644\u0644\u0645\u0646\u0634\u0622\u062a"}</h2>
+      <section className="py-8" dir="rtl">
+        <DashboardCard className="rounded-[22px]">
+            <h2 className="m-0 text-[clamp(24px,3vw,38px)] font-black leading-tight text-[#0b1f3a]">{"\u0637\u0644\u0628 \u0639\u0631\u0636 \u062a\u062c\u0631\u064a\u0628\u064a \u0644\u0644\u0645\u0646\u0634\u0622\u062a"}</h2>
 
-            <form className="dashboard-lead-request-form">
-              <div className="dashboard-lead-request-grid">
-                <div className="dashboard-lead-request-stack">
+            <form className="grid gap-4">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="grid gap-3.5">
                   <div>
-                    <label>{"\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u0634\u0623\u0629"}</label>
-                    <input type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629 \u0623\u0648 \u0627\u0644\u0645\u0624\u0633\u0633\u0629"} />
+                    <label className={dashboardLabel}>{"\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u0634\u0623\u0629"}</label>
+                    <input className={dashboardField} type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629 \u0623\u0648 \u0627\u0644\u0645\u0624\u0633\u0633\u0629"} />
                   </div>
                   <div>
-                    <label>{"\u0646\u0648\u0639 \u0627\u0644\u0645\u0646\u0634\u0623\u0629"}</label>
-                    <select>
+                    <label className={dashboardLabel}>{"\u0646\u0648\u0639 \u0627\u0644\u0645\u0646\u0634\u0623\u0629"}</label>
+                    <select className={dashboardField}>
                       <option>{"\u0634\u0627\u0644\u064a\u0647\u0627\u062a \u0648\u0645\u0646\u062a\u062c\u0639\u0627\u062a"}</option>
                       <option>{"\u0635\u0627\u0644\u0648\u0646\u0627\u062a \u0648\u0633\u0628\u0627"}</option>
                       <option>{"\u0645\u063a\u0627\u0633\u0644 \u0633\u064a\u0627\u0631\u0627\u062a"}</option>
@@ -588,36 +583,35 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                     </select>
                   </div>
                   <div>
-                    <label>{"\u0627\u0644\u0639\u0646\u0648\u0627\u0646"}</label>
-                    <input type="text" placeholder={"\u0627\u0644\u0645\u062f\u064a\u0646\u0629\u060c \u0627\u0644\u062d\u064a"} />
+                    <label className={dashboardLabel}>{"\u0627\u0644\u0639\u0646\u0648\u0627\u0646"}</label>
+                    <input className={dashboardField} type="text" placeholder={"\u0627\u0644\u0645\u062f\u064a\u0646\u0629\u060c \u0627\u0644\u062d\u064a"} />
                   </div>
                 </div>
 
-                <div className="dashboard-lead-request-stack">
+                <div className="grid gap-3.5">
                   <div>
-                    <label>{"\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644"}</label>
-                    <input type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0627\u0644\u062b\u0644\u0627\u062b\u064a"} />
+                    <label className={dashboardLabel}>{"\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644"}</label>
+                    <input className={dashboardField} type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0627\u0644\u062b\u0644\u0627\u062b\u064a"} />
                   </div>
                   <div>
-                    <label>{"\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a"}</label>
-                    <input dir="ltr" type="email" placeholder="name@company.com" />
+                    <label className={dashboardLabel}>{"\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a"}</label>
+                    <input className={dashboardField} dir="ltr" type="email" placeholder="name@company.com" />
                   </div>
                   <div>
-                    <label>{"\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644"}</label>
-                    <input dir="ltr" type="tel" placeholder="+966 5X XXX XXXX" />
+                    <label className={dashboardLabel}>{"\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644"}</label>
+                    <input className={dashboardField} dir="ltr" type="tel" placeholder="+966 5X XXX XXXX" />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label>{"\u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0625\u0636\u0627\u0641\u064a\u0629"}</label>
-                <textarea rows={3} placeholder={"\u0627\u0630\u0643\u0631 \u0623\u064a \u0645\u062a\u0637\u0644\u0628\u0627\u062a \u062e\u0627\u0635\u0629 \u0623\u0648 \u062a\u0641\u0627\u0635\u064a\u0644 \u0625\u0636\u0627\u0641\u064a\u0629..."} />
+                <label className={dashboardLabel}>{"\u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0625\u0636\u0627\u0641\u064a\u0629"}</label>
+                <textarea className={cn(dashboardField, "min-h-[110px] resize-y")} rows={3} placeholder={"\u0627\u0630\u0643\u0631 \u0623\u064a \u0645\u062a\u0637\u0644\u0628\u0627\u062a \u062e\u0627\u0635\u0629 \u0623\u0648 \u062a\u0641\u0627\u0635\u064a\u0644 \u0625\u0636\u0627\u0641\u064a\u0629..."} />
               </div>
 
-              <button type="button">{"\u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0639\u0631\u0636"}</button>
+              <button className={theme.primaryButton} type="button">{"\u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0639\u0631\u0636"}</button>
             </form>
-          </div>
-        </div>
+        </DashboardCard>
       </section>
     </section>
   );
