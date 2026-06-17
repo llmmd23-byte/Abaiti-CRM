@@ -1,0 +1,452 @@
+{
+  "brand": {
+    "home": "Middar home",
+    "name": "Middar"
+  },
+  "nav": {
+    "label": "Primary navigation",
+    "features": "Platform",
+    "dashboard": "Dashboard",
+    "commissions": "Commissions",
+    "support": "Help Desk"
+  },
+  "cta": {
+    "demo": "Request Demo",
+    "dashboard": "View Dashboard"
+  },
+  "hero": {
+    "eyebrow": "Affiliate marketing CRM platform",
+    "title": "Turn affiliate traffic into qualified leads, quotes, payments, and tracked commissions.",
+    "copy": "Middar gives every affiliate a conversion-focused landing page and a secure CRM dashboard for managing leads, issuing quotes, sharing payment links, and tracking earnings in real time."
+  },
+  "trust": {
+    "label": "Trust indicators",
+    "crm": "Lead attribution CRM",
+    "payments": "Quote payment links",
+    "payouts": "Real-time commissions"
+  },
+  "form": {
+    "aria": "Affiliate demo request form",
+    "recommended": "Personalized affiliate landing page",
+    "title": "Request a product demo",
+    "name": "Full name",
+    "namePlaceholder": "Enter your name",
+    "email": "Work email",
+    "phone": "Phone number",
+    "size": "Company size",
+    "size1": "1-10 employees",
+    "size2": "11-50 employees",
+    "size3": "51-200 employees",
+    "size4": "200+ employees",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password...",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Re-enter your password to confirm...",
+    "submit": "Submit Demo Request",
+    "note": "The CRM records the affiliate source, lead status, and follow-up task automatically."
+  },
+  "features": {
+    "eyebrow": "Built for affiliate sales teams",
+    "title": "A focused system for lead generation, sales management, and commission clarity.",
+    "item1": {
+      "title": "Affiliate Landing Pages",
+      "copy": "Launch unique, conversion-optimized pages for every marketer with source tracking and CRM lead capture."
+    },
+    "item2": {
+      "title": "Lead Management CRM",
+      "copy": "Track demo requests, lead status, customer details, follow-up tasks, and attribution in one clean workflow."
+    },
+    "item3": {
+      "title": "Quoting and Payments",
+      "copy": "Create custom price quotes, send professional proposals, and attach secure payment links for customers."
+    },
+    "item4": {
+      "title": "Commission Tracking",
+      "copy": "Give affiliates real-time visibility into sales, earned commissions, payout status, and transaction history."
+    }
+  },
+  "affiliatePage": {
+    "navPlatform": "Platform",
+    "eyebrow": "Recommended by {affiliateName}",
+    "title": "See how Middar helps sales teams convert leads into paid customers.",
+    "copy": "Request a personalized demo and discover the affiliate CRM workflow: lead capture, quotes, payment links, and commission tracking from one connected system.",
+    "formTag": "Affiliate source: {affiliateName}",
+    "formTitle": "Request your demo",
+    "message": "Message",
+    "messagePlaceholder": "Tell us what you want to evaluate",
+    "crmNote": "This request is tagged in CRM as {affiliateId} and routed to the central sales queue.",
+    "specsEyebrow": "Product specs",
+    "specsTitle": "Built for measurable affiliate-driven sales.",
+    "spec1": {
+      "title": "Source Attribution",
+      "copy": "Every lead is tagged with affiliate ID, landing source, timestamp, and status."
+    },
+    "spec2": {
+      "title": "CRM Lead Routing",
+      "copy": "New demo requests are routed to the sales team with follow-up context."
+    },
+    "spec3": {
+      "title": "Quote-to-Payment",
+      "copy": "Sales teams can issue custom quotes and attach secure payment links."
+    },
+    "spec4": {
+      "title": "Commission Visibility",
+      "copy": "Closed sales are connected to affiliate earnings and payout status."
+    }
+  },
+  "portal": {
+    "name": "Affiliate Console",
+    "overview": "Overview",
+    "marketing": "Marketing",
+    "potentialCustomers": "Potential Customers",
+    "salesTools": "Quotes & Pricing",
+    "quotesPricing": "Quotes & Pricing",
+    "commissions": "Commissions",
+    "sales": "Sales",
+    "educationalHub": "Educational Hub",
+    "helpDesk": "Help Desk",
+    "settings": "Settings",
+    "customers": "Customers",
+    "accounts": "Accounts",
+    "products": "Products",
+    "activation": "Activation",
+    "createDemo": "Create Demo"
+  },
+  "dashboard": {
+    "eyebrow": "Affiliate dashboard",
+    "greeting": "Good morning, partner",
+    "createQuote": "Create Quote"
+  },
+  "metrics": {
+    "item1": {
+      "label": "Total sales",
+      "value": "$128,450",
+      "note": "+18.2% this month"
+    },
+    "item2": {
+      "label": "Earned commission",
+      "value": "$18,725",
+      "note": "$4,200 pending payout"
+    },
+    "item3": {
+      "label": "Qualified leads",
+      "value": "236",
+      "note": "31 new demo requests"
+    },
+    "item4": {
+      "label": "Quote conversion",
+      "value": "42%",
+      "note": "Sent quote to paid customer"
+    }
+  },
+  "chart": {
+    "label": "Affiliate sales chart",
+    "title": "Lead, quote, and commission performance",
+    "period": "30 days"
+  },
+  "quote": {
+    "title": "Quoting system",
+    "subtitle": "Sales management",
+    "number": "Quote #MD-2048",
+    "package": "Enterprise CRM License",
+    "step1": "Select lead or customer",
+    "step2": "Customize package and price",
+    "step3": "Generate payment link",
+    "button": "Create Quote & Payment Link"
+  },
+  "commission": {
+    "title": "Commission analytics",
+    "subtitle": "Sales and payout visibility",
+    "customer": "Customer",
+    "sale": "Sale",
+    "percent": "Commission %",
+    "amount": "Commission",
+    "status": "Status",
+    "row1": {
+      "customer": "Nova Clinics",
+      "sale": "$32,000",
+      "percent": "15%",
+      "commission": "$4,800",
+      "status": "Paid",
+      "statusClass": "paid"
+    },
+    "row2": {
+      "customer": "BlueStone Group",
+      "sale": "$18,400",
+      "percent": "15%",
+      "commission": "$2,760",
+      "status": "Approved",
+      "statusClass": "approved"
+    },
+    "row3": {
+      "customer": "Meridian Co.",
+      "sale": "$9,750",
+      "percent": "15%",
+      "commission": "$1,462",
+      "status": "Pending",
+      "statusClass": "pending"
+    }
+  },
+  "support": {
+    "title": "Help Desk",
+    "subtitle": "Parent company support",
+    "openTickets": "Open tickets",
+    "category": "Ticket category",
+    "category1": "Commission Issue",
+      "category2": "Payment Issue",
+      "category3": "Lead Support",
+      "category4": "Sales Material Request",
+      "categoryOther": "Other",
+      "customCategoryLabel": "What is the ticket category?",
+      "customCategoryPlaceholder": "Write the ticket category here...",
+      "detailsPlaceholder": "Support request details",
+      "placeholder": "Describe what you need help with",
+      "button": "Open Support Ticket"
+  },
+  "dashboardPages": {
+    "sidebar": {
+      "accountStatus": "Account status",
+      "active": "Active"
+    },
+    "entry": {
+      "title": "Open a focused dashboard workspace for each affiliate workflow.",
+      "overviewTitle": "Performance overview",
+      "overviewNote": "High-level sales, leads, and commission signals in one executive view.",
+      "quotesNote": "Create custom price quotes and generate secure payment links.",
+      "commissionsNote": "Review sales, earned commissions, approval state, and payout status.",
+      "supportNote": "Open tickets with the parent company without leaving the affiliate console."
+    },
+    "quotes": {
+      "eyebrow": "Sales management",
+      "title": "Create professional quotes and payment links.",
+      "formTitle": "Quote details",
+      "formSubtitle": "Customer-ready pricing",
+      "historyTitle": "Generated quotes",
+      "historySubtitle": "Latest quote activity",
+      "quoteId": "Quote ID",
+      "customer": "Customer",
+      "customerPlaceholder": "Select or create a lead",
+      "package": "Package",
+      "packageOption1": "Enterprise CRM License",
+      "packageOption2": "Growth CRM License",
+      "amount": "Quote amount",
+      "validUntil": "Valid until",
+      "row1": {
+        "id": "#MD-2048",
+        "customer": "Nova Clinics",
+        "package": "Enterprise CRM License",
+        "amount": "$8,400",
+        "status": "Sent",
+        "statusClass": "pending"
+      },
+      "row2": {
+        "id": "#MD-2042",
+        "customer": "BlueStone Group",
+        "package": "Growth CRM License",
+        "amount": "$4,900",
+        "status": "Paid",
+        "statusClass": "paid"
+      },
+      "row3": {
+        "id": "#MD-2036",
+        "customer": "Meridian Co.",
+        "package": "Enterprise CRM License",
+        "amount": "$9,750",
+        "status": "Approved",
+        "statusClass": "approved"
+      }
+    },
+    "commissions": {
+      "eyebrow": "Commission analytics",
+      "title": "Track sales, earnings, and payout status in full width."
+    },
+    "support": {
+      "eyebrow": "Help desk",
+      "title": "Manage support tickets with the parent company.",
+      "ticketList": "Past tickets",
+      "ticket1": {
+        "title": "Commission approval delay",
+        "meta": "Ticket #1284 · 2 hours ago",
+        "status": "Open",
+        "statusClass": "pending"
+      },
+      "ticket2": {
+        "title": "Payment link confirmation",
+        "meta": "Ticket #1272 · Yesterday",
+        "status": "Resolved",
+        "statusClass": "paid"
+      },
+      "ticket3": {
+        "title": "Need updated sales material",
+        "meta": "Ticket #1265 · 3 days ago",
+        "status": "Open",
+        "statusClass": "pending"
+      }
+    },
+    "settings": {
+      "eyebrow": "Affiliate settings",
+      "title": "Manage profile, payout, and notification preferences.",
+      "item1": {
+        "label": "Affiliate profile",
+        "value": "Verified",
+        "note": "Public landing page and CRM source tracking are active."
+      },
+      "item2": {
+        "label": "Payout method",
+        "value": "Bank transfer",
+        "note": "Used for approved commission withdrawals."
+      },
+      "item3": {
+        "label": "Notifications",
+        "value": "Enabled",
+        "note": "Receive updates for leads, quotes, tickets, and payouts."
+      }
+    },
+    "customers": {
+      "eyebrow": "Customer CRM",
+      "title": "Manage qualified leads and active customers in one clean view.",
+      "tableTitle": "Customer list",
+      "tableSubtitle": "CRM records tagged by affiliate source",
+      "name": "Name",
+      "company": "Company",
+      "source": "Source",
+      "stage": "Stage",
+      "value": "Potential value",
+      "owner": "Owner",
+      "row1": {
+        "name": "Maya Carter",
+        "company": "Nova Clinics",
+        "source": "Affiliate page",
+        "stage": "Qualified",
+        "stageClass": "approved",
+        "value": "$32,000",
+        "owner": "Sales Team"
+      },
+      "row2": {
+        "name": "Omar Saleh",
+        "company": "BlueStone Group",
+        "source": "Demo request",
+        "stage": "Proposal",
+        "stageClass": "pending",
+        "value": "$18,400",
+        "owner": "Partner Desk"
+      },
+      "row3": {
+        "name": "Lina Haddad",
+        "company": "Meridian Co.",
+        "source": "Quote link",
+        "stage": "Won",
+        "stageClass": "paid",
+        "value": "$9,750",
+        "owner": "Sales Team"
+      },
+      "row4": {
+        "name": "Fahad Nasser",
+        "company": "Apex Digital",
+        "source": "Referral",
+        "stage": "New",
+        "stageClass": "pending",
+        "value": "$12,600",
+        "owner": "Affiliate Manager"
+      }
+    },
+    "accounts": {
+      "eyebrow": "Financial ledger",
+      "title": "Review commission ledger, transfers, and payout movements.",
+      "tableTitle": "Account statement",
+      "tableSubtitle": "Financial logs for affiliate activity",
+      "date": "Date",
+      "reference": "Reference",
+      "description": "Description",
+      "amount": "Amount",
+      "status": "Status",
+      "summary1": {
+        "label": "Available balance",
+        "value": "$14,525"
+      },
+      "summary2": {
+        "label": "Pending approval",
+        "value": "$4,200"
+      },
+      "summary3": {
+        "label": "Paid this month",
+        "value": "$8,940"
+      },
+      "row1": {
+        "date": "Jun 15, 2026",
+        "reference": "#PAY-2048",
+        "description": "Commission payout transfer",
+        "amount": "$4,800",
+        "status": "Paid",
+        "statusClass": "paid"
+      },
+      "row2": {
+        "date": "Jun 12, 2026",
+        "reference": "#COM-2039",
+        "description": "Enterprise CRM commission",
+        "amount": "$2,760",
+        "status": "Approved",
+        "statusClass": "approved"
+      },
+      "row3": {
+        "date": "Jun 08, 2026",
+        "reference": "#COM-2027",
+        "description": "Growth CRM commission",
+        "amount": "$1,462",
+        "status": "Pending",
+        "statusClass": "pending"
+      },
+      "row4": {
+        "date": "Jun 03, 2026",
+        "reference": "#ADJ-2014",
+        "description": "Manual account adjustment",
+        "amount": "$320",
+        "status": "Approved",
+        "statusClass": "approved"
+      }
+    },
+    "products": {
+      "eyebrow": "Middar systems",
+      "title": "Showcase dynamic SaaS management systems ready for affiliate sales.",
+      "item1": {
+        "eyebrow": "CRM Core",
+        "title": "Lead Attribution CRM",
+        "copy": "Capture affiliate leads, route demo requests, and preserve source attribution across the full sales cycle.",
+        "status": "Active product"
+      },
+      "item2": {
+        "eyebrow": "Sales Suite",
+        "title": "Quotes and Payment Links",
+        "copy": "Generate customer-ready quotes, attach secure payment links, and track quote-to-payment conversion.",
+        "status": "Ready for demos"
+      },
+      "item3": {
+        "eyebrow": "Revenue Ops",
+        "title": "Commission Management",
+        "copy": "Calculate earnings, approval states, payout status, and partner-level financial visibility.",
+        "status": "Featured"
+      },
+      "item4": {
+        "eyebrow": "Support Desk",
+        "title": "Affiliate Help Desk",
+        "copy": "Open structured support tickets and keep direct communication with Middar in one workflow.",
+        "status": "Included"
+      }
+    },
+    "demo": {
+      "eyebrow": "Demo workspace",
+      "title": "Create a tailored trial environment for a qualified customer.",
+      "cardTitle": "Create demo instance",
+      "cardSubtitle": "Provision a focused SaaS preview for sales conversations",
+      "customer": "Customer",
+      "customerPlaceholder": "Select or enter customer name",
+      "product": "Product system",
+      "duration": "Trial duration",
+      "durationOption1": "14 days",
+      "durationOption2": "30 days",
+      "owner": "Assigned owner",
+      "ownerPlaceholder": "Sales owner name",
+      "button": "Create Trial Demo"
+    }
+  }
+}
