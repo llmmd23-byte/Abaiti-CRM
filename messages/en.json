@@ -6,7 +6,7 @@
   "nav": {
     "label": "Primary navigation",
     "features": "Platform",
-    "dashboard": "Dashboard",
+    "dashboard": "Sign in",
     "commissions": "Commissions",
     "support": "Help Desk"
   },
@@ -155,8 +155,8 @@
     "button": "Create Quote & Payment Link"
   },
   "commission": {
-    "title": "Commission analytics",
-    "subtitle": "Sales and payout visibility",
+    "title": "Sales details",
+    "subtitle": "Sales and commission visibility",
     "customer": "Customer",
     "sale": "Sale",
     "percent": "Commission %",
@@ -227,14 +227,14 @@
       "customer": "Customer",
       "customerPlaceholder": "Select or create a lead",
       "package": "Package",
-      "packageOption1": "Enterprise CRM License",
-      "packageOption2": "Growth CRM License",
+      "packageOption1": "Growth Package",
+      "packageOption2": "Advanced Package",
       "amount": "Quote amount",
       "validUntil": "Valid until",
       "row1": {
         "id": "#MD-2048",
         "customer": "Nova Clinics",
-        "package": "Enterprise CRM License",
+        "package": "Advanced Package",
         "amount": "$8,400",
         "status": "Sent",
         "statusClass": "pending"
@@ -242,7 +242,7 @@
       "row2": {
         "id": "#MD-2042",
         "customer": "BlueStone Group",
-        "package": "Growth CRM License",
+        "package": "Growth Package",
         "amount": "$4,900",
         "status": "Paid",
         "statusClass": "paid"
@@ -250,14 +250,14 @@
       "row3": {
         "id": "#MD-2036",
         "customer": "Meridian Co.",
-        "package": "Enterprise CRM License",
+        "package": "Advanced Package",
         "amount": "$9,750",
         "status": "Approved",
         "statusClass": "approved"
       }
     },
     "commissions": {
-      "eyebrow": "Commission analytics",
+      "eyebrow": "Sales details",
       "title": "Track sales, earnings, and payout status in full width."
     },
     "support": {
@@ -445,7 +445,7 @@
       "durationOption1": "14 days",
       "durationOption2": "30 days",
       "owner": "Assigned owner",
-      "ownerPlaceholder": "Sales owner name",
+      "ownerPlaceholder": "Trial user name",
       "button": "Create Trial Demo"
     }
   }

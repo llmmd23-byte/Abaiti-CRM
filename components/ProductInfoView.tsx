@@ -1,7 +1,7 @@
 "use client";
 
 import {useLocale} from "next-intl";
-import {cn, theme} from "@/components/ui";
+import DashboardSelect from "@/components/DashboardSelect";
 
 const copy = {
   ar: {
@@ -20,7 +20,7 @@ const copy = {
     requirementsPlaceholder: "\u0627\u0643\u062a\u0628 \u0623\u064a \u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0625\u0636\u0627\u0641\u064a\u0629 \u0623\u0648 \u0634\u0631\u0648\u0637 \u0636\u0631\u0648\u0631\u064a\u0629 \u0647\u0646\u0627...",
     contactTitle: "\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u062a\u0648\u0627\u0635\u0644",
     activationTitle: "\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u062a\u0641\u0639\u064a\u0644",
-    save: "\u0631\u0628\u0637 \u0645\u0639 \u0639\u0631\u0636 \u0633\u0639\u0631",
+    save: "\u0631\u0628\u0637 \u0645\u0639 \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a",
     fields: {
       businessName: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u0634\u0623\u0629",
       registrationNumber: "\u0631\u0642\u0645 \u0627\u0644\u0633\u062c\u0644",
@@ -84,14 +84,32 @@ function Field({
   placeholder?: string;
 }) {
   return (
-    <label className="grid min-w-0 gap-2">
-      <span className="text-[13px] font-extrabold leading-snug text-slate-700">{label}</span>
-      <input
-        className="min-h-12 w-full rounded-[14px] border border-[#dbe6ee] bg-white px-3.5 py-3 text-sm font-medium leading-normal text-[#0b1f3a] outline-none transition focus:border-[#22b8b8] focus:shadow-[0_0_0_4px_rgba(0,161,157,0.1)]"
-        type={type}
-        placeholder={placeholder ?? label}
-      />
+    <label className="product-info-field">
+      <span>{label}</span>
+      <input type={type} placeholder={placeholder ?? label} />
     </label>
+  );
+}
+
+function PremiumSystemSelect({
+  label,
+  options,
+  placeholder
+}: {
+  label: string;
+  options: string[];
+  placeholder: string;
+}) {
+  return (
+    <div className="product-info-field premium-system-field">
+      <span>{label}</span>
+      <DashboardSelect
+        ariaLabel={label}
+        name="systemType"
+        options={options.map((option) => ({label: option, value: option}))}
+        placeholder={placeholder}
+      />
+    </div>
   );
 }
 
@@ -101,98 +119,64 @@ export default function ProductInfoView() {
   const content = isArabic ? copy.ar : copy.en;
 
   return (
-    <section className="grid w-full gap-[18px]" dir={isArabic ? "rtl" : "ltr"}>
-      <header className="grid gap-2 px-0.5 pb-1 pt-1">
-        <span className="text-[13px] font-extrabold text-[#22b8b8]">{content.title}</span>
-        <h1 className="m-0 max-w-[760px] text-[clamp(28px,3.2vw,46px)] font-black leading-[1.18] text-[#0b1f3a]">
-          {content.subtitle}
-        </h1>
-      </header>
-
-      <article className={cn("grid gap-[18px] rounded-[22px] p-6", theme.card)}>
-        <h2 className="m-0 text-lg font-black leading-snug text-[#0b1f3a]">{content.serviceTitle}</h2>
-        <label className="grid min-w-0 gap-2">
-          <span className="text-[13px] font-extrabold leading-snug text-slate-700">{content.serviceLabel}</span>
-          <select
-            className="min-h-12 w-full rounded-[14px] border border-[#dbe6ee] bg-white px-3.5 py-3 text-sm font-medium leading-normal text-[#0b1f3a] outline-none transition focus:border-[#22b8b8] focus:shadow-[0_0_0_4px_rgba(0,161,157,0.1)]"
-            defaultValue=""
-          >
-            <option value="" disabled>
-              {content.servicePlaceholder}
-            </option>
-            {content.serviceOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </label>
+    <section className="product-info-view" dir={isArabic ? "rtl" : "ltr"}>
+      <article className="product-info-card">
+        <h2>{content.serviceTitle}</h2>
+        <PremiumSystemSelect
+          label={content.serviceLabel}
+          options={content.serviceOptions}
+          placeholder={content.servicePlaceholder}
+        />
       </article>
 
-      <article className={cn("grid gap-[18px] rounded-[22px] p-6", theme.card)}>
-        <h2 className="m-0 text-lg font-black leading-snug text-[#0b1f3a]">{content.businessTitle}</h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <article className="product-info-card">
+        <h2>{content.businessTitle}</h2>
+        <div className="product-info-grid">
           <Field label={content.fields.businessName} />
           <Field label={content.fields.registrationNumber} />
           <Field label={content.fields.businessActivity} />
           <Field label={content.fields.businessEmail} type="email" />
           <Field label={content.fields.businessMobile} type="tel" />
-          <div className="grid gap-2 md:col-span-2">
-            <span className="text-[13px] font-extrabold leading-snug text-slate-700">{content.fields.address}</span>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              {[content.fields.city, content.fields.district, content.fields.street].map((placeholder) => (
-                <input
-                  className="min-h-12 w-full rounded-[14px] border border-[#dbe6ee] bg-white px-3.5 py-3 text-sm font-medium leading-normal text-[#0b1f3a] outline-none transition focus:border-[#22b8b8] focus:shadow-[0_0_0_4px_rgba(0,161,157,0.1)]"
-                  key={placeholder}
-                  type="text"
-                  placeholder={placeholder}
-                />
-              ))}
+          <div className="product-info-address">
+            <span>{content.fields.address}</span>
+            <div className="product-info-address-grid">
+              <input type="text" placeholder={content.fields.city} />
+              <input type="text" placeholder={content.fields.district} />
+              <input type="text" placeholder={content.fields.street} />
             </div>
           </div>
         </div>
       </article>
 
-      <article className={cn("grid gap-[18px] rounded-[22px] p-6", theme.card)}>
-        <h2 className="m-0 text-lg font-black leading-snug text-[#0b1f3a]">{content.requirementsTitle}</h2>
-        <label className="grid min-w-0 gap-2">
-          <span className="text-[13px] font-extrabold leading-snug text-slate-700">{content.requirementsTitle}</span>
-          <textarea
-            className="min-h-[118px] w-full resize-y rounded-[14px] border border-[#dbe6ee] bg-white px-3.5 py-3 text-sm font-medium leading-normal text-[#0b1f3a] outline-none transition focus:border-[#22b8b8] focus:shadow-[0_0_0_4px_rgba(0,161,157,0.1)]"
-            placeholder={content.requirementsPlaceholder}
-          />
+      <article className="product-info-card">
+        <h2>{content.requirementsTitle}</h2>
+        <label className="product-info-field">
+          <span>{content.requirementsTitle}</span>
+          <textarea placeholder={content.requirementsPlaceholder} />
         </label>
       </article>
 
-      <article className={cn("grid gap-[18px] rounded-[22px] p-6", theme.card)}>
-        <h2 className="m-0 text-lg font-black leading-snug text-[#0b1f3a]">{content.contactTitle}</h2>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <article className="product-info-card">
+        <h2>{content.contactTitle}</h2>
+        <div className="product-info-grid product-info-three-grid">
           <Field label={content.fields.managerName} />
           <Field label={content.fields.mobile} type="tel" />
           <Field label={content.fields.email} type="email" />
         </div>
       </article>
 
-      <article className={cn("grid gap-[18px] rounded-[22px] p-6", theme.card)}>
-        <h2 className="m-0 text-lg font-black leading-snug text-[#0b1f3a]">{content.activationTitle}</h2>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <article className="product-info-card">
+        <h2>{content.activationTitle}</h2>
+        <div className="product-info-grid product-info-three-grid">
           <Field label={content.fields.serialNumber} placeholder={content.fields.serialNumberPlaceholder} />
           <Field label={content.fields.activationCode} />
           <Field label={content.fields.referralCode} />
         </div>
       </article>
 
-      <div className="mt-1 flex flex-wrap items-center gap-4">
-        <button
-          className="min-w-[170px] rounded-[14px] border-0 bg-[#0b1f3a] px-6 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#071426] hover:shadow-[0_14px_28px_rgba(11,25,44,0.18)]"
-          type="button"
-        >
-          {content.save}
-        </button>
-        <button
-          className="min-w-[170px] rounded-[14px] border-0 bg-emerald-600 px-6 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-[0_14px_28px_rgba(5,150,105,0.18)]"
-          type="button"
-        >
+      <div className="product-info-actions">
+        <button type="button">{content.save}</button>
+        <button className="product-info-activate-button" type="button">
           {isArabic ? "\u062a\u0641\u0639\u064a\u0644 \u0627\u0644\u0646\u0638\u0627\u0645" : "Activate System"}
         </button>
       </div>

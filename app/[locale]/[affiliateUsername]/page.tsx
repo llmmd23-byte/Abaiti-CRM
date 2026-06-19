@@ -1,8 +1,8 @@
 import {captureAffiliateLead} from "@/app/actions";
-import {formControl, formLabel, HeroLayout, LeadPanel, PublicHeader} from "@/components/PublicLanding";
-import {cn, SectionTitle, theme} from "@/components/ui";
+import DashboardSelect from "@/components/DashboardSelect";
 import {Link} from "@/i18n/navigation";
 import {useLocale, useTranslations} from "next-intl";
+import Image from "next/image";
 import {notFound} from "next/navigation";
 
 const reservedRoutes = new Set(["dashboard", "api", "_next"]);
@@ -44,70 +44,94 @@ function AffiliatePageContent({
 
   return (
     <>
-      <PublicHeader
-        nav={
-          <>
+      <header className="site-header">
+        <Link className="brand" href="/" aria-label={t("brand.home")}>
+          <Image
+            className="brand-logo"
+            src="/middar-logo-transparent-v2.png"
+            alt={`${t("brand.name")} logo`}
+            width={747}
+            height={211}
+            priority
+            unoptimized
+          />
+        </Link>
+        <nav className="nav-links" aria-label={t("nav.label")}>
           <Link href="/">{t("affiliatePage.navPlatform")}</Link>
           <Link href="/dashboard">{t("nav.dashboard")}</Link>
-          </>
-        }
-      />
+        </nav>
+      </header>
 
       <main>
-        <HeroLayout
-          affiliate
-          eyebrow={t("affiliatePage.eyebrow", {affiliateName})}
-          title={t("affiliatePage.title")}
-          copy={t("affiliatePage.copy")}
-          trust={[t("trust.crm"), t("trust.payments"), t("trust.payouts")]}
-          panel={
-          <LeadPanel tag={t("affiliatePage.formTag", {affiliateName})} title={t("affiliatePage.formTitle")}>
-            <form action={captureAffiliateLead} className="grid gap-3.5">
+        <section className="hero affiliate-hero">
+          <div className="hero-content">
+            <p className="eyebrow">{t("affiliatePage.eyebrow", {affiliateName})}</p>
+            <h1>{t("affiliatePage.title")}</h1>
+            <p className="hero-copy">{t("affiliatePage.copy")}</p>
+            <div className="trust-row" aria-label={t("trust.label")}>
+              <span>{t("trust.crm")}</span>
+              <span>{t("trust.payments")}</span>
+              <span>{t("trust.payouts")}</span>
+            </div>
+          </div>
+
+          <aside className="lead-panel affiliate-lead-panel">
+            <div className="panel-heading">
+              <span className="status-dot" />
+              <span>{t("affiliatePage.formTag", {affiliateName})}</span>
+            </div>
+            <h2>{t("affiliatePage.formTitle")}</h2>
+            <form action={captureAffiliateLead} className="demo-form">
               <input name="affiliateUsername" type="hidden" value={affiliateUsername} />
               <input name="affiliateId" type="hidden" value={affiliateId} />
               <input name="locale" type="hidden" value={locale} />
-              <label className={formLabel}>
+              <label>
                 <span>{t("form.name")}</span>
-                <input className={formControl} name="fullName" required type="text" placeholder={t("form.namePlaceholder")} />
+                <input name="fullName" required type="text" placeholder={t("form.namePlaceholder")} />
               </label>
-              <label className={formLabel}>
+              <label>
                 <span>{t("form.email")}</span>
-                <input className={formControl} name="email" required type="email" placeholder="name@company.com" />
+                <input name="email" required type="email" placeholder="name@company.com" />
               </label>
-              <label className={formLabel}>
+              <label>
                 <span>{t("form.phone")}</span>
-                <input className={formControl} name="phone" type="tel" placeholder="+966 5X XXX XXXX" />
+                <input name="phone" type="tel" placeholder="+966 5X XXX XXXX" />
               </label>
-              <label className={formLabel}>
+              <label>
                 <span>{t("form.size")}</span>
-                <select className={formControl} name="companySize">
-                  <option>{t("form.size1")}</option>
-                  <option>{t("form.size2")}</option>
-                  <option>{t("form.size3")}</option>
-                  <option>{t("form.size4")}</option>
-                </select>
+                <DashboardSelect
+                  ariaLabel={t("form.size")}
+                  defaultValue={t("form.size1")}
+                  name="companySize"
+                  options={[1, 2, 3, 4].map((item) => ({
+                    label: t(`form.size${item}`),
+                    value: t(`form.size${item}`)
+                  }))}
+                />
               </label>
-              <label className={formLabel}>
+              <label>
                 <span>{t("affiliatePage.message")}</span>
-                <textarea className={cn(formControl, "min-h-[104px] resize-y py-3")} name="message" placeholder={t("affiliatePage.messagePlaceholder")} />
+                <textarea name="message" placeholder={t("affiliatePage.messagePlaceholder")} />
               </label>
-              <button className={theme.primaryButton} type="submit">
+              <button className="button button-form" type="submit">
                 {t("form.submit")}
               </button>
-              <p className="m-0 text-xs font-normal leading-relaxed text-[#647280]">{t("affiliatePage.crmNote", {affiliateId})}</p>
+              <p>{t("affiliatePage.crmNote", {affiliateId})}</p>
             </form>
-          </LeadPanel>
-          }
-        />
+          </aside>
+        </section>
 
-        <section className="px-[clamp(18px,5vw,72px)] py-[clamp(52px,8vw,104px)]">
-          <SectionTitle eyebrow={t("affiliatePage.specsEyebrow")} title={t("affiliatePage.specsTitle")} />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="section">
+          <div className="section-heading">
+            <p className="eyebrow">{t("affiliatePage.specsEyebrow")}</p>
+            <h2>{t("affiliatePage.specsTitle")}</h2>
+          </div>
+          <div className="feature-grid">
             {[1, 2, 3, 4].map((item) => (
-              <article className={cn("p-6", theme.glass)} key={item}>
-                <span className="mb-6 inline-flex font-medium text-[#22b8b8]">0{item}</span>
-                <h3 className="m-0 text-lg font-bold leading-tight text-[#0b1f3a]">{t(`affiliatePage.spec${item}.title`)}</h3>
-                <p className="mb-0 mt-3 font-normal leading-8 text-[#647280]">{t(`affiliatePage.spec${item}.copy`)}</p>
+              <article key={item}>
+                <span className="icon">0{item}</span>
+                <h3>{t(`affiliatePage.spec${item}.title`)}</h3>
+                <p>{t(`affiliatePage.spec${item}.copy`)}</p>
               </article>
             ))}
           </div>

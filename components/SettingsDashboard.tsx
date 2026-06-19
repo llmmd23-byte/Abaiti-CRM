@@ -2,8 +2,7 @@
 
 import {useLocale} from "next-intl";
 import {useState} from "react";
-import {DashboardCard, StatusBadge, dashboardField, dashboardLabel} from "@/components/DashboardPrimitives";
-import {cn, theme} from "@/components/ui";
+import DashboardSelect from "@/components/DashboardSelect";
 
 type SettingsTab = "profile" | "skills" | "host" | "payout" | "notifications" | "security";
 
@@ -189,17 +188,17 @@ const cleanArabicContent: typeof content.en = {
 
 function Toggle({label, defaultChecked = true}: {label: string; defaultChecked?: boolean}) {
   return (
-    <label className="relative grid min-h-12 grid-cols-[minmax(0,1fr)_48px] items-center gap-3.5 border-b border-[#dde6ee]/70 py-3 last:border-b-0">
-      <span className="text-sm font-semibold text-[#354252]">{label}</span>
-      <input className="peer absolute inline-end-0 z-10 h-7 w-12 cursor-pointer opacity-0" type="checkbox" defaultChecked={defaultChecked} />
-      <i className="relative block h-7 w-12 rounded-full bg-[#d2dde7] transition peer-checked:bg-[#22b8b8] after:absolute after:top-1 after:inline-start-1 after:size-5 after:rounded-full after:bg-white after:shadow-[0_4px_10px_rgba(11,31,58,0.18)] after:transition after:content-[''] peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5" aria-hidden="true" />
+    <label className="settings-toggle-row">
+      <span>{label}</span>
+      <input type="checkbox" defaultChecked={defaultChecked} />
+      <i aria-hidden="true" />
     </label>
   );
 }
 
 function SocialFieldIcon({name}: {name: "tiktok" | "snapchat" | "x" | "facebook" | "linkedin"}) {
   return (
-    <span className={cn("pointer-events-none absolute top-1/2 inline-start-3 grid size-[22px] -translate-y-1/2 place-items-center text-slate-700", name === "snapchat" && "text-[#d4a400]", name === "facebook" && "text-blue-600", name === "linkedin" && "text-[#0a66c2]")} aria-hidden="true">
+    <span className={`settings-social-icon ${name}`} aria-hidden="true">
       {name === "tiktok" ? (
         <svg viewBox="0 0 24 24">
           <path d="M14.6 3c.3 2.8 1.9 4.7 4.6 5.1v3.3a8.1 8.1 0 0 1-4.5-1.3v5.8c0 3.3-2.2 5.2-5 5.2-2.7 0-4.8-1.9-4.8-4.5 0-2.8 2.2-4.5 5.2-4.5.3 0 .6 0 .8.1v3.5a2.8 2.8 0 0 0-.8-.1c-1 0-1.7.6-1.7 1.5s.7 1.5 1.6 1.5c1.1 0 1.7-.7 1.7-2V3h2.9Z" />
@@ -300,15 +299,12 @@ export default function SettingsDashboard() {
   }
 
   return (
-    <section className="grid grid-cols-1 items-start gap-[18px] lg:grid-cols-[minmax(210px,0.28fr)_minmax(0,1fr)]">
-      <div className="flex gap-2 overflow-x-auto rounded-[14px] border border-[#dde6ee] bg-white/75 p-3 shadow-[0_18px_48px_rgba(11,31,58,0.08)] lg:grid lg:overflow-visible" role="tablist" aria-orientation="vertical">
+    <section className="settings-dashboard-panel">
+      <div className="settings-tabs" role="tablist" aria-orientation="vertical">
         {settingsTabOrder.map((tab) => (
           <button
             aria-selected={activeTab === tab}
-            className={cn(
-              "min-h-12 w-full min-w-max rounded-xl border border-transparent px-3.5 py-3 text-start text-sm font-semibold leading-tight text-[#354252] transition hover:bg-[#e0f8f8]/55 hover:text-[#0b1f3a]",
-              activeTab === tab && "border-[#22b8b8]/25 bg-[linear-gradient(135deg,#e0f8f8,rgba(255,255,255,0.9))] text-[#0b1f3a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.72)]"
-            )}
+            className={activeTab === tab ? "active" : ""}
             key={tab}
             onClick={() => setActiveTab(tab)}
             role="tab"
@@ -319,16 +315,16 @@ export default function SettingsDashboard() {
         ))}
       </div>
 
-      <article className="min-h-[520px] rounded-[14px] border border-[#dde6ee] bg-white/85 p-[clamp(22px,3vw,32px)] shadow-[0_24px_70px_rgba(11,31,58,0.12)]" role="tabpanel">
+      <article className="settings-tab-card" role="tabpanel">
         {activeTab === "profile" ? (
           <>
-            <div className="mb-6 max-w-[760px]">
-              <h3 className="m-0 text-[clamp(24px,2.2vw,34px)] font-bold leading-tight text-[#0b1f3a]">{copy.profile.title}</h3>
-              <p className="mb-0 mt-2.5 text-[15px] leading-8 text-[#647280]">{copy.profile.subtitle}</p>
+            <div className="settings-section-head">
+              <h3>{copy.profile.title}</h3>
+              <p>{copy.profile.subtitle}</p>
             </div>
-            <div className="grid gap-[18px] [&_input]:min-h-12 [&_input]:w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-[#d7e2ec] [&_input]:bg-white/85 [&_input]:px-3.5 [&_input]:py-3 [&_input]:text-sm [&_input]:text-[#0b1f3a] [&_input]:outline-none [&_select]:min-h-12 [&_select]:w-full [&_select]:rounded-xl [&_select]:border [&_select]:border-[#d7e2ec] [&_select]:bg-white/85 [&_select]:px-3.5 [&_select]:py-3 [&_select]:text-sm [&_select]:text-[#0b1f3a] [&_textarea]:min-h-[118px] [&_textarea]:w-full [&_textarea]:resize-y [&_textarea]:rounded-xl [&_textarea]:border [&_textarea]:border-[#d7e2ec] [&_textarea]:bg-white/85 [&_textarea]:px-3.5 [&_textarea]:py-3 [&_textarea]:text-sm [&_textarea]:text-[#0b1f3a] [&_label]:grid [&_label]:gap-1.5 [&_label_span]:text-[13px] [&_label_span]:font-semibold [&_label_span]:text-[#354252]">
-              <fieldset className="grid grid-cols-1 gap-5 rounded-[14px] border border-[#dde6ee] bg-[#f8fcfd]/75 p-5 md:grid-cols-2">
-                <legend className="px-1.5 text-[15px] font-bold text-[#0b1f3a]">{copy.profile.personal}</legend>
+            <div className="settings-form-grid">
+              <fieldset className="settings-profile-fields">
+                <legend>{copy.profile.personal}</legend>
                 <label>
                   <span>{profileFields.fullName}</span>
                   <input defaultValue={isArabic ? "عبدالله الشريك" : "Abdullah Partner"} />
@@ -359,57 +355,61 @@ export default function SettingsDashboard() {
                 </label>
                 <label>
                   <span>{profileFields.license}</span>
-                  <select defaultValue={profileFields.licenseVerified}>
-                    <option value={profileFields.licenseVerified}>{profileFields.licenseVerified}</option>
-                    <option value={profileFields.licenseEcommerce}>{profileFields.licenseEcommerce}</option>
-                    <option value={profileFields.licenseFal}>{profileFields.licenseFal}</option>
-                  </select>
+                  <DashboardSelect
+                    ariaLabel={profileFields.license}
+                    defaultValue={profileFields.licenseVerified}
+                    options={[
+                      profileFields.licenseVerified,
+                      profileFields.licenseEcommerce,
+                      profileFields.licenseFal
+                    ].map((option) => ({label: option, value: option}))}
+                  />
                 </label>
               </fieldset>
-              <fieldset className="grid grid-cols-1 gap-5 rounded-2xl border border-slate-100 bg-white p-6 md:grid-cols-2">
-                <legend className="px-1.5 text-[15px] font-bold text-[#0b1f3a]">{isArabic ? "\u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627" : "Social Media Accounts"}</legend>
+              <fieldset className="settings-social-fields">
+                <legend>{isArabic ? "\u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627" : "Social Media Accounts"}</legend>
                 {[
                   {key: "tiktok", label: isArabic ? "\u062a\u064a\u0643 \u062a\u0648\u0643" : "TikTok", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"},
                   {key: "snapchat", label: isArabic ? "\u0633\u0646\u0627\u0628 \u0634\u0627\u062a" : "Snapchat", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"},
                   {key: "x", label: isArabic ? "\u062a\u0648\u064a\u062a\u0631" : "X / Twitter", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"},
-                  {key: "facebook", label: isArabic ? "\u0641\u064a\u0633 \u0628\u0648\u0643" : "Facebook", placeholder: isArabic ? "\u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u0634\u062e\u0635\u064a" : "Personal profile link"},
-                  {key: "linkedin", label: isArabic ? "\u0644\u064a\u0646\u0643\u062f\u0646" : "LinkedIn", placeholder: isArabic ? "\u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u0634\u062e\u0635\u064a" : "Personal profile link"}
+                  {key: "facebook", label: isArabic ? "\u0641\u064a\u0633 \u0628\u0648\u0643" : "Facebook", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"},
+                  {key: "linkedin", label: isArabic ? "\u0644\u064a\u0646\u0643\u062f\u0646" : "LinkedIn", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"}
                 ].map((field) => (
                   <label key={field.key}>
                     <span>{field.label}</span>
-                    <div className="relative">
+                    <div className="settings-social-input">
                       <SocialFieldIcon name={field.key as "tiktok" | "snapchat" | "x" | "facebook" | "linkedin"} />
-                      <input className="ps-[46px]" placeholder={field.placeholder} />
+                      <input placeholder={field.placeholder} />
                     </div>
                   </label>
                 ))}
               </fieldset>
-              <fieldset className="grid gap-4 rounded-[14px] border border-[#dde6ee] bg-[#f8fcfd]/75 p-5">
-                <legend className="px-1.5 text-[15px] font-bold text-[#0b1f3a]">{copy.profile.link}</legend>
+              <fieldset>
+                <legend>{copy.profile.link}</legend>
                 <label>
                   <span>{copy.profile.slug}</span>
                   <input defaultValue="abdullah-growth" />
                 </label>
                 <label>
                   <span>{copy.profile.url}</span>
-                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="copy-link-control">
                     <input readOnly value="https://middar.com/p/abdullah-growth" />
-                    <button className={theme.darkButton} type="button">{copy.profile.copy}</button>
+                    <button type="button">{copy.profile.copy}</button>
                   </div>
                 </label>
               </fieldset>
             </div>
-            <button className={cn(theme.darkButton, "mt-6 ms-auto flex")} type="button">{copy.profile.save}</button>
+            <button className="settings-save-button" type="button">{copy.profile.save}</button>
           </>
         ) : null}
 
         {activeTab === "skills" ? (
           <>
-            <div className="mb-6 max-w-[760px] [&_h3]:m-0 [&_h3]:text-[clamp(24px,2.2vw,34px)] [&_h3]:font-bold [&_h3]:leading-tight [&_h3]:text-[#0b1f3a] [&_p]:mb-0 [&_p]:mt-2.5 [&_p]:text-[15px] [&_p]:leading-8 [&_p]:text-[#647280]">
+            <div className="settings-section-head">
               <h3>{skillsCopy.title}</h3>
             </div>
-            <div className="grid gap-5 rounded-2xl border border-slate-100 bg-white p-6 [&_textarea]:min-h-[118px] [&_textarea]:w-full [&_textarea]:resize-y [&_textarea]:rounded-xl [&_textarea]:border [&_textarea]:border-[#d7e2ec] [&_textarea]:bg-white/85 [&_textarea]:px-3.5 [&_textarea]:py-3 [&_textarea]:text-sm [&_textarea]:text-[#0b1f3a] [&_textarea]:outline-none [&_label]:grid [&_label]:gap-1.5 [&_label_span]:text-[13px] [&_label_span]:font-semibold [&_label_span]:text-[#354252]">
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div className="settings-skills-page">
+              <div className="settings-skills-grid">
                 <label>
                   <span>{skillsCopy.experience}</span>
                   <textarea placeholder={skillsCopy.experiencePlaceholder} />
@@ -419,7 +419,7 @@ export default function SettingsDashboard() {
                   <textarea placeholder={skillsCopy.coursesPlaceholder} />
                 </label>
               </div>
-              <label className="grid cursor-pointer gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6 text-center transition hover:border-slate-300 hover:bg-slate-50">
+              <label className="settings-proof-upload">
                 <span>{skillsCopy.evidence}</span>
                 <input
                   accept="image/png,image/jpeg"
@@ -431,7 +431,7 @@ export default function SettingsDashboard() {
                 <p>{skillsCopy.upload}</p>
               </label>
               {skillProofs.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4 [&_figure]:m-0 [&_figure]:aspect-square [&_figure]:overflow-hidden [&_figure]:rounded-xl [&_figure]:border [&_figure]:border-slate-200 [&_figure]:bg-slate-50 [&_img]:size-full [&_img]:object-cover">
+                <div className="settings-proof-preview-grid">
                   {skillProofs.map((proof) => (
                     <figure key={`${proof.name}-${proof.url}`}>
                       <img alt={proof.name} src={proof.url} />
@@ -440,17 +440,17 @@ export default function SettingsDashboard() {
                 </div>
               ) : null}
             </div>
-            <button className={cn(theme.darkButton, "mt-6 ms-auto flex")} type="button">{skillsCopy.save}</button>
+            <button className="settings-save-button" type="button">{skillsCopy.save}</button>
           </>
         ) : null}
 
         {activeTab === "host" ? (
           <>
-            <div className="mb-6 max-w-[760px] [&_h3]:m-0 [&_h3]:text-[clamp(24px,2.2vw,34px)] [&_h3]:font-bold [&_h3]:leading-tight [&_h3]:text-[#0b1f3a] [&_p]:mb-0 [&_p]:mt-2.5 [&_p]:text-[15px] [&_p]:leading-8 [&_p]:text-[#647280]">
+            <div className="settings-section-head">
               <h3>{hostCopy.title}</h3>
             </div>
-            <div className="grid gap-4 rounded-2xl border border-slate-100 bg-white p-6 [&_input]:min-h-12 [&_input]:w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-[#d7e2ec] [&_input]:bg-white/85 [&_input]:px-3.5 [&_input]:py-3 [&_input]:text-sm [&_input]:text-[#0b1f3a] [&_label]:grid [&_label]:gap-1.5 [&_label_span]:text-[13px] [&_label_span]:font-semibold [&_label_span]:text-[#354252]">
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div className="settings-host-page">
+              <div className="settings-host-grid">
                 <label>
                   <span>{hostCopy.hostName}</span>
                   <input placeholder={hostCopy.hostNamePlaceholder} type="text" />
@@ -460,36 +460,36 @@ export default function SettingsDashboard() {
                   <input dir="ltr" placeholder={hostCopy.hostPhonePlaceholder} type="tel" />
                 </label>
               </div>
-              <div className="h-px bg-slate-200" />
-              <h4 className="m-0 text-lg font-black leading-snug text-[#0b1f3a]">{hostCopy.members}</h4>
-              <div className="grid gap-2.5">
-                <div className="grid min-h-[58px] grid-cols-1 gap-3 rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3 text-xs font-black text-slate-500 md:grid-cols-[minmax(0,1fr)_minmax(170px,0.75fr)_minmax(90px,0.35fr)]">
+              <div className="settings-team-divider" />
+              <h4>{hostCopy.members}</h4>
+              <div className="settings-team-table">
+                <div className="settings-team-row settings-team-head">
                   <span>{hostCopy.name}</span>
                   <span>{hostCopy.phone}</span>
                   <span>{hostCopy.status}</span>
                 </div>
                 {teamMembers.map((member) => (
-                  <div className="grid min-h-[58px] grid-cols-1 items-center gap-3 rounded-[14px] border border-slate-200 bg-[#fbfdfe] px-4 py-3 md:grid-cols-[minmax(0,1fr)_minmax(170px,0.75fr)_minmax(90px,0.35fr)]" key={member.phone}>
-                    <strong className="text-sm font-black leading-normal text-[#0b1f3a]">{member.name}</strong>
-                    <span className="text-[13px] font-semibold text-slate-600" dir="ltr">{member.phone}</span>
-                    <StatusBadge tone={member.statusClass}>{member.status}</StatusBadge>
+                  <div className="settings-team-row" key={member.phone}>
+                    <strong>{member.name}</strong>
+                    <span dir="ltr">{member.phone}</span>
+                    <span className={`badge ${member.statusClass}`}>{member.status}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <button className={cn(theme.darkButton, "mt-6 ms-auto flex")} type="button">{hostCopy.save}</button>
+            <button className="settings-save-button" type="button">{hostCopy.save}</button>
           </>
         ) : null}
 
         {activeTab === "payout" ? (
           <>
-            <div className="mb-6 max-w-[760px] [&_h3]:m-0 [&_h3]:text-[clamp(24px,2.2vw,34px)] [&_h3]:font-bold [&_h3]:leading-tight [&_h3]:text-[#0b1f3a] [&_p]:mb-0 [&_p]:mt-2.5 [&_p]:text-[15px] [&_p]:leading-8 [&_p]:text-[#647280]">
+            <div className="settings-section-head">
               <h3>{copy.payout.title}</h3>
               <p>{copy.payout.subtitle}</p>
             </div>
-            <div className="grid gap-[18px] [&_input]:min-h-12 [&_input]:w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-[#d7e2ec] [&_input]:bg-white/85 [&_input]:px-3.5 [&_input]:py-3 [&_input]:text-sm [&_input]:text-[#0b1f3a] [&_select]:min-h-12 [&_select]:w-full [&_select]:rounded-xl [&_select]:border [&_select]:border-[#d7e2ec] [&_select]:bg-white/85 [&_select]:px-3.5 [&_select]:py-3 [&_select]:text-sm [&_select]:text-[#0b1f3a] [&_label]:grid [&_label]:gap-1.5 [&_label_span]:text-[13px] [&_label_span]:font-semibold [&_label_span]:text-[#354252]">
-              <fieldset className="grid gap-4 rounded-[14px] border border-[#dde6ee] bg-[#f8fcfd]/75 p-5">
-                <legend className="px-1.5 text-[15px] font-bold text-[#0b1f3a]">{copy.payout.bank}</legend>
+            <div className="settings-form-grid">
+              <fieldset>
+                <legend>{copy.payout.bank}</legend>
                 <label>
                   <span>{copy.payout.bankName}</span>
                   <input defaultValue={isArabic ? "البنك الأهلي السعودي" : "Saudi National Bank"} />
@@ -503,56 +503,60 @@ export default function SettingsDashboard() {
                   <input defaultValue="SA03 8000 0000 6080 1016 7519" pattern="^[A-Z]{2}[0-9A-Z ]{13,32}$" />
                 </label>
               </fieldset>
-              <fieldset className="grid gap-4 rounded-[14px] border border-[#dde6ee] bg-[#f8fcfd]/75 p-5">
-                <legend className="px-1.5 text-[15px] font-bold text-[#0b1f3a]">{copy.payout.threshold}</legend>
+              <fieldset>
+                <legend>{copy.payout.threshold}</legend>
                 <label>
                   <span>{copy.payout.threshold}</span>
-                  <select defaultValue="500">
-                    <option value="100">$100</option>
-                    <option value="500">$500</option>
-                    <option value="1000">$1,000</option>
-                  </select>
+                  <DashboardSelect
+                    ariaLabel={copy.payout.threshold}
+                    defaultValue="500"
+                    options={[
+                      {label: "$100", value: "100"},
+                      {label: "$500", value: "500"},
+                      {label: "$1,000", value: "1000"}
+                    ]}
+                  />
                 </label>
-                <div className="h-2.5 overflow-hidden rounded-full bg-[#dbe6ee]">
-                  <span className="block h-full w-[56%] rounded-full bg-[linear-gradient(90deg,#0b1f3a,#22b8b8)]" />
+                <div className="threshold-meter">
+                  <span />
                 </div>
               </fieldset>
             </div>
-            <button className={cn(theme.darkButton, "mt-6 ms-auto flex")} type="button">{copy.payout.save}</button>
+            <button className="settings-save-button" type="button">{copy.payout.save}</button>
           </>
         ) : null}
 
         {activeTab === "notifications" ? (
           <>
-            <div className="mb-6 max-w-[760px] [&_h3]:m-0 [&_h3]:text-[clamp(24px,2.2vw,34px)] [&_h3]:font-bold [&_h3]:leading-tight [&_h3]:text-[#0b1f3a] [&_p]:mb-0 [&_p]:mt-2.5 [&_p]:text-[15px] [&_p]:leading-8 [&_p]:text-[#647280]">
+            <div className="settings-section-head">
               <h3>{copy.notifications.title}</h3>
               <p>{copy.notifications.subtitle}</p>
             </div>
-            <div className="grid gap-[18px]">
-              <fieldset className="grid gap-1 rounded-[14px] border border-[#dde6ee] bg-[#f8fcfd]/75 p-5">
-                <legend className="px-1.5 text-[15px] font-bold text-[#0b1f3a]">{copy.notifications.email}</legend>
+            <div className="settings-form-grid">
+              <fieldset>
+                <legend>{copy.notifications.email}</legend>
                 <Toggle label={copy.notifications.lead} />
                 <Toggle label={copy.notifications.quote} />
                 <Toggle label={copy.notifications.commission} />
               </fieldset>
-              <fieldset className="grid gap-1 rounded-[14px] border border-[#dde6ee] bg-[#f8fcfd]/75 p-5">
-                <legend className="px-1.5 text-[15px] font-bold text-[#0b1f3a]">{copy.notifications.system}</legend>
+              <fieldset>
+                <legend>{copy.notifications.system}</legend>
                 <Toggle label={copy.notifications.payout} defaultChecked={false} />
               </fieldset>
             </div>
-            <button className={cn(theme.darkButton, "mt-6 ms-auto flex")} type="button">{copy.notifications.save}</button>
+            <button className="settings-save-button" type="button">{copy.notifications.save}</button>
           </>
         ) : null}
 
         {activeTab === "security" ? (
           <>
-            <div className="mb-6 max-w-[760px] [&_h3]:m-0 [&_h3]:text-[clamp(24px,2.2vw,34px)] [&_h3]:font-bold [&_h3]:leading-tight [&_h3]:text-[#0b1f3a] [&_p]:mb-0 [&_p]:mt-2.5 [&_p]:text-[15px] [&_p]:leading-8 [&_p]:text-[#647280]">
+            <div className="settings-section-head">
               <h3>{copy.security.title}</h3>
               <p>{copy.security.subtitle}</p>
             </div>
-            <div className="grid gap-[18px] [&_input]:min-h-12 [&_input]:w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-[#d7e2ec] [&_input]:bg-white/85 [&_input]:px-3.5 [&_input]:py-3 [&_input]:text-sm [&_input]:text-[#0b1f3a] [&_select]:min-h-12 [&_select]:w-full [&_select]:rounded-xl [&_select]:border [&_select]:border-[#d7e2ec] [&_select]:bg-white/85 [&_select]:px-3.5 [&_select]:py-3 [&_select]:text-sm [&_select]:text-[#0b1f3a] [&_label]:grid [&_label]:gap-1.5 [&_label_span]:text-[13px] [&_label_span]:font-semibold [&_label_span]:text-[#354252]">
-              <fieldset className="grid gap-4 rounded-[14px] border border-[#dde6ee] bg-[#f8fcfd]/75 p-5">
-                <legend className="px-1.5 text-[15px] font-bold text-[#0b1f3a]">{copy.security.password}</legend>
+            <div className="settings-form-grid">
+              <fieldset>
+                <legend>{copy.security.password}</legend>
                 <label>
                   <span>{copy.security.current}</span>
                   <input type="password" />
@@ -566,15 +570,19 @@ export default function SettingsDashboard() {
                   <input type="password" />
                 </label>
               </fieldset>
-              <fieldset className="grid gap-4 rounded-[14px] border border-[#dde6ee] bg-[#f8fcfd]/75 p-5">
-                <legend className="px-1.5 text-[15px] font-bold text-[#0b1f3a]">{copy.security.language}</legend>
-                <select defaultValue={locale}>
-                  <option value="ar">العربية</option>
-                  <option value="en">English</option>
-                </select>
+              <fieldset>
+                <legend>{copy.security.language}</legend>
+                <DashboardSelect
+                  ariaLabel={copy.security.language}
+                  defaultValue={locale}
+                  options={[
+                    {label: "العربية", value: "ar"},
+                    {label: "English", value: "en"}
+                  ]}
+                />
               </fieldset>
             </div>
-            <button className={cn(theme.darkButton, "mt-6 ms-auto flex")} type="button">{copy.security.save}</button>
+            <button className="settings-save-button" type="button">{copy.security.save}</button>
           </>
         ) : null}
       </article>

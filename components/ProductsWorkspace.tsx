@@ -2,12 +2,12 @@
 
 import {useLocale} from "next-intl";
 import {useState, type CSSProperties, type ReactNode} from "react";
-import {CardTitle, DashboardCard, TabButton, dashboardField, dashboardLabel} from "@/components/DashboardPrimitives";
 import {DemoView} from "@/components/DashboardNewSections";
-import {cn, Eyebrow, theme} from "@/components/ui";
+import DashboardSelect from "@/components/DashboardSelect";
 
 type ProductWorkspaceView = "catalog" | "form";
 type MarketingTab = "sectors" | "social" | "library";
+type AssetFilter = "all" | "images" | "videos";
 type SocialLogo = "instagram" | "snapchat" | "tiktok" | "x";
 type IconShape =
   | "home"
@@ -212,8 +212,8 @@ const socialPlatforms = [
 function SocialLogoIcon({logo}: {logo: SocialLogo}) {
   if (logo === "instagram") {
     return (
-      <span className="grid size-12 place-items-center rounded-2xl bg-[#E1306C]/10 text-[#E1306C]" aria-hidden="true">
-        <svg className="size-8 fill-none stroke-current stroke-2" viewBox="0 0 48 48">
+      <span className="social-platform-logo social-platform-logo-instagram" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
           <rect x="11" y="11" width="26" height="26" rx="8" />
           <circle cx="24" cy="24" r="7" />
           <circle cx="32" cy="16" r="2.2" />
@@ -224,8 +224,8 @@ function SocialLogoIcon({logo}: {logo: SocialLogo}) {
 
   if (logo === "snapchat") {
     return (
-      <span className="grid size-12 place-items-center rounded-2xl bg-[#FFFC00]/20 text-[#d4a400]" aria-hidden="true">
-        <svg className="size-8 fill-current" viewBox="0 0 48 48">
+      <span className="social-platform-logo social-platform-logo-snapchat" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
           <path d="M24 9c5.9 0 9.1 4.4 9.1 9.6 0 1.2-.2 2.8-.2 4.2 0 .8.4 1.2 1.2 1.2 1.5 0 2.5-.7 3.3-.7.9 0 1.7.6 1.7 1.5 0 1.7-3.8 2.5-4.6 3.2.2 2.1 3.6 6.3 7.3 7 .8.2 1.2.7 1.2 1.4 0 1.4-3.4 2.2-5.4 2.5-.6.2-.8 2.1-2.1 2.1-1.1 0-2.9-.8-5-.8-2.3 0-3.4 2.8-6.5 2.8s-4.2-2.8-6.5-2.8c-2.1 0-3.9.8-5 .8-1.3 0-1.5-1.9-2.1-2.1-2-.3-5.4-1.1-5.4-2.5 0-.7.4-1.2 1.2-1.4 3.7-.7 7.1-4.9 7.3-7-.8-.7-4.6-1.5-4.6-3.2 0-.9.8-1.5 1.7-1.5.8 0 1.8.7 3.3.7.8 0 1.2-.4 1.2-1.2 0-1.4-.2-3-.2-4.2C14.9 13.4 18.1 9 24 9Z" />
         </svg>
       </span>
@@ -234,28 +234,29 @@ function SocialLogoIcon({logo}: {logo: SocialLogo}) {
 
   if (logo === "tiktok") {
     return (
-      <span className="grid size-12 place-items-center rounded-2xl bg-slate-950 text-white" aria-hidden="true">
-        <svg className="size-8" viewBox="0 0 48 48">
-          <path className="fill-[#00F2EA]" d="M29 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10h5.8Z" />
-          <path className="fill-[#FF0050]" d="M31 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10H31Z" />
-          <path className="fill-white" d="M30 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10H30Z" />
+      <span className="social-platform-logo social-platform-logo-tiktok" aria-hidden="true">
+        <svg viewBox="0 0 48 48">
+          <path className="tiktok-shadow-cyan" d="M29 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10h5.8Z" />
+          <path className="tiktok-shadow-magenta" d="M31 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10H31Z" />
+          <path className="tiktok-note" d="M30 10c.7 5.1 3.5 8.4 8.4 9v6.3c-2.9.1-5.6-.8-8.1-2.5v11.1c0 6.4-4.2 10-9.6 10-5.2 0-9.2-3.6-9.2-8.6 0-5.4 4.2-8.7 10-8.7.5 0 1 .1 1.5.2v6.6c-.5-.2-1-.3-1.6-.3-2 0-3.4 1.1-3.4 2.8 0 1.6 1.3 2.8 3 2.8 2.1 0 3.2-1.3 3.2-3.7V10H30Z" />
         </svg>
       </span>
     );
   }
 
   return (
-    <span className="grid size-12 place-items-center rounded-2xl bg-slate-950 text-white" aria-hidden="true">
-      <svg className="size-8 fill-current" viewBox="0 0 48 48">
+    <span className="social-platform-logo social-platform-logo-x" aria-hidden="true">
+      <svg viewBox="0 0 48 48">
         <path d="M28.2 21.2 39.6 8h-5.1l-8.6 10-6.8-10H8l12.1 17.7L7.8 40h5.1l9.5-11 7.5 11H41L28.2 21.2Zm-3.4 3.9-1.4-2L14.8 11.8h2.4l7 10.2 1.4 2 9.2 12.2h-2.4l-7.6-11.1Z" />
       </svg>
     </span>
   );
 }
 
-const assetFilters = [
-  "\u0645\u0643\u062a\u0628\u0629 \u0627\u0644\u0635\u0648\u0631",
-  "\u0627\u0644\u0641\u064a\u062f\u064a\u0648\u0647\u0627\u062a \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629"
+const assetFilters: Array<{id: AssetFilter; ar: string; en: string}> = [
+  {id: "all", ar: "\u0627\u0644\u0643\u0644", en: "All"},
+  {id: "images", ar: "\u0645\u0643\u062a\u0628\u0629 \u0627\u0644\u0635\u0648\u0631", en: "Photo Library"},
+  {id: "videos", ar: "\u0627\u0644\u0641\u064a\u062f\u064a\u0648\u0647\u0627\u062a \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629", en: "Marketing Videos"}
 ];
 
 const imageAssets = [
@@ -409,7 +410,7 @@ function IndustryIcon({shape, className}: {shape: IconShape; className: string})
 
   return (
     <span className={className} aria-hidden="true">
-      <svg className="size-7" {...iconProps}>{glyphs[shape]}</svg>
+      <svg {...iconProps}>{glyphs[shape]}</svg>
     </span>
   );
 }
@@ -420,6 +421,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const copy = isArabic ? catalogCopy.ar : catalogCopy.en;
   const [copiedSectorId, setCopiedSectorId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<MarketingTab>("sectors");
+  const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
 
   async function handleCopyLink(url: string, sectorId: string) {
     await navigator.clipboard.writeText(url);
@@ -432,35 +434,44 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   }
 
   return (
-    <section className="grid gap-[18px]" dir={isArabic ? "rtl" : "ltr"}>
-      <div className="flex flex-col items-start justify-between gap-5 rounded-[22px] border border-slate-200 bg-[linear-gradient(135deg,#ffffff,#f8fcfd)] p-6 shadow-[0_18px_42px_rgba(15,23,42,0.055)] lg:flex-row">
-        <div>
-          <Eyebrow>{"\u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}</Eyebrow>
-          <h2 className="m-0 text-[clamp(28px,3.2vw,44px)] font-black leading-tight text-[#0b1f3a]">{"\u062a\u0633\u0648\u064a\u0642 \u0645\u064a\u062f\u0627\u0631 \u0648\u0625\u062f\u0627\u0631\u0629 \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0646\u0645\u0648"}</h2>
-          <p className="m-0 mt-3 max-w-3xl text-sm leading-7 text-[#647280]">{"\u0645\u0633\u0627\u062d\u0629 \u0645\u0648\u062d\u062f\u0629 \u0644\u0631\u0648\u0627\u0628\u0637 \u0627\u0644\u0642\u0637\u0627\u0639\u0627\u062a\u060c \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627\u060c \u0648\u0627\u0644\u0623\u0635\u0648\u0644 \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629 \u0627\u0644\u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0633\u0648\u0642\u064a\u0646."}</p>
+    <section className="products-workspace" dir={isArabic ? "rtl" : "ltr"}>
+      <div className="marketing-hub-hero bg-white border border-slate-100 shadow-sm rounded-2xl p-6 mb-6 w-full flex items-center justify-between">
+        <div className="marketing-hub-copy flex flex-col gap-1 text-right">
+          <p className="eyebrow text-[#00b4d8] text-xs font-semibold mb-1">{"\u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}</p>
+          <h2 className="text-[#0f2942] text-xl font-bold md:text-2xl">{"\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u062d\u0645\u0644\u0627\u062a \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629"}</h2>
+          <p className="marketing-hub-subtitle text-slate-500 text-sm">{"\u0645\u0633\u0627\u062d\u0629 \u0645\u0648\u062d\u062f\u0629 \u0644\u0631\u0648\u0627\u0628\u0637 \u0627\u0644\u0642\u0637\u0627\u0639\u0627\u062a\u060c \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627\u060c \u0648\u0627\u0644\u0623\u0635\u0648\u0644 \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629 \u0627\u0644\u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0633\u0648\u0642\u064a\u0646."}</p>
         </div>
-        <span className="rounded-full bg-[#e0f8f8] px-4 py-2 text-xs font-black text-[#168f97]">{"Growth Hub"}</span>
+        <span className="growth-hub-chip bg-cyan-50/60 text-[#00b4d8] border border-cyan-100/50 px-4 py-1.5 rounded-full text-xs font-medium tracking-wide">{"Growth Hub"}</span>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 rounded-[20px] border border-slate-200/90 bg-white/80 p-2.5 shadow-[0_18px_42px_rgba(15,23,42,0.05)] lg:grid-cols-3" role="tablist" aria-label={"\u062a\u0628\u0648\u064a\u0628\u0627\u062a \u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}>
+      <div className="marketing-tabs" role="tablist" aria-label={"\u062a\u0628\u0648\u064a\u0628\u0627\u062a \u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}>
         {marketingTabs.map((tab) => (
-          <TabButton active={activeTab === tab.id} key={tab.id} onClick={() => setActiveTab(tab.id)} title={tab.label} subtitle={tab.hint} />
+          <button
+            className={activeTab === tab.id ? "active" : ""}
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            role="tab"
+            type="button"
+          >
+            <strong>{tab.label}</strong>
+            <span>{tab.hint}</span>
+          </button>
         ))}
       </div>
 
-      <div>
+      <div className="marketing-tab-panel">
         {activeTab === "sectors" ? (
           <>
-            <div className="mb-5 grid gap-2">
-              <Eyebrow>{copy.eyebrow}</Eyebrow>
-              <h2 className="m-0 text-[clamp(26px,3vw,40px)] font-black leading-tight text-[#0b1f3a]">{copy.heading}</h2>
-              <p className="m-0 max-w-3xl text-sm leading-7 text-[#647280]">{copy.subheading}</p>
+            <div className="products-workspace-head compact">
+              <p className="eyebrow">{copy.eyebrow}</p>
+              <h2>{copy.heading}</h2>
+              <p>{copy.subheading}</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="industry-sector-grid">
               {industriesData.map((industry) => (
                 <article
-                  className={cn("grid min-h-[220px] cursor-pointer gap-4 rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_18px_42px_rgba(15,23,42,0.055)] transition hover:-translate-y-0.5 hover:border-[#22b8b8]/35 hover:shadow-[0_20px_46px_rgba(34,184,184,0.12)]")}
+                  className="industry-sector-card"
                   key={industry.id}
                   onClick={() => {
                     window.open(industry.url, "_blank", "noopener,noreferrer");
@@ -474,13 +485,10 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                   role="button"
                   tabIndex={0}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <IndustryIcon className="grid size-12 place-items-center rounded-2xl bg-[#e0f8f8] text-[#168f97]" shape={industry.icon} />
+                  <div className="industry-sector-card-top">
+                    <IndustryIcon className="industry-sector-icon" shape={industry.icon} />
                     <button
-                      className={cn(
-                        "rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#0b1f3a] transition hover:bg-slate-50",
-                        copiedSectorId === industry.id && "border-[#22b8b8]/40 bg-[#e0f8f8] text-[#168f97]"
-                      )}
+                      className={`industry-copy-link ${copiedSectorId === industry.id ? "copied" : ""}`}
                       onClick={(event) => {
                         event.stopPropagation();
                         void handleCopyLink(industry.url, industry.id);
@@ -492,12 +500,14 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                         : "\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637"}
                     </button>
                   </div>
-                  <div className="grid gap-3">
+                  <div className="industry-sector-card-body">
                     <div>
-                      <h3 className="m-0 text-base font-black leading-snug text-[#0b1f3a]">{industry.title}</h3>
-                      <p className="m-0 mt-2 text-sm leading-7 text-[#647280]">{industry.subtitle}</p>
+                      <h3>{industry.title}</h3>
+                      <p>{industry.subtitle}</p>
                     </div>
-                    <strong className="text-sm font-black text-[#168f97]">{copy.explore}</strong>
+                    <strong className="industry-explore-action hover:text-[#00b4d8] focus:text-[#00b4d8] active:text-[#00b4d8]/90 transition-colors duration-200 ease-in-out">
+                      {copy.explore}
+                    </strong>
                   </div>
                 </article>
               ))}
@@ -506,112 +516,126 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
         ) : null}
 
         {activeTab === "social" ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="social-platform-grid">
             {socialPlatforms.map((platform) => (
-              <DashboardCard className="rounded-[18px]" key={platform.name} style={{"--platform-accent": platform.accent} as CSSProperties}>
-                <div className="flex items-center gap-3">
+              <article className="social-platform-card" key={platform.name} style={{"--platform-accent": platform.accent} as CSSProperties}>
+                <div className="social-platform-head">
                   <SocialLogoIcon logo={platform.logo} />
                   <div>
-                    <h3 className="m-0 text-base font-black text-[#0b1f3a]">{platform.name}</h3>
-                    <p className="m-0 text-xs font-semibold text-[#647280]">{platform.handle}</p>
+                    <h3>{platform.name}</h3>
+                    <p>{platform.handle}</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-slate-50 p-3">
-                    <span className="text-xs font-semibold text-[#647280]">{"Reach"}</span>
-                    <strong className="block text-lg font-black text-[#0b1f3a]">{platform.reach}</strong>
+                <div className="social-stat-grid">
+                  <div>
+                    <span>{"Reach"}</span>
+                    <strong>{platform.reach}</strong>
                   </div>
-                  <div className="rounded-2xl bg-slate-50 p-3">
-                    <span className="text-xs font-semibold text-[#647280]">{"Engagement"}</span>
-                    <strong className="block text-lg font-black text-[#0b1f3a]">{platform.engagement}</strong>
+                  <div>
+                    <span>{"Engagement"}</span>
+                    <strong>{platform.engagement}</strong>
                   </div>
                 </div>
-                <button className={theme.darkButton} type="button">{"\u062a\u062c\u0647\u064a\u0632 \u062d\u0645\u0644\u0629"}</button>
-              </DashboardCard>
+                <button type="button">{"\u062a\u062c\u0647\u064a\u0632 \u062d\u0645\u0644\u0629"}</button>
+              </article>
             ))}
           </div>
         ) : null}
 
         {activeTab === "library" ? (
-          <div className="grid gap-4">
-            <div className="flex flex-wrap gap-2">
+          <div className="marketing-library">
+            <div className="asset-filter-row">
               {assetFilters.map((filter) => (
-                <button className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black text-[#0b1f3a]" key={filter} type="button">{filter}</button>
+                <button
+                  aria-pressed={activeAssetFilter === filter.id}
+                  className={activeAssetFilter === filter.id ? "active" : ""}
+                  key={filter.id}
+                  onClick={() => setActiveAssetFilter(filter.id)}
+                  type="button"
+                >
+                  {isArabic ? filter.ar : filter.en}
+                </button>
               ))}
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {imageAssets.map((asset, index) => (
-                <DashboardCard className="rounded-[18px]" key={asset}>
-                  <span className="text-sm font-black text-[#22b8b8]">{`0${index + 1}`}</span>
-                  <h3 className="m-0 text-base font-black text-[#0b1f3a]">{asset}</h3>
-                  <p className="m-0 text-sm leading-7 text-[#647280]">{"\u0635\u0648\u0631 \u062a\u0631\u0648\u064a\u062c\u064a\u0629 \u0639\u0627\u0644\u064a\u0629 \u0627\u0644\u062f\u0642\u0629 \u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0634\u0627\u0631\u0643\u0629."}</p>
-                  <button className={theme.primaryButton} type="button">{"\u062a\u0646\u0632\u064a\u0644"}</button>
-                </DashboardCard>
-              ))}
-              {videoAssets.map((asset, index) => (
-                <DashboardCard className="rounded-[18px]" key={asset}>
-                  <span className="text-sm font-black text-[#22b8b8]">{`0${index + 1}`}</span>
-                  <h3 className="m-0 text-base font-black text-[#0b1f3a]">{asset}</h3>
-                  <p className="m-0 text-sm leading-7 text-[#647280]">{"\u0645\u0639\u0627\u064a\u0646\u0629 \u0633\u064a\u0646\u0645\u0627\u0626\u064a\u0629 \u0645\u062e\u062a\u0635\u0631\u0629 \u0644\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062a \u0648\u0627\u0644\u0631\u064a\u0644\u0632."}</p>
-                  <button className={theme.primaryButton} type="button">{"\u0645\u0634\u0627\u0631\u0643\u0629"}</button>
-                </DashboardCard>
-              ))}
+            <div className="asset-library-grid">
+              {activeAssetFilter !== "videos" ? imageAssets.map((asset, index) => (
+                <article className="asset-card image-asset" key={asset}>
+                  <span>{`0${index + 1}`}</span>
+                  <h3>{asset}</h3>
+                  <p>{"\u0635\u0648\u0631 \u062a\u0631\u0648\u064a\u062c\u064a\u0629 \u0639\u0627\u0644\u064a\u0629 \u0627\u0644\u062f\u0642\u0629 \u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0634\u0627\u0631\u0643\u0629."}</p>
+                  <button type="button">{"\u062a\u0646\u0632\u064a\u0644"}</button>
+                </article>
+              )) : null}
+              {activeAssetFilter !== "images" ? videoAssets.map((asset, index) => (
+                <article className="asset-card video-asset" key={asset}>
+                  <span>{`0${index + 1}`}</span>
+                  <h3>{asset}</h3>
+                  <p>{"\u0645\u0639\u0627\u064a\u0646\u0629 \u0633\u064a\u0646\u0645\u0627\u0626\u064a\u0629 \u0645\u062e\u062a\u0635\u0631\u0629 \u0644\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062a \u0648\u0627\u0644\u0631\u064a\u0644\u0632."}</p>
+                  <button type="button">{"\u0645\u0634\u0627\u0631\u0643\u0629"}</button>
+                </article>
+              )) : null}
             </div>
           </div>
         ) : null}
       </div>
 
-      <section className="py-8" dir="rtl">
-        <DashboardCard className="rounded-[22px]">
-            <h2 className="m-0 text-[clamp(24px,3vw,38px)] font-black leading-tight text-[#0b1f3a]">{"\u0637\u0644\u0628 \u0639\u0631\u0636 \u062a\u062c\u0631\u064a\u0628\u064a \u0644\u0644\u0645\u0646\u0634\u0622\u062a"}</h2>
+      <section className="dashboard-lead-request" dir="rtl">
+        <div className="dashboard-lead-request-inner">
+          <div className="dashboard-lead-request-card">
+            <h2>{"\u0637\u0644\u0628 \u0639\u0631\u0636 \u062a\u062c\u0631\u064a\u0628\u064a \u0644\u0644\u0645\u0646\u0634\u0622\u062a"}</h2>
 
-            <form className="grid gap-4">
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <div className="grid gap-3.5">
+            <form className="dashboard-lead-request-form">
+              <div className="dashboard-lead-request-grid">
+                <div className="dashboard-lead-request-stack">
                   <div>
-                    <label className={dashboardLabel}>{"\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u0634\u0623\u0629"}</label>
-                    <input className={dashboardField} type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629 \u0623\u0648 \u0627\u0644\u0645\u0624\u0633\u0633\u0629"} />
+                    <label>{"\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u0634\u0623\u0629"}</label>
+                    <input type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629 \u0623\u0648 \u0627\u0644\u0645\u0624\u0633\u0633\u0629"} />
                   </div>
                   <div>
-                    <label className={dashboardLabel}>{"\u0646\u0648\u0639 \u0627\u0644\u0645\u0646\u0634\u0623\u0629"}</label>
-                    <select className={dashboardField}>
-                      <option>{"\u0634\u0627\u0644\u064a\u0647\u0627\u062a \u0648\u0645\u0646\u062a\u062c\u0639\u0627\u062a"}</option>
-                      <option>{"\u0635\u0627\u0644\u0648\u0646\u0627\u062a \u0648\u0633\u0628\u0627"}</option>
-                      <option>{"\u0645\u063a\u0627\u0633\u0644 \u0633\u064a\u0627\u0631\u0627\u062a"}</option>
-                      <option>{"\u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u0632\u0644\u064a\u0629"}</option>
-                      <option>{"\u0623\u062e\u0631\u0649"}</option>
-                    </select>
+                    <label>{"\u0646\u0648\u0639 \u0627\u0644\u0646\u0634\u0627\u0637"}</label>
+                    <DashboardSelect
+                      ariaLabel={"\u0646\u0648\u0639 \u0627\u0644\u0646\u0634\u0627\u0637"}
+                      defaultValue={"\u0634\u0627\u0644\u064a\u0647\u0627\u062a \u0648\u0645\u0646\u062a\u062c\u0639\u0627\u062a"}
+                      options={[
+                        "\u0634\u0627\u0644\u064a\u0647\u0627\u062a \u0648\u0645\u0646\u062a\u062c\u0639\u0627\u062a",
+                        "\u0635\u0627\u0644\u0648\u0646\u0627\u062a \u0648\u0633\u0628\u0627",
+                        "\u0645\u063a\u0627\u0633\u0644 \u0633\u064a\u0627\u0631\u0627\u062a",
+                        "\u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u0632\u0644\u064a\u0629",
+                        "\u0623\u062e\u0631\u0649"
+                      ].map((option) => ({label: option, value: option}))}
+                    />
                   </div>
                   <div>
-                    <label className={dashboardLabel}>{"\u0627\u0644\u0639\u0646\u0648\u0627\u0646"}</label>
-                    <input className={dashboardField} type="text" placeholder={"\u0627\u0644\u0645\u062f\u064a\u0646\u0629\u060c \u0627\u0644\u062d\u064a"} />
+                    <label>{"\u0627\u0644\u0639\u0646\u0648\u0627\u0646"}</label>
+                    <input type="text" placeholder={"\u0627\u0644\u0645\u062f\u064a\u0646\u0629\u060c \u0627\u0644\u062d\u064a"} />
                   </div>
                 </div>
 
-                <div className="grid gap-3.5">
+                <div className="dashboard-lead-request-stack">
                   <div>
-                    <label className={dashboardLabel}>{"\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644"}</label>
-                    <input className={dashboardField} type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0627\u0644\u062b\u0644\u0627\u062b\u064a"} />
+                    <label>{"\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644"}</label>
+                    <input type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0627\u0644\u062b\u0644\u0627\u062b\u064a"} />
                   </div>
                   <div>
-                    <label className={dashboardLabel}>{"\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a"}</label>
-                    <input className={dashboardField} dir="ltr" type="email" placeholder="name@company.com" />
+                    <label>{"\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a"}</label>
+                    <input dir="ltr" type="email" placeholder="name@company.com" />
                   </div>
                   <div>
-                    <label className={dashboardLabel}>{"\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644"}</label>
-                    <input className={dashboardField} dir="ltr" type="tel" placeholder="+966 5X XXX XXXX" />
+                    <label>{"\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644"}</label>
+                    <input dir="ltr" type="tel" placeholder="+966 5X XXX XXXX" />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className={dashboardLabel}>{"\u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0625\u0636\u0627\u0641\u064a\u0629"}</label>
-                <textarea className={cn(dashboardField, "min-h-[110px] resize-y")} rows={3} placeholder={"\u0627\u0630\u0643\u0631 \u0623\u064a \u0645\u062a\u0637\u0644\u0628\u0627\u062a \u062e\u0627\u0635\u0629 \u0623\u0648 \u062a\u0641\u0627\u0635\u064a\u0644 \u0625\u0636\u0627\u0641\u064a\u0629..."} />
+                <label>{"\u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0625\u0636\u0627\u0641\u064a\u0629"}</label>
+                <textarea rows={3} placeholder={"\u0627\u0630\u0643\u0631 \u0623\u064a \u0645\u062a\u0637\u0644\u0628\u0627\u062a \u062e\u0627\u0635\u0629 \u0623\u0648 \u062a\u0641\u0627\u0635\u064a\u0644 \u0625\u0636\u0627\u0641\u064a\u0629..."} />
               </div>
 
-              <button className={theme.primaryButton} type="button">{"\u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0639\u0631\u0636"}</button>
+              <button type="button">{"\u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0639\u0631\u0636"}</button>
             </form>
-        </DashboardCard>
+          </div>
+        </div>
       </section>
     </section>
   );

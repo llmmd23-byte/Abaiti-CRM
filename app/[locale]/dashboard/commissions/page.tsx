@@ -1,13 +1,11 @@
-import {useTranslations} from "next-intl";
+import DashboardHeaderBanner from "@/components/DashboardHeaderBanner";
 import DashboardShell from "@/components/DashboardShell";
-import {CommissionTable, DashboardHeader, MetricsGrid} from "@/components/DashboardSections";
+import {CommissionTable, MetricsGrid} from "@/components/DashboardSections";
 
 export default function DashboardCommissionsPage() {
-  const t = useTranslations();
-
   return (
     <DashboardShell active="commissions">
-      <DashboardHeader eyebrow={t("dashboardPages.commissions.eyebrow")} title={t("dashboardPages.commissions.title")} />
+      <DashboardHeaderBanner section="sales" />
       <MetricsGrid />
       <div className="w-full">
         <CommissionTable expanded />
