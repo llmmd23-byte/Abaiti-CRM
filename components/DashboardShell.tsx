@@ -3,6 +3,7 @@
 import {useLocale, useTranslations} from "next-intl";
 import {Link, usePathname} from "@/i18n/navigation";
 import Image from "next/image";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 type DashboardSection =
   | "overview"
@@ -172,6 +173,18 @@ function NavItemIcon({icon}: {icon: NavItem["icon"]}) {
   );
 }
 
+function LogoutIcon() {
+  return (
+    <span className="sidebar-logout-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M10 6H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4" />
+        <path d="M14 16l4-4-4-4" />
+        <path d="M9 12h9" />
+      </svg>
+    </span>
+  );
+}
+
 export default function DashboardShell({
   active,
   children
@@ -183,7 +196,7 @@ export default function DashboardShell({
   const locale = useLocale();
   const pathname = usePathname();
   const direction = locale === "ar" ? "rtl" : "ltr";
-  const accountOwnerName = locale === "ar" ? "\u0639\u0628\u062f\u0627\u0644\u0644\u0647 \u0627\u0644\u0634\u0631\u064a\u0643" : "Abdullah Partner";
+  const accountOwnerName = locale === "ar" ? "\u0639\u0628\u062f \u0627\u0644\u0644\u0647 \u0627\u0644\u0634\u0631\u064a\u0643" : "Abdullah Partner";
   const activityLabel = locale === "ar" ? "\u0645\u0633\u062a\u0648\u0649 \u0627\u0644\u0646\u0634\u0627\u0637" : "Activity level";
   const activityLevel = locale === "ar" ? "\u0645\u062d\u062a\u0631\u0641 \u0630\u0647\u0628\u064a" : "Gold Pro";
   const isItemActive = (item: NavItem) => {
@@ -259,20 +272,33 @@ export default function DashboardShell({
           </div>
         </nav>
 
-        <div className="sidebar-meta">
-          <div className="sidebar-profile-stack">
-            <strong className="sidebar-profile-name">{accountOwnerName}</strong>
-            <div className="sidebar-profile-row">
-              <span>{activityLabel}</span>
-              <b>{activityLevel}</b>
+        <div className="sidebar-bottom-actions">
+          <div className="sidebar-meta">
+            <div className="sidebar-profile-stack">
+              <strong className="sidebar-profile-name">{accountOwnerName}</strong>
+              <div className="sidebar-profile-row">
+                <span>{activityLabel}</span>
+                <b>{activityLevel}</b>
+              </div>
+              <div className="sidebar-profile-row sidebar-status-row">
+                <span>{t("dashboardPages.sidebar.accountStatus")}</span>
+                <strong>
+                  <i aria-hidden="true" />
+                  {t("dashboardPages.sidebar.active")}
+                </strong>
+              </div>
             </div>
-            <div className="sidebar-profile-row sidebar-status-row">
-              <span>{t("dashboardPages.sidebar.accountStatus")}</span>
-              <strong>
-                <i aria-hidden="true" />
-                {t("dashboardPages.sidebar.active")}
-              </strong>
-            </div>
+          </div>
+
+          <div className="sidebar-language-control">
+            <LanguageSwitcher />
+          </div>
+
+          <div className="sidebar-session-actions">
+            <Link className="sidebar-logout-link" href="/signin">
+              <LogoutIcon />
+              {t("dashboardPages.sidebar.logout")}
+            </Link>
           </div>
         </div>
       </aside>

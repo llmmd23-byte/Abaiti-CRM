@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev -p 5173",
     "build": "next build",
-    "start": "next start"
+    "start": "npx serve@latest out -l 5173",
+    "preview": "npx serve@latest out -l 5173"
   },
   "dependencies": {
     "next": "latest",

@@ -1,11 +1,19 @@
-import {captureAffiliateLead} from "@/app/actions";
-import DashboardSelect from "@/components/DashboardSelect";
+import StaticAffiliateLeadForm from "@/components/StaticAffiliateLeadForm";
 import {Link} from "@/i18n/navigation";
-import {useLocale, useTranslations} from "next-intl";
+import {useTranslations} from "next-intl";
+import {setRequestLocale} from "next-intl/server";
 import Image from "next/image";
 import {notFound} from "next/navigation";
 
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
+const staticAffiliateUsernames = ["abdullah", "abdullah-partner", "demo-partner"] as const;
 const reservedRoutes = new Set(["dashboard", "api", "_next"]);
+
+export function generateStaticParams() {
+  return staticAffiliateUsernames.map((affiliateUsername) => ({affiliateUsername}));
+}
 
 function formatAffiliateName(username: string) {
   return username
@@ -18,9 +26,10 @@ function formatAffiliateName(username: string) {
 export default async function AffiliateLandingPage({
   params
 }: {
-  params: Promise<{affiliateUsername: string}>;
+  params: Promise<{affiliateUsername: string; locale: string}>;
 }) {
-  const {affiliateUsername} = await params;
+  const {affiliateUsername, locale} = await params;
+  setRequestLocale(locale);
 
   if (reservedRoutes.has(affiliateUsername)) {
     notFound();
@@ -39,7 +48,6 @@ function AffiliatePageContent({
   affiliateUsername: string;
 }) {
   const t = useTranslations();
-  const locale = useLocale();
   const affiliateId = `aff_${affiliateUsername.replace(/[^a-z0-9]/gi, "_").toLowerCase()}`;
 
   return (
@@ -81,43 +89,11 @@ function AffiliatePageContent({
               <span>{t("affiliatePage.formTag", {affiliateName})}</span>
             </div>
             <h2>{t("affiliatePage.formTitle")}</h2>
-            <form action={captureAffiliateLead} className="demo-form">
-              <input name="affiliateUsername" type="hidden" value={affiliateUsername} />
-              <input name="affiliateId" type="hidden" value={affiliateId} />
-              <input name="locale" type="hidden" value={locale} />
-              <label>
-                <span>{t("form.name")}</span>
-                <input name="fullName" required type="text" placeholder={t("form.namePlaceholder")} />
-              </label>
-              <label>
-                <span>{t("form.email")}</span>
-                <input name="email" required type="email" placeholder="name@company.com" />
-              </label>
-              <label>
-                <span>{t("form.phone")}</span>
-                <input name="phone" type="tel" placeholder="+966 5X XXX XXXX" />
-              </label>
-              <label>
-                <span>{t("form.size")}</span>
-                <DashboardSelect
-                  ariaLabel={t("form.size")}
-                  defaultValue={t("form.size1")}
-                  name="companySize"
-                  options={[1, 2, 3, 4].map((item) => ({
-                    label: t(`form.size${item}`),
-                    value: t(`form.size${item}`)
-                  }))}
-                />
-              </label>
-              <label>
-                <span>{t("affiliatePage.message")}</span>
-                <textarea name="message" placeholder={t("affiliatePage.messagePlaceholder")} />
-              </label>
-              <button className="button button-form" type="submit">
-                {t("form.submit")}
-              </button>
-              <p>{t("affiliatePage.crmNote", {affiliateId})}</p>
-            </form>
+            <StaticAffiliateLeadForm
+              affiliateId={affiliateId}
+              affiliateName={affiliateName}
+              affiliateUsername={affiliateUsername}
+            />
           </aside>
         </section>
 

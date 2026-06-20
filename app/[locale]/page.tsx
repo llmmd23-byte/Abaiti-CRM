@@ -1,12 +1,17 @@
-import {useLocale, useTranslations} from "next-intl";
+import {getTranslations, setRequestLocale} from "next-intl/server";
 import Image from "next/image";
 import LandingPointerGlow from "@/components/LandingPointerGlow";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {Link} from "@/i18n/navigation";
 
-export default function HomePage() {
-  const t = useTranslations();
-  const locale = useLocale();
+export default async function HomePage({
+  params
+}: {
+  params: Promise<{locale: string}>;
+}) {
+  const {locale} = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations();
 
   return (
     <>
@@ -39,8 +44,8 @@ export default function HomePage() {
               <span>{locale === "ar" ? "\u0643\u0646 \u0634\u0631\u064a\u0643\u0627\u064b \u0645\u0639 \u0645\u064a\u062f\u0627\u0631" : "Partner with Middar"}</span>
               <small>
                 {locale === "ar"
-                  ? "\u0639\u0645\u0644\u0627\u0621 \u0645\u0624\u0647\u0644\u064a\u0646\u060c \u0639\u0631\u0648\u0636 \u0623\u0633\u0639\u0627\u0631\u060c \u0645\u062f\u0641\u0648\u0639\u0627\u062a\u060c \u0648\u0639\u0645\u0648\u0644\u0627\u062a \u0645\u062a\u062a\u0628\u0639\u0629."
-                  : "Qualified leads, quotes, payments, and tracked commissions."}
+                  ? "\u0639\u0645\u0644\u0627\u0621 \u0645\u0647\u062a\u0645\u064a\u0646\u060c \u0639\u0631\u0648\u0636 \u0623\u0633\u0639\u0627\u0631\u060c \u0645\u062f\u0641\u0648\u0639\u0627\u062a\u060c \u0648\u0639\u0645\u0648\u0644\u0627\u062a \u0645\u062a\u062a\u0628\u0639\u0629."
+                  : "Interested leads, quotes, payments, and tracked commissions."}
               </small>
             </h1>
             <p className="hero-copy">{t("hero.copy")}</p>

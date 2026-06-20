@@ -29,13 +29,13 @@ const headerContent: Record<DashboardHeaderSection, {ar: HeaderContent; en: Head
   leads: {
     ar: {
       label: "إدارة العملاء",
-      title: "إدارة العملاء المؤهلين والنشطين في واجهة واحدة",
+      title: "إدارة العملاء المهتمين والنشطين في واجهة واحدة",
       subtitle: "سجلات CRM مرتبطة بمصدر المسوق وتتبع حالات المتابعة تلقائياً.",
       badge: "CRM Hub"
     },
     en: {
       label: "Customer management",
-      title: "Manage qualified and active customers in one interface",
+      title: "Manage interested and active customers in one interface",
       subtitle: "CRM records connected to affiliate sources with automatic follow-up tracking.",
       badge: "CRM Hub"
     }

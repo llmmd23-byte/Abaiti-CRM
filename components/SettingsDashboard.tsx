@@ -104,7 +104,7 @@ const content = {
       subtitle: "اختر تنبيهات العملاء والعروض والعمولات التي تريد استقبالها.",
       email: "تنبيهات البريد الإلكتروني",
       system: "تنبيهات النظام والمتصفح",
-      lead: "تسجيل عميل محتمل جديد",
+  lead: "تسجيل عميل مهتم جديد",
       quote: "فتح عرض السعر من العميل",
       commission: "اعتماد عمولة",
       payout: "تغييرات حالة الصرف فورياً",
@@ -327,7 +327,7 @@ export default function SettingsDashboard() {
                 <legend>{copy.profile.personal}</legend>
                 <label>
                   <span>{profileFields.fullName}</span>
-                  <input defaultValue={isArabic ? "عبدالله الشريك" : "Abdullah Partner"} />
+                  <input defaultValue={isArabic ? "عبد الله الشريك" : "Abdullah Partner"} />
                 </label>
                 <label>
                   <span>{profileFields.email}</span>
@@ -496,7 +496,7 @@ export default function SettingsDashboard() {
                 </label>
                 <label>
                   <span>{copy.payout.holder}</span>
-                  <input defaultValue={isArabic ? "عبدالله الشريك" : "Abdullah Partner"} />
+                  <input defaultValue={isArabic ? "عبد الله الشريك" : "Abdullah Partner"} />
                 </label>
                 <label>
                   <span>{copy.payout.iban}</span>

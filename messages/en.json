@@ -16,7 +16,7 @@
   },
   "hero": {
     "eyebrow": "Affiliate marketing CRM platform",
-    "title": "Turn affiliate traffic into qualified leads, quotes, payments, and tracked commissions.",
+    "title": "Turn affiliate traffic into interested leads, quotes, payments, and tracked commissions.",
     "copy": "Middar gives every affiliate a conversion-focused landing page and a secure CRM dashboard for managing leads, issuing quotes, sharing payment links, and tracking earnings in real time."
   },
   "trust": {
@@ -98,7 +98,7 @@
     "name": "Affiliate Console",
     "overview": "Overview",
     "marketing": "Marketing",
-    "potentialCustomers": "Potential Customers",
+    "potentialCustomers": "Interested Customers",
     "salesTools": "Quotes & Pricing",
     "quotesPricing": "Quotes & Pricing",
     "commissions": "Commissions",
@@ -129,7 +129,7 @@
       "note": "$4,200 pending payout"
     },
     "item3": {
-      "label": "Qualified leads",
+      "label": "Interested leads",
       "value": "236",
       "note": "31 new demo requests"
     },
@@ -206,7 +206,8 @@
   "dashboardPages": {
     "sidebar": {
       "accountStatus": "Account status",
-      "active": "Active"
+      "active": "Active",
+      "logout": "Sign out"
     },
     "entry": {
       "title": "Open a focused dashboard workspace for each affiliate workflow.",
@@ -304,7 +305,7 @@
     },
     "customers": {
       "eyebrow": "Customer CRM",
-      "title": "Manage qualified leads and active customers in one clean view.",
+      "title": "Manage interested leads and active customers in one clean view.",
       "tableTitle": "Customer list",
       "tableSubtitle": "CRM records tagged by affiliate source",
       "name": "Name",
@@ -317,7 +318,7 @@
         "name": "Maya Carter",
         "company": "Nova Clinics",
         "source": "Affiliate page",
-        "stage": "Qualified",
+        "stage": "Interested",
         "stageClass": "approved",
         "value": "$32,000",
         "owner": "Sales Team"
@@ -435,7 +436,7 @@
     },
     "demo": {
       "eyebrow": "Demo workspace",
-      "title": "Create a tailored trial environment for a qualified customer.",
+      "title": "Create a tailored trial environment for an interested customer.",
       "cardTitle": "Create demo instance",
       "cardSubtitle": "Provision a focused SaaS preview for sales conversations",
       "customer": "Customer",
