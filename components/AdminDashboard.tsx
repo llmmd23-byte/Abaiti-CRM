@@ -571,6 +571,7 @@ function AdminMetricList({
         ["contact_name", isArabic ? "العميل" : "Client"],
         ["company_name", isArabic ? "الشركة" : "Company"],
         ["phone", isArabic ? "رقم الجوال" : "Mobile"],
+        ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
         ["status", isArabic ? "الحالة" : "Status"],
         ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
       ],
@@ -583,6 +584,7 @@ function AdminMetricList({
         ["product_name", isArabic ? "المنتج" : "Product"],
         ["amount", isArabic ? "القيمة" : "Amount"],
         ["valid_until", isArabic ? "تاريخ الانتهاء" : "Expiry Date"],
+        ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
         ["status", isArabic ? "الحالة" : "Status"],
       ],
     },
@@ -593,6 +595,7 @@ function AdminMetricList({
         ["customer_name", isArabic ? "العميل" : "Client"],
         ["product_name", isArabic ? "المنتج" : "Product"],
         ["sale_amount", isArabic ? "القيمة" : "Amount"],
+        ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
         ["status", isArabic ? "الحالة" : "Status"],
       ],
     },
@@ -639,8 +642,11 @@ function AdminMetricList({
     ],
   };
   const normalizedSearch = search.trim().toLocaleLowerCase();
-  const clientUserOptions =
-    metric === "clients"
+  const hasUserFilter = ["clients", "demos", "quotes", "sales"].includes(
+    metric,
+  );
+  const userFilterOptions =
+    hasUserFilter
       ? Array.from(
           new Map(
             config.rows
@@ -662,7 +668,7 @@ function AdminMetricList({
       metric === "clients" ? (row.stage ?? "") : (row.status ?? ""),
     );
     const matchesClientUser =
-      metric !== "clients" ||
+      !hasUserFilter ||
       clientUserFilter === "all" ||
       String(row.affiliate_user_name ?? "") === clientUserFilter;
     return (
@@ -823,7 +829,7 @@ function AdminMetricList({
               value={statusFilter}
             />
           </div>
-          {metric === "clients" ? (
+          {hasUserFilter ? (
             <div className="admin-user-status-filter admin-client-user-filter">
               <DashboardSelect
                 ariaLabel={isArabic ? "فلترة حسب المستخدم" : "Filter by user"}
@@ -833,7 +839,7 @@ function AdminMetricList({
                     value: "all",
                     label: isArabic ? "كل المستخدمين" : "All Users",
                   },
-                  ...clientUserOptions,
+                  ...userFilterOptions,
                 ]}
                 value={clientUserFilter}
               />

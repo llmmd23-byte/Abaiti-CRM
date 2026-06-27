@@ -136,10 +136,15 @@ export async function GET() {
         ORDER BY l.created_at DESC LIMIT 250`,
     ),
     db.execute<RowDataPacket[]>(
-      "SELECT id,contact_name,company_name,phone,status,created_at FROM demo_requests ORDER BY created_at DESC LIMIT 250",
+      `SELECT d.id,d.contact_name,d.company_name,d.phone,d.status,d.created_at,d.affiliate_user_id,
+              COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name
+         FROM demo_requests d
+         LEFT JOIN users u ON u.id=d.affiliate_user_id
+        ORDER BY d.created_at DESC LIMIT 250`,
     ),
     db.execute<RowDataPacket[]>(
-       `SELECT q.id,q.quote_number,q.amount,q.currency,q.status,q.valid_until,q.payment_receipt_url,q.sales_invoice_number,q.created_at,q.affiliate_user_id,l.name customer_name,p.name product_name,p.name_en product_name_en,p.base_price product_base_price,u.name affiliate_user_name
+       `SELECT q.id,q.quote_number,q.amount,q.currency,q.status,q.valid_until,q.payment_receipt_url,q.sales_invoice_number,q.created_at,q.affiliate_user_id,l.name customer_name,p.name product_name,p.name_en product_name_en,p.base_price product_base_price,
+               COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name
          FROM quotes q
          LEFT JOIN leads l ON l.id=q.lead_id
          LEFT JOIN products p ON p.id=q.product_id
@@ -147,7 +152,8 @@ export async function GET() {
         ORDER BY q.created_at DESC LIMIT 250`,
     ),
     db.execute<RowDataPacket[]>(
-       `SELECT s.id,s.sales_invoice_number,s.sale_amount,s.currency,s.status,s.receipt_url,s.sold_at,s.created_at,s.affiliate_user_id,c.id commission_id,l.name customer_name,p.name product_name,p.name_en product_name_en,u.name affiliate_user_name,u.level affiliate_user_level,COALESCE(sc.sale_count,0) affiliate_sales_count,q.quote_number
+       `SELECT s.id,s.sales_invoice_number,s.sale_amount,s.currency,s.status,s.receipt_url,s.sold_at,s.created_at,s.affiliate_user_id,c.id commission_id,l.name customer_name,p.name product_name,p.name_en product_name_en,
+               COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name,u.level affiliate_user_level,COALESCE(sc.sale_count,0) affiliate_sales_count,q.quote_number
          FROM sales s
          LEFT JOIN leads l ON l.id=s.lead_id
          LEFT JOIN products p ON p.id=s.product_id
