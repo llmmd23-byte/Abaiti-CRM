@@ -295,6 +295,7 @@ CREATE TABLE IF NOT EXISTS commissions (
   commission_percent DECIMAL(5,2) NOT NULL DEFAULT 0.00,
   commission_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
   currency CHAR(3) NOT NULL DEFAULT 'SAR',
+  commission_type VARCHAR(80) NOT NULL DEFAULT 'عمولة مبيعات',
   status ENUM('pending', 'approved', 'paid', 'rejected') NOT NULL DEFAULT 'pending',
   payment_reference VARCHAR(255) NULL,
   approved_at DATETIME NULL,

@@ -3026,6 +3026,7 @@ function AdminCommissionList({
               <th>{isArabic ? "الرقم" : "ID"}</th>
               <th>{isArabic ? "رقم المبيعات" : "Sales Number"}</th>
               <th>{isArabic ? "المستخدم" : "User"}</th>
+              <th>{isArabic ? "نوع العمولة" : "Commission Type"}</th>
               <th>{isArabic ? "المبلغ" : "Amount"}</th>
               <th>{isArabic ? "النسبة" : "Commission Percentage"}</th>
               <th>{isArabic ? "الحالة" : "Status"}</th>
@@ -3050,6 +3051,7 @@ function AdminCommissionList({
                     )}
                   </td>
                   <td>{String(commission.affiliate_user_name ?? "—")}</td>
+                  <td>{String(commission.commission_type ?? "—")}</td>
                   <td>{`${Number(commission.commission_amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(commission.currency ?? "SAR")}`}</td>
                   <td>{`${Number(commission.commission_percent ?? 0)}%`}</td>
                   <td>
@@ -3100,7 +3102,7 @@ function AdminCommissionList({
             })}
             {data.length === 0 ? (
               <tr>
-                <td className="admin-empty" colSpan={10}>
+                <td className="admin-empty" colSpan={11}>
                   {isArabic ? "لا توجد عمولات" : "No commissions found"}
                 </td>
               </tr>

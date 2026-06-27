@@ -47,6 +47,14 @@ async function ensureQuoteReceiptColumn() {
     await db.execute(
       "ALTER TABLE commissions ADD COLUMN payment_reference VARCHAR(255) NULL",
     );
+
+  const [commissionTypeColumns] = await db.execute<RowDataPacket[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'commissions' AND COLUMN_NAME = 'commission_type' LIMIT 1",
+  );
+  if (!commissionTypeColumns.length)
+    await db.execute(
+      "ALTER TABLE commissions ADD COLUMN commission_type VARCHAR(80) NOT NULL DEFAULT 'عمولة مبيعات' AFTER currency",
+    );
 }
 
 async function ensureSupportTicketEventsTable() {
@@ -160,11 +168,11 @@ export async function GET() {
          LEFT JOIN users u ON u.id=s.affiliate_user_id
          LEFT JOIN (SELECT affiliate_user_id,COUNT(*) sale_count FROM sales GROUP BY affiliate_user_id) sc ON sc.affiliate_user_id=s.affiliate_user_id
          LEFT JOIN quotes q ON q.id=s.quote_id
-         LEFT JOIN commissions c ON c.sale_id=s.id
+         LEFT JOIN (SELECT sale_id,MIN(id) id FROM commissions GROUP BY sale_id) c ON c.sale_id=s.id
        ORDER BY s.created_at DESC LIMIT 250`,
     ),
     db.execute<RowDataPacket[]>(
-      `SELECT c.id,c.sale_id,s.sales_invoice_number,c.affiliate_user_id,c.commission_amount,c.commission_percent,c.currency,c.status,c.payment_reference,c.created_at,c.approved_at,c.paid_at,u.name affiliate_user_name
+      `SELECT c.id,c.sale_id,s.sales_invoice_number,c.affiliate_user_id,c.commission_amount,c.commission_percent,c.currency,c.commission_type,c.status,c.payment_reference,c.created_at,c.approved_at,c.paid_at,u.name affiliate_user_name
          FROM commissions c
          LEFT JOIN sales s ON s.id=c.sale_id
          LEFT JOIN users u ON u.id=c.affiliate_user_id
