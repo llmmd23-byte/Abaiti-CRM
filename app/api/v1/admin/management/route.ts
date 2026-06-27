@@ -128,9 +128,10 @@ export async function GET() {
     ),
     db.execute<RowDataPacket[]>(
       `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.stage,l.industry_id,l.address,l.requirements,l.created_at,
-              i.name industry_name,i.name_en industry_name_en
+              i.name industry_name,i.name_en industry_name_en,u.name affiliate_user_name
          FROM leads l
          LEFT JOIN industries i ON i.id=l.industry_id
+         LEFT JOIN users u ON u.id=l.affiliate_user_id
         ORDER BY l.created_at DESC LIMIT 250`,
     ),
     db.execute<RowDataPacket[]>(

@@ -560,10 +560,7 @@ function AdminMetricList({
         ["name", isArabic ? "الاسم" : "Name"],
         ["phone", isArabic ? "رقم الجوال" : "Mobile"],
         ["address", isArabic ? "العنوان" : "Address"],
-        [
-          "requirements",
-          isArabic ? "المتطلبات الإضافية" : "Additional Requirements",
-        ],
+        ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
       ],
     },
     demos: {
