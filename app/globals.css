@@ -3173,6 +3173,14 @@ html[dir="ltr"] .dashboard-main {
   transition: all 0.3s ease-in-out;
 }
 
+.bar-chart span.is-zero {
+  min-height: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.28);
+  box-shadow: none;
+}
+
 .bar-chart span:hover {
   filter: saturate(1.12);
   transform: translateY(-4px);
