@@ -7,6 +7,8 @@ import {
   allPermissionKeys,
   ensurePermissionsTable,
   hasPermission,
+  listRoles,
+  roleIdForSlug,
   type DataScope,
 } from "@/lib/permissions";
 
@@ -20,12 +22,12 @@ const allowedActions = [
   "can_dashboard",
 ] as const;
 
-const allowedRoles = new Set(["admin", "affiliate", "sales", "support"]);
 const allowedScopes = new Set(["own", "team", "company", "all"]);
 
 type PermissionRow = RowDataPacket & {
   subject_type: "role" | "user";
   subject_id: string;
+  role_id: number | null;
   permission_key: string;
   can_view: number;
   can_create: number;
@@ -55,6 +57,7 @@ export async function GET() {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
 
   await ensurePermissionsTable();
+  const roles = await listRoles();
   const companyId = await adminCompanyId(Number(session.sub));
   const userWhere =
     companyId === null || companyId === undefined
@@ -68,15 +71,16 @@ export async function GET() {
   const [[permissions], [users]] = await Promise.all([
     db.execute<PermissionRow[]>(
       `SELECT subject_type,subject_id,permission_key,can_view,can_create,can_edit,
-              can_delete,can_approve,can_reports,can_dashboard,data_scope
+              can_delete,can_approve,can_reports,can_dashboard,data_scope,role_id
          FROM permissions
         ORDER BY subject_type, subject_id, permission_key`,
     ),
     db.execute<RowDataPacket[]>(
-      `SELECT id,name,email,username,role,status,CompanyID AS company_id
-         FROM users
+      `SELECT u.id,u.name,u.email,u.username,COALESCE(r.slug,u.role) role,u.status,u.CompanyID AS company_id
+         FROM users u
+         LEFT JOIN roles r ON r.id = u.role_id
         WHERE ${userWhere}
-        ORDER BY name ASC, email ASC`,
+        ORDER BY u.name ASC, u.email ASC`,
       userParams,
     ),
   ]);
@@ -85,7 +89,7 @@ export async function GET() {
     data: {
       permissionKeys: allPermissionKeys,
       permissions,
-      roles: Array.from(allowedRoles),
+      roles,
       users,
     },
   });
@@ -112,7 +116,8 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "INVALID_PERMISSION" }, { status: 422 });
   if (!allowedScopes.has(dataScope))
     return NextResponse.json({ error: "INVALID_SCOPE" }, { status: 422 });
-  if (subjectType === "role" && !allowedRoles.has(subjectId))
+  const roleId = subjectType === "role" ? await roleIdForSlug(subjectId) : null;
+  if (subjectType === "role" && !roleId)
     return NextResponse.json({ error: "INVALID_ROLE" }, { status: 422 });
 
   if (subjectType === "user") {
@@ -139,10 +144,11 @@ export async function PUT(request: Request) {
 
   await db.execute(
     `INSERT INTO permissions
-       (subject_type,subject_id,permission_key,can_view,can_create,can_edit,can_delete,
+       (subject_type,subject_id,role_id,permission_key,can_view,can_create,can_edit,can_delete,
         can_approve,can_reports,can_dashboard,data_scope)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
+       role_id=VALUES(role_id),
        can_view=VALUES(can_view),
        can_create=VALUES(can_create),
        can_edit=VALUES(can_edit),
@@ -152,7 +158,7 @@ export async function PUT(request: Request) {
        can_dashboard=VALUES(can_dashboard),
        data_scope=VALUES(data_scope),
        updated_at=CURRENT_TIMESTAMP`,
-    [subjectType, subjectId, permissionKey, ...values, dataScope],
+    [subjectType, subjectId, roleId, permissionKey, ...values, dataScope],
   );
 
   return NextResponse.json({ ok: true });

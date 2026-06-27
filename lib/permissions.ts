@@ -28,6 +28,13 @@ type PermissionRow = RowDataPacket & {
   data_scope: DataScope;
 };
 
+type RoleRow = RowDataPacket & {
+  id: number;
+  slug: string;
+  name_ar: string;
+  name_en: string;
+};
+
 type PermissionSeed = {
   key: string;
   view?: boolean;
@@ -202,16 +209,84 @@ const seedColumns = (seed: PermissionSeed) => [
   seed.scope ?? "own",
 ];
 
+export async function ensureRolesTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS roles (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      slug VARCHAR(80) NOT NULL,
+      name_ar VARCHAR(120) NOT NULL,
+      name_en VARCHAR(120) NOT NULL,
+      description VARCHAR(255) NULL,
+      is_system TINYINT(1) NOT NULL DEFAULT 1,
+      is_active TINYINT(1) NOT NULL DEFAULT 1,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_roles_slug (slug)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+
+  const roleRows = [
+    ["admin", "مشرف", "Admin"],
+    ["affiliate", "مسوق", "Affiliate"],
+    ["sales", "مبيعات", "Sales"],
+    ["support", "دعم", "Support"],
+  ];
+  for (const role of roleRows) {
+    await db.execute(
+      `INSERT INTO roles (slug, name_ar, name_en)
+       VALUES (?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         name_ar = VALUES(name_ar),
+         name_en = VALUES(name_en),
+         is_active = 1`,
+      role,
+    );
+  }
+
+  const [userRoleColumns] = await db.execute<RowDataPacket[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role_id' LIMIT 1",
+  );
+  if (!userRoleColumns.length) {
+    await db.execute("ALTER TABLE users ADD COLUMN role_id BIGINT UNSIGNED NULL AFTER role");
+  }
+  await db.execute(
+    `UPDATE users u
+       JOIN roles r ON r.slug = u.role
+        SET u.role_id = r.id
+      WHERE u.role_id IS NULL`,
+  );
+}
+
+export async function listRoles() {
+  await ensureRolesTable();
+  const [rows] = await db.execute<RoleRow[]>(
+    "SELECT id,slug,name_ar,name_en FROM roles WHERE is_active = 1 ORDER BY id ASC",
+  );
+  return rows;
+}
+
+export async function roleIdForSlug(slug: string) {
+  await ensureRolesTable();
+  const [rows] = await db.execute<RoleRow[]>(
+    "SELECT id,slug,name_ar,name_en FROM roles WHERE slug = ? AND is_active = 1 LIMIT 1",
+    [slug],
+  );
+  return rows[0]?.id ? Number(rows[0].id) : null;
+}
+
 export async function ensurePermissionsTable() {
   if (globalForPermissions.middarPermissionsReady)
     return globalForPermissions.middarPermissionsReady;
 
   globalForPermissions.middarPermissionsReady = (async () => {
+    await ensureRolesTable();
     await db.execute(
       `CREATE TABLE IF NOT EXISTS permissions (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         subject_type ENUM('role','user') NOT NULL DEFAULT 'role',
         subject_id VARCHAR(80) NOT NULL,
+        role_id BIGINT UNSIGNED NULL,
         permission_key VARCHAR(160) NOT NULL,
         can_view TINYINT(1) NOT NULL DEFAULT 0,
         can_create TINYINT(1) NOT NULL DEFAULT 0,
@@ -230,15 +305,33 @@ export async function ensurePermissionsTable() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
     );
 
+    const [roleColumns] = await db.execute<RowDataPacket[]>(
+      "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'permissions' AND COLUMN_NAME = 'role_id' LIMIT 1",
+    );
+    if (!roleColumns.length) {
+      await db.execute(
+        "ALTER TABLE permissions ADD COLUMN role_id BIGINT UNSIGNED NULL AFTER subject_id",
+      );
+    }
+    await db.execute(
+      `UPDATE permissions p
+         JOIN roles r ON r.slug = p.subject_id
+          SET p.role_id = r.id
+        WHERE p.subject_type = 'role' AND p.role_id IS NULL`,
+    );
+
     for (const [role, seeds] of Object.entries(roleSeeds)) {
+      const roleId = await roleIdForSlug(role);
       for (const seed of seeds) {
         await db.execute(
           `INSERT INTO permissions
-             (subject_type, subject_id, permission_key, can_view, can_create, can_edit, can_delete,
+             (subject_type, subject_id, role_id, permission_key, can_view, can_create, can_edit, can_delete,
               can_approve, can_reports, can_dashboard, data_scope)
-           VALUES ('role', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-           ON DUPLICATE KEY UPDATE permission_key = permission_key`,
-          [role, seed.key, ...seedColumns(seed)],
+           VALUES ('role', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+             role_id = COALESCE(role_id, VALUES(role_id)),
+             permission_key = permission_key`,
+          [role, roleId, seed.key, ...seedColumns(seed)],
         );
       }
     }
@@ -264,14 +357,23 @@ function adminFallback(permissionKey: string): PermissionRow {
 async function permissionRows(session: MiddarSession, permissionKey?: string) {
   await ensurePermissionsTable();
   const params = permissionKey
-    ? [String(session.sub), session.role, permissionKey]
-    : [String(session.sub), session.role];
+    ? [String(session.sub), session.role, session.role, permissionKey]
+    : [String(session.sub), session.role, session.role];
   const keyClause = permissionKey ? "AND permission_key = ?" : "";
   const [rows] = await db.execute<PermissionRow[]>(
     `SELECT permission_key,can_view,can_create,can_edit,can_delete,can_approve,
             can_reports,can_dashboard,data_scope
        FROM permissions
-      WHERE ((subject_type='user' AND subject_id = ?) OR (subject_type='role' AND subject_id = ?))
+      WHERE (
+        (subject_type='user' AND subject_id = ?)
+        OR (
+          subject_type='role'
+          AND (
+            subject_id = ?
+            OR role_id = (SELECT id FROM roles WHERE slug = ? LIMIT 1)
+          )
+        )
+      )
         ${keyClause}
       ORDER BY subject_type = 'user' DESC`,
     params,

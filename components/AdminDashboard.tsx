@@ -31,6 +31,7 @@ type AdminRow = Record<string, unknown> & { id: number };
 type PermissionRecord = {
   subject_type: "role" | "user";
   subject_id: string;
+  role_id: number | null;
   permission_key: string;
   can_view: number;
   can_create: number;
@@ -44,7 +45,7 @@ type PermissionRecord = {
 type AdminPermissionData = {
   permissionKeys: string[];
   permissions: PermissionRecord[];
-  roles: string[];
+  roles: Array<{ id: number; slug: string; name_ar: string; name_en: string }>;
   users: AdminRow[];
 };
 type ManagementData = {
@@ -1284,6 +1285,7 @@ function blankPermission(
   return {
     subject_type: subjectType,
     subject_id: subjectId,
+    role_id: null,
     permission_key: permissionKey,
     can_view: 0,
     can_create: 0,
@@ -1414,8 +1416,8 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
             onValueChange={setSubject}
             options={[
               ...permissionData.roles.map((role) => ({
-                value: `role:${role}`,
-                label: `${isArabic ? "دور" : "Role"} · ${displayAdminValue(role, isArabic)}`,
+                value: `role:${role.slug}`,
+                label: `${isArabic ? "دور" : "Role"} · ${isArabic ? role.name_ar : role.name_en}`,
               })),
               ...permissionData.users.map((user) => ({
                 value: `user:${user.id}`,

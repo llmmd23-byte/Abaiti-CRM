@@ -119,10 +119,11 @@ export async function GET() {
     [ticketEvents],
   ] = await Promise.all([
     db.execute<RowDataPacket[]>(
-      `SELECT id,name,email,username,phone,role,status,is_active,CompanyID AS company_id,created_at,last_login_at
-         FROM users
+      `SELECT u.id,u.name,u.email,u.username,u.phone,COALESCE(r.slug,u.role) role,u.status,u.is_active,u.CompanyID AS company_id,u.created_at,u.last_login_at
+         FROM users u
+         LEFT JOIN roles r ON r.id = u.role_id
         WHERE ${usersWhereClause}
-        ORDER BY created_at DESC`,
+        ORDER BY u.created_at DESC`,
       usersWhereValues,
     ),
     db.execute<RowDataPacket[]>(

@@ -51,10 +51,12 @@ async function verifyPassword(password: string, storedHash: string) {
 
 export async function authenticateUser(identifier: string, password: string) {
   const [rows] = await db.execute<UserRow[]>(
-    `SELECT id, name, email, username, password_hash, role, status, is_active,
-            preferred_locale
-       FROM users
-      WHERE LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?)
+    `SELECT u.id, u.name, u.email, u.username, u.password_hash,
+            COALESCE(r.slug, u.role) AS role,
+            u.status, u.is_active, u.preferred_locale
+       FROM users u
+       LEFT JOIN roles r ON r.id = u.role_id
+      WHERE LOWER(u.email) = LOWER(?) OR LOWER(u.username) = LOWER(?)
       LIMIT 1`,
     [identifier, identifier]
   );

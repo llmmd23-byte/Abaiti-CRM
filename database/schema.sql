@@ -22,6 +22,20 @@ CREATE TABLE IF NOT EXISTS educational_assets (
   KEY idx_educational_assets_type_status (asset_type, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS roles (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  slug VARCHAR(80) NOT NULL,
+  name_ar VARCHAR(120) NOT NULL,
+  name_en VARCHAR(120) NOT NULL,
+  description VARCHAR(255) NULL,
+  is_system TINYINT(1) NOT NULL DEFAULT 1,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_roles_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(160) NOT NULL,
@@ -32,6 +46,7 @@ CREATE TABLE IF NOT EXISTS users (
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   password_hash VARCHAR(255) NOT NULL,
   role ENUM('admin', 'affiliate', 'sales', 'support') NOT NULL DEFAULT 'affiliate',
+  role_id BIGINT UNSIGNED NULL,
   status ENUM('active', 'inactive', 'pending', 'suspended') NOT NULL DEFAULT 'active',
   preferred_locale ENUM('ar', 'en') NOT NULL DEFAULT 'ar',
   last_login_at DATETIME NULL,
@@ -43,6 +58,9 @@ CREATE TABLE IF NOT EXISTS users (
   KEY idx_users_role_status (role, status),
   KEY idx_users_company_active (CompanyID, is_active),
   KEY idx_users_manager (manager_id),
+  KEY idx_users_role_id (role_id),
+  CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id)
+    ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT fk_users_manager FOREIGN KEY (manager_id) REFERENCES users(id)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -51,6 +69,7 @@ CREATE TABLE IF NOT EXISTS permissions (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   subject_type ENUM('role','user') NOT NULL DEFAULT 'role',
   subject_id VARCHAR(80) NOT NULL,
+  role_id BIGINT UNSIGNED NULL,
   permission_key VARCHAR(160) NOT NULL,
   can_view TINYINT(1) NOT NULL DEFAULT 0,
   can_create TINYINT(1) NOT NULL DEFAULT 0,
@@ -64,8 +83,11 @@ CREATE TABLE IF NOT EXISTS permissions (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_permissions_subject_key (subject_type, subject_id, permission_key),
+  KEY idx_permissions_role_id (role_id),
   KEY idx_permissions_key (permission_key),
-  KEY idx_permissions_scope (data_scope)
+  KEY idx_permissions_scope (data_scope),
+  CONSTRAINT fk_permissions_role FOREIGN KEY (role_id) REFERENCES roles(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS user_notification_settings (
