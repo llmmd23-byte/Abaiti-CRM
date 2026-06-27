@@ -80,19 +80,26 @@ export async function GET() {
   await ensureSupportTicketEventsTable();
 
   const [adminRows] = await db.execute<RowDataPacket[]>(
-    "SELECT CompanyID, company_code FROM users WHERE id = ? LIMIT 1",
+    "SELECT CompanyID, company_code, db_identifier FROM users WHERE id = ? LIMIT 1",
     [Number(session.sub)],
   );
   const adminCompanyId = adminRows[0]?.CompanyID ?? null;
   const adminCompanyCode = adminRows[0]?.company_code ?? null;
+  const adminDbIdentifier = adminRows[0]?.db_identifier ?? null;
   const adminUserId = Number(session.sub);
   const usersWhereClause =
     adminCompanyId !== null && adminCompanyId !== undefined
-      ? "(CompanyID = ? OR CompanyID = ? OR id = ?)"
+      ? "(CompanyID = ? OR CompanyID = ? OR id = ? OR (company_code <=> ? AND db_identifier <=> ?))"
       : "company_code = ?";
   const usersWhereValues =
     adminCompanyId !== null && adminCompanyId !== undefined
-      ? [adminCompanyId, adminUserId, adminUserId]
+      ? [
+          adminCompanyId,
+          adminUserId,
+          adminUserId,
+          adminCompanyCode,
+          adminDbIdentifier,
+        ]
       : [adminCompanyCode];
 
   const [
@@ -112,7 +119,7 @@ export async function GET() {
       `SELECT id,name,email,username,phone,role,status,is_active,CompanyID AS company_id,created_at,last_login_at
          FROM users
         WHERE ${usersWhereClause}
-        ORDER BY created_at DESC LIMIT 250`,
+        ORDER BY created_at DESC`,
       usersWhereValues,
     ),
     db.execute<RowDataPacket[]>(
