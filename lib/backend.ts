@@ -354,7 +354,7 @@ export async function listResource(resource: string, session: MiddarSession) {
     const scopedWhere = where ? ` WHERE c.${definition.ownerField} = ?` : "";
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT c.id,c.sale_id,c.affiliate_user_id,c.commission_percent,c.commission_amount,
-              c.currency,c.status,c.payment_reference,c.created_at,c.approved_at,c.paid_at,
+              c.currency,c.commission_type,c.status,c.payment_reference,c.created_at,c.approved_at,c.paid_at,
               s.sales_invoice_number,l.name customer_name
          FROM commissions c
          LEFT JOIN sales s ON s.id=c.sale_id
