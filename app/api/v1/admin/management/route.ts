@@ -4,6 +4,30 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hasPermission } from "@/lib/permissions";
 
+const globalForAdminManagement = globalThis as typeof globalThis & {
+  adminManagementSchemaReady?: Promise<void>;
+};
+
+async function addColumnIfMissing(
+  tableName: string,
+  columnName: string,
+  alterSql: string,
+) {
+  const [columns] = await db.execute<RowDataPacket[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1",
+    [tableName, columnName],
+  );
+
+  if (columns.length) return;
+
+  try {
+    await db.execute(alterSql);
+  } catch (error) {
+    if ((error as { code?: string }).code === "ER_DUP_FIELDNAME") return;
+    throw error;
+  }
+}
+
 async function ensureQuoteReceiptColumn() {
   const [columns] = await db.execute<RowDataPacket[]>(
     "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'quotes' AND COLUMN_NAME = 'payment_receipt_url' LIMIT 1",
@@ -78,6 +102,54 @@ async function ensureSupportTicketEventsTable() {
   );
 }
 
+async function ensureAdminManagementSchema() {
+  globalForAdminManagement.adminManagementSchemaReady ??= (async () => {
+    await addColumnIfMissing(
+      "quotes",
+      "payment_receipt_url",
+      "ALTER TABLE quotes ADD COLUMN payment_receipt_url VARCHAR(500) NULL",
+    );
+    await addColumnIfMissing(
+      "quotes",
+      "sales_invoice_number",
+      "ALTER TABLE quotes ADD COLUMN sales_invoice_number VARCHAR(80) NULL",
+    );
+    await addColumnIfMissing(
+      "sales",
+      "receipt_url",
+      "ALTER TABLE sales ADD COLUMN receipt_url VARCHAR(500) NULL",
+    );
+
+    const [salesInvoiceColumns] = await db.execute<RowDataPacket[]>(
+      "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sales' AND COLUMN_NAME = 'sales_invoice_number' LIMIT 1",
+    );
+    if (!salesInvoiceColumns.length) {
+      await addColumnIfMissing(
+        "sales",
+        "sales_invoice_number",
+        "ALTER TABLE sales ADD COLUMN sales_invoice_number VARCHAR(80) NULL AFTER id",
+      );
+      await db.execute(
+        "UPDATE sales SET sales_invoice_number = CONCAT('S-', id) WHERE sales_invoice_number IS NULL",
+      );
+    }
+
+    await addColumnIfMissing(
+      "commissions",
+      "payment_reference",
+      "ALTER TABLE commissions ADD COLUMN payment_reference VARCHAR(255) NULL",
+    );
+    await addColumnIfMissing(
+      "commissions",
+      "commission_type",
+      "ALTER TABLE commissions ADD COLUMN commission_type VARCHAR(80) NOT NULL DEFAULT 'عمولة مبيعات' AFTER currency",
+    );
+    await ensureSupportTicketEventsTable();
+  })();
+
+  return globalForAdminManagement.adminManagementSchemaReady;
+}
+
 export async function GET() {
   const session = await getSession();
   if (!session)
@@ -87,8 +159,7 @@ export async function GET() {
   if (!(await hasPermission(session, "page.admin.accounts", "can_view")))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
 
-  await ensureQuoteReceiptColumn();
-  await ensureSupportTicketEventsTable();
+  await ensureAdminManagementSchema();
 
   const [adminRows] = await db.execute<RowDataPacket[]>(
     "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
