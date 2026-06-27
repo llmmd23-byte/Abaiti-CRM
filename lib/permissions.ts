@@ -40,13 +40,14 @@ type PermissionSeed = {
   scope?: DataScope;
 };
 
-const pagePermissions = [
+export const pagePermissions = [
   "page.admin.dashboard",
   "page.admin.tickets",
   "page.admin.accounts",
   "page.admin.products",
   "page.admin.activities",
   "page.admin.content",
+  "page.admin.permissions",
   "page.user.overview",
   "page.user.marketing",
   "page.user.customers",
@@ -59,7 +60,7 @@ const pagePermissions = [
   "page.user.settings",
 ];
 
-const tablePermissions = [
+export const tablePermissions = [
   "table.users",
   "table.products",
   "table.industries",
@@ -78,12 +79,12 @@ const tablePermissions = [
   "table.payout_methods",
 ];
 
-const specialPermissions = [
+export const specialPermissions = [
   "data.team_members",
   "commission.percentage",
 ];
 
-const allPermissionKeys = [
+export const allPermissionKeys = [
   ...pagePermissions,
   ...tablePermissions,
   ...specialPermissions,

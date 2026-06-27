@@ -25,8 +25,28 @@ type AdminSection =
   | "accounts"
   | "products"
   | "activity"
-  | "content";
+  | "content"
+  | "permissions";
 type AdminRow = Record<string, unknown> & { id: number };
+type PermissionRecord = {
+  subject_type: "role" | "user";
+  subject_id: string;
+  permission_key: string;
+  can_view: number;
+  can_create: number;
+  can_edit: number;
+  can_delete: number;
+  can_approve: number;
+  can_reports: number;
+  can_dashboard: number;
+  data_scope: "own" | "team" | "company" | "all";
+};
+type AdminPermissionData = {
+  permissionKeys: string[];
+  permissions: PermissionRecord[];
+  roles: string[];
+  users: AdminRow[];
+};
 type ManagementData = {
   users: AdminRow[];
   tickets: AdminRow[];
@@ -59,6 +79,7 @@ const navItems = [
   [{ ar: "المنتجات", en: "Products" }, "products"],
   [{ ar: "الأنشطة", en: "Industries" }, "activity"],
   [{ ar: "المحتوى", en: "Content" }, "content"],
+  [{ ar: "الصلاحيات", en: "Permissions" }, "permissions"],
 ] as const;
 
 const adminValueLabels: Record<string, { ar: string; en: string }> = {
@@ -197,6 +218,11 @@ function AdminIcon({ name }: { name: string }) {
         <>
           <path d="M4 19h16M6 15l4-4 3 3 5-7" />
           <path d="M16 7h2v2" />
+        </>
+      ) : name === "permissions" ? (
+        <>
+          <path d="M12 3 5 6v5c0 4.2 2.8 8 7 10 4.2-2 7-5.8 7-10V6l-7-3Z" />
+          <path d="m9 12 2 2 4-5" />
         </>
       ) : (
         <>
@@ -1195,6 +1221,297 @@ function AdminMetricList({
   );
 }
 
+const permissionActionLabels = [
+  ["can_view", { ar: "عرض", en: "View" }],
+  ["can_create", { ar: "إضافة", en: "Create" }],
+  ["can_edit", { ar: "تعديل", en: "Edit" }],
+  ["can_delete", { ar: "حذف", en: "Delete" }],
+  ["can_approve", { ar: "اعتماد", en: "Approve" }],
+  ["can_reports", { ar: "تقارير", en: "Reports" }],
+  ["can_dashboard", { ar: "لوحة", en: "Dashboard" }],
+] as const;
+
+const permissionScopeLabels: Record<string, { ar: string; en: string }> = {
+  own: { ar: "بياناته فقط", en: "Own data" },
+  team: { ar: "بيانات الفريق", en: "Team data" },
+  company: { ar: "بيانات الشركة", en: "Company data" },
+  all: { ar: "كل البيانات", en: "All data" },
+};
+
+const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
+  "page.admin.dashboard": { ar: "صفحة الأدمن - لوحة التحكم", en: "Admin - Dashboard Page" },
+  "page.admin.tickets": { ar: "صفحة الأدمن - تذاكر الخدمة", en: "Admin - Service Tickets Page" },
+  "page.admin.accounts": { ar: "صفحة الأدمن - الحسابات", en: "Admin - Accounts Page" },
+  "page.admin.products": { ar: "صفحة الأدمن - المنتجات", en: "Admin - Products Page" },
+  "page.admin.activities": { ar: "صفحة الأدمن - الأنشطة", en: "Admin - Activities Page" },
+  "page.admin.content": { ar: "صفحة الأدمن - المحتوى", en: "Admin - Content Page" },
+  "page.admin.permissions": { ar: "صفحة الأدمن - الصلاحيات", en: "Admin - Permissions Page" },
+  "page.user.overview": { ar: "صفحة المستخدم - نظرة عامة", en: "User - Overview Page" },
+  "page.user.marketing": { ar: "صفحة المستخدم - التسويق", en: "User - Marketing Page" },
+  "page.user.customers": { ar: "صفحة المستخدم - العملاء", en: "User - Customers Page" },
+  "page.user.quotes": { ar: "صفحة المستخدم - عروض الأسعار", en: "User - Quotes Page" },
+  "page.user.sales": { ar: "صفحة المستخدم - المبيعات", en: "User - Sales Page" },
+  "page.user.activation": { ar: "صفحة المستخدم - التفعيل", en: "User - Activation Page" },
+  "page.user.education": { ar: "صفحة المستخدم - المحتوى التعليمي", en: "User - Education Page" },
+  "page.user.support": { ar: "صفحة المستخدم - مركز الدعم", en: "User - Support Page" },
+  "page.user.accounts": { ar: "صفحة المستخدم - الحسابات", en: "User - Accounts Page" },
+  "page.user.settings": { ar: "صفحة المستخدم - الإعدادات", en: "User - Settings Page" },
+  "table.users": { ar: "جدول المستخدمين", en: "Users Table" },
+  "table.products": { ar: "جدول المنتجات", en: "Products Table" },
+  "table.industries": { ar: "جدول الأنشطة", en: "Industries Table" },
+  "table.educational_assets": { ar: "جدول المحتوى التعليمي", en: "Educational Content Table" },
+  "table.leads": { ar: "جدول العملاء المهتمين", en: "Interested Customers Table" },
+  "table.lead_contacts": { ar: "جدول جهات اتصال العملاء", en: "Client Contacts Table" },
+  "table.lead_notes": { ar: "جدول ملاحظات العملاء", en: "Client Notes Table" },
+  "table.demo_requests": { ar: "جدول النسخ التجريبية", en: "Demos Table" },
+  "table.quotes": { ar: "جدول عروض الأسعار", en: "Quotes Table" },
+  "table.sales": { ar: "جدول المبيعات", en: "Sales Table" },
+  "table.commissions": { ar: "جدول العمولات", en: "Commissions Table" },
+  "table.support_tickets": { ar: "جدول تذاكر الخدمة", en: "Support Tickets Table" },
+  "table.support_ticket_events": { ar: "جدول خط زمن التذاكر", en: "Ticket Timeline Table" },
+  "table.team_members": { ar: "جدول أعضاء الفريق", en: "Team Members Table" },
+  "table.social_accounts": { ar: "جدول حسابات التواصل", en: "Social Accounts Table" },
+  "table.payout_methods": { ar: "جدول الحسابات البنكية", en: "Bank Accounts Table" },
+  "data.team_members": { ar: "رؤية بيانات أعضاء الفريق", en: "View Team Members Data" },
+  "commission.percentage": { ar: "تغيير نسبة العمولة", en: "Change Commission Percentage" },
+};
+
+function blankPermission(
+  subjectType: "role" | "user",
+  subjectId: string,
+  permissionKey: string,
+): PermissionRecord {
+  return {
+    subject_type: subjectType,
+    subject_id: subjectId,
+    permission_key: permissionKey,
+    can_view: 0,
+    can_create: 0,
+    can_edit: 0,
+    can_delete: 0,
+    can_approve: 0,
+    can_reports: 0,
+    can_dashboard: 0,
+    data_scope: "own",
+  };
+}
+
+function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
+  const [permissionData, setPermissionData] =
+    useState<AdminPermissionData | null>(null);
+  const [subject, setSubject] = useState("role:admin");
+  const [query, setQuery] = useState("");
+  const [message, setMessage] = useState("");
+  const language = isArabic ? "ar" : "en";
+
+  function loadPermissions() {
+    fetch("/api/v1/admin/permissions", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((body) => setPermissionData(body.data ?? null))
+      .catch(() => setPermissionData(null));
+  }
+
+  useEffect(() => {
+    loadPermissions();
+  }, []);
+
+  if (!permissionData) {
+    return (
+      <section className="admin-data-card admin-loading">
+        {isArabic ? "جاري تحميل الصلاحيات..." : "Loading permissions..."}
+      </section>
+    );
+  }
+
+  const [subjectTypeRaw, subjectId] = subject.split(":");
+  const subjectType = subjectTypeRaw === "user" ? "user" : "role";
+  const subjectLabel =
+    subjectType === "role"
+      ? displayAdminValue(subjectId, isArabic)
+      : String(
+          permissionData.users.find((user) => String(user.id) === subjectId)
+            ?.name ??
+            permissionData.users.find((user) => String(user.id) === subjectId)
+              ?.email ??
+            subjectId,
+        );
+  const permissionMap = new Map(
+    permissionData.permissions
+      .filter(
+        (permission) =>
+          permission.subject_type === subjectType &&
+          permission.subject_id === subjectId,
+      )
+      .map((permission) => [permission.permission_key, permission]),
+  );
+  const filteredKeys = permissionData.permissionKeys.filter((key) => {
+    const label = permissionKeyLabels[key]?.[language] ?? key;
+    const normalized = query.trim().toLocaleLowerCase();
+    return normalized
+      ? `${label} ${key}`.toLocaleLowerCase().includes(normalized)
+      : true;
+  });
+
+  async function savePermission(
+    permission: PermissionRecord,
+    updates: Partial<PermissionRecord>,
+  ) {
+    const nextPermission = { ...permission, ...updates };
+    setPermissionData((current) =>
+      current
+        ? {
+            ...current,
+            permissions: [
+              ...current.permissions.filter(
+                (item) =>
+                  !(
+                    item.subject_type === nextPermission.subject_type &&
+                    item.subject_id === nextPermission.subject_id &&
+                    item.permission_key === nextPermission.permission_key
+                  ),
+              ),
+              nextPermission,
+            ],
+          }
+        : current,
+    );
+    setMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const response = await fetch("/api/v1/admin/permissions", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify(nextPermission),
+      });
+      if (!response.ok) throw new Error("SAVE_FAILED");
+      setMessage(isArabic ? "تم حفظ الصلاحية" : "Permission saved");
+    } catch {
+      setMessage(isArabic ? "تعذر حفظ الصلاحية" : "Unable to save permission");
+      loadPermissions();
+    }
+  }
+
+  return (
+    <section className="admin-data-card admin-permissions-card">
+      <div className="admin-data-head admin-permissions-head">
+        <div>
+          <span>{isArabic ? "إدارة الصلاحيات" : "Permission Management"}</span>
+          <strong>
+            {isArabic ? "صلاحيات" : "Permissions"} {subjectLabel}
+          </strong>
+        </div>
+        <div className="admin-permissions-tools">
+          <input
+            aria-label={isArabic ? "بحث في الصلاحيات" : "Search permissions"}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={
+              isArabic ? "البحث في الصلاحيات..." : "Search permissions..."
+            }
+            type="search"
+            value={query}
+          />
+          <DashboardSelect
+            ariaLabel={isArabic ? "اختيار الدور أو المستخدم" : "Choose role or user"}
+            onValueChange={setSubject}
+            options={[
+              ...permissionData.roles.map((role) => ({
+                value: `role:${role}`,
+                label: `${isArabic ? "دور" : "Role"} · ${displayAdminValue(role, isArabic)}`,
+              })),
+              ...permissionData.users.map((user) => ({
+                value: `user:${user.id}`,
+                label: `${isArabic ? "مستخدم" : "User"} · ${String(user.name ?? user.email ?? user.id)}`,
+              })),
+            ]}
+            searchable
+            searchPlaceholder={
+              isArabic ? "ابحث عن دور أو مستخدم..." : "Search role or user..."
+            }
+            value={subject}
+          />
+        </div>
+      </div>
+
+      {message ? <p className="admin-permissions-message">{message}</p> : null}
+
+      <div className="admin-table-wrap admin-permissions-table-wrap">
+        <table className="admin-permissions-table">
+          <thead>
+            <tr>
+              <th>{isArabic ? "الصلاحية" : "Permission"}</th>
+              {permissionActionLabels.map(([key, label]) => (
+                <th key={key}>{label[language]}</th>
+              ))}
+              <th>{isArabic ? "نطاق البيانات" : "Data Scope"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredKeys.map((permissionKey) => {
+              const permission =
+                permissionMap.get(permissionKey) ??
+                blankPermission(subjectType, subjectId, permissionKey);
+              return (
+                <tr key={`${subject}-${permissionKey}`}>
+                  <td>
+                    <strong>
+                      {permissionKeyLabels[permissionKey]?.[language] ??
+                        permissionKey}
+                    </strong>
+                    <span>{permissionKey}</span>
+                  </td>
+                  {permissionActionLabels.map(([key]) => (
+                    <td key={key}>
+                      <label className="admin-permission-check">
+                        <input
+                          checked={Number(permission[key]) === 1}
+                          onChange={(event) =>
+                            savePermission(permission, {
+                              [key]: event.target.checked ? 1 : 0,
+                            } as Partial<PermissionRecord>)
+                          }
+                          type="checkbox"
+                        />
+                        <i />
+                      </label>
+                    </td>
+                  ))}
+                  <td>
+                    <select
+                      aria-label={isArabic ? "نطاق البيانات" : "Data scope"}
+                      className="admin-permission-scope"
+                      onChange={(event) =>
+                        savePermission(permission, {
+                          data_scope: event.target
+                            .value as PermissionRecord["data_scope"],
+                        })
+                      }
+                      value={permission.data_scope}
+                    >
+                      {Object.entries(permissionScopeLabels).map(
+                        ([value, label]) => (
+                          <option key={value} value={value}>
+                            {label[language]}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </td>
+                </tr>
+              );
+            })}
+            {filteredKeys.length === 0 ? (
+              <tr>
+                <td className="admin-empty" colSpan={9}>
+                  {isArabic ? "لا توجد صلاحيات مطابقة" : "No matching permissions"}
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 function AdminManagementSection({
   section,
   data,
@@ -1239,6 +1556,11 @@ function AdminManagementSection({
     status: "active",
   });
   const [productMessage, setProductMessage] = useState("");
+
+  if (section === "permissions") {
+    return <AdminPermissionsSection isArabic={isArabic} />;
+  }
+
   if (!data)
     return (
       <section className="admin-data-card admin-loading">
@@ -1299,7 +1621,7 @@ function AdminManagementSection({
       ],
     },
   } satisfies Record<
-    Exclude<AdminSection, "dashboard">,
+    Exclude<AdminSection, "dashboard" | "permissions">,
     { rows: AdminRow[]; columns: string[][] }
   >;
   const config = configs[section];

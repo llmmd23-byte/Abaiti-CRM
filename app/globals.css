@@ -11681,3 +11681,158 @@ html[dir="rtl"]
   background: #effcfd;
   color: #006f78;
 }
+
+.admin-permissions-card {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-permissions-head {
+  align-items: center;
+}
+
+.admin-permissions-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-permissions-tools > input {
+  width: min(280px, 32vw);
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #9bdfea;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #11293d;
+  font: inherit;
+  outline: none;
+}
+
+.admin-permissions-tools > input:focus {
+  border-color: #00b4d8;
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
+}
+
+.admin-permissions-tools .dashboard-select {
+  min-width: 260px;
+}
+
+.admin-permissions-message {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid #c8f6fb;
+  border-radius: 14px;
+  background: #f0fdff;
+  color: #0086a3;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-permissions-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-permissions-table {
+  min-width: 980px;
+}
+
+.admin-permissions-table td:first-child {
+  min-width: 280px;
+}
+
+.admin-permissions-table td:first-child strong,
+.admin-permissions-table td:first-child span {
+  display: block;
+}
+
+.admin-permissions-table td:first-child strong {
+  color: #11293d;
+  font-size: 13px;
+}
+
+.admin-permissions-table td:first-child span {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
+.admin-permission-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.admin-permission-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-permission-check i {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border: 1px solid #d7e4ee;
+  border-radius: 999px;
+  background: #edf2f7;
+  transition: 0.18s ease;
+}
+
+.admin-permission-check i::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 3px 8px rgba(15, 41, 66, 0.16);
+  content: "";
+  transition: 0.18s ease;
+}
+
+.admin-permission-check input:checked + i {
+  border-color: #22c7c2;
+  background: #22b8b4;
+}
+
+.admin-permission-check input:checked + i::after {
+  left: 21px;
+}
+
+.admin-shell[dir="rtl"] .admin-permission-check input:checked + i::after {
+  left: 3px;
+  transform: translateX(-18px);
+}
+
+.admin-permission-scope {
+  min-width: 138px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #9bdfea;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #087f8c;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  outline: none;
+}
+
+@media (max-width: 860px) {
+  .admin-permissions-head,
+  .admin-permissions-tools {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-permissions-tools > input,
+  .admin-permissions-tools .dashboard-select {
+    width: 100%;
+    min-width: 0;
+  }
+}
