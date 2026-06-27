@@ -511,6 +511,7 @@ function AdminMetricList({
 }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [clientUserFilter, setClientUserFilter] = useState("all");
   const [editingRow, setEditingRow] = useState<AdminRow | null>(null);
   const [editDraft, setEditDraft] = useState<Record<string, string>>({});
   const [editMessage, setEditMessage] = useState("");
@@ -520,6 +521,7 @@ function AdminMetricList({
   useEffect(() => {
     setSearch("");
     setStatusFilter("all");
+    setClientUserFilter("all");
     setEditingRow(null);
     setEditMessage("");
     setPasswordRow(null);
@@ -637,6 +639,17 @@ function AdminMetricList({
     ],
   };
   const normalizedSearch = search.trim().toLocaleLowerCase();
+  const clientUserOptions =
+    metric === "clients"
+      ? Array.from(
+          new Map(
+            config.rows
+              .map((row) => String(row.affiliate_user_name ?? "").trim())
+              .filter(Boolean)
+              .map((name) => [name, { value: name, label: name }]),
+          ).values(),
+        )
+      : [];
   const visibleRows = config.rows.filter((row) => {
     const matchesSearch =
       !normalizedSearch ||
@@ -648,8 +661,14 @@ function AdminMetricList({
     const rowStatus = String(
       metric === "clients" ? (row.stage ?? "") : (row.status ?? ""),
     );
+    const matchesClientUser =
+      metric !== "clients" ||
+      clientUserFilter === "all" ||
+      String(row.affiliate_user_name ?? "") === clientUserFilter;
     return (
-      matchesSearch && (statusFilter === "all" || rowStatus === statusFilter)
+      matchesSearch &&
+      matchesClientUser &&
+      (statusFilter === "all" || rowStatus === statusFilter)
     );
   });
 
@@ -804,6 +823,22 @@ function AdminMetricList({
               value={statusFilter}
             />
           </div>
+          {metric === "clients" ? (
+            <div className="admin-user-status-filter admin-client-user-filter">
+              <DashboardSelect
+                ariaLabel={isArabic ? "فلترة حسب المستخدم" : "Filter by user"}
+                onValueChange={setClientUserFilter}
+                options={[
+                  {
+                    value: "all",
+                    label: isArabic ? "كل المستخدمين" : "All Users",
+                  },
+                  ...clientUserOptions,
+                ]}
+                value={clientUserFilter}
+              />
+            </div>
+          ) : null}
           <strong>
             {visibleRows.length.toLocaleString(NUMBER_LOCALE)}
           </strong>
