@@ -11804,9 +11804,15 @@ html[dir="rtl"]
   left: 21px;
 }
 
+.admin-shell[dir="rtl"] .admin-permission-check i::after {
+  right: 3px;
+  left: auto;
+}
+
 .admin-shell[dir="rtl"] .admin-permission-check input:checked + i::after {
-  left: 3px;
-  transform: translateX(-18px);
+  right: 21px;
+  left: auto;
+  transform: none;
 }
 
 .admin-permission-scope {
