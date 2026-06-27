@@ -1,0 +1,3148 @@
+﻿"use client";
+
+import { Fragment, useEffect, useRef, useState } from "react";
+import { useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { signOutAction } from "@/app/auth-actions";
+import Image from "next/image";
+import DashboardSelect from "@/components/DashboardSelect";
+
+type MetricKey = "users" | "clients" | "demos" | "quotes" | "sales";
+type DashboardPeriod = "day" | "week" | "month" | "year";
+type Summary = {
+  totals: Record<MetricKey, number> & {
+    openTickets: number;
+    openQuotes: number;
+    uncreatedSalesCommissions: number;
+    invisibleCommissions: number;
+    unpaidCommissions: number;
+  };
+  series: Record<MetricKey, Array<{ date: string; value: number }>>;
+};
+type AdminSection =
+  | "dashboard"
+  | "tickets"
+  | "accounts"
+  | "products"
+  | "activity"
+  | "content";
+type AdminRow = Record<string, unknown> & { id: number };
+type ManagementData = {
+  users: AdminRow[];
+  tickets: AdminRow[];
+  products: AdminRow[];
+  content: AdminRow[];
+  industries: AdminRow[];
+  clients: AdminRow[];
+  demos: AdminRow[];
+  quotes: AdminRow[];
+  sales: AdminRow[];
+  commissions: AdminRow[];
+  ticketEvents: AdminRow[];
+};
+
+const NUMBER_LOCALE = "en-US";
+const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
+
+const metricLabels: Record<MetricKey, { ar: string; en: string }> = {
+  users: { ar: "المستخدمين", en: "Users" },
+  clients: { ar: "العملاء", en: "Clients" },
+  demos: { ar: "النسخ التجريبية", en: "Demos" },
+  quotes: { ar: "عروض الأسعار", en: "Quotes" },
+  sales: { ar: "المبيعات", en: "Sales" },
+};
+
+const navItems = [
+  [{ ar: "لوحة التحكم", en: "Dashboard" }, "dashboard"],
+  [{ ar: "تذاكر الخدمة", en: "Service Tickets" }, "tickets"],
+  [{ ar: "الحسابات", en: "Accounts" }, "accounts"],
+  [{ ar: "المنتجات", en: "Products" }, "products"],
+  [{ ar: "الأنشطة", en: "Industries" }, "activity"],
+  [{ ar: "المحتوى", en: "Content" }, "content"],
+] as const;
+
+const adminValueLabels: Record<string, { ar: string; en: string }> = {
+  active: { ar: "نشط", en: "Active" },
+  inactive: { ar: "غير نشط", en: "Inactive" },
+  pending: { ar: "قيد الانتظار", en: "Pending" },
+  suspended: { ar: "موقوف", en: "Suspended" },
+  admin: { ar: "مشرف", en: "Admin" },
+  affiliate: { ar: "مسوق", en: "Affiliate" },
+  sales: { ar: "مبيعات", en: "Sales" },
+  support: { ar: "دعم", en: "Support" },
+  new: { ar: "\u062c\u062f\u064a\u062f", en: "New" },
+  interested: { ar: "مهتم", en: "Interested" },
+  proposal: { ar: "عرض مقدم", en: "Proposal" },
+  won: { ar: "مكتسب", en: "Won" },
+  lost: { ar: "مفقود", en: "Lost" },
+  contacted: { ar: "تم التواصل", en: "Contacted" },
+  scheduled: { ar: "مجدول", en: "Scheduled" },
+  completed: { ar: "مكتمل", en: "Completed" },
+  cancelled: { ar: "ملغي", en: "Cancelled" },
+  draft: { ar: "مسودة", en: "Draft" },
+  sent: { ar: "مرسل", en: "Sent" },
+  accepted: { ar: "مقبول", en: "Accepted" },
+  paid: { ar: "مدفوع", en: "Paid" },
+  expired: { ar: "منتهي", en: "Expired" },
+  approved: { ar: "معتمد", en: "Approved" },
+  refunded: { ar: "مسترد", en: "Refunded" },
+  open: { ar: "مفتوح", en: "Open" },
+  in_progress: { ar: "قيد التنفيذ", en: "In Progress" },
+  closed: { ar: "مغلق", en: "Closed" },
+  resolved: { ar: "تم الحل", en: "Resolved" },
+  rejected: { ar: "مرفوض", en: "Rejected" },
+};
+
+function displayAdminValue(value: unknown, isArabic: boolean) {
+  const key = String(value ?? "");
+  return adminValueLabels[key]?.[isArabic ? "ar" : "en"] ?? (key || "—");
+}
+
+function formatAdminDateTime(value: unknown, isArabic: boolean) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "—";
+  const normalized = raw.includes("T") ? raw : raw.replace(" ", "T");
+  const date = new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(normalized) ? normalized : `${normalized}Z`);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
+function commissionPercentForLevel(level: unknown) {
+  const percentages: Record<string, number> = {
+    "مبتدئ": 20,
+    "نشيط": 21,
+    "منجز": 22,
+    "محترف": 24,
+    "محترف فضي": 26,
+    "محترف ذهبي": 28,
+    "محترف ماسي": 30,
+  };
+  return percentages[String(level ?? "")] ?? 20;
+}
+
+function commissionLevelForSalesCount(count: unknown) {
+  const salesCount = Number(count ?? 0);
+  if (salesCount >= 90) return "محترف ماسي";
+  if (salesCount >= 70) return "محترف ذهبي";
+  if (salesCount >= 50) return "محترف فضي";
+  if (salesCount >= 30) return "محترف";
+  if (salesCount >= 20) return "منجز";
+  if (salesCount >= 10) return "نشيط";
+  return "مبتدئ";
+}
+
+function isWithinPeriod(row: AdminRow, period: DashboardPeriod) {
+  const rawDate = String(row.created_at ?? "");
+  const date = new Date(rawDate);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (period === "week") start.setDate(start.getDate() - 6);
+  if (period === "month") start.setDate(1);
+  if (period === "year") start.setMonth(0, 1);
+  return date >= start;
+}
+
+function chartDateLabel(
+  value: string,
+  period: DashboardPeriod,
+  isArabic: boolean,
+) {
+  if (period === "day") return `${value}:00`;
+  if (period === "year")
+    return new Date(`${value}-01T12:00:00`).toLocaleDateString(
+      isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE,
+      { month: "short" },
+    );
+  return new Date(`${value}T12:00:00`).toLocaleDateString(
+    isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE,
+    { weekday: "short" },
+  );
+}
+
+function AdminIcon({ name }: { name: string }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      {name === "dashboard" ? (
+        <>
+          <rect x="4" y="4" width="6" height="6" rx="1.5" />
+          <rect x="14" y="4" width="6" height="6" rx="1.5" />
+          <rect x="4" y="14" width="6" height="6" rx="1.5" />
+          <rect x="14" y="14" width="6" height="6" rx="1.5" />
+        </>
+      ) : name === "tickets" ? (
+        <>
+          <path d="M5 4h14v16H5z" />
+          <path d="M8 9h8M8 13h6" />
+        </>
+      ) : name === "accounts" ? (
+        <>
+          <circle cx="9" cy="8" r="3" />
+          <path d="M3 20v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2M17 8h4M19 6v4" />
+        </>
+      ) : name === "products" ? (
+        <>
+          <path d="m4 8 8-4 8 4-8 4-8-4Z" />
+          <path d="M4 8v8l8 4 8-4V8M12 12v8" />
+        </>
+      ) : name === "activity" ? (
+        <>
+          <path d="M4 19h16M6 15l4-4 3 3 5-7" />
+          <path d="M16 7h2v2" />
+        </>
+      ) : (
+        <>
+          <rect x="4" y="5" width="16" height="14" rx="2" />
+          <path d="M8 9h8M8 13h5" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+export default function AdminDashboard() {
+  const locale = useLocale();
+  const isArabic = locale === "ar";
+  const language = isArabic ? "ar" : "en";
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [activeMetric, setActiveMetric] = useState<MetricKey>("users");
+  const [period, setPeriod] = useState<DashboardPeriod>("week");
+  const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
+  const [management, setManagement] = useState<ManagementData | null>(null);
+
+  function loadManagement() {
+    fetch("/api/v1/admin/management", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((body) => setManagement(body.data ?? null))
+      .catch(() => setManagement(null));
+  }
+
+  function loadSummary() {
+    fetch(`/api/v1/admin/summary?period=${period}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((body) => setSummary(body.data ?? null))
+      .catch(() => setSummary(null));
+  }
+
+  function refreshAdminData() {
+    loadManagement();
+    loadSummary();
+  }
+
+  useEffect(() => {
+    loadSummary();
+  }, [period]);
+
+  useEffect(() => {
+    loadManagement();
+  }, []);
+
+  const series = summary?.series[activeMetric] ?? [];
+  const maxValue = Math.max(1, ...series.map((item) => item.value));
+  const periodManagement = management
+    ? (Object.fromEntries(
+        Object.entries(management).map(([key, rows]) => [
+          key,
+          rows.filter((row) => isWithinPeriod(row, period)),
+        ]),
+      ) as ManagementData)
+    : null;
+  return (
+    <div className="admin-shell" dir={isArabic ? "rtl" : "ltr"}>
+      <aside className="admin-sidebar">
+        <Link className="admin-official-brand" href="/">
+          <Image
+            alt="Middar"
+            height={63}
+            priority
+            src="/middar-logo-transparent-v2.png"
+            width={220}
+          />
+        </Link>
+        <nav>
+          {navItems.map(([label, icon]) => (
+            <button
+              className={activeSection === icon ? "active" : ""}
+              key={icon}
+              onClick={() => setActiveSection(icon)}
+              type="button"
+            >
+              <span className="admin-nav-icon">
+                <AdminIcon name={icon} />
+              </span>
+              {label[language]}
+            </button>
+          ))}
+        </nav>
+        <div className="admin-sidebar-footer">
+          <div
+            className="admin-language-switch"
+            aria-label={isArabic ? "اختيار اللغة" : "Choose language"}
+          >
+            <Link
+              className={isArabic ? "active" : ""}
+              href="/admin"
+              locale="ar"
+            >
+              AR
+            </Link>
+            <Link
+              className={!isArabic ? "active" : ""}
+              href="/admin"
+              locale="en"
+            >
+              EN
+            </Link>
+          </div>
+          <form action={signOutAction}>
+            <input name="locale" type="hidden" value={locale} />
+            <button className="admin-logout-button" type="submit">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M10 6H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4" />
+                <path d="M14 16l4-4-4-4" />
+                <path d="M9 12h9" />
+              </svg>
+              {isArabic ? "تسجيل الخروج" : "Sign out"}
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <main className="admin-main" id={`admin-${activeSection}`}>
+        <header className="admin-header">
+          <div>
+            <p>{isArabic ? "لوحة الإدارة الرئيسية" : "Master Admin Panel"}</p>
+            <h1>
+              {activeSection === "dashboard"
+                ? isArabic
+                  ? "مرحبًا بك في مركز تحكم ميدار"
+                  : "Welcome to Middar Control Center"
+                : navItems.find((item) => item[1] === activeSection)?.[0][
+                    language
+                  ]}
+            </h1>
+            <span>
+              {activeSection === "dashboard"
+                ? isArabic
+                  ? "مراقبة المنصة وإدارة العمليات من مكان واحد."
+                  : "Monitor the platform and manage operations from one place."
+                : isArabic
+                  ? "عرض وإدارة بيانات المنصة بصلاحيات المشرف الرئيسي."
+                  : "View and manage platform data with Master Admin privileges."}
+            </span>
+          </div>
+          <div className="admin-live-status">
+            <i /> {isArabic ? "النظام يعمل بكفاءة" : "System operational"}
+          </div>
+        </header>
+
+        {activeSection === "dashboard" ? (
+          <>
+            <section className="admin-metrics">
+              {(
+                ["users", "clients", "demos", "quotes", "sales"] as MetricKey[]
+              ).map((key) => (
+                <button
+                  className={activeMetric === key ? "active" : ""}
+                  key={key}
+                  onClick={() => setActiveMetric(key)}
+                  type="button"
+                >
+                  <span>{metricLabels[key][language]}</span>
+                  <strong>
+                    {summary?.totals[key]?.toLocaleString(NUMBER_LOCALE) ?? "—"}
+                  </strong>
+                </button>
+              ))}
+            </section>
+
+            <section className="admin-chart-card">
+              <div className="admin-chart-head">
+                <div>
+                  <span>
+                    {isArabic ? "تحليلات المنصة" : "Platform Analytics"}
+                  </span>
+                  <h2>
+                    {isArabic ? "نمو" : "Growth"}{" "}
+                    {metricLabels[activeMetric][language]}
+                  </h2>
+                </div>
+                <div className="admin-period-filter">
+                  <DashboardSelect
+                    ariaLabel={isArabic ? "الفترة الزمنية" : "Time period"}
+                    onValueChange={(value) =>
+                      setPeriod(value as DashboardPeriod)
+                    }
+                    options={[
+                      { value: "day", label: isArabic ? "اليوم" : "Today" },
+                      {
+                        value: "week",
+                        label: isArabic ? "الأسبوع" : "This week",
+                      },
+                      {
+                        value: "month",
+                        label: isArabic ? "الشهر" : "This month",
+                      },
+                      {
+                        value: "year",
+                        label: isArabic ? "السنة" : "This year",
+                      },
+                    ]}
+                    value={period}
+                  />
+                </div>
+              </div>
+              <div className="admin-chart">
+                {series.map((item) => (
+                  <div className="admin-chart-column" key={item.date}>
+                    <div className="admin-chart-track">
+                      <i
+                        style={{
+                          height: `${Math.max(8, (item.value / maxValue) * 100)}%`,
+                        }}
+                      >
+                        <b>{item.value}</b>
+                      </i>
+                    </div>
+                    <span>{chartDateLabel(item.date, period, isArabic)}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <AdminMetricList
+              metric={activeMetric}
+              data={management}
+              isArabic={isArabic}
+              onReload={refreshAdminData}
+            />
+
+            <section className="admin-bottom-grid">
+              <article id="admin-tickets">
+                <span>{isArabic ? "التذاكر المفتوحة" : "Open Tickets"}</span>
+                <strong>{summary?.totals.openTickets ?? "—"}</strong>
+                <p>
+                  {isArabic
+                    ? "طلبات دعم تحتاج إلى المتابعة"
+                    : "Support requests needing attention"}
+                </p>
+              </article>
+              <article id="admin-open-quotes">
+                <span>
+                  {isArabic ? "عروض الأسعار المفتوحة" : "Open Quotes"}
+                </span>
+                <strong>{summary?.totals.openQuotes ?? "—"}</strong>
+                <p>
+                  {isArabic
+                    ? "عروض أسعار لم تُغلق بعد"
+                    : "Quotes that have not been closed"}
+                </p>
+              </article>
+              <article id="admin-uncreated-sales-commissions">
+                <span>
+                  {isArabic
+                    ? "عمولات مبيعات غير منشأة"
+                    : "Sales without commissions"}
+                </span>
+                <strong>
+                  {summary?.totals.uncreatedSalesCommissions ?? "—"}
+                </strong>
+                <p>
+                  {isArabic
+                    ? "فواتير مبيعات تحت الإجراء"
+                    : "Sales invoices in progress"}
+                </p>
+              </article>
+              <article id="admin-invisible-commissions">
+                <span>
+                  {isArabic ? "عمولات غير معتمدة" : "Unapproved Commissions"}
+                </span>
+                <strong>{summary?.totals.invisibleCommissions ?? "—"}</strong>
+                <p>
+                  {isArabic
+                    ? "عمولات لم تُعتمد بعد"
+                    : "Commissions awaiting approval"}
+                </p>
+              </article>
+              <article id="admin-unpaid-commissions">
+                <span>
+                  {isArabic ? "عمولات غير مدفوعة" : "Unpaid Commissions"}
+                </span>
+                <strong>{summary?.totals.unpaidCommissions ?? "—"}</strong>
+                <p>
+                  {isArabic
+                    ? "عمولات لم يكتمل سدادها"
+                    : "Commissions awaiting payment"}
+                </p>
+              </article>
+            </section>
+          </>
+        ) : (
+          <AdminManagementSection
+            onReload={refreshAdminData}
+            section={activeSection}
+            data={management}
+            isArabic={isArabic}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+
+function AdminMetricList({
+  metric,
+  data,
+  isArabic,
+  onReload,
+}: {
+  metric: MetricKey;
+  data: ManagementData | null;
+  isArabic: boolean;
+  onReload: () => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [editingRow, setEditingRow] = useState<AdminRow | null>(null);
+  const [editDraft, setEditDraft] = useState<Record<string, string>>({});
+  const [editMessage, setEditMessage] = useState("");
+  const [passwordRow, setPasswordRow] = useState<AdminRow | null>(null);
+  const [passwordDraft, setPasswordDraft] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+  useEffect(() => {
+    setSearch("");
+    setStatusFilter("all");
+    setEditingRow(null);
+    setEditMessage("");
+    setPasswordRow(null);
+    setPasswordDraft("");
+    setPasswordMessage("");
+  }, [metric]);
+  if (!data)
+    return (
+      <section className="admin-metric-list admin-loading">
+        {isArabic ? "جاري تحميل القائمة..." : "Loading list..."}
+      </section>
+    );
+
+  const configs: Record<
+    MetricKey,
+    { rows: AdminRow[]; columns: Array<[string, string]> }
+  > = {
+    users: {
+      rows: data.users,
+      columns: [
+        ["name", isArabic ? "الاسم" : "Name"],
+        ["email", isArabic ? "البريد الإلكتروني" : "Email"],
+        ["role", isArabic ? "الصلاحية" : "Role"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["is_active", isArabic ? "حالة تفعيل الحساب" : "Account Active"],
+        ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
+      ],
+    },
+    clients: {
+      rows: data.clients,
+      columns: [
+        ["company_name", isArabic ? "اسم الشركة" : "Company Name"],
+        [
+          isArabic ? "industry_name" : "industry_name_en",
+          isArabic ? "النشاط" : "Activity",
+        ],
+        ["stage", isArabic ? "الحالة" : "Status"],
+        ["name", isArabic ? "الاسم" : "Name"],
+        ["phone", isArabic ? "رقم الجوال" : "Mobile"],
+        ["address", isArabic ? "العنوان" : "Address"],
+        [
+          "requirements",
+          isArabic ? "المتطلبات الإضافية" : "Additional Requirements",
+        ],
+      ],
+    },
+    demos: {
+      rows: data.demos,
+      columns: [
+        ["contact_name", isArabic ? "العميل" : "Client"],
+        ["company_name", isArabic ? "الشركة" : "Company"],
+        ["phone", isArabic ? "رقم الجوال" : "Mobile"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
+      ],
+    },
+    quotes: {
+      rows: data.quotes,
+      columns: [
+        ["quote_number", isArabic ? "رقم العرض" : "Quote Number"],
+        ["customer_name", isArabic ? "العميل" : "Client"],
+        ["product_name", isArabic ? "المنتج" : "Product"],
+        ["amount", isArabic ? "القيمة" : "Amount"],
+        ["valid_until", isArabic ? "تاريخ الانتهاء" : "Expiry Date"],
+        ["status", isArabic ? "الحالة" : "Status"],
+      ],
+    },
+    sales: {
+      rows: data.sales,
+      columns: [
+        ["id", isArabic ? "رقم العملية" : "Sale ID"],
+        ["customer_name", isArabic ? "العميل" : "Client"],
+        ["product_name", isArabic ? "المنتج" : "Product"],
+        ["sale_amount", isArabic ? "القيمة" : "Amount"],
+        ["status", isArabic ? "الحالة" : "Status"],
+      ],
+    },
+  };
+  const config = configs[metric];
+  const statusOptions: Record<
+    MetricKey,
+    Array<{ value: string; label: string }>
+  > = {
+    users: [
+      { value: "active", label: isArabic ? "نشط" : "Active" },
+      { value: "pending", label: isArabic ? "قيد الانتظار" : "Pending" },
+      { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
+      { value: "suspended", label: isArabic ? "موقوف" : "Suspended" },
+    ],
+    clients: [
+                  { value: "new", label: isArabic ? "\u062c\u062f\u064a\u062f" : "New" },
+      { value: "interested", label: isArabic ? "مهتم" : "Interested" },
+      { value: "proposal", label: isArabic ? "عرض مقدم" : "Proposal" },
+      { value: "won", label: isArabic ? "مكتسب" : "Won" },
+      { value: "lost", label: isArabic ? "مفقود" : "Lost" },
+    ],
+    demos: [
+                    { value: "new", label: isArabic ? "\u062c\u062f\u064a\u062f" : "New" },
+      { value: "contacted", label: isArabic ? "تم التواصل" : "Contacted" },
+      { value: "scheduled", label: isArabic ? "مجدول" : "Scheduled" },
+      { value: "completed", label: isArabic ? "مكتمل" : "Completed" },
+      { value: "cancelled", label: isArabic ? "ملغي" : "Cancelled" },
+    ],
+    quotes: [
+      { value: "draft", label: isArabic ? "مسودة" : "Draft" },
+      { value: "sent", label: isArabic ? "مرسل" : "Sent" },
+      { value: "accepted", label: isArabic ? "مقبول" : "Accepted" },
+      { value: "paid", label: isArabic ? "مدفوع" : "Paid" },
+      { value: "expired", label: isArabic ? "منتهي" : "Expired" },
+      { value: "cancelled", label: isArabic ? "ملغي" : "Cancelled" },
+    ],
+    sales: [
+      { value: "pending", label: isArabic ? "قيد الانتظار" : "Pending" },
+      { value: "approved", label: isArabic ? "معتمد" : "Approved" },
+      { value: "paid", label: isArabic ? "مدفوع" : "Paid" },
+      { value: "cancelled", label: isArabic ? "ملغي" : "Cancelled" },
+      { value: "refunded", label: isArabic ? "مسترد" : "Refunded" },
+    ],
+  };
+  const normalizedSearch = search.trim().toLocaleLowerCase();
+  const visibleRows = config.rows.filter((row) => {
+    const matchesSearch =
+      !normalizedSearch ||
+      Object.values(row).some((value) =>
+        String(value ?? "")
+          .toLocaleLowerCase()
+          .includes(normalizedSearch),
+      );
+    const rowStatus = String(
+      metric === "clients" ? (row.stage ?? "") : (row.status ?? ""),
+    );
+    return (
+      matchesSearch && (statusFilter === "all" || rowStatus === statusFilter)
+    );
+  });
+
+  function openEditor(row: AdminRow) {
+    setEditingRow(row);
+    setEditDraft(
+      metric === "users"
+        ? {
+            name: String(row.name ?? ""),
+            role: String(row.role ?? "affiliate"),
+            status: String(row.status ?? "pending"),
+          }
+        : metric === "clients"
+          ? {
+              name: String(row.name ?? ""),
+              company_name: String(row.company_name ?? ""),
+              phone: String(row.phone ?? ""),
+              stage: String(row.stage ?? "new"),
+            }
+          : metric === "demos"
+            ? {
+                contact_name: String(row.contact_name ?? ""),
+                company_name: String(row.company_name ?? ""),
+                phone: String(row.phone ?? ""),
+                status: String(row.status ?? "new"),
+              }
+            : metric === "quotes"
+              ? {
+                  status: String(row.status ?? "draft"),
+                  valid_until: String(row.valid_until ?? "").slice(0, 10),
+                }
+              : { status: String(row.status ?? "pending") },
+    );
+    setEditMessage("");
+  }
+
+  async function saveEdit() {
+    if (!editingRow) return;
+    setEditMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const resources: Record<MetricKey, string> = {
+        users: "admin/users",
+        clients: "data/leads",
+        demos: "data/demo-requests",
+        quotes: "data/quotes",
+        sales: "data/sales",
+      };
+      const response = await fetch(
+        `/api/v1/${resources[metric]}/${editingRow.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify(editDraft),
+        },
+      );
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "SAVE_FAILED");
+      onReload();
+      setEditingRow(null);
+    } catch (error) {
+      setEditMessage(
+        error instanceof Error &&
+          error.message === "CANNOT_DISABLE_CURRENT_ADMIN"
+          ? isArabic
+            ? "لا يمكن تعطيل حساب المشرف المستخدم حاليًا"
+            : "You cannot disable the current admin account"
+          : isArabic
+            ? "تعذر حفظ التعديلات"
+            : "Unable to save changes",
+      );
+    }
+  }
+
+  function openPasswordEditor(row: AdminRow) {
+    setPasswordRow(row);
+    setPasswordDraft("");
+    setPasswordMessage("");
+  }
+
+  async function savePassword() {
+    if (!passwordRow) return;
+    if (passwordDraft.length < 6) {
+      setPasswordMessage(
+        isArabic
+          ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل"
+          : "Password must be at least 6 characters",
+      );
+      return;
+    }
+    setPasswordMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const response = await fetch(
+        `/api/v1/admin/users/${passwordRow.id}/password`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({ password: passwordDraft }),
+        },
+      );
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error ?? "SAVE_FAILED");
+      setPasswordRow(null);
+      setPasswordDraft("");
+      setPasswordMessage("");
+      onReload();
+    } catch {
+      setPasswordMessage(
+        isArabic ? "تعذر تعديل كلمة المرور" : "Unable to update password",
+      );
+    }
+  }
+
+  return (
+    <section className="admin-metric-list">
+      <div className="admin-metric-list-head">
+        <div>
+          <span>{isArabic ? "القائمة التفصيلية" : "Detailed List"}</span>
+          <h2>{metricLabels[metric][isArabic ? "ar" : "en"]}</h2>
+        </div>
+        <div className="admin-user-list-tools">
+          <div className="admin-list-search">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="10.8" cy="10.8" r="6.2" />
+              <path d="m15.5 15.5 4 4" />
+            </svg>
+            <input
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={
+                metric === "users"
+                  ? isArabic
+                    ? "ابحث عن مستخدم..."
+                    : "Search users..."
+                  : isArabic
+                    ? "البحث في القائمة..."
+                    : "Search list..."
+              }
+              type="search"
+              value={search}
+            />
+          </div>
+          <div className="admin-user-status-filter">
+            <DashboardSelect
+              ariaLabel={isArabic ? "فلترة حسب الحالة" : "Filter by status"}
+              onValueChange={setStatusFilter}
+              options={[
+                {
+                  value: "all",
+                  label: isArabic ? "كل الحالات" : "All Statuses",
+                },
+                ...statusOptions[metric],
+              ]}
+              value={statusFilter}
+            />
+          </div>
+          <strong>
+            {visibleRows.length.toLocaleString(NUMBER_LOCALE)}
+          </strong>
+        </div>
+      </div>
+      <div className="admin-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {config.columns.map(([key, label]) => (
+                <th key={key}>{label}</th>
+              ))}
+              <th>{isArabic ? "إجراء" : "Action"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleRows.map((row, index) => (
+              <tr key={`${metric}-${row.id}-${index}`}>
+                {config.columns.map(([key]) => {
+                  const value =
+                    metric === "clients" &&
+                    key === "industry_name_en" &&
+                    !row[key]
+                      ? row.industry_name
+                      : metric === "clients" &&
+                          key === "requirements" &&
+                          !String(row[key] ?? "").trim()
+                        ? isArabic
+                          ? "لا يوجد متطلبات"
+                          : "No requirements"
+                        : row[key];
+                  const isStatus =
+                    key === "status" || key === "stage" || key === "role";
+                  const isActiveFlag = key === "is_active";
+                  const isDate =
+                    key.includes("created") ||
+                    key.includes("sold_at") ||
+                    key === "valid_until";
+                  const isAmount = key === "amount" || key === "sale_amount";
+                  return (
+                    <td key={key}>
+                      {isStatus ? (
+                        <span
+                          className={`admin-status admin-status-${String(value ?? "unknown")}`}
+                        >
+                          {displayAdminValue(value, isArabic)}
+                        </span>
+                      ) : isDate ? (
+                        String(value ?? "—").slice(0, 10)
+                      ) : isActiveFlag ? (
+                        <span
+                          className={`admin-status admin-status-${Number(value) === 1 ? "active" : "inactive"}`}
+                        >
+                          {Number(value) === 1
+                            ? isArabic
+                              ? "مفعل"
+                              : "Active"
+                            : isArabic
+                              ? "غير مفعل"
+                              : "Inactive"}
+                        </span>
+                      ) : isAmount ? (
+                        `${Number(value ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(row.currency ?? "SAR")}`
+                      ) : (
+                        String(value ?? "—")
+                      )}
+                    </td>
+                  );
+                })}
+                <td>
+                  <div className="admin-row-action-group">
+                    <button
+                      className="admin-row-edit"
+                      onClick={() => openEditor(row)}
+                      type="button"
+                    >
+                      {isArabic ? "تعديل" : "Edit"}
+                    </button>
+                    {metric === "users" ? (
+                      <button
+                        className="admin-row-edit admin-password-edit"
+                        onClick={() => openPasswordEditor(row)}
+                        type="button"
+                      >
+                        {isArabic ? "تعديل كلمة المرور" : "Edit Password"}
+                      </button>
+                    ) : null}
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {visibleRows.length === 0 ? (
+              <tr>
+                <td className="admin-empty" colSpan={config.columns.length + 1}>
+                  {isArabic ? "لا توجد بيانات مطابقة" : "No matching data"}
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+      {editingRow ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setEditingRow(null);
+          }}
+          role="presentation"
+        >
+          <section className="admin-edit-modal" role="dialog" aria-modal="true">
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "تعديل السجل" : "Edit Record"}</span>
+                <h3>
+                  {String(
+                    editingRow.name ??
+                      editingRow.contact_name ??
+                      editingRow.quote_number ??
+                      editingRow.id,
+                  )}
+                </h3>
+              </div>
+              <button onClick={() => setEditingRow(null)} type="button">
+                ?
+              </button>
+            </div>
+            {metric === "users" ? (
+              <label>
+                <span>{isArabic ? "الاسم" : "Name"}</span>
+                <input
+                  onChange={(event) =>
+                    setEditDraft((current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
+                  }
+                  value={editDraft.name ?? ""}
+                />
+              </label>
+            ) : null}
+            {metric === "clients" ? (
+              <>
+                <label>
+                  <span>{isArabic ? "الاسم" : "Name"}</span>
+                  <input
+                    onChange={(event) =>
+                      setEditDraft((current) => ({
+                        ...current,
+                        name: event.target.value,
+                      }))
+                    }
+                    value={editDraft.name ?? ""}
+                  />
+                </label>
+                <label>
+                  <span>{isArabic ? "الشركة" : "Company"}</span>
+                  <input
+                    onChange={(event) =>
+                      setEditDraft((current) => ({
+                        ...current,
+                        company_name: event.target.value,
+                      }))
+                    }
+                    value={editDraft.company_name ?? ""}
+                  />
+                </label>
+                <label>
+                  <span>{isArabic ? "رقم الجوال" : "Mobile"}</span>
+                  <input
+                    dir="ltr"
+                    onChange={(event) =>
+                      setEditDraft((current) => ({
+                        ...current,
+                        phone: event.target.value,
+                      }))
+                    }
+                    value={editDraft.phone ?? ""}
+                  />
+                </label>
+              </>
+            ) : null}
+            {metric === "demos" ? (
+              <>
+                <label>
+                  <span>{isArabic ? "العميل" : "Client"}</span>
+                  <input
+                    onChange={(event) =>
+                      setEditDraft((current) => ({
+                        ...current,
+                        contact_name: event.target.value,
+                      }))
+                    }
+                    value={editDraft.contact_name ?? ""}
+                  />
+                </label>
+                <label>
+                  <span>{isArabic ? "الشركة" : "Company"}</span>
+                  <input
+                    onChange={(event) =>
+                      setEditDraft((current) => ({
+                        ...current,
+                        company_name: event.target.value,
+                      }))
+                    }
+                    value={editDraft.company_name ?? ""}
+                  />
+                </label>
+                <label>
+                  <span>{isArabic ? "رقم الجوال" : "Mobile"}</span>
+                  <input
+                    dir="ltr"
+                    onChange={(event) =>
+                      setEditDraft((current) => ({
+                        ...current,
+                        phone: event.target.value,
+                      }))
+                    }
+                    value={editDraft.phone ?? ""}
+                  />
+                </label>
+              </>
+            ) : null}
+            {metric === "quotes" ? (
+              <label>
+                <span>{isArabic ? "تاريخ الانتهاء" : "Expiry Date"}</span>
+                <input
+                  onChange={(event) =>
+                    setEditDraft((current) => ({
+                      ...current,
+                      valid_until: event.target.value,
+                    }))
+                  }
+                  type="date"
+                  value={editDraft.valid_until ?? ""}
+                />
+              </label>
+            ) : null}
+            {metric === "users" ? (
+              <label>
+                <span>{isArabic ? "الصلاحية" : "Role"}</span>
+                <DashboardSelect
+                  ariaLabel={isArabic ? "الصلاحية" : "Role"}
+                  menuClassName="admin-edit-select-menu"
+                  onValueChange={(role) =>
+                    setEditDraft((current) => ({ ...current, role }))
+                  }
+                  options={[
+                    { value: "admin", label: "Admin" },
+                    { value: "affiliate", label: "Affiliate" },
+                    { value: "sales", label: "Sales" },
+                    { value: "support", label: "Support" },
+                  ]}
+                  portal
+                  value={editDraft.role ?? "affiliate"}
+                />
+              </label>
+            ) : null}
+            <label>
+              <span>
+                {metric === "clients"
+                  ? isArabic
+                    ? "المرحلة"
+                    : "Stage"
+                  : isArabic
+                    ? "الحالة"
+                    : "Status"}
+              </span>
+              <DashboardSelect
+                ariaLabel={isArabic ? "الحالة" : "Status"}
+                menuClassName="admin-edit-select-menu"
+                onValueChange={(value) =>
+                  setEditDraft((current) => ({
+                    ...current,
+                    [metric === "clients" ? "stage" : "status"]: value,
+                  }))
+                }
+                options={statusOptions[metric]}
+                portal
+                value={
+                  editDraft[metric === "clients" ? "stage" : "status"] ??
+                  statusOptions[metric][0].value
+                }
+              />
+            </label>
+            {editMessage ? <p>{editMessage}</p> : null}
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                onClick={() => void saveEdit()}
+                type="button"
+              >
+                {isArabic ? "حفظ التعديلات" : "Save Changes"}
+              </button>
+              <button onClick={() => setEditingRow(null)} type="button">
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+      {passwordRow ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setPasswordRow(null);
+          }}
+          role="presentation"
+        >
+          <section className="admin-edit-modal" role="dialog" aria-modal="true">
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "تعديل كلمة المرور" : "Edit Password"}</span>
+                <h3>{String(passwordRow.name ?? passwordRow.email ?? "")}</h3>
+              </div>
+              <button onClick={() => setPasswordRow(null)} type="button">
+                ?
+              </button>
+            </div>
+            <label>
+              <span>{isArabic ? "كلمة المرور الجديدة" : "New Password"}</span>
+              <input
+                autoFocus
+                onChange={(event) => setPasswordDraft(event.target.value)}
+                placeholder={
+                  isArabic ? "أدخل كلمة مرور جديدة" : "Enter a new password"
+                }
+                type="password"
+                value={passwordDraft}
+              />
+            </label>
+            {passwordMessage ? <p>{passwordMessage}</p> : null}
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                onClick={() => void savePassword()}
+                type="button"
+              >
+                {isArabic ? "حفظ كلمة المرور" : "Save Password"}
+              </button>
+              <button onClick={() => setPasswordRow(null)} type="button">
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function AdminManagementSection({
+  section,
+  data,
+  isArabic,
+  onReload,
+}: {
+  section: Exclude<AdminSection, "dashboard">;
+  data: ManagementData | null;
+  isArabic: boolean;
+  onReload: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [ticketStatusFilter, setTicketStatusFilter] = useState("all");
+  const [isTicketAdvancedFilter, setIsTicketAdvancedFilter] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<AdminRow | null>(null);
+  const [timelineTicket, setTimelineTicket] = useState<AdminRow | null>(null);
+  const [ticketDraft, setTicketDraft] = useState({ status: "open", notes: "" });
+  const [ticketEditMessage, setTicketEditMessage] = useState("");
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<AdminRow | null>(null);
+  const [editingIndustry, setEditingIndustry] = useState<AdminRow | null>(null);
+  const [isIndustryModalOpen, setIsIndustryModalOpen] = useState(false);
+  const [industryDraft, setIndustryDraft] = useState({
+    name: "",
+    name_en: "",
+    slug: "",
+    description: "",
+    status: "active",
+  });
+  const [industryMessage, setIndustryMessage] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{
+    resource: "products" | "industries";
+    row: AdminRow;
+  } | null>(null);
+  const [productDraft, setProductDraft] = useState({
+    name: "",
+    name_en: "",
+    slug: "",
+    description: "",
+    base_price: "",
+    currency: "SAR",
+    status: "active",
+  });
+  const [productMessage, setProductMessage] = useState("");
+  if (!data)
+    return (
+      <section className="admin-data-card admin-loading">
+        {isArabic ? "جاري تحميل البيانات..." : "Loading data..."}
+      </section>
+    );
+
+  const configs = {
+    tickets: {
+      rows: data.tickets,
+      columns: [
+        ["ticket_number", isArabic ? "رقم التذكرة" : "Ticket Number"],
+        ["subject", isArabic ? "الموضوع" : "Subject"],
+        ["category", isArabic ? "التصنيف" : "Category"],
+        ["details", isArabic ? "تفاصيل التذكرة" : "Ticket Details"],
+        ["notes", isArabic ? "الملاحظات" : "Notes"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
+      ],
+    },
+    accounts: {
+      rows: data.users,
+      columns: [
+        ["name", isArabic ? "الاسم" : "Name"],
+        ["email", isArabic ? "البريد الإلكتروني" : "Email"],
+        ["role", isArabic ? "الصلاحية" : "Role"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["last_login_at", isArabic ? "آخر دخول" : "Last Login"],
+      ],
+    },
+    products: {
+      rows: data.products,
+      columns: [
+        [isArabic ? "name" : "name_en", isArabic ? "المنتج" : "Product"],
+        ["slug", isArabic ? "الرمز" : "Slug"],
+        ["base_price", isArabic ? "السعر" : "Price"],
+        ["currency", isArabic ? "العملة" : "Currency"],
+        ["status", isArabic ? "الحالة" : "Status"],
+      ],
+    },
+    activity: {
+      rows: data.industries,
+      columns: [
+        [isArabic ? "name" : "name_en", isArabic ? "اسم النشاط" : "Industry"],
+        ["slug", isArabic ? "الرمز" : "Slug"],
+        ["description", isArabic ? "الوصف" : "Description"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["created_at", isArabic ? "تاريخ الإضافة" : "Created Date"],
+      ],
+    },
+    content: {
+      rows: data.content,
+      columns: [
+        ["title", isArabic ? "العنوان" : "Title"],
+        ["asset_type", isArabic ? "نوع المحتوى" : "Content Type"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["created_at", isArabic ? "تاريخ الإضافة" : "Created Date"],
+      ],
+    },
+  } satisfies Record<
+    Exclude<AdminSection, "dashboard">,
+    { rows: AdminRow[]; columns: string[][] }
+  >;
+  const config = configs[section];
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const visibleRows = normalizedQuery
+    ? config.rows.filter((row) =>
+        Object.values(row).some((value) =>
+          String(value ?? "")
+            .toLocaleLowerCase()
+            .includes(normalizedQuery),
+        ),
+      )
+    : config.rows;
+  const ticketAdvancedRows =
+    section === "tickets" && isTicketAdvancedFilter
+      ? visibleRows.filter((row) =>
+          ["open", "in_progress", "pending"].includes(
+            String(row.status ?? "open"),
+          ),
+        )
+      : visibleRows;
+  const filteredRows =
+    section === "tickets" && ticketStatusFilter !== "all"
+      ? ticketAdvancedRows.filter(
+          (row) => String(row.status ?? "open") === ticketStatusFilter,
+        )
+      : ticketAdvancedRows;
+
+  function openTicketEditor(ticket: AdminRow) {
+    setEditingTicket(ticket);
+    setTicketDraft({
+      status: String(ticket.status ?? "open"),
+      notes: String(ticket.notes ?? ""),
+    });
+    setTicketEditMessage("");
+  }
+
+  const savedTicketTimelineEvents = timelineTicket
+    ? (data.ticketEvents ?? [])
+        .filter((event) => Number(event.ticket_id) === Number(timelineTicket.id))
+        .sort(
+          (first, second) =>
+            new Date(String(first.created_at ?? "")).getTime() -
+            new Date(String(second.created_at ?? "")).getTime(),
+        )
+    : [];
+  const ticketTimelineEvents =
+    timelineTicket && savedTicketTimelineEvents.length === 0
+      ? [
+          {
+            id: `created-${timelineTicket.id}`,
+            ticket_id: timelineTicket.id,
+            event_type: "created",
+            note: String(timelineTicket.subject ?? ""),
+            created_at: timelineTicket.created_at,
+          },
+          ...(String(timelineTicket.notes ?? "").trim()
+            ? [
+                {
+                  id: `note-${timelineTicket.id}`,
+                  ticket_id: timelineTicket.id,
+                  event_type: "admin_note",
+                  note: String(timelineTicket.notes ?? ""),
+                  created_at: timelineTicket.created_at,
+                },
+              ]
+            : []),
+          {
+            id: `status-${timelineTicket.id}`,
+            ticket_id: timelineTicket.id,
+            event_type: "status_changed",
+            new_status: String(timelineTicket.status ?? ""),
+            created_at: timelineTicket.created_at,
+          },
+        ]
+      : savedTicketTimelineEvents;
+
+  function ticketEventTitle(event: Record<string, unknown>) {
+    const type = String(event.event_type ?? "");
+    if (type === "created")
+      return isArabic ? "تم إنشاء التذكرة" : "Ticket Created";
+    if (type === "status_changed")
+      return isArabic ? "تم تغيير الحالة" : "Status Changed";
+    if (type === "admin_note")
+      return isArabic ? "أضيفت ملاحظة أدمن" : "Admin Note Added";
+    return isArabic ? "حركة على التذكرة" : "Ticket Activity";
+  }
+
+  function ticketEventDescription(event: Record<string, unknown>) {
+    const type = String(event.event_type ?? "");
+    if (type === "status_changed") {
+      const oldStatus = String(event.old_status ?? "");
+      const newStatus = String(event.new_status ?? "");
+      if (!oldStatus) return displayAdminValue(newStatus, isArabic);
+      const arrow = isArabic ? "←" : "→";
+      return `${displayAdminValue(oldStatus, isArabic)} ${arrow} ${displayAdminValue(newStatus, isArabic)}`;
+    }
+    return String(event.note ?? "");
+  }
+
+  async function saveTicket() {
+    if (!editingTicket) return;
+    setTicketEditMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const response = await fetch(
+        `/api/v1/data/support-tickets/${editingTicket.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({
+            status: ticketDraft.status,
+            notes: ticketDraft.notes.trim() || null,
+          }),
+        },
+      );
+      if (!response.ok) throw new Error("SAVE_FAILED");
+      setEditingTicket(null);
+      onReload();
+    } catch {
+      setTicketEditMessage(
+        isArabic ? "تعذر حفظ التذكرة" : "Unable to save ticket",
+      );
+    }
+  }
+
+  async function saveProduct() {
+    if (
+      !productDraft.name.trim() ||
+      !productDraft.name_en.trim() ||
+      !productDraft.slug.trim() ||
+      !productDraft.base_price
+    ) {
+      setProductMessage(
+        isArabic
+          ? "أدخل اسم المنتج والرمز والسعر"
+          : "Enter the Arabic and English product names, code, and price",
+      );
+      return;
+    }
+    setProductMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const response = await fetch(
+        editingProduct
+          ? `/api/v1/data/products/${editingProduct.id}`
+          : "/api/v1/data/products",
+        {
+          method: editingProduct ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({
+            ...productDraft,
+            base_price: Number(productDraft.base_price),
+          }),
+        },
+      );
+      if (!response.ok) throw new Error("SAVE_FAILED");
+      setIsProductModalOpen(false);
+      setEditingProduct(null);
+      onReload();
+    } catch {
+      setProductMessage(
+        isArabic ? "تعذر إضافة المنتج" : "Unable to add the product",
+      );
+    }
+  }
+
+  function openProductEditor(product: AdminRow) {
+    setEditingProduct(product);
+    setProductMessage("");
+    setProductDraft({
+      name: String(product.name ?? ""),
+      name_en: String(product.name_en ?? ""),
+      slug: String(product.slug ?? ""),
+      description: String(product.description ?? ""),
+      base_price: String(product.base_price ?? ""),
+      currency: String(product.currency ?? "SAR"),
+      status: String(product.status ?? "active"),
+    });
+    setIsProductModalOpen(true);
+  }
+
+  function requestProductDeletion(product: AdminRow) {
+    setDeleteTarget({ resource: "products", row: product });
+  }
+
+  function requestIndustryDeletion(industry: AdminRow) {
+    setDeleteTarget({ resource: "industries", row: industry });
+  }
+
+  async function confirmDeletion() {
+    if (!deleteTarget) return;
+    try {
+      const response = await fetch(
+        `/api/v1/data/${deleteTarget.resource}/${deleteTarget.row.id}`,
+        { method: "DELETE" },
+      );
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error ?? "DELETE_FAILED");
+      }
+      setDeleteTarget(null);
+      onReload();
+    } catch (error) {
+      if (error instanceof Error && error.message === "PRODUCT_IN_USE") {
+        window.alert(
+          isArabic
+            ? "لا يمكن حذف المنتج لأنه مرتبط بطلبات تجريبية أو عروض أسعار أو مبيعات."
+            : "This product cannot be deleted because it is linked to demos, quotes, or sales.",
+        );
+        return;
+      }
+      window.alert(
+        isArabic
+          ? "تعذر الحذف. قد يكون السجل مرتبطاً بسجلات أخرى."
+          : "Unable to delete this record. It may be linked to other records.",
+      );
+    }
+  }
+
+  function openIndustryEditor(industry: AdminRow) {
+    setEditingIndustry(industry);
+    setIndustryMessage("");
+    setIndustryDraft({
+      name: String(industry.name ?? ""),
+      name_en: String(industry.name_en ?? ""),
+      slug: String(industry.slug ?? ""),
+      description: String(industry.description ?? ""),
+      status: String(industry.status ?? "active"),
+    });
+    setIsIndustryModalOpen(true);
+  }
+
+  async function saveIndustry() {
+    if (
+      !industryDraft.name.trim() ||
+      !industryDraft.name_en.trim() ||
+      !industryDraft.slug.trim()
+    )
+      return;
+    setIndustryMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const response = await fetch(
+        editingIndustry
+          ? `/api/v1/data/industries/${editingIndustry.id}`
+          : "/api/v1/data/industries",
+        {
+          method: editingIndustry ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify(industryDraft),
+        },
+      );
+      if (!response.ok) throw new Error("SAVE_FAILED");
+      setEditingIndustry(null);
+      setIsIndustryModalOpen(false);
+      onReload();
+    } catch {
+      setIndustryMessage(
+        isArabic ? "تعذر حفظ النشاط" : "Unable to save the industry",
+      );
+    }
+  }
+
+  if (section === "accounts") {
+    return (
+      <section className="admin-data-card admin-accounts-workspace">
+        <AdminAccountQuotes
+          data={data}
+          isArabic={isArabic}
+          onReload={onReload}
+        />
+      </section>
+    );
+  }
+
+  return (
+    <section className="admin-data-card">
+      <div
+        className={`admin-data-head ${section === "tickets" ? "admin-ticket-data-head" : ""} ${section === "products" ? "admin-product-data-head" : ""} ${section === "activity" ? "admin-activity-data-head" : ""}`}
+        style={
+          section === "tickets"
+            ? { alignItems: "center", flexDirection: "row", flexWrap: "nowrap" }
+            : undefined
+        }
+      >
+        <div>
+          <span>{isArabic ? "إدارة البيانات" : "Data Management"}</span>
+          <strong>
+            {filteredRows.length.toLocaleString(NUMBER_LOCALE)}{" "}
+            {isArabic ? "سجل" : "records"}
+          </strong>
+        </div>
+        <div
+          className={`admin-data-tools ${section === "tickets" ? "admin-ticket-data-tools" : ""} ${section === "products" ? "admin-product-data-tools" : ""} ${section === "activity" ? "admin-activity-data-tools" : ""}`}
+          style={
+            section === "tickets"
+              ? {
+                  alignItems: "center",
+                  direction: "rtl",
+                  display: "inline-flex",
+                  flexDirection: "row",
+                  flexWrap: "nowrap",
+                  gap: "10px",
+                  width: "auto",
+                }
+              : undefined
+          }
+        >
+          <input
+            aria-label={isArabic ? "البحث" : "Search"}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={isArabic ? "البحث في السجلات..." : "Search records..."}
+            style={
+              section === "tickets"
+                ? {
+                    flex: "0 0 240px",
+                    maxWidth: "240px",
+                    minWidth: "240px",
+                    width: "240px",
+                  }
+                : undefined
+            }
+            type="search"
+            value={query}
+          />
+          {section === "products" ? (
+            <button
+              className="admin-add-product"
+              onClick={() => {
+                setEditingProduct(null);
+                setProductDraft({
+                  name: "",
+                  name_en: "",
+                  slug: "",
+                  description: "",
+                  base_price: "",
+                  currency: "SAR",
+                  status: "active",
+                });
+                setProductMessage("");
+                setIsProductModalOpen(true);
+              }}
+              type="button"
+            >
+              {isArabic ? "إضافة منتج" : "Add Product"}
+            </button>
+          ) : null}
+          {section === "activity" ? (
+            <button
+              className="admin-add-industry"
+              onClick={() => {
+                setEditingIndustry(null);
+                setIndustryDraft({
+                  name: "",
+                  name_en: "",
+                  slug: "",
+                  description: "",
+                  status: "active",
+                });
+                setIndustryMessage("");
+                setIsIndustryModalOpen(true);
+              }}
+              type="button"
+            >
+              {isArabic ? "إضافة نشاط" : "Add Industry"}
+            </button>
+          ) : null}
+          {section === "tickets" ? (
+            <button
+              aria-pressed={isTicketAdvancedFilter}
+              className={`admin-account-advanced-filter${isTicketAdvancedFilter ? " active" : ""}`}
+              onClick={() => setIsTicketAdvancedFilter((current) => !current)}
+              style={{
+                flex: "0 0 auto",
+              }}
+              type="button"
+            >
+              {isArabic ? "فلترة متقدمة" : "Advanced Filter"}
+            </button>
+          ) : null}
+          {section === "tickets" ? (
+            <div
+              className="admin-ticket-status-filter"
+              style={{
+                flex: "0 0 165px",
+                maxWidth: "165px",
+                minWidth: "165px",
+                width: "165px",
+              }}
+            >
+              <DashboardSelect
+                ariaLabel={
+                  isArabic
+                    ? "فلترة التذاكر حسب الحالة"
+                    : "Filter tickets by status"
+                }
+                onValueChange={setTicketStatusFilter}
+                options={[
+                  {
+                    value: "all",
+                    label: isArabic ? "كل الحالات" : "All Statuses",
+                  },
+                  { value: "open", label: isArabic ? "مفتوح" : "Open" },
+                  {
+                    value: "in_progress",
+                    label: isArabic ? "قيد التنفيذ" : "In Progress",
+                  },
+                  {
+                    value: "resolved",
+                    label: isArabic ? "تم الحل" : "Resolved",
+                  },
+                  { value: "closed", label: isArabic ? "مغلق" : "Closed" },
+                ]}
+                value={ticketStatusFilter}
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
+      <div className="admin-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {config.columns.map((column) => (
+                <th key={column[0]}>{column[1]}</th>
+              ))}
+              {section === "tickets" ||
+              section === "products" ||
+              section === "activity" ? (
+                <th>{isArabic ? "إجراء" : "Action"}</th>
+              ) : null}
+            </tr>
+          </thead>
+          <tbody>
+            {filteredRows.map((row, index) => (
+              <Fragment
+                key={`${section}-${String(row.activity_type ?? "record")}-${row.id}-${index}`}
+              >
+                <tr>
+                  {config.columns.map(([key]) => (
+                    <td key={key}>
+                      {key === "status" || key === "role" ? (
+                        <span
+                          className={`admin-status admin-status-${String(row[key] ?? "unknown")}`}
+                        >
+                          {displayAdminValue(row[key], isArabic)}
+                        </span>
+                      ) : key.includes("created") || key.includes("login") ? (
+                        String(row[key] ?? "—").slice(0, 10)
+                      ) : key === "base_price" ? (
+                        Number(row[key] ?? 0).toLocaleString(NUMBER_LOCALE)
+                      ) : (
+                        String(row[key] ?? "—")
+                      )}
+                    </td>
+                  ))}
+                  {section === "tickets" ? (
+                    <td>
+                      <div className="admin-row-actions">
+                        <button
+                          className="admin-row-edit"
+                          onClick={() => openTicketEditor(row)}
+                          type="button"
+                        >
+                          {isArabic ? "تعديل" : "Edit"}
+                        </button>
+                        <button
+                          className="admin-row-timeline"
+                          onClick={() => setTimelineTicket(row)}
+                          type="button"
+                        >
+                          {isArabic ? "الخط الزمني" : "Timeline"}
+                        </button>
+                      </div>
+                    </td>
+                  ) : section === "products" ? (
+                    <td>
+                      <div className="admin-row-actions">
+                        <button
+                          className="admin-row-edit"
+                          onClick={() => openProductEditor(row)}
+                          type="button"
+                        >
+                          {isArabic ? "تعديل" : "Edit"}
+                        </button>
+                        <button
+                          className="admin-row-delete"
+                          onClick={() => requestProductDeletion(row)}
+                          type="button"
+                        >
+                        {isArabic ? "\u062d\u0630\u0641" : "Delete"}
+                        </button>
+                      </div>
+                    </td>
+                  ) : section === "activity" ? (
+                    <td>
+                      <div className="admin-row-actions">
+                        <button
+                          className="admin-row-edit"
+                          onClick={() => openIndustryEditor(row)}
+                          type="button"
+                        >
+                          {isArabic ? "تعديل" : "Edit"}
+                        </button>
+                        <button
+                          className="admin-row-delete"
+                          onClick={() => requestIndustryDeletion(row)}
+                          type="button"
+                        >
+                    {isArabic ? "\u062d\u0630\u0641" : "Delete"}
+                        </button>
+                      </div>
+                    </td>
+                  ) : null}
+                </tr>
+              </Fragment>
+            ))}
+            {filteredRows.length === 0 ? (
+              <tr>
+                <td
+                  className="admin-empty"
+                  colSpan={
+                    config.columns.length +
+                    (section === "tickets" ||
+                    section === "products" ||
+                    section === "activity"
+                      ? 1
+                      : 0)
+                  }
+                >
+                  {isArabic ? "لا توجد سجلات مطابقة" : "No matching records"}
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+      {editingTicket ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setEditingTicket(null);
+          }}
+          role="presentation"
+        >
+          <section className="admin-edit-modal" aria-modal="true" role="dialog">
+            <div className="admin-edit-head">
+              <div>
+                <span>
+                  {isArabic ? "تعديل تذكرة الخدمة" : "Edit Service Ticket"}
+                </span>
+                <h3>{String(editingTicket.ticket_number ?? "—")}</h3>
+              </div>
+              <button onClick={() => setEditingTicket(null)} type="button">
+                ?
+              </button>
+            </div>
+            <label>
+              <span>{isArabic ? "الحالة" : "Status"}</span>
+              <DashboardSelect
+                ariaLabel={isArabic ? "الحالة" : "Status"}
+                menuClassName="admin-edit-select-menu"
+                onValueChange={(status) =>
+                  setTicketDraft((current) => ({ ...current, status }))
+                }
+                options={[
+                  { value: "open", label: isArabic ? "مفتوح" : "Open" },
+                  {
+                    value: "in_progress",
+                    label: isArabic ? "قيد التنفيذ" : "In Progress",
+                  },
+                  {
+                    value: "resolved",
+                    label: isArabic ? "تم الحل" : "Resolved",
+                  },
+                  { value: "closed", label: isArabic ? "مغلق" : "Closed" },
+                ]}
+                portal
+                value={ticketDraft.status}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "ملاحظات" : "Notes"}</span>
+              <textarea
+                className="admin-ticket-notes"
+                onChange={(event) =>
+                  setTicketDraft((current) => ({
+                    ...current,
+                    notes: event.target.value,
+                  }))
+                }
+                placeholder={
+                  isArabic
+                    ? "أضف ملاحظات على التذكرة..."
+                    : "Add notes to this ticket..."
+                }
+                value={ticketDraft.notes}
+              />
+            </label>
+            {ticketEditMessage ? <p>{ticketEditMessage}</p> : null}
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                onClick={() => void saveTicket()}
+                type="button"
+              >
+                {isArabic ? "حفظ التعديلات" : "Save Changes"}
+              </button>
+              <button onClick={() => setEditingTicket(null)} type="button">
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+      {timelineTicket ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setTimelineTicket(null);
+          }}
+          role="presentation"
+        >
+          <section
+            className="admin-edit-modal admin-ticket-timeline-modal"
+            aria-modal="true"
+            role="dialog"
+          >
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "خط زمن التذكرة" : "Ticket Timeline"}</span>
+                <h3>{String(timelineTicket.ticket_number ?? "—")}</h3>
+              </div>
+              <button onClick={() => setTimelineTicket(null)} type="button">
+                ?
+              </button>
+            </div>
+            <div className="admin-ticket-timeline-summary">
+              <strong>{String(timelineTicket.subject ?? "—")}</strong>
+              <span>
+                {isArabic ? "الحالة الحالية:" : "Current status:"}{" "}
+                {displayAdminValue(timelineTicket.status, isArabic)}
+              </span>
+            </div>
+            <div className="ticket-timeline admin-ticket-timeline">
+              {ticketTimelineEvents.length > 0 ? (
+                ticketTimelineEvents.map((event, index) => {
+                  const description = ticketEventDescription(event);
+                  return (
+                    <div
+                      className={`ticket-timeline-step ${
+                        index === ticketTimelineEvents.length - 1 ? "current" : ""
+                      }`}
+                      key={event.id}
+                    >
+                      <span aria-hidden="true" />
+                      <div>
+                        <strong>{ticketEventTitle(event)}</strong>
+                        <small>
+                          {description ? `${description} · ` : ""}
+                          {formatAdminDateTime(event.created_at, isArabic)}
+                          {"actor_name" in event && event.actor_name
+                            ? ` · ${String(event.actor_name)}`
+                            : ""}
+                        </small>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="admin-ticket-timeline-empty">
+                  {isArabic
+                    ? "لا توجد حركات محفوظة لهذه التذكرة بعد."
+                    : "No saved timeline activity for this ticket yet."}
+                </p>
+              )}
+            </div>
+            <div className="admin-edit-actions">
+              <button onClick={() => setTimelineTicket(null)} type="button">
+                {isArabic ? "إغلاق" : "Close"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+      {isProductModalOpen ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget)
+              setIsProductModalOpen(false);
+          }}
+          role="presentation"
+        >
+          <section className="admin-edit-modal" aria-modal="true" role="dialog">
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "المنتجات" : "Products"}</span>
+                <h3>
+                  {editingProduct
+                    ? isArabic
+                      ? "تعديل المنتج"
+                      : "Edit Product"
+                    : isArabic
+                      ? "إضافة منتج جديد"
+                      : "Add New Product"}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsProductModalOpen(false)}
+                type="button"
+              >
+                ?
+              </button>
+            </div>
+            <label>
+              <span>{isArabic ? "اسم المنتج" : "Product Name"}</span>
+              <input
+                onChange={(event) =>
+                  setProductDraft((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
+                }
+                value={productDraft.name}
+              />
+            </label>
+            <label>
+              <span>
+                {isArabic
+                  ? "\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u062a\u062c \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629"
+                  : "English Product Name"}
+              </span>
+              <input
+                dir="ltr"
+                onChange={(event) =>
+                  setProductDraft((current) => ({
+                    ...current,
+                    name_en: event.target.value,
+                  }))
+                }
+                value={productDraft.name_en}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "الرمز" : "Code"}</span>
+              <input
+                dir="ltr"
+                onChange={(event) =>
+                  setProductDraft((current) => ({
+                    ...current,
+                    slug: event.target.value,
+                  }))
+                }
+                value={productDraft.slug}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "السعر" : "Price"}</span>
+              <input
+                min="0"
+                onChange={(event) =>
+                  setProductDraft((current) => ({
+                    ...current,
+                    base_price: event.target.value,
+                  }))
+                }
+                type="number"
+                value={productDraft.base_price}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "الوصف" : "Description"}</span>
+              <textarea
+                onChange={(event) =>
+                  setProductDraft((current) => ({
+                    ...current,
+                    description: event.target.value,
+                  }))
+                }
+                value={productDraft.description}
+              />
+            </label>
+            {productMessage ? <p>{productMessage}</p> : null}
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                onClick={() => void saveProduct()}
+                type="button"
+              >
+                {editingProduct
+                  ? isArabic
+                    ? "حفظ التعديلات"
+                    : "Save Changes"
+                  : isArabic
+                    ? "إضافة المنتج"
+                    : "Add Product"}
+              </button>
+              <button
+                onClick={() => setIsProductModalOpen(false)}
+                type="button"
+              >
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+      {isIndustryModalOpen ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setEditingIndustry(null);
+              setIsIndustryModalOpen(false);
+            }
+          }}
+          role="presentation"
+        >
+          <section className="admin-edit-modal" aria-modal="true" role="dialog">
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "الأنشطة" : "Industries"}</span>
+                <h3>
+                  {editingIndustry
+                    ? isArabic
+                      ? "تعديل النشاط"
+                      : "Edit Industry"
+                    : isArabic
+                      ? "إضافة نشاط جديد"
+                      : "Add New Industry"}
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setEditingIndustry(null);
+                  setIsIndustryModalOpen(false);
+                }}
+                type="button"
+              >
+                ?
+              </button>
+            </div>
+            <label>
+              <span>{isArabic ? "اسم النشاط" : "Industry Name"}</span>
+              <input
+                onChange={(event) =>
+                  setIndustryDraft((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
+                }
+                value={industryDraft.name}
+              />
+            </label>
+            <label>
+              <span>
+                {isArabic
+                  ? "\u0627\u0633\u0645 \u0627\u0644\u0646\u0634\u0627\u0637 \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629"
+                  : "English Industry Name"}
+              </span>
+              <input
+                dir="ltr"
+                onChange={(event) =>
+                  setIndustryDraft((current) => ({
+                    ...current,
+                    name_en: event.target.value,
+                  }))
+                }
+                value={industryDraft.name_en}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "الرمز" : "Code"}</span>
+              <input
+                dir="ltr"
+                onChange={(event) =>
+                  setIndustryDraft((current) => ({
+                    ...current,
+                    slug: event.target.value,
+                  }))
+                }
+                value={industryDraft.slug}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "الوصف" : "Description"}</span>
+              <textarea
+                onChange={(event) =>
+                  setIndustryDraft((current) => ({
+                    ...current,
+                    description: event.target.value,
+                  }))
+                }
+                value={industryDraft.description}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "الحالة" : "Status"}</span>
+              <DashboardSelect
+                ariaLabel={isArabic ? "الحالة" : "Status"}
+                menuClassName="admin-edit-select-menu"
+                onValueChange={(status) =>
+                  setIndustryDraft((current) => ({ ...current, status }))
+                }
+                options={[
+                  { value: "active", label: isArabic ? "نشط" : "Active" },
+                  {
+                    value: "inactive",
+                    label: isArabic ? "غير نشط" : "Inactive",
+                  },
+                ]}
+                portal
+                value={industryDraft.status}
+              />
+            </label>
+            {industryMessage ? <p>{industryMessage}</p> : null}
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                onClick={() => void saveIndustry()}
+                type="button"
+              >
+                {editingIndustry
+                  ? isArabic
+                    ? "حفظ التعديلات"
+                    : "Save Changes"
+                  : isArabic
+                    ? "إضافة النشاط"
+                    : "Add Industry"}
+              </button>
+              <button
+                onClick={() => {
+                  setEditingIndustry(null);
+                  setIsIndustryModalOpen(false);
+                }}
+                type="button"
+              >
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+      {deleteTarget ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setDeleteTarget(null);
+          }}
+          role="presentation"
+        >
+          <section
+            className="admin-delete-modal"
+            aria-modal="true"
+            role="dialog"
+          >
+            <div className="admin-delete-icon">!</div>
+            <h3>{isArabic ? "تأكيد الحذف" : "Confirm deletion"}</h3>
+            <p>
+              {isArabic
+                ? `هل تريد حذف «${String(deleteTarget.row.name ?? "")}»؟ لا يمكن التراجع عن هذا الإجراء.`
+                : `Delete “${String(deleteTarget.row.name ?? "")}”? This action cannot be undone.`}
+            </p>
+            <div className="admin-delete-actions">
+              <button
+                className="danger"
+                onClick={() => void confirmDeletion()}
+                type="button"
+              >
+                    {isArabic ? "\u062d\u0630\u0641" : "Delete"}
+              </button>
+              <button onClick={() => setDeleteTarget(null)} type="button">
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function AdminAccountQuotes({
+  data,
+  isArabic,
+  onReload,
+}: {
+  data: ManagementData;
+  isArabic: boolean;
+  onReload: () => void;
+}) {
+  const [accountUserFilter, setAccountUserFilter] = useState("all");
+  const [isAdvancedFilter, setIsAdvancedFilter] = useState(false);
+  const getAccountUserKey = (row: AdminRow) => {
+    const id = row.affiliate_user_id ?? row.user_id;
+    if (id !== undefined && id !== null && String(id).trim()) {
+      return `id:${String(id)}`;
+    }
+    const name = String(row.affiliate_user_name ?? "").trim();
+    return name ? `name:${name}` : "";
+  };
+  const accountUserOptions = Array.from(
+    [...data.quotes, ...data.sales, ...(data.commissions ?? [])].reduce(
+      (options, row) => {
+        const key = getAccountUserKey(row);
+        const label = String(row.affiliate_user_name ?? "").trim();
+        if (key && label && !options.has(key)) options.set(key, label);
+        return options;
+      },
+      new Map<string, string>(),
+    ),
+  ).map(([value, label]) => ({ value, label }));
+  const matchesAccountUser = (row: AdminRow) =>
+    accountUserFilter === "all" || getAccountUserKey(row) === accountUserFilter;
+  const filteredQuotes = data.quotes.filter(matchesAccountUser);
+  const filteredSales = data.sales.filter(matchesAccountUser);
+  const filteredCommissions = (data.commissions ?? []).filter(
+    matchesAccountUser,
+  );
+  const advancedSales = isAdvancedFilter
+    ? filteredSales.filter((sale) => String(sale.status ?? "") === "pending")
+    : filteredSales;
+  const advancedCommissions = isAdvancedFilter
+    ? filteredCommissions.filter((commission) =>
+        ["pending", "approved"].includes(String(commission.status ?? "")),
+      )
+    : filteredCommissions;
+  const rows = filteredQuotes.filter((quote) => {
+    const status = String(quote.status ?? "");
+    if (!["accepted", "paid"].includes(status)) return false;
+    if (!isAdvancedFilter) return true;
+    return (
+      status === "accepted" ||
+      (status === "paid" && !String(quote.sales_invoice_number ?? "").trim())
+    );
+  });
+  const total = rows.reduce((sum, quote) => sum + Number(quote.amount ?? 0), 0);
+  const [invoiceQuote, setInvoiceQuote] = useState<AdminRow | null>(null);
+  const [invoiceMessage, setInvoiceMessage] = useState("");
+  const receiptInputRef = useRef<HTMLInputElement | null>(null);
+  const [receiptQuote, setReceiptQuote] = useState<AdminRow | null>(null);
+  const [uploadingReceiptId, setUploadingReceiptId] = useState<number | null>(
+    null,
+  );
+  const [receiptMessage, setReceiptMessage] = useState("");
+  const [attachedReceiptQuoteIds, setAttachedReceiptQuoteIds] = useState<
+    Set<number>
+  >(() => new Set());
+
+  function openReceiptPicker(quote: AdminRow) {
+    setReceiptQuote(quote);
+    setReceiptMessage("");
+    receiptInputRef.current?.click();
+  }
+
+  async function uploadReceipt(file: File) {
+    if (!receiptQuote) return;
+    const quoteId = receiptQuote.id;
+    const formData = new FormData();
+    formData.append("receipt", file);
+    setUploadingReceiptId(quoteId);
+    setReceiptMessage(
+      isArabic ? "جاري رفع إثبات الدفع..." : "Uploading proof of payment...",
+    );
+    try {
+      const response = await fetch(`/api/v1/admin/quotes/${quoteId}/receipt`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error ?? "UPLOAD_FAILED");
+      }
+      setAttachedReceiptQuoteIds((current) => new Set(current).add(quoteId));
+      setReceiptMessage(
+        isArabic
+          ? "تم ربط إثبات الدفع بعرض السعر."
+          : "Proof of payment attached to this quote.",
+      );
+      setReceiptQuote(null);
+      onReload();
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "UPLOAD_FAILED";
+      setReceiptMessage(
+        code === "INVALID_FILE_TYPE"
+          ? isArabic
+            ? "يرجى رفع صورة أو ملف PDF فقط."
+            : "Please upload an image or PDF file."
+          : code === "QUOTE_NOT_ACCEPTED"
+            ? isArabic
+              ? "يتاح إثبات الدفع لعروض الأسعار المقبولة فقط."
+              : "Proof of payment is available only for accepted quotes."
+            : isArabic
+              ? "تعذر رفع إثبات الدفع."
+              : "Unable to upload proof of payment.",
+      );
+    } finally {
+      setUploadingReceiptId(null);
+      if (receiptInputRef.current) receiptInputRef.current.value = "";
+    }
+  }
+
+  async function createSalesInvoice() {
+    if (!invoiceQuote) return;
+    setInvoiceMessage(
+      isArabic ? "جاري إنشاء الفاتورة..." : "Creating invoice...",
+    );
+    try {
+      const response = await fetch("/api/v1/admin/sales", {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({ quote_id: invoiceQuote.id }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error ?? "CREATE_FAILED");
+      }
+      setInvoiceQuote(null);
+      onReload();
+    } catch (error) {
+      setInvoiceMessage(
+        error instanceof Error && error.message === "SALE_ALREADY_EXISTS"
+          ? isArabic
+            ? "تم إنشاء فاتورة مبيعات لهذا العرض مسبقاً"
+            : "A sales invoice already exists for this quote"
+          : error instanceof Error && error.message === "QUOTE_NOT_PAID"
+            ? isArabic
+              ? "لا يمكن إنشاء فاتورة قبل دفع عرض السعر"
+              : "A sales invoice cannot be created before payment"
+            : isArabic
+              ? "تعذر إنشاء فاتورة المبيعات"
+              : "Unable to create the sales invoice",
+      );
+    }
+  }
+
+  return (
+    <section className="admin-account-quotes">
+      <div className="admin-account-section-head">
+        <h2 className="admin-account-section-title">
+          {isArabic ? "عروض الأسعار" : "Quotes"}
+        </h2>
+        <div className="admin-account-filter-actions">
+          <button
+            aria-pressed={isAdvancedFilter}
+            className={`admin-account-advanced-filter${isAdvancedFilter ? " active" : ""}`}
+            onClick={() => setIsAdvancedFilter((current) => !current)}
+            type="button"
+          >
+            {isArabic ? "فلترة متقدمة" : "Advanced Filter"}
+          </button>
+          <div className="admin-account-user-filter">
+            <DashboardSelect
+              ariaLabel={isArabic ? "فلترة حسب المستخدم" : "Filter by user"}
+              onValueChange={setAccountUserFilter}
+              options={[
+                {
+                  value: "all",
+                  label: isArabic ? "كل المستخدمين" : "All users",
+                },
+                ...accountUserOptions,
+              ]}
+              searchable
+              searchPlaceholder={
+                isArabic ? "ابحث عن مستخدم..." : "Search users..."
+              }
+              value={accountUserFilter}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="admin-table-wrap">
+        <table className="admin-account-quotes-table">
+          <thead>
+            <tr>
+              <th>{isArabic ? "رقم العرض" : "Quote Number"}</th>
+              <th>{isArabic ? "اسم العميل" : "Client Name"}</th>
+              <th>{isArabic ? "المنتج" : "Product"}</th>
+              <th>{isArabic ? "المبلغ" : "Amount"}</th>
+              <th>{isArabic ? "الحالة" : "Status"}</th>
+              <th>{isArabic ? "المستخدم" : "User"}</th>
+              <th>{isArabic ? "التاريخ" : "Date"}</th>
+              <th>{isArabic ? "إجراء" : "Action"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((quote) => {
+              const hasSalesInvoice = Boolean(
+                String(quote.sales_invoice_number ?? "").trim(),
+              );
+              const canCreateInvoice =
+                String(quote.status ?? "") === "paid" && !hasSalesInvoice;
+              const canUploadReceipt =
+                String(quote.status ?? "") === "accepted";
+              const hasReceipt =
+                attachedReceiptQuoteIds.has(quote.id) ||
+                Boolean(quote.payment_receipt_url);
+              const isUploading = uploadingReceiptId === quote.id;
+              return (
+                <tr key={quote.id}>
+                  <td>{String(quote.quote_number ?? "—")}</td>
+                  <td>{String(quote.customer_name ?? "—")}</td>
+                  <td>{String(quote.product_name ?? "—")}</td>
+                  <td>{`${Number(quote.amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(quote.currency ?? "SAR")}`}</td>
+                  <td>
+                    <span
+                      className={`admin-status admin-status-${String(quote.status ?? "draft")}`}
+                    >
+                      {displayAdminValue(quote.status, isArabic)}
+                    </span>
+                  </td>
+                  <td>{String(quote.affiliate_user_name ?? "—")}</td>
+                  <td>{String(quote.created_at ?? "—").slice(0, 10)}</td>
+                  <td>
+                    <div className="admin-quote-action-row">
+                      <button
+                        className="admin-create-invoice"
+                        disabled={!canCreateInvoice}
+                        onClick={() => {
+                          setInvoiceMessage("");
+                          setInvoiceQuote(quote);
+                        }}
+                        title={
+                          canCreateInvoice
+                            ? undefined
+                            : isArabic
+                              ? "يتاح بعد الدفع"
+                              : "Available after payment"
+                        }
+                        type="button"
+                      >
+                        {hasSalesInvoice
+                          ? isArabic
+                            ? "تم إنشاء فاتورة مبيعات"
+                            : "Sales Invoice Created"
+                          : isArabic
+                            ? "إنشاء فاتورة مبيعات"
+                            : "Create Sales Invoice"}
+                      </button>
+                      <button
+                        className={`admin-proof-payment${hasReceipt ? " is-attached" : ""}`}
+                        disabled={!canUploadReceipt || isUploading}
+                        onClick={() => openReceiptPicker(quote)}
+                        title={
+                          canUploadReceipt
+                            ? undefined
+                            : isArabic
+                              ? "يتاح لعروض الأسعار المقبولة فقط"
+                              : "Available only for accepted quotes"
+                        }
+                        type="button"
+                      >
+                        <span aria-hidden="true">?</span>
+                        {isUploading
+                          ? isArabic
+                            ? "جاري الرفع..."
+                            : "Uploading..."
+                          : hasReceipt
+                            ? isArabic
+                              ? "تم إثبات الدفع"
+                              : "Payment Proven"
+                            : isArabic
+                              ? "إثبات الدفع"
+                              : "Proof of Payment"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {rows.length === 0 ? (
+              <tr>
+                <td className="admin-empty" colSpan={8}>
+                  {isArabic ? "لا توجد عروض" : "No quotes found"}
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+      <input
+        ref={receiptInputRef}
+        accept="image/*,application/pdf"
+        className="admin-proof-payment-input"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void uploadReceipt(file);
+        }}
+        type="file"
+      />
+      {receiptMessage ? (
+        <p className="admin-receipt-message">{receiptMessage}</p>
+      ) : null}
+      <div className="admin-account-quote-footer">
+        <div className="admin-account-total">
+          {isArabic ? "الإجمالي:" : "Total:"}{" "}
+          <strong>{total.toLocaleString(NUMBER_LOCALE)} SAR</strong>
+        </div>
+      </div>
+      <AdminSalesList
+        data={advancedSales}
+        isArabic={isArabic}
+        onReload={onReload}
+      />
+      <AdminCommissionList
+        data={advancedCommissions}
+        isArabic={isArabic}
+        onReload={onReload}
+      />
+      {invoiceQuote ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setInvoiceQuote(null);
+          }}
+          role="presentation"
+        >
+          <section
+            className="admin-edit-modal admin-sales-invoice-modal"
+            aria-modal="true"
+            role="dialog"
+          >
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "فاتورة مبيعات" : "Sales Invoice"}</span>
+                <h3>
+                  {isArabic
+                    ? "تأكيد إنشاء فاتورة المبيعات"
+                    : "Confirm Sales Invoice"}
+                </h3>
+              </div>
+              <button onClick={() => setInvoiceQuote(null)} type="button">
+                ?
+              </button>
+            </div>
+            <div className="admin-invoice-details">
+              <div>
+                <span>{isArabic ? "رقم المبيعات" : "Sales Number"}</span>
+                <strong>
+                  {isArabic ? "يُنشأ تلقائياً" : "Generated automatically"}
+                </strong>
+              </div>
+              <div>
+                <span>{isArabic ? "اسم العميل" : "Client Name"}</span>
+                <strong>{String(invoiceQuote.customer_name ?? "—")}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "المنتج" : "Product"}</span>
+                <strong>{String(invoiceQuote.product_name ?? "—")}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "المبلغ" : "Amount"}</span>
+                <strong>{`${Number(invoiceQuote.amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(invoiceQuote.currency ?? "SAR")}`}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "الحالة" : "Status"}</span>
+                <strong>{isArabic ? "قيد الانتظار" : "Pending"}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "المستخدم" : "User"}</span>
+                <strong>
+                  {String(invoiceQuote.affiliate_user_name ?? "—")}
+                </strong>
+              </div>
+              <div>
+                <span>{isArabic ? "رقم العرض" : "Quote Number"}</span>
+                <strong>{String(invoiceQuote.quote_number ?? "—")}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "التاريخ" : "Date"}</span>
+                <strong>
+                  {new Date().toLocaleDateString(isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE)}
+                </strong>
+              </div>
+              <div>
+                <span>{isArabic ? "الإيصال" : "Receipt"}</span>
+                <strong>
+                  {isArabic ? "يُنشأ مع الفاتورة" : "Created with invoice"}
+                </strong>
+              </div>
+            </div>
+            {invoiceMessage ? (
+              <p className="admin-invoice-message">{invoiceMessage}</p>
+            ) : null}
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                onClick={() => void createSalesInvoice()}
+                type="button"
+              >
+                {isArabic ? "إنشاء الفاتورة" : "Create Invoice"}
+              </button>
+              <button onClick={() => setInvoiceQuote(null)} type="button">
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function AdminSalesList({
+  data,
+  isArabic,
+  onReload,
+}: {
+  data: AdminRow[];
+  isArabic: boolean;
+  onReload: () => void;
+}) {
+  const [commissionSale, setCommissionSale] = useState<AdminRow | null>(null);
+  const [commissionPercent, setCommissionPercent] = useState(20);
+  const [commissionMessage, setCommissionMessage] = useState("");
+  const [createdCommissionSaleIds, setCreatedCommissionSaleIds] = useState<
+    Set<number>
+  >(() => new Set());
+  async function createCommission() {
+    if (!commissionSale) return;
+    setCommissionMessage(
+      isArabic ? "جاري إنشاء العمولة..." : "Creating commission...",
+    );
+    try {
+      const response = await fetch("/api/v1/admin/commissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          sale_id: commissionSale.id,
+          commission_percent: Number(commissionPercent),
+        }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error ?? "CREATE_FAILED");
+      }
+      setCreatedCommissionSaleIds((current) =>
+        new Set(current).add(commissionSale.id),
+      );
+      setCommissionSale(null);
+      onReload();
+    } catch (error) {
+      setCommissionMessage(
+        error instanceof Error && error.message === "COMMISSION_ALREADY_EXISTS"
+          ? isArabic
+            ? "تم إنشاء عمولة لهذه المبيعات مسبقاً"
+            : "A commission already exists for this sale"
+          : isArabic
+            ? "تعذر إنشاء العمولة"
+            : "Unable to create the commission",
+      );
+    }
+  }
+
+  const commissionAmount = commissionSale
+    ? (Number(commissionSale.sale_amount ?? 0) * commissionPercent) / 100
+    : 0;
+  const commissionLevel = commissionSale
+    ? commissionLevelForSalesCount(commissionSale.affiliate_sales_count)
+    : "مبتدئ";
+  const total = data.reduce(
+    (sum, sale) => sum + Number(sale.sale_amount ?? 0),
+    0,
+  );
+  return (
+    <section className="admin-sales-list">
+      <h2>{isArabic ? "قائمة المبيعات" : "Sales List"}</h2>
+      <div className="admin-table-wrap">
+        <table className="admin-account-quotes-table">
+          <thead>
+            <tr>
+              <th>{isArabic ? "رقم المبيعات" : "Sales Number"}</th>
+              <th>{isArabic ? "اسم العميل" : "Client Name"}</th>
+              <th>{isArabic ? "المنتج" : "Product"}</th>
+              <th>{isArabic ? "المبلغ" : "Amount"}</th>
+              <th>{isArabic ? "الحالة" : "Status"}</th>
+              <th>{isArabic ? "المستخدم" : "User"}</th>
+              <th>{isArabic ? "رقم العرض" : "Quote Number"}</th>
+              <th>{isArabic ? "التاريخ" : "Date"}</th>
+              <th>{isArabic ? "إنشاء العمولات" : "Create Commission"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((sale) => {
+              const canCreateCommission =
+                !sale.commission_id && !createdCommissionSaleIds.has(sale.id);
+              return (
+                <tr key={sale.id}>
+                  <td>{String(sale.sales_invoice_number ?? `S-${sale.id}`)}</td>
+                  <td>{String(sale.customer_name ?? "—")}</td>
+                  <td>{String(sale.product_name ?? "—")}</td>
+                  <td>{`${Number(sale.sale_amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(sale.currency ?? "SAR")}`}</td>
+                  <td>
+                    <span
+                      className={`admin-status admin-status-${String(sale.status ?? "pending")}`}
+                    >
+                      {displayAdminValue(sale.status, isArabic)}
+                    </span>
+                  </td>
+                  <td>{String(sale.affiliate_user_name ?? "—")}</td>
+                  <td>{String(sale.quote_number ?? "—")}</td>
+                  <td>
+                    {String(sale.sold_at ?? sale.created_at ?? "—").slice(
+                      0,
+                      10,
+                    )}
+                  </td>
+                  <td>
+                    <button
+                      className="admin-create-commission"
+                      disabled={!canCreateCommission}
+                      onClick={() => {
+                        setCommissionMessage("");
+                        setCommissionPercent(
+                          commissionPercentForLevel(
+                            commissionLevelForSalesCount(
+                              sale.affiliate_sales_count,
+                            ),
+                          ),
+                        );
+                        setCommissionSale(sale);
+                      }}
+                      type="button"
+                    >
+                      {canCreateCommission
+                        ? isArabic
+                          ? "إنشاء العمولات"
+                          : "Create Commission"
+                        : isArabic
+                          ? "تم إنشاء العمولة"
+                          : "Commission Created"}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+            {data.length === 0 ? (
+              <tr>
+                <td className="admin-empty" colSpan={9}>
+                  {isArabic ? "لا توجد مبيعات" : "No sales found"}
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+      <div className="admin-account-quote-footer">
+        <div className="admin-account-total">
+          {isArabic ? "الإجمالي:" : "Total:"}{" "}
+          <strong>{total.toLocaleString(NUMBER_LOCALE)} SAR</strong>
+        </div>
+      </div>
+      {commissionSale ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setCommissionSale(null);
+          }}
+          role="presentation"
+        >
+          <section
+            className="admin-edit-modal admin-sales-invoice-modal"
+            aria-modal="true"
+            role="dialog"
+          >
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "عمولة المبيعات" : "Sales Commission"}</span>
+                <h3>
+                  {isArabic
+                    ? "تأكيد إنشاء العمولة"
+                    : "Confirm Commission Creation"}
+                </h3>
+              </div>
+              <button onClick={() => setCommissionSale(null)} type="button">
+                ?
+              </button>
+            </div>
+            <div className="admin-invoice-details">
+              <div>
+                <span>{isArabic ? "رقم المبيعات" : "Sales Number"}</span>
+                <strong>
+                  {String(
+                    commissionSale.sales_invoice_number ??
+                      `S-${commissionSale.id}`,
+                  )}
+                </strong>
+              </div>
+              <div>
+                <span>{isArabic ? "اسم العميل" : "Client Name"}</span>
+                <strong>{String(commissionSale.customer_name ?? "—")}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "المنتج" : "Product"}</span>
+                <strong>{String(commissionSale.product_name ?? "—")}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "مبلغ المبيعات" : "Sales Amount"}</span>
+                <strong>{`${Number(commissionSale.sale_amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(commissionSale.currency ?? "SAR")}`}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "المستخدم" : "User"}</span>
+                <strong>
+                  {String(commissionSale.affiliate_user_name ?? "—")}
+                </strong>
+              </div>
+              <div>
+                <span>{isArabic ? "عدد المبيعات" : "Sales Count"}</span>
+                <strong>
+                  {String(commissionSale.affiliate_sales_count ?? 0)}
+                </strong>
+              </div>
+              <div>
+                <span>{isArabic ? "المستوى" : "Level"}</span>
+                <strong>{commissionLevel}</strong>
+              </div>
+              <div>
+                <span>
+                  {isArabic ? "نسبة العمولة" : "Commission Percentage"}
+                </span>
+                <strong>{`${commissionPercent}%`}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "مبلغ العمولة" : "Commission Amount"}</span>
+                <strong>{`${commissionAmount.toLocaleString(NUMBER_LOCALE, { maximumFractionDigits: 2 })} ${String(commissionSale.currency ?? "SAR")}`}</strong>
+              </div>
+              <div>
+                <span>{isArabic ? "الحالة" : "Status"}</span>
+                <strong>{isArabic ? "قيد الانتظار" : "Pending"}</strong>
+              </div>
+            </div>
+            {commissionMessage ? (
+              <p className="admin-invoice-message">{commissionMessage}</p>
+            ) : null}
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                onClick={() => void createCommission()}
+                type="button"
+              >
+                {isArabic ? "إنشاء العمولة" : "Create Commission"}
+              </button>
+              <button onClick={() => setCommissionSale(null)} type="button">
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function AdminCommissionList({
+  data = [],
+  isArabic,
+  onReload,
+}: {
+  data?: AdminRow[];
+  isArabic: boolean;
+  onReload: () => void;
+}) {
+  const [approvalMessage, setApprovalMessage] = useState("");
+  const [paymentCommission, setPaymentCommission] = useState<AdminRow | null>(
+    null,
+  );
+  const [paymentReference, setPaymentReference] = useState("");
+  const [paymentMessage, setPaymentMessage] = useState("");
+  const [isLinkingPayment, setIsLinkingPayment] = useState(false);
+  const total = data.reduce(
+    (sum, commission) => sum + Number(commission.commission_amount ?? 0),
+    0,
+  );
+
+  async function approveCommission(id: number) {
+    setApprovalMessage("");
+    try {
+      const response = await fetch(`/api/v1/admin/commissions/${id}/approve`, {
+        method: "PUT",
+      });
+      if (!response.ok) throw new Error("APPROVE_FAILED");
+      onReload();
+    } catch {
+      setApprovalMessage(
+        isArabic ? "تعذر تعميد العمولة" : "Unable to approve the commission",
+      );
+    }
+  }
+
+  async function linkPayment() {
+    if (!paymentCommission || !paymentReference.trim()) return;
+    setIsLinkingPayment(true);
+    setPaymentMessage("");
+    try {
+      const response = await fetch(
+        `/api/v1/admin/commissions/${paymentCommission.id}/payment`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({ payment_reference: paymentReference.trim() }),
+        },
+      );
+      if (!response.ok) throw new Error("LINK_PAYMENT_FAILED");
+      setPaymentCommission(null);
+      setPaymentReference("");
+      onReload();
+    } catch {
+      setPaymentMessage(
+        isArabic
+          ? "تعذر ربط مرجع الدفع بالعمولة."
+          : "Unable to link the payment reference.",
+      );
+    } finally {
+      setIsLinkingPayment(false);
+    }
+  }
+
+  return (
+    <section className="admin-sales-list admin-commission-list">
+      <h2>{isArabic ? "قائمة العمولات" : "Commissions List"}</h2>
+      <div className="admin-table-wrap">
+        <table className="admin-account-quotes-table">
+          <thead>
+            <tr>
+              <th>{isArabic ? "الرقم" : "ID"}</th>
+              <th>{isArabic ? "رقم المبيعات" : "Sales Number"}</th>
+              <th>{isArabic ? "المستخدم" : "User"}</th>
+              <th>{isArabic ? "المبلغ" : "Amount"}</th>
+              <th>{isArabic ? "النسبة" : "Commission Percentage"}</th>
+              <th>{isArabic ? "الحالة" : "Status"}</th>
+              <th>{isArabic ? "تاريخ الفاتورة" : "Invoice Date"}</th>
+              <th>{isArabic ? "تاريخ التعميد" : "Approval Date"}</th>
+              <th>{isArabic ? "تاريخ السداد" : "Payment Date"}</th>
+              <th>{isArabic ? "تعميد العمولات" : "Approve Commissions"}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((commission) => {
+              const canApprove = String(commission.status ?? "") === "pending";
+              const canLinkPayment =
+                String(commission.status ?? "") === "approved";
+              return (
+                <tr key={commission.id}>
+                  <td>{String(commission.id)}</td>
+                  <td>
+                    {String(
+                      commission.sales_invoice_number ??
+                        `S-${String(commission.sale_id ?? "—")}`,
+                    )}
+                  </td>
+                  <td>{String(commission.affiliate_user_name ?? "—")}</td>
+                  <td>{`${Number(commission.commission_amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(commission.currency ?? "SAR")}`}</td>
+                  <td>{`${Number(commission.commission_percent ?? 0)}%`}</td>
+                  <td>
+                    <span
+                      className={`admin-status admin-status-${String(commission.status ?? "pending")}`}
+                    >
+                      {displayAdminValue(commission.status, isArabic)}
+                    </span>
+                  </td>
+                  <td>{String(commission.created_at ?? "—").slice(0, 10)}</td>
+                  <td>{String(commission.approved_at ?? "—").slice(0, 10)}</td>
+                  <td>{String(commission.paid_at ?? "—").slice(0, 10)}</td>
+                  <td>
+                    {canApprove ? (
+                      <button
+                        className="admin-approve-commissions"
+                        onClick={() => void approveCommission(commission.id)}
+                        type="button"
+                      >
+                        {isArabic ? "تعميد العمولات" : "Approve Commissions"}
+                      </button>
+                    ) : null}
+                    {canLinkPayment ? (
+                      <button
+                        className={`admin-link-payment${commission.payment_reference ? " is-linked" : ""}`}
+                        onClick={() => {
+                          setPaymentMessage("");
+                          setPaymentReference(
+                            String(commission.payment_reference ?? ""),
+                          );
+                          setPaymentCommission(commission);
+                        }}
+                        type="button"
+                      >
+                        <span aria-hidden="true">?</span>
+                        {commission.payment_reference
+                          ? isArabic
+                            ? "تم ربط الدفع"
+                            : "Payment Linked"
+                          : isArabic
+                            ? "ربط الدفع"
+                            : "Link Payment"}
+                      </button>
+                    ) : null}
+                  </td>
+                </tr>
+              );
+            })}
+            {data.length === 0 ? (
+              <tr>
+                <td className="admin-empty" colSpan={10}>
+                  {isArabic ? "لا توجد عمولات" : "No commissions found"}
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+      <div className="admin-account-quote-footer">
+        <div className="admin-account-total">
+          {isArabic ? "الإجمالي:" : "Total:"}{" "}
+          <strong>{total.toLocaleString(NUMBER_LOCALE)} SAR</strong>
+        </div>
+      </div>
+      {approvalMessage ? (
+        <p className="admin-invoice-message">{approvalMessage}</p>
+      ) : null}
+      {paymentCommission ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget)
+              setPaymentCommission(null);
+          }}
+          role="presentation"
+        >
+          <section
+            className="admin-edit-modal admin-payment-link-modal"
+            aria-modal="true"
+            role="dialog"
+          >
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "دفعة العمولة" : "Commission Payment"}</span>
+                <h3>{isArabic ? "ربط الدفع" : "Link Payment"}</h3>
+              </div>
+              <button onClick={() => setPaymentCommission(null)} type="button">
+                ?
+              </button>
+            </div>
+            <p className="admin-payment-link-copy">
+              {isArabic
+                ? `أدخل رقم التحويل أو مرجع العملية للعمولة رقم ${paymentCommission.id}.`
+                : `Enter the bank transfer or transaction reference for commission #${paymentCommission.id}.`}
+            </p>
+            <label>
+              <span>{isArabic ? "مرجع الدفع" : "Payment Reference"}</span>
+              <input
+                autoFocus
+                onChange={(event) => setPaymentReference(event.target.value)}
+                placeholder={
+                  isArabic ? "مثال: TXN-123456" : "Example: TXN-123456"
+                }
+                value={paymentReference}
+              />
+            </label>
+            {paymentMessage ? (
+              <p className="admin-invoice-message">{paymentMessage}</p>
+            ) : null}
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                disabled={!paymentReference.trim() || isLinkingPayment}
+                onClick={() => void linkPayment()}
+                type="button"
+              >
+                {isLinkingPayment
+                  ? isArabic
+                    ? "جارٍ الحفظ..."
+                    : "Saving..."
+                  : isArabic
+                    ? "حفظ الربط"
+                    : "Save Link"}
+              </button>
+              <button onClick={() => setPaymentCommission(null)} type="button">
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </section>
+  );
+}
