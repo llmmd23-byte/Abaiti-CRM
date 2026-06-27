@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { hasPermission } from "@/lib/permissions";
 
 type SaleRow = RowDataPacket & {
   id: number;
@@ -53,13 +54,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   if (session.role !== "admin")
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  if (!(await hasPermission(session, "table.commissions", "can_create")))
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
 
   await ensureCommissionTypeColumn();
 
   const body = await request.json().catch(() => ({}));
   const saleId = Number(body.sale_id);
+  const requestedPercent =
+    body.commission_percent === undefined
+      ? null
+      : Number(body.commission_percent);
   if (!Number.isInteger(saleId) || saleId <= 0) {
     return NextResponse.json({ error: "INVALID_COMMISSION" }, { status: 400 });
+  }
+  if (requestedPercent !== null) {
+    if (
+      !Number.isFinite(requestedPercent) ||
+      requestedPercent < 0 ||
+      requestedPercent > 100
+    )
+      return NextResponse.json(
+        { error: "INVALID_COMMISSION_PERCENTAGE" },
+        { status: 422 },
+      );
+    if (!(await hasPermission(session, "commission.percentage", "can_edit")))
+      return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
 
   const [sales] = await db.execute<SaleRow[]>(
@@ -90,7 +110,8 @@ export async function POST(request: Request) {
       [sale.affiliate_user_id],
     );
     const level = levelForSalesCount(Number(salesCountRows[0]?.total ?? 0));
-    const commissionPercent = commissionPercentByLevel[level] ?? 20;
+    const commissionPercent =
+      requestedPercent ?? commissionPercentByLevel[level] ?? 20;
     await connection.execute("UPDATE users SET level = ? WHERE id = ?", [
       level,
       sale.affiliate_user_id,

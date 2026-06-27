@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { RowDataPacket } from "mysql2";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { hasPermission } from "@/lib/permissions";
 
 async function ensureQuoteReceiptColumn() {
   const [columns] = await db.execute<RowDataPacket[]>(
@@ -82,6 +83,8 @@ export async function GET() {
   if (!session)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   if (session.role !== "admin")
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  if (!(await hasPermission(session, "page.admin.accounts", "can_view")))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
 
   await ensureQuoteReceiptColumn();

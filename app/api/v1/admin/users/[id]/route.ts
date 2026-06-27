@@ -1,0 +1,43 @@
+import {NextResponse} from "next/server";
+import type {ResultSetHeader, RowDataPacket} from "mysql2";
+import {getSession} from "@/lib/auth";
+import {db} from "@/lib/db";
+import {hasPermission} from "@/lib/permissions";
+
+const allowedRoles = new Set(["admin", "affiliate", "sales", "support"]);
+const allowedStatuses = new Set(["active", "inactive", "pending", "suspended"]);
+
+export async function PUT(request: Request, {params}: {params: Promise<{id: string}>}) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({error: "UNAUTHORIZED"}, {status: 401});
+  if (session.role !== "admin") return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
+  if (!(await hasPermission(session, "table.users", "can_edit")))
+    return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
+
+  const id = Number((await params).id);
+  if (!Number.isInteger(id) || id < 1) return NextResponse.json({error: "INVALID_ID"}, {status: 422});
+
+  const body = await request.json();
+  const name = String(body.name ?? "").trim().slice(0, 160);
+  const role = String(body.role ?? "");
+  const status = String(body.status ?? "");
+  if (!name || !allowedRoles.has(role) || !allowedStatuses.has(status)) {
+    return NextResponse.json({error: "VALIDATION_ERROR"}, {status: 422});
+  }
+
+  if (id === Number(session.sub) && (role !== "admin" || status !== "active")) {
+    return NextResponse.json({error: "CANNOT_DISABLE_CURRENT_ADMIN"}, {status: 422});
+  }
+
+  const [result] = await db.execute<ResultSetHeader>(
+    "UPDATE users SET name=?, role=?, status=?, is_active=? WHERE id=?",
+    [name, role, status, status === "active" ? 1 : 0, id]
+  );
+  if (!result.affectedRows) return NextResponse.json({error: "NOT_FOUND"}, {status: 404});
+
+  const [rows] = await db.execute<RowDataPacket[]>(
+    "SELECT id,name,email,username,phone,role,status,is_active,created_at,last_login_at FROM users WHERE id=? LIMIT 1",
+    [id]
+  );
+  return NextResponse.json({data: rows[0]});
+}

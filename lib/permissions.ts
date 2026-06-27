@@ -1,0 +1,383 @@
+import "server-only";
+
+import type { RowDataPacket } from "mysql2";
+
+import type { MiddarSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+
+export type PermissionAction =
+  | "can_view"
+  | "can_create"
+  | "can_edit"
+  | "can_delete"
+  | "can_approve"
+  | "can_reports"
+  | "can_dashboard";
+
+export type DataScope = "own" | "team" | "company" | "all";
+
+type PermissionRow = RowDataPacket & {
+  permission_key: string;
+  can_view: number;
+  can_create: number;
+  can_edit: number;
+  can_delete: number;
+  can_approve: number;
+  can_reports: number;
+  can_dashboard: number;
+  data_scope: DataScope;
+};
+
+type PermissionSeed = {
+  key: string;
+  view?: boolean;
+  create?: boolean;
+  edit?: boolean;
+  delete?: boolean;
+  approve?: boolean;
+  reports?: boolean;
+  dashboard?: boolean;
+  scope?: DataScope;
+};
+
+const pagePermissions = [
+  "page.admin.dashboard",
+  "page.admin.tickets",
+  "page.admin.accounts",
+  "page.admin.products",
+  "page.admin.activities",
+  "page.admin.content",
+  "page.user.overview",
+  "page.user.marketing",
+  "page.user.customers",
+  "page.user.quotes",
+  "page.user.sales",
+  "page.user.activation",
+  "page.user.education",
+  "page.user.support",
+  "page.user.accounts",
+  "page.user.settings",
+];
+
+const tablePermissions = [
+  "table.users",
+  "table.products",
+  "table.industries",
+  "table.educational_assets",
+  "table.leads",
+  "table.lead_contacts",
+  "table.lead_notes",
+  "table.demo_requests",
+  "table.quotes",
+  "table.sales",
+  "table.commissions",
+  "table.support_tickets",
+  "table.support_ticket_events",
+  "table.team_members",
+  "table.social_accounts",
+  "table.payout_methods",
+];
+
+const specialPermissions = [
+  "data.team_members",
+  "commission.percentage",
+];
+
+const allPermissionKeys = [
+  ...pagePermissions,
+  ...tablePermissions,
+  ...specialPermissions,
+];
+
+const userTableScopes = new Set([
+  "table.leads",
+  "table.lead_contacts",
+  "table.lead_notes",
+  "table.demo_requests",
+  "table.quotes",
+  "table.sales",
+  "table.commissions",
+]);
+
+const userWritableTables = new Set([
+  "table.leads",
+  "table.lead_contacts",
+  "table.lead_notes",
+  "table.demo_requests",
+  "table.quotes",
+  "table.support_tickets",
+  "table.team_members",
+  "table.social_accounts",
+  "table.payout_methods",
+]);
+
+const roleSeeds: Record<string, PermissionSeed[]> = {
+  admin: allPermissionKeys.map((key) => ({
+    key,
+    view: true,
+    create: true,
+    edit: true,
+    delete: true,
+    approve: true,
+    reports: true,
+    dashboard: true,
+    scope: "all",
+  })),
+  affiliate: [
+    ...pagePermissions
+      .filter((key) => key.startsWith("page.user."))
+      .map((key) => ({ key, view: true, dashboard: true, scope: "own" as const })),
+    ...tablePermissions.map((key) => ({
+      key,
+      view:
+        userWritableTables.has(key) ||
+        userTableScopes.has(key) ||
+        key === "table.products" ||
+        key === "table.industries" ||
+        key === "table.educational_assets" ||
+        key === "table.support_ticket_events",
+      create: userWritableTables.has(key),
+      edit: userWritableTables.has(key),
+      delete:
+        key === "table.lead_contacts" ||
+        key === "table.lead_notes" ||
+        key === "table.payout_methods",
+      scope: userTableScopes.has(key) ? ("team" as const) : ("own" as const),
+    })),
+    {
+      key: "data.team_members",
+      view: true,
+      scope: "team",
+    },
+    {
+      key: "commission.percentage",
+      view: false,
+      edit: false,
+      scope: "own",
+    },
+  ],
+  sales: allPermissionKeys.map((key) => ({
+    key,
+    view: true,
+    create: key.startsWith("table.") && !key.includes("commissions"),
+    edit: key.startsWith("table.") && !key.includes("commissions"),
+    delete: false,
+    approve: false,
+    reports: true,
+    dashboard: true,
+    scope: "company",
+  })),
+  support: [
+    { key: "page.admin.tickets", view: true, dashboard: true, scope: "company" },
+    { key: "page.user.support", view: true, dashboard: true, scope: "own" },
+    {
+      key: "table.support_tickets",
+      view: true,
+      create: true,
+      edit: true,
+      scope: "company",
+    },
+    {
+      key: "table.support_ticket_events",
+      view: true,
+      create: true,
+      scope: "company",
+    },
+  ],
+};
+
+const globalForPermissions = globalThis as typeof globalThis & {
+  middarPermissionsReady?: Promise<void>;
+};
+
+const seedColumns = (seed: PermissionSeed) => [
+  seed.view ? 1 : 0,
+  seed.create ? 1 : 0,
+  seed.edit ? 1 : 0,
+  seed.delete ? 1 : 0,
+  seed.approve ? 1 : 0,
+  seed.reports ? 1 : 0,
+  seed.dashboard ? 1 : 0,
+  seed.scope ?? "own",
+];
+
+export async function ensurePermissionsTable() {
+  if (globalForPermissions.middarPermissionsReady)
+    return globalForPermissions.middarPermissionsReady;
+
+  globalForPermissions.middarPermissionsReady = (async () => {
+    await db.execute(
+      `CREATE TABLE IF NOT EXISTS permissions (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        subject_type ENUM('role','user') NOT NULL DEFAULT 'role',
+        subject_id VARCHAR(80) NOT NULL,
+        permission_key VARCHAR(160) NOT NULL,
+        can_view TINYINT(1) NOT NULL DEFAULT 0,
+        can_create TINYINT(1) NOT NULL DEFAULT 0,
+        can_edit TINYINT(1) NOT NULL DEFAULT 0,
+        can_delete TINYINT(1) NOT NULL DEFAULT 0,
+        can_approve TINYINT(1) NOT NULL DEFAULT 0,
+        can_reports TINYINT(1) NOT NULL DEFAULT 0,
+        can_dashboard TINYINT(1) NOT NULL DEFAULT 0,
+        data_scope ENUM('own','team','company','all') NOT NULL DEFAULT 'own',
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uq_permissions_subject_key (subject_type, subject_id, permission_key),
+        KEY idx_permissions_key (permission_key),
+        KEY idx_permissions_scope (data_scope)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    );
+
+    for (const [role, seeds] of Object.entries(roleSeeds)) {
+      for (const seed of seeds) {
+        await db.execute(
+          `INSERT INTO permissions
+             (subject_type, subject_id, permission_key, can_view, can_create, can_edit, can_delete,
+              can_approve, can_reports, can_dashboard, data_scope)
+           VALUES ('role', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE permission_key = permission_key`,
+          [role, seed.key, ...seedColumns(seed)],
+        );
+      }
+    }
+  })();
+
+  return globalForPermissions.middarPermissionsReady;
+}
+
+function adminFallback(permissionKey: string): PermissionRow {
+  return {
+    permission_key: permissionKey,
+    can_view: 1,
+    can_create: 1,
+    can_edit: 1,
+    can_delete: 1,
+    can_approve: 1,
+    can_reports: 1,
+    can_dashboard: 1,
+    data_scope: "all",
+  } as PermissionRow;
+}
+
+async function permissionRows(session: MiddarSession, permissionKey?: string) {
+  await ensurePermissionsTable();
+  const params = permissionKey
+    ? [String(session.sub), session.role, permissionKey]
+    : [String(session.sub), session.role];
+  const keyClause = permissionKey ? "AND permission_key = ?" : "";
+  const [rows] = await db.execute<PermissionRow[]>(
+    `SELECT permission_key,can_view,can_create,can_edit,can_delete,can_approve,
+            can_reports,can_dashboard,data_scope
+       FROM permissions
+      WHERE ((subject_type='user' AND subject_id = ?) OR (subject_type='role' AND subject_id = ?))
+        ${keyClause}
+      ORDER BY subject_type = 'user' DESC`,
+    params,
+  );
+  return rows;
+}
+
+export async function getPermission(
+  session: MiddarSession,
+  permissionKey: string,
+) {
+  const rows = await permissionRows(session, permissionKey);
+  if (rows[0]) return rows[0];
+  if (session.role === "admin") return adminFallback(permissionKey);
+  return null;
+}
+
+export async function hasPermission(
+  session: MiddarSession,
+  permissionKey: string,
+  action: PermissionAction = "can_view",
+) {
+  const permission = await getPermission(session, permissionKey);
+  return Number(permission?.[action] ?? 0) === 1;
+}
+
+export async function requirePermission(
+  session: MiddarSession,
+  permissionKey: string,
+  action: PermissionAction = "can_view",
+) {
+  if (!(await hasPermission(session, permissionKey, action)))
+    throw new Error("FORBIDDEN");
+}
+
+export async function getDataScope(
+  session: MiddarSession,
+  permissionKey: string,
+): Promise<DataScope> {
+  const permission = await getPermission(session, permissionKey);
+  if (permission?.data_scope) return permission.data_scope;
+  return session.role === "admin" ? "all" : "own";
+}
+
+export async function getSessionUserCompanyId(session: MiddarSession) {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
+    [Number(session.sub)],
+  );
+  const companyId = rows[0]?.CompanyID;
+  return companyId === null || companyId === undefined ? null : Number(companyId);
+}
+
+export async function teamUserIds(session: MiddarSession) {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    "SELECT id FROM users WHERE id = ? OR manager_id = ?",
+    [Number(session.sub), Number(session.sub)],
+  );
+  const ids = rows.map((row) => Number(row.id)).filter(Number.isFinite);
+  return ids.length ? ids : [Number(session.sub)];
+}
+
+export async function ownerIdsForScope(
+  session: MiddarSession,
+  permissionKey: string,
+) {
+  const scope = await getDataScope(session, permissionKey);
+  if (scope === "all") return null;
+  if (scope === "company") {
+    const companyId = await getSessionUserCompanyId(session);
+    if (companyId === null) return [Number(session.sub)];
+    const [rows] = await db.execute<RowDataPacket[]>(
+      "SELECT id FROM users WHERE CompanyID = ? OR id = ?",
+      [companyId, Number(session.sub)],
+    );
+    const ids = rows.map((row) => Number(row.id)).filter(Number.isFinite);
+    return ids.length ? ids : [Number(session.sub)];
+  }
+  if (scope === "team") return teamUserIds(session);
+  return [Number(session.sub)];
+}
+
+export async function getSessionPermissions(session: MiddarSession) {
+  await ensurePermissionsTable();
+  const rows = await permissionRows(session);
+  const byKey = new Map<string, PermissionRow>();
+  for (const row of rows) {
+    if (!byKey.has(row.permission_key)) byKey.set(row.permission_key, row);
+  }
+  if (session.role === "admin") {
+    for (const key of allPermissionKeys) {
+      if (!byKey.has(key)) byKey.set(key, adminFallback(key));
+    }
+  }
+  return Object.fromEntries(
+    Array.from(byKey.entries()).map(([key, row]) => [
+      key,
+      {
+        can_view: Number(row.can_view) === 1,
+        can_create: Number(row.can_create) === 1,
+        can_edit: Number(row.can_edit) === 1,
+        can_delete: Number(row.can_delete) === 1,
+        can_approve: Number(row.can_approve) === 1,
+        can_reports: Number(row.can_reports) === 1,
+        can_dashboard: Number(row.can_dashboard) === 1,
+        data_scope: row.data_scope,
+      },
+    ]),
+  );
+}

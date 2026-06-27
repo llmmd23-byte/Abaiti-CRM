@@ -4,6 +4,11 @@ import type { ResultSetHeader, RowDataPacket } from "mysql2";
 
 import { db } from "@/lib/db";
 import type { MiddarSession } from "@/lib/auth";
+import {
+  ownerIdsForScope,
+  requirePermission,
+  type PermissionAction,
+} from "@/lib/permissions";
 
 export type BackendResource =
   | "products"
@@ -25,6 +30,7 @@ export type BackendResource =
 type ResourceDefinition = {
   table: string;
   ownerField?: "affiliate_user_id" | "user_id";
+  permissionKey: string;
   writable: readonly string[];
   defaults?: Record<string, SqlValue>;
 };
@@ -34,6 +40,7 @@ type SqlValue = string | number | boolean | Date | null;
 const resources: Record<BackendResource, ResourceDefinition> = {
   products: {
     table: "products",
+    permissionKey: "table.products",
     writable: [
       "name",
       "name_en",
@@ -46,11 +53,13 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   },
   industries: {
     table: "industries",
+    permissionKey: "table.industries",
     writable: ["name", "name_en", "slug", "landing_url", "description", "status"],
   },
   leads: {
     table: "leads",
     ownerField: "affiliate_user_id",
+    permissionKey: "table.leads",
     writable: [
       "industry_id",
       "name",
@@ -69,16 +78,19 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   "lead-contacts": {
     table: "lead_contacts",
     ownerField: "affiliate_user_id",
+    permissionKey: "table.lead_contacts",
     writable: ["lead_id", "name", "phone", "email", "job_title"],
   },
   "lead-notes": {
     table: "lead_notes",
     ownerField: "affiliate_user_id",
+    permissionKey: "table.lead_notes",
     writable: ["lead_id", "note"],
   },
   "demo-requests": {
     table: "demo_requests",
     ownerField: "affiliate_user_id",
+    permissionKey: "table.demo_requests",
     writable: [
       "lead_id",
       "product_id",
@@ -96,6 +108,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   quotes: {
     table: "quotes",
     ownerField: "affiliate_user_id",
+    permissionKey: "table.quotes",
     writable: [
       "quote_number",
       "lead_id",
@@ -111,6 +124,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   sales: {
     table: "sales",
     ownerField: "affiliate_user_id",
+    permissionKey: "table.sales",
     writable: [
       "quote_id",
       "lead_id",
@@ -125,11 +139,13 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   commissions: {
     table: "commissions",
     ownerField: "affiliate_user_id",
+    permissionKey: "table.commissions",
     writable: [],
   },
   "support-tickets": {
     table: "support_tickets",
     ownerField: "user_id",
+    permissionKey: "table.support_tickets",
     writable: [
       "ticket_number",
       "category",
@@ -144,22 +160,26 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   "support-ticket-events": {
     table: "support_ticket_events",
     ownerField: "user_id",
+    permissionKey: "table.support_ticket_events",
     writable: [],
   },
   "team-members": {
     table: "team_members",
     ownerField: "user_id",
+    permissionKey: "table.team_members",
     writable: ["name", "phone", "email", "status"],
     defaults: { status: "inactive" },
   },
   "social-accounts": {
     table: "affiliate_social_accounts",
     ownerField: "user_id",
+    permissionKey: "table.social_accounts",
     writable: ["platform", "handle", "url"],
   },
   "payout-methods": {
     table: "affiliate_payout_methods",
     ownerField: "user_id",
+    permissionKey: "table.payout_methods",
     writable: [
       "bank_name",
       "account_holder_name",
@@ -172,6 +192,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   },
   "educational-assets": {
     table: "educational_assets",
+    permissionKey: "table.educational_assets",
     writable: [
       "title",
       "asset_type",
@@ -193,6 +214,43 @@ const definitionFor = (resource: string) => {
 
 const canManageGlobal = (session: MiddarSession) =>
   session.role === "admin" || session.role === "sales";
+
+async function ownerFilter(
+  definition: ResourceDefinition,
+  session: MiddarSession,
+  qualifier = "",
+) {
+  if (!definition.ownerField) return { clause: "", params: [] as SqlValue[] };
+  const ownerIds = await ownerIdsForScope(session, definition.permissionKey);
+  if (!ownerIds) return { clause: "", params: [] as SqlValue[] };
+  const column = `${qualifier}${definition.ownerField}`;
+  return {
+    clause: ` WHERE ${column} IN (${ownerIds.map(() => "?").join(", ")})`,
+    params: ownerIds,
+  };
+}
+
+async function ownerGuard(
+  definition: ResourceDefinition,
+  session: MiddarSession,
+  prefix = " AND ",
+) {
+  if (!definition.ownerField) return { clause: "", params: [] as SqlValue[] };
+  const ownerIds = await ownerIdsForScope(session, definition.permissionKey);
+  if (!ownerIds) return { clause: "", params: [] as SqlValue[] };
+  return {
+    clause: `${prefix}${definition.ownerField} IN (${ownerIds.map(() => "?").join(", ")})`,
+    params: ownerIds,
+  };
+}
+
+async function assertResourcePermission(
+  definition: ResourceDefinition,
+  session: MiddarSession,
+  action: PermissionAction,
+) {
+  await requirePermission(session, definition.permissionKey, action);
+}
 
 async function closeExpiredDemoRequests() {
   await db.execute(
@@ -303,8 +361,7 @@ async function recordSupportTicketEvent({
 
 export async function listResource(resource: string, session: MiddarSession) {
   const definition = definitionFor(resource);
-  const params: SqlValue[] = [];
-  let where = "";
+  await assertResourcePermission(definition, session, "can_view");
 
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
@@ -323,17 +380,14 @@ export async function listResource(resource: string, session: MiddarSession) {
     await closeExpiredQuotes();
   }
 
-  const mustScopeToSession = resource === "team-members";
-  if (
-    definition.ownerField &&
-    (mustScopeToSession || !canManageGlobal(session))
-  ) {
-    where = ` WHERE ${definition.ownerField} = ?`;
-    params.push(Number(session.sub));
-  }
+  const { clause: where, params } = await ownerFilter(definition, session);
 
   if (resource === "sales") {
-    const scopedWhere = where ? ` WHERE s.${definition.ownerField} = ?` : "";
+    const { clause: scopedWhere, params: scopedParams } = await ownerFilter(
+      definition,
+      session,
+      "s.",
+    );
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT s.id,s.sales_invoice_number,s.quote_id,s.lead_id,s.affiliate_user_id,s.product_id,
               s.sale_amount,s.currency,s.status,s.receipt_url,s.sold_at,s.created_at,
@@ -345,13 +399,17 @@ export async function listResource(resource: string, session: MiddarSession) {
          LEFT JOIN quotes q ON q.id=s.quote_id
         ${scopedWhere}
         ORDER BY s.created_at DESC LIMIT 250`,
-      params,
+      scopedParams,
     );
     return rows;
   }
 
   if (resource === "commissions") {
-    const scopedWhere = where ? ` WHERE c.${definition.ownerField} = ?` : "";
+    const { clause: scopedWhere, params: scopedParams } = await ownerFilter(
+      definition,
+      session,
+      "c.",
+    );
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT c.id,c.sale_id,c.affiliate_user_id,c.commission_percent,c.commission_amount,
               c.currency,c.commission_type,c.status,c.payment_reference,c.created_at,c.approved_at,c.paid_at,
@@ -361,7 +419,7 @@ export async function listResource(resource: string, session: MiddarSession) {
          LEFT JOIN leads l ON l.id=s.lead_id
         ${scopedWhere}
         ORDER BY c.created_at DESC LIMIT 250`,
-      params,
+      scopedParams,
     );
     return rows;
   }
@@ -421,6 +479,7 @@ export async function createResource(
   session: MiddarSession,
 ) {
   const definition = definitionFor(resource);
+  await assertResourcePermission(definition, session, "can_create");
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
   }
@@ -434,13 +493,6 @@ export async function createResource(
     await closeExpiredQuotes();
   }
   if (definition.writable.length === 0) throw new Error("READ_ONLY_RESOURCE");
-  if (
-    (resource === "products" ||
-      resource === "industries" ||
-      resource === "educational-assets") &&
-    session.role !== "admin"
-  )
-    throw new Error("FORBIDDEN");
 
   const data = cleanPayload(definition, payload);
   if (resource === "lead-contacts" && data.phone)
@@ -535,6 +587,7 @@ export async function getResource(
   session: MiddarSession,
 ) {
   const definition = definitionFor(resource);
+  await assertResourcePermission(definition, session, "can_view");
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
   }
@@ -547,16 +600,11 @@ export async function getResource(
   if (resource === "quotes") {
     await closeExpiredQuotes();
   }
-  const params: SqlValue[] = [id];
-  let ownerCheck = "";
-  const mustScopeToSession = resource === "team-members";
-  if (
-    definition.ownerField &&
-    (mustScopeToSession || !canManageGlobal(session))
-  ) {
-    ownerCheck = ` AND ${definition.ownerField} = ?`;
-    params.push(Number(session.sub));
-  }
+  const { clause: ownerCheck, params: ownerParams } = await ownerGuard(
+    definition,
+    session,
+  );
+  const params: SqlValue[] = [id, ...ownerParams];
   const [rows] = await db.execute<RowDataPacket[]>(
     `SELECT * FROM ${definition.table} WHERE id = ?${ownerCheck} LIMIT 1`,
     params,
@@ -571,6 +619,7 @@ export async function updateResource(
   session: MiddarSession,
 ) {
   const definition = definitionFor(resource);
+  await assertResourcePermission(definition, session, "can_edit");
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
   }
@@ -583,13 +632,6 @@ export async function updateResource(
   if (resource === "quotes") {
     await closeExpiredQuotes();
   }
-  if (
-    (resource === "products" ||
-      resource === "industries" ||
-      resource === "educational-assets") &&
-    session.role !== "admin"
-  )
-    throw new Error("FORBIDDEN");
   const existing = await getResource(resource, id, session);
   if (!existing) throw new Error("NOT_FOUND");
   if (
@@ -658,6 +700,7 @@ export async function deleteResource(
   session: MiddarSession,
 ) {
   const definition = definitionFor(resource);
+  await assertResourcePermission(definition, session, "can_delete");
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
   }
@@ -666,13 +709,6 @@ export async function deleteResource(
   }
   const existing = await getResource(resource, id, session);
   if (!existing) throw new Error("NOT_FOUND");
-  if (
-    (resource === "products" ||
-      resource === "industries" ||
-      resource === "educational-assets") &&
-    session.role !== "admin"
-  )
-    throw new Error("FORBIDDEN");
 
   if (resource === "products") {
     const [references] = await db.execute<RowDataPacket[]>(
