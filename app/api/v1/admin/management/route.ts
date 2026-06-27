@@ -128,7 +128,8 @@ export async function GET() {
     ),
     db.execute<RowDataPacket[]>(
       `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.stage,l.industry_id,l.address,l.requirements,l.created_at,
-              i.name industry_name,i.name_en industry_name_en,u.name affiliate_user_name
+              i.name industry_name,i.name_en industry_name_en,
+              COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name
          FROM leads l
          LEFT JOIN industries i ON i.id=l.industry_id
          LEFT JOIN users u ON u.id=l.affiliate_user_id
