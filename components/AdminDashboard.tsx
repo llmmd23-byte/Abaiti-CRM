@@ -244,12 +244,33 @@ export default function AdminDashboard() {
   const [period, setPeriod] = useState<DashboardPeriod>("week");
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
   const [management, setManagement] = useState<ManagementData | null>(null);
+  const [managementError, setManagementError] = useState("");
 
   function loadManagement() {
-    fetch("/api/v1/admin/management", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((body) => setManagement(body.data ?? null))
-      .catch(() => setManagement(null));
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+
+    setManagementError("");
+    fetch("/api/v1/admin/management", {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok || !body.data) {
+          throw new Error(String(body.error ?? "LOAD_FAILED"));
+        }
+        setManagement(body.data);
+      })
+      .catch(() => {
+        setManagement(null);
+        setManagementError(
+          isArabic
+            ? "تعذر تحميل البيانات. أعد المحاولة بعد لحظات."
+            : "Could not load data. Please try again shortly.",
+        );
+      })
+      .finally(() => window.clearTimeout(timeoutId));
   }
 
   function loadSummary() {
@@ -517,6 +538,7 @@ export default function AdminDashboard() {
             onReload={refreshAdminData}
             section={activeSection}
             data={management}
+            error={managementError}
             isArabic={isArabic}
           />
         )}
@@ -1517,11 +1539,13 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
 function AdminManagementSection({
   section,
   data,
+  error,
   isArabic,
   onReload,
 }: {
   section: Exclude<AdminSection, "dashboard">;
   data: ManagementData | null;
+  error: string;
   isArabic: boolean;
   onReload: () => void;
 }) {
@@ -1566,7 +1590,14 @@ function AdminManagementSection({
   if (!data)
     return (
       <section className="admin-data-card admin-loading">
-        {isArabic ? "جاري تحميل البيانات..." : "Loading data..."}
+        <span>
+          {error || (isArabic ? "جاري تحميل البيانات..." : "Loading data...")}
+        </span>
+        {error ? (
+          <button className="admin-action-btn" onClick={onReload}>
+            {isArabic ? "إعادة المحاولة" : "Retry"}
+          </button>
+        ) : null}
       </section>
     );
 

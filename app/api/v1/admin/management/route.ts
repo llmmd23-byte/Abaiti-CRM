@@ -156,7 +156,17 @@ export async function GET() {
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   if (session.role !== "admin")
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
-  if (!(await hasPermission(session, "page.admin.accounts", "can_view")))
+  const canViewManagement = (
+    await Promise.all([
+      hasPermission(session, "page.admin.dashboard", "can_view"),
+      hasPermission(session, "page.admin.tickets", "can_view"),
+      hasPermission(session, "page.admin.accounts", "can_view"),
+      hasPermission(session, "page.admin.products", "can_view"),
+      hasPermission(session, "page.admin.industries", "can_view"),
+      hasPermission(session, "page.admin.permissions", "can_view"),
+    ])
+  ).some(Boolean);
+  if (!canViewManagement)
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
 
   await ensureAdminManagementSchema();
