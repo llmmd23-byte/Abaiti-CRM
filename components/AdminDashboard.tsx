@@ -24,6 +24,7 @@ type AdminSection =
   | "tickets"
   | "accounts"
   | "products"
+  | "tags"
   | "activity"
   | "content"
   | "permissions";
@@ -77,6 +78,7 @@ type ManagementData = {
   sales: AdminRow[];
   commissions: AdminRow[];
   ticketEvents: AdminRow[];
+  tagStats: AdminRow[];
 };
 
 const NUMBER_LOCALE = "en-US";
@@ -95,6 +97,7 @@ const navItems = [
   [{ ar: "تذاكر الخدمة", en: "Service Tickets" }, "tickets"],
   [{ ar: "الحسابات", en: "Accounts" }, "accounts"],
   [{ ar: "المنتجات", en: "Products" }, "products"],
+  [{ ar: "الوسوم", en: "Tags" }, "tags"],
   [{ ar: "الأنشطة", en: "Industries" }, "activity"],
   [{ ar: "المحتوى", en: "Content" }, "content"],
   [{ ar: "الصلاحيات", en: "Permissions" }, "permissions"],
@@ -231,6 +234,12 @@ function AdminIcon({ name }: { name: string }) {
         <>
           <path d="m4 8 8-4 8 4-8 4-8-4Z" />
           <path d="M4 8v8l8 4 8-4V8M12 12v8" />
+        </>
+      ) : name === "tags" ? (
+        <>
+          <path d="M5 5h6l8 8-6 6-8-8V5Z" />
+          <circle cx="8.5" cy="8.5" r="1.3" />
+          <path d="M14 6h3l3 3v3" />
         </>
       ) : name === "activity" ? (
         <>
@@ -1276,6 +1285,147 @@ function AdminMetricList({
   );
 }
 
+function AdminTagsSection({
+  data,
+  isArabic,
+}: {
+  data: ManagementData;
+  isArabic: boolean;
+}) {
+  const groupedTypes = Array.from(
+    data.tagStats.reduce((map, row) => {
+      const typeId = Number(row.tag_type_id);
+      if (!typeId) return map;
+      const current = map.get(typeId) ?? {
+        id: typeId,
+        name: String(row.type_name ?? "?"),
+        color: String(row.type_color ?? "#00b4d8"),
+        tags: [] as Array<{
+          id: number;
+          name: string;
+          color: string;
+          count: number;
+        }>,
+      };
+      if (row.tag_id) {
+        current.tags.push({
+          id: Number(row.tag_id),
+          name: String(row.tag_name ?? "?"),
+          color: String(row.tag_color ?? "#00b4d8"),
+          count: Number(row.customer_count ?? 0),
+        });
+      }
+      map.set(typeId, current);
+      return map;
+    }, new Map<number, { id: number; name: string; color: string; tags: Array<{ id: number; name: string; color: string; count: number }> }>()),
+  ).map(([, value]) => value);
+
+  function pieBackground(
+    tags: Array<{ color: string; count: number }>,
+    total: number,
+  ) {
+    if (!total) return "conic-gradient(#e2eef6 0 360deg)";
+    let start = 0;
+    const segments = tags
+      .filter((tag) => tag.count > 0)
+      .map((tag) => {
+        const end = start + (tag.count / total) * 360;
+        const segment = `${tag.color} ${start}deg ${end}deg`;
+        start = end;
+        return segment;
+      });
+    return `conic-gradient(${segments.join(", ")})`;
+  }
+
+  return (
+    <section className="admin-data-card admin-tags-page">
+      <div className="admin-data-head">
+        <div>
+          <span>{isArabic ? "تحليل الوسوم" : "Tag Analytics"}</span>
+          <strong>
+            {groupedTypes.length.toLocaleString(NUMBER_LOCALE)}{" "}
+            {isArabic ? "نوع وسم" : "tag types"}
+          </strong>
+        </div>
+      </div>
+
+      {groupedTypes.length ? (
+        <div className="admin-tag-type-grid">
+          {groupedTypes.map((type) => {
+            const totalCustomers = type.tags.reduce(
+              (sum, tag) => sum + tag.count,
+              0,
+            );
+            const chartTags = type.tags.filter((tag) => tag.count > 0);
+            return (
+              <article className="admin-tag-type-card" key={type.id}>
+                <div className="admin-tag-type-head">
+                  <span style={{ background: type.color }} />
+                  <div>
+                    <h3>{type.name}</h3>
+                    <p>
+                      {totalCustomers.toLocaleString(NUMBER_LOCALE)}{" "}
+                      {isArabic ? "عميل إجمالي" : "total customers"}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  aria-label={type.name}
+                  className="admin-tag-pie"
+                  style={{
+                    background: pieBackground(chartTags, totalCustomers),
+                  }}
+                >
+                  <div>
+                    <strong>{totalCustomers.toLocaleString(NUMBER_LOCALE)}</strong>
+                    <span>{isArabic ? "عميل" : "customers"}</span>
+                  </div>
+                </div>
+
+                <div className="admin-tag-breakdown">
+                  {type.tags.length ? (
+                    type.tags.map((tag) => {
+                      const percent = totalCustomers
+                        ? Math.round((tag.count / totalCustomers) * 100)
+                        : 0;
+                      return (
+                        <div key={tag.id}>
+                          <i style={{ background: tag.color }} />
+                          <span>{tag.name}</span>
+                          <strong>
+                            {percent.toLocaleString(NUMBER_LOCALE)}%
+                          </strong>
+                          <small>
+                            {tag.count.toLocaleString(NUMBER_LOCALE)}{" "}
+                            {isArabic ? "عميل" : "customers"}
+                          </small>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="admin-empty">
+                      {isArabic
+                        ? "لا توجد وسوم مرتبطة بهذا النوع"
+                        : "No tags linked to this type"}
+                    </p>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="admin-empty">
+          {isArabic
+            ? "لا توجد أنواع وسوم حتى الآن"
+            : "No tag types have been created yet"}
+        </p>
+      )}
+    </section>
+  );
+}
+
 const permissionActionLabels = [
   ["can_view", { ar: "عرض", en: "View" }],
   ["can_create", { ar: "إضافة", en: "Create" }],
@@ -1809,6 +1959,10 @@ function AdminManagementSection({
       </section>
     );
 
+  if (section === "tags") {
+    return <AdminTagsSection data={data} isArabic={isArabic} />;
+  }
+
   const configs = {
     tickets: {
       rows: data.tickets,
@@ -1862,7 +2016,7 @@ function AdminManagementSection({
       ],
     },
   } satisfies Record<
-    Exclude<AdminSection, "dashboard" | "permissions">,
+    Exclude<AdminSection, "dashboard" | "permissions" | "tags">,
     { rows: AdminRow[]; columns: string[][] }
   >;
   const config = configs[section];

@@ -102,6 +102,27 @@ async function ensureSupportTicketEventsTable() {
   );
 }
 
+async function ensureTagTables() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS tag_types (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      affiliate_user_id BIGINT UNSIGNED NOT NULL,
+      type_name VARCHAR(120) NOT NULL,
+      type_color VARCHAR(24) NOT NULL DEFAULT '#00b4d8',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_tag_types_name (affiliate_user_id, type_name),
+      KEY idx_tag_types_affiliate_user_id (affiliate_user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+  await addColumnIfMissing(
+    "tags",
+    "tag_type_id",
+    "ALTER TABLE tags ADD COLUMN tag_type_id BIGINT UNSIGNED NULL AFTER affiliate_user_id",
+  );
+}
+
 async function ensureAdminManagementSchema() {
   globalForAdminManagement.adminManagementSchemaReady ??= (async () => {
     await addColumnIfMissing(
@@ -145,6 +166,7 @@ async function ensureAdminManagementSchema() {
       "ALTER TABLE commissions ADD COLUMN commission_type VARCHAR(80) NOT NULL DEFAULT 'عمولة مبيعات' AFTER currency",
     );
     await ensureSupportTicketEventsTable();
+    await ensureTagTables();
   })();
 
   return globalForAdminManagement.adminManagementSchemaReady;
@@ -259,6 +281,21 @@ export async function GET() {
          LEFT JOIN users u ON u.id=e.actor_user_id
         ORDER BY e.created_at ASC LIMIT 1000`,
   );
+  const [tagStats] = await db.execute<RowDataPacket[]>(
+    `SELECT
+        tt.id tag_type_id,
+        tt.type_name,
+        tt.type_color,
+        t.id tag_id,
+        t.tag_name,
+        t.tag_color,
+        COUNT(DISTINCT lta.lead_id) customer_count
+       FROM tag_types tt
+       LEFT JOIN tags t ON t.tag_type_id = tt.id
+       LEFT JOIN lead_tag_assignments lta ON lta.tag_id = t.id
+      GROUP BY tt.id,tt.type_name,tt.type_color,t.id,t.tag_name,t.tag_color
+      ORDER BY tt.created_at DESC,t.tag_name ASC`,
+  );
 
   return NextResponse.json({
     data: {
@@ -274,6 +311,7 @@ export async function GET() {
       sales,
       commissions,
       ticketEvents,
+      tagStats,
     },
   });
 }
