@@ -11649,7 +11649,7 @@ html[dir="rtl"]
 }
 
 .lead-tags-form {
-  grid-template-columns: minmax(0, 1fr) 160px;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) 160px;
 }
 
 .lead-tags-form input[type="color"] {
