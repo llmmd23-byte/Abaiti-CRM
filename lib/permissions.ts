@@ -161,6 +161,40 @@ const userWritableTables = new Set([
   "table.payout_methods",
 ]);
 
+const affiliatePermissionSeeds: PermissionSeed[] = [
+  ...pagePermissions
+    .filter((key) => key.startsWith("page.user."))
+    .map((key) => ({ key, view: true, dashboard: true, scope: "own" as const })),
+  ...tablePermissions.map((key) => ({
+    key,
+    view:
+      userWritableTables.has(key) ||
+      userTableScopes.has(key) ||
+      key === "table.products" ||
+      key === "table.industries" ||
+      key === "table.educational_assets" ||
+      key === "table.support_ticket_events",
+    create: userWritableTables.has(key),
+    edit: userWritableTables.has(key),
+    delete:
+      key === "table.lead_contacts" ||
+      key === "table.lead_notes" ||
+      key === "table.payout_methods",
+    scope: userTableScopes.has(key) ? ("team" as const) : ("own" as const),
+  })),
+  {
+    key: "data.team_members",
+    view: true,
+    scope: "team",
+  },
+  {
+    key: "commission.percentage",
+    view: false,
+    edit: false,
+    scope: "own",
+  },
+];
+
 const roleSeeds: Record<string, PermissionSeed[]> = {
   admin: allPermissionKeys.map((key) => ({
     key,
@@ -173,39 +207,8 @@ const roleSeeds: Record<string, PermissionSeed[]> = {
     dashboard: true,
     scope: "all",
   })),
-  affiliate: [
-    ...pagePermissions
-      .filter((key) => key.startsWith("page.user."))
-      .map((key) => ({ key, view: true, dashboard: true, scope: "own" as const })),
-    ...tablePermissions.map((key) => ({
-      key,
-      view:
-        userWritableTables.has(key) ||
-        userTableScopes.has(key) ||
-        key === "table.products" ||
-        key === "table.industries" ||
-        key === "table.educational_assets" ||
-        key === "table.support_ticket_events",
-      create: userWritableTables.has(key),
-      edit: userWritableTables.has(key),
-      delete:
-        key === "table.lead_contacts" ||
-        key === "table.lead_notes" ||
-        key === "table.payout_methods",
-      scope: userTableScopes.has(key) ? ("team" as const) : ("own" as const),
-    })),
-    {
-      key: "data.team_members",
-      view: true,
-      scope: "team",
-    },
-    {
-      key: "commission.percentage",
-      view: false,
-      edit: false,
-      scope: "own",
-    },
-  ],
+  affiliate: affiliatePermissionSeeds,
+  Leader: affiliatePermissionSeeds,
   sales: allPermissionKeys.map((key) => ({
     key,
     view: true,
@@ -309,6 +312,7 @@ export async function ensureRolesTable() {
     ["admin", "مشرف", "Admin"],
     ["affiliate", "مسوق", "Affiliate"],
     ["sales", "مبيعات", "Sales"],
+    ["Leader", "قائد فريق", "Team Leader"],
     ["support", "دعم", "Support"],
   ];
   for (const role of roleRows) {
@@ -326,7 +330,7 @@ export async function ensureRolesTable() {
     "UPDATE roles SET role_type = 'admin' WHERE slug IN ('admin','support')",
   );
   await db.execute(
-    "UPDATE roles SET role_type = 'user' WHERE slug IN ('affiliate','sales')",
+    "UPDATE roles SET role_type = 'user' WHERE slug IN ('affiliate','sales','Leader')",
   );
 
   const [userRoleColumns] = await db.execute<RowDataPacket[]>(
