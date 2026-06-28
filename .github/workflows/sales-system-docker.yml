@@ -1,4 +1,4 @@
-name: Build Sales System Docker Image
+name: Build CRM Docker Image
 
 on:
   push:
@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 env:
-  IMAGE_NAME: sales-system
+  IMAGE_NAME: crm
 
 jobs:
   docker:
