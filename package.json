@@ -10,6 +10,7 @@
     "preview": "next start -p 5173"
   },
   "dependencies": {
+    "@swc/helpers": "0.5.23",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.3",
     "mysql2": "^3.22.5",
