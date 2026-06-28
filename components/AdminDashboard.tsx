@@ -60,6 +60,13 @@ type AdminPermissionData = {
 };
 type ManagementData = {
   users: AdminRow[];
+  roles: Array<{
+    id: number;
+    slug: string;
+    name_ar: string;
+    name_en: string;
+    role_type?: "admin" | "user";
+  }>;
   tickets: AdminRow[];
   products: AdminRow[];
   content: AdminRow[];
@@ -1151,10 +1158,25 @@ function AdminMetricList({
                     setEditDraft((current) => ({ ...current, role }))
                   }
                   options={[
-                    { value: "admin", label: "Admin" },
-                    { value: "affiliate", label: "Affiliate" },
-                    { value: "sales", label: "Sales" },
-                    { value: "support", label: "Support" },
+                    ...(data.roles?.length
+                      ? data.roles.map((role) => ({
+                          value: String(role.slug),
+                          label: `${isArabic ? role.name_ar : role.name_en} · ${
+                            role.role_type === "admin"
+                              ? isArabic
+                                ? "أدمن"
+                                : "Admin"
+                              : isArabic
+                                ? "مستخدم"
+                                : "User"
+                          }`,
+                        }))
+                      : [
+                          { value: "admin", label: "Admin" },
+                          { value: "affiliate", label: "Affiliate" },
+                          { value: "sales", label: "Sales" },
+                          { value: "support", label: "Support" },
+                        ]),
                   ]}
                   portal
                   value={editDraft.role ?? "affiliate"}
@@ -1336,10 +1358,16 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   const [subject, setSubject] = useState("role:admin");
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
+  const [roleDraft, setRoleDraft] = useState({
+    name_ar: "",
+    name_en: "",
+    slug: "",
+    role_type: "user" as "admin" | "user",
+  });
   const language = isArabic ? "ar" : "en";
 
   function loadPermissions() {
-    fetch("/api/v1/admin/permissions", { cache: "no-store" })
+    return fetch("/api/v1/admin/permissions", { cache: "no-store" })
       .then((response) => response.json())
       .then((body) => setPermissionData(body.data ?? null))
       .catch(() => setPermissionData(null));
@@ -1439,6 +1467,33 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
     }
   }
 
+  async function createRole() {
+    setMessage(isArabic ? "جاري إنشاء الدور..." : "Creating role...");
+    try {
+      const response = await fetch("/api/v1/admin/permissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify(roleDraft),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(body.error ?? "CREATE_FAILED"));
+      setRoleDraft({ name_ar: "", name_en: "", slug: "", role_type: "user" });
+      await loadPermissions();
+      if (body.data?.slug) setSubject(`role:${body.data.slug}`);
+      setMessage(isArabic ? "تم إنشاء الدور" : "Role created");
+    } catch (error) {
+      setMessage(
+        error instanceof Error && error.message === "ROLE_ALREADY_EXISTS"
+          ? isArabic
+            ? "يوجد دور بنفس الرمز"
+            : "A role with this slug already exists"
+          : isArabic
+            ? "تعذر إنشاء الدور"
+            : "Unable to create role",
+      );
+    }
+  }
+
   return (
     <section className="admin-data-card admin-permissions-card">
       <div className="admin-data-head admin-permissions-head">
@@ -1489,6 +1544,58 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       </div>
 
       {message ? <p className="admin-permissions-message">{message}</p> : null}
+
+      <div className="admin-role-create-panel">
+        <div>
+          <span>{isArabic ? "إضافة دور جديد" : "Add New Role"}</span>
+          <strong>
+            {isArabic
+              ? "أنشئ دورًا ثم اربطه بالمستخدمين والصلاحيات"
+              : "Create a role, then link it to users and permissions"}
+          </strong>
+        </div>
+        <input
+          onChange={(event) =>
+            setRoleDraft((current) => ({ ...current, name_ar: event.target.value }))
+          }
+          placeholder={isArabic ? "اسم الدور بالعربي" : "Arabic role name"}
+          value={roleDraft.name_ar}
+        />
+        <input
+          dir="ltr"
+          onChange={(event) =>
+            setRoleDraft((current) => ({ ...current, name_en: event.target.value }))
+          }
+          placeholder={isArabic ? "اسم الدور بالإنجليزي" : "English role name"}
+          value={roleDraft.name_en}
+        />
+        <input
+          dir="ltr"
+          onChange={(event) =>
+            setRoleDraft((current) => ({ ...current, slug: event.target.value }))
+          }
+          placeholder={isArabic ? "رمز الدور اختياري" : "Optional role slug"}
+          value={roleDraft.slug}
+        />
+        <DashboardSelect
+          ariaLabel={isArabic ? "نوع الدور" : "Role type"}
+          menuClassName="admin-edit-select-menu"
+          onValueChange={(role_type) =>
+            setRoleDraft((current) => ({
+              ...current,
+              role_type: role_type === "admin" ? "admin" : "user",
+            }))
+          }
+          options={[
+            { value: "user", label: isArabic ? "شاشات المستخدم" : "User screens" },
+            { value: "admin", label: isArabic ? "شاشات الأدمن" : "Admin screens" },
+          ]}
+          value={roleDraft.role_type}
+        />
+        <button className="admin-action-btn" onClick={createRole} type="button">
+          {isArabic ? "إنشاء الدور" : "Create Role"}
+        </button>
+      </div>
 
       <div className="admin-table-wrap admin-permissions-table-wrap">
         <table className="admin-permissions-table">

@@ -4,7 +4,6 @@ import {getSession} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {hasPermission} from "@/lib/permissions";
 
-const allowedRoles = new Set(["admin", "affiliate", "sales", "support"]);
 const allowedStatuses = new Set(["active", "inactive", "pending", "suspended"]);
 
 export async function PUT(request: Request, {params}: {params: Promise<{id: string}>}) {
@@ -21,7 +20,7 @@ export async function PUT(request: Request, {params}: {params: Promise<{id: stri
   const name = String(body.name ?? "").trim().slice(0, 160);
   const role = String(body.role ?? "");
   const status = String(body.status ?? "");
-  if (!name || !allowedRoles.has(role) || !allowedStatuses.has(status)) {
+  if (!name || !role || !allowedStatuses.has(status)) {
     return NextResponse.json({error: "VALIDATION_ERROR"}, {status: 422});
   }
   const [roles] = await db.execute<RowDataPacket[]>(

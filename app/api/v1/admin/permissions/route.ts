@@ -25,6 +25,7 @@ const allowedActions = [
 ] as const;
 
 const allowedScopes = new Set(["own", "team", "company", "all"]);
+const allowedRoleTypes = new Set(["admin", "user"]);
 
 type PermissionRow = RowDataPacket & {
   subject_type: "role" | "user";
@@ -104,6 +105,65 @@ export async function GET() {
       users,
     },
   });
+}
+
+function slugifyRole(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0600-\u06ff]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+export async function POST(request: Request) {
+  const session = await getSession();
+  if (!session)
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  if (session.role !== "admin")
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  if (!(await hasPermission(session, "page.admin.permissions", "can_create")))
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+
+  await ensurePermissionsTable();
+  const body = await request.json().catch(() => ({}));
+  const nameAr = String(body.name_ar ?? "").trim().slice(0, 120);
+  const nameEn = String(body.name_en ?? "").trim().slice(0, 120);
+  const requestedSlug = slugifyRole(String(body.slug ?? nameEn ?? nameAr));
+  const roleType = String(body.role_type ?? "user") as RoleType;
+
+  if (!nameAr || !nameEn || !requestedSlug || !allowedRoleTypes.has(roleType)) {
+    return NextResponse.json({ error: "VALIDATION_ERROR" }, { status: 422 });
+  }
+
+  const [existing] = await db.execute<RowDataPacket[]>(
+    "SELECT id FROM roles WHERE slug = ? LIMIT 1",
+    [requestedSlug],
+  );
+  if (existing.length) {
+    return NextResponse.json({ error: "ROLE_ALREADY_EXISTS" }, { status: 409 });
+  }
+
+  await db.execute(
+    `INSERT INTO roles (slug,name_ar,name_en,role_type,is_system,is_active)
+     VALUES (?, ?, ?, ?, 0, 1)`,
+    [requestedSlug, nameAr, nameEn, roleType],
+  );
+  const roleId = await roleIdForSlug(requestedSlug);
+  const keys = permissionKeysByRoleType[roleType];
+  for (const permissionKey of keys) {
+    await db.execute(
+      `INSERT INTO permissions
+         (subject_type,subject_id,role_id,permission_key,data_scope)
+       VALUES ('role', ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+         role_id=VALUES(role_id),
+         updated_at=CURRENT_TIMESTAMP`,
+      [requestedSlug, roleId, permissionKey, roleType === "admin" ? "company" : "own"],
+    );
+  }
+
+  return NextResponse.json({ ok: true, data: { slug: requestedSlug } });
 }
 
 export async function PUT(request: Request) {

@@ -187,12 +187,15 @@ export async function GET() {
       : [adminUserId];
 
   const [users] = await db.execute<RowDataPacket[]>(
-    `SELECT u.id,u.name,u.email,u.username,u.phone,COALESCE(r.slug,u.role) role,u.status,u.is_active,u.CompanyID AS company_id,u.created_at,u.last_login_at
+    `SELECT u.id,u.name,u.email,u.username,u.phone,u.role_id,COALESCE(r.slug,u.role) role,COALESCE(r.role_type, CASE WHEN u.role = 'admin' THEN 'admin' ELSE 'user' END) role_type,u.status,u.is_active,u.CompanyID AS company_id,u.created_at,u.last_login_at
          FROM users u
          LEFT JOIN roles r ON r.id = u.role_id
         WHERE ${usersWhereClause}
         ORDER BY u.created_at DESC`,
     usersWhereValues,
+  );
+  const [roles] = await db.execute<RowDataPacket[]>(
+    "SELECT id,slug,name_ar,name_en,role_type,is_system,is_active FROM roles WHERE is_active = 1 ORDER BY role_type ASC,id ASC",
   );
   const [tickets] = await db.execute<RowDataPacket[]>(
     "SELECT id,ticket_number,category,subject,details,notes,status,user_id,created_at FROM support_tickets ORDER BY created_at DESC LIMIT 250",
@@ -260,6 +263,7 @@ export async function GET() {
   return NextResponse.json({
     data: {
       users,
+      roles,
       tickets,
       products,
       content,
