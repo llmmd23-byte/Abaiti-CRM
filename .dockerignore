@@ -1,0 +1,17 @@
+.git
+.github
+.next
+node_modules
+out
+.npm-cache
+.gitstore
+gitstore
+.agents
+.git-blocked
+.env
+.env.*
+!.env.example
+.codex-devserver.out.log
+.codex-devserver.err.log
+tsconfig.tsbuildinfo
+CHAT_CONTEXT_SUMMARY.md
