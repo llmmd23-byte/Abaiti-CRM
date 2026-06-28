@@ -11718,6 +11718,29 @@ html[dir="rtl"]
   min-width: 260px;
 }
 
+.admin-permissions-back-btn {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #00b4d8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0086a3;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.admin-permissions-back-btn:hover {
+  background: #ecfeff;
+  box-shadow: 0 10px 22px rgba(0, 180, 216, 0.12);
+  transform: translateY(-1px);
+}
+
 .admin-permissions-message {
   margin: 0;
   padding: 10px 14px;

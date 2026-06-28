@@ -1356,6 +1356,9 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   const [permissionData, setPermissionData] =
     useState<AdminPermissionData | null>(null);
   const [subject, setSubject] = useState("role:admin");
+  const [permissionView, setPermissionView] = useState<"roles" | "permissions">(
+    "roles",
+  );
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
   const [roleDraft, setRoleDraft] = useState({
@@ -1404,7 +1407,10 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
     permissionData.permissionKeys;
   const subjectLabel =
     subjectType === "role"
-      ? displayAdminValue(subjectId, isArabic)
+      ? String(
+          (isArabic ? selectedRole?.name_ar : selectedRole?.name_en) ??
+            displayAdminValue(subjectId, isArabic),
+        )
       : String(
           permissionData.users.find((user) => String(user.id) === subjectId)
             ?.name ??
@@ -1479,7 +1485,10 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       if (!response.ok) throw new Error(String(body.error ?? "CREATE_FAILED"));
       setRoleDraft({ name_ar: "", name_en: "", slug: "", role_type: "user" });
       await loadPermissions();
-      if (body.data?.slug) setSubject(`role:${body.data.slug}`);
+      if (body.data?.slug) {
+        setSubject(`role:${body.data.slug}`);
+        setPermissionView("permissions");
+      }
       setMessage(isArabic ? "تم إنشاء الدور" : "Role created");
     } catch (error) {
       setMessage(
@@ -1498,53 +1507,52 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
     <section className="admin-data-card admin-permissions-card">
       <div className="admin-data-head admin-permissions-head">
         <div>
-          <span>{isArabic ? "إدارة الصلاحيات" : "Permission Management"}</span>
+          <span>
+            {permissionView === "permissions"
+              ? isArabic
+                ? "تعديل صلاحيات الدور"
+                : "Edit Role Permissions"
+              : isArabic
+                ? "إدارة الصلاحيات"
+                : "Permission Management"}
+          </span>
           <strong>
-            {isArabic ? "صلاحيات" : "Permissions"} {subjectLabel}
+            {permissionView === "permissions"
+              ? `${isArabic ? "صلاحيات" : "Permissions"} ${subjectLabel}`
+              : isArabic
+                ? "الأدوار والصلاحيات"
+                : "Roles & Permissions"}
           </strong>
         </div>
-        <div className="admin-permissions-tools">
-          <input
-            aria-label={isArabic ? "بحث في الصلاحيات" : "Search permissions"}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={
-              isArabic ? "البحث في الصلاحيات..." : "Search permissions..."
-            }
-            type="search"
-            value={query}
-          />
-          <DashboardSelect
-            ariaLabel={isArabic ? "اختيار الدور أو المستخدم" : "Choose role or user"}
-            onValueChange={setSubject}
-            options={[
-              ...permissionData.roles.map((role) => ({
-                value: `role:${role.slug}`,
-                label: `${isArabic ? "دور" : "Role"} · ${isArabic ? role.name_ar : role.name_en} · ${
-                  role.role_type === "admin"
-                    ? isArabic
-                      ? "أدمن"
-                      : "Admin"
-                    : isArabic
-                      ? "مستخدم"
-                      : "User"
-                }`,
-              })),
-              ...permissionData.users.map((user) => ({
-                value: `user:${user.id}`,
-                label: `${isArabic ? "مستخدم" : "User"} · ${String(user.name ?? user.email ?? user.id)}`,
-              })),
-            ]}
-            searchable
-            searchPlaceholder={
-              isArabic ? "ابحث عن دور أو مستخدم..." : "Search role or user..."
-            }
-            value={subject}
-          />
-        </div>
+        {permissionView === "permissions" ? (
+          <div className="admin-permissions-tools">
+            <button
+              className="admin-permissions-back-btn"
+              onClick={() => {
+                setPermissionView("roles");
+                setQuery("");
+                setMessage("");
+              }}
+              type="button"
+            >
+              {isArabic ? "رجوع لقائمة الأدوار" : "Back to Roles"}
+            </button>
+            <input
+              aria-label={isArabic ? "بحث في الصلاحيات" : "Search permissions"}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={
+                isArabic ? "البحث في صلاحيات الدور..." : "Search role permissions..."
+              }
+              type="search"
+              value={query}
+            />
+          </div>
+        ) : null}
       </div>
 
       {message ? <p className="admin-permissions-message">{message}</p> : null}
 
+      {permissionView === "roles" ? (
       <div className="admin-role-create-panel">
         <div>
           <span>{isArabic ? "إضافة دور جديد" : "Add New Role"}</span>
@@ -1596,7 +1604,9 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           {isArabic ? "إنشاء الدور" : "Create Role"}
         </button>
       </div>
+      ) : null}
 
+      {permissionView === "roles" ? (
       <div className="admin-roles-list-card">
         <div className="admin-roles-list-head">
           <div>
@@ -1640,6 +1650,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                     setSubject(`role:${role.slug}`);
                     setQuery("");
                     setMessage("");
+                    setPermissionView("permissions");
                   }}
                   type="button"
                 >
@@ -1650,7 +1661,9 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           })}
         </div>
       </div>
+      ) : null}
 
+      {permissionView === "permissions" ? (
       <div className="admin-table-wrap admin-permissions-table-wrap">
         <table className="admin-permissions-table">
           <thead>
@@ -1726,6 +1739,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           </tbody>
         </table>
       </div>
+      ) : null}
     </section>
   );
 }
