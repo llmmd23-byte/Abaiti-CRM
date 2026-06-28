@@ -12,8 +12,6 @@ ENV DB_HOST=127.0.0.1
 ENV DB_PORT=3306
 ENV DB_NAME=build_placeholder
 ENV DB_USER=build_placeholder
-ENV DB_PASSWORD=build_placeholder
-ENV AUTH_SECRET=build-placeholder-secret-32-characters-minimum
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
