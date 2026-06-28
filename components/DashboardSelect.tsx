@@ -1,6 +1,7 @@
 "use client";
 
-import {useEffect, useId, useRef, useState} from "react";
+import {useEffect, useId, useRef, useState, type CSSProperties} from "react";
+import {createPortal} from "react-dom";
 
 export type DashboardSelectOption = {
   label: string;
@@ -11,34 +12,76 @@ type DashboardSelectProps = {
   ariaLabel?: string;
   defaultValue?: string;
   name?: string;
+  menuClassName?: string;
   onValueChange?: (value: string) => void;
   options: DashboardSelectOption[];
   placeholder?: string;
+  portal?: boolean;
+  searchable?: boolean;
+  searchPlaceholder?: string;
   value?: string;
 };
 
 export default function DashboardSelect({
   ariaLabel,
   defaultValue = "",
+  menuClassName = "",
   name,
   onValueChange,
   options,
   placeholder,
+  portal = false,
+  searchable = false,
+  searchPlaceholder = "Search...",
   value
 }: DashboardSelectProps) {
   const menuId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [internalValue, setInternalValue] = useState(defaultValue);
+  const [searchQuery, setSearchQuery] = useState("");
   const selectedValue = value ?? internalValue;
   const selectedIndex = options.findIndex((option) => option.value === selectedValue);
   const [activeIndex, setActiveIndex] = useState(selectedIndex >= 0 ? selectedIndex : 0);
+  const [portalStyle, setPortalStyle] = useState<CSSProperties>({});
   const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : undefined;
+  const visibleOptions = searchable && searchQuery.trim()
+    ? options.filter((option) => option.label.toLocaleLowerCase().includes(searchQuery.trim().toLocaleLowerCase()))
+    : options;
+
+  function updatePortalPosition() {
+    if (!portal || !triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const menuWidth = rect.width;
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8));
+    const desiredHeight = Math.min(320, options.length * 48 + (searchable ? 68 : 16));
+    const spaceBelow = window.innerHeight - rect.bottom - 16;
+    const spaceAbove = rect.top - 16;
+    const openAbove = spaceBelow < desiredHeight && spaceAbove > spaceBelow;
+    const availableHeight = Math.max(120, openAbove ? spaceAbove : spaceBelow);
+    const menuHeight = Math.min(desiredHeight, availableHeight);
+    setPortalStyle({
+      position: "fixed",
+      inset: "auto",
+      top: openAbove ? Math.max(8, rect.top - menuHeight - 8) : rect.bottom + 8,
+      right: "auto",
+      bottom: "auto",
+      left,
+      width: menuWidth,
+      minWidth: menuWidth,
+      maxWidth: menuWidth,
+      maxHeight: menuHeight,
+      overflowY: "auto",
+      transform: "none",
+      zIndex: portal ? 2000 : 1000
+    });
+  }
 
   useEffect(() => {
     function closeOnOutsidePress(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) {
+      if (!rootRef.current?.contains(event.target as Node) && !menuRef.current?.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
@@ -47,8 +90,22 @@ export default function DashboardSelect({
     return () => document.removeEventListener("pointerdown", closeOnOutsidePress);
   }, []);
 
+  useEffect(() => {
+    if (!portal || !isOpen) return;
+    updatePortalPosition();
+    const reposition = () => updatePortalPosition();
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+    return () => {
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+    };
+  }, [isOpen, portal, options.length]);
+
   function openMenu() {
-    setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+    setSearchQuery("");
+    setActiveIndex(Math.max(0, visibleOptions.findIndex((option) => option.value === selectedValue)));
+    updatePortalPosition();
     setIsOpen(true);
   }
 
@@ -58,6 +115,7 @@ export default function DashboardSelect({
     }
     onValueChange?.(option.value);
     setActiveIndex(index);
+    setSearchQuery("");
     setIsOpen(false);
     requestAnimationFrame(() => triggerRef.current?.focus());
   }
@@ -76,16 +134,71 @@ export default function DashboardSelect({
       }
       setActiveIndex((current) => {
         const offset = event.key === "ArrowDown" ? 1 : -1;
-        return (current + offset + options.length) % options.length;
+        return visibleOptions.length ? (current + offset + visibleOptions.length) % visibleOptions.length : 0;
       });
       return;
     }
 
     if ((event.key === "Enter" || event.key === " ") && isOpen) {
       event.preventDefault();
-      chooseOption(options[activeIndex], activeIndex);
+        const option = visibleOptions[activeIndex];
+        if (option) chooseOption(option, activeIndex);
     }
   }
+
+  const menu = isOpen ? (
+    <div
+      className={`dashboard-select-menu ${menuClassName}`.trim()}
+      id={menuId}
+      ref={menuRef}
+      role="listbox"
+      style={portal ? portalStyle : undefined}
+    >
+      {searchable ? (
+        <div className="dashboard-select-search">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="10.75" cy="10.75" r="6.25" />
+            <path d="m15.5 15.5 4 4" />
+          </svg>
+          <input
+            autoFocus
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setActiveIndex(0);
+            }}
+            onKeyDown={(event) => event.stopPropagation()}
+            placeholder={searchPlaceholder}
+            type="search"
+            value={searchQuery}
+          />
+        </div>
+      ) : null}
+      {visibleOptions.map((option, index) => {
+        const isSelected = option.value === selectedValue;
+        const isActive = index === activeIndex;
+
+        return (
+          <button
+            aria-selected={isSelected}
+            className={`dashboard-select-option ${isSelected ? "selected" : ""} ${isActive ? "active" : ""}`}
+            key={option.value}
+            onClick={() => chooseOption(option, index)}
+            onMouseEnter={() => setActiveIndex(index)}
+            role="option"
+            type="button"
+          >
+            <span>{option.label}</span>
+            {isSelected ? (
+              <svg aria-hidden="true" className="dashboard-select-check" viewBox="0 0 20 20">
+                <path d="m4.5 10.2 3.3 3.3 7.7-7.7" />
+              </svg>
+            ) : null}
+          </button>
+        );
+      })}
+      {visibleOptions.length === 0 ? <p className="dashboard-select-empty">—</p> : null}
+    </div>
+  ) : null;
 
   return (
     <div className="dashboard-select" ref={rootRef}>
@@ -109,33 +222,7 @@ export default function DashboardSelect({
         </svg>
       </button>
 
-      {isOpen ? (
-        <div className="dashboard-select-menu" id={menuId} role="listbox">
-          {options.map((option, index) => {
-            const isSelected = option.value === selectedValue;
-            const isActive = index === activeIndex;
-
-            return (
-              <button
-                aria-selected={isSelected}
-                className={`dashboard-select-option ${isSelected ? "selected" : ""} ${isActive ? "active" : ""}`}
-                key={option.value}
-                onClick={() => chooseOption(option, index)}
-                onMouseEnter={() => setActiveIndex(index)}
-                role="option"
-                type="button"
-              >
-                <span>{option.label}</span>
-                {isSelected ? (
-                  <svg aria-hidden="true" className="dashboard-select-check" viewBox="0 0 20 20">
-                    <path d="m4.5 10.2 3.3 3.3 7.7-7.7" />
-                  </svg>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
+      {portal && typeof document !== "undefined" ? createPortal(menu, document.body) : menu}
     </div>
   );
 }
