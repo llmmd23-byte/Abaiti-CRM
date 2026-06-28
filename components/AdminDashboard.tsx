@@ -1425,6 +1425,23 @@ function AdminTagsSection({
     }
   }
 
+  function pieBackground(
+    tags: Array<{ color: string; count: number }>,
+    total: number,
+  ) {
+    if (!total) return "conic-gradient(#e2eef6 0 360deg)";
+    let start = 0;
+    const segments = tags
+      .filter((tag) => tag.count > 0)
+      .map((tag) => {
+        const end = start + (tag.count / total) * 360;
+        const segment = `${tag.color} ${start}deg ${end}deg`;
+        start = end;
+        return segment;
+      });
+    return `conic-gradient(${segments.join(", ")})`;
+  }
+
   return (
     <section className="admin-data-card admin-tags-page">
       <div className="admin-data-head">
@@ -1443,29 +1460,71 @@ function AdminTagsSection({
       </div>
 
       {!editingType ? (
-        <div className="admin-tag-types-list">
+        <div className="admin-tag-type-grid">
           {groupedTypes.length ? (
             groupedTypes.map((type) => {
               const totalCustomers = type.tags.reduce(
                 (sum, tag) => sum + tag.count,
                 0,
               );
+              const chartTags = type.tags.filter((tag) => tag.count > 0);
               return (
-                <article className="admin-tag-type-list-row" key={type.id}>
-                  <div className="admin-tag-type-list-main">
+                <article className="admin-tag-type-card" key={type.id}>
+                  <div className="admin-tag-type-head">
                     <span style={{ background: type.color }} />
                     <div>
                       <h3>{type.name}</h3>
                       <p>
-                        {type.tags.length.toLocaleString(NUMBER_LOCALE)}{" "}
-                        {isArabic ? "وسم مرتبط" : "linked tags"} ·{" "}
                         {totalCustomers.toLocaleString(NUMBER_LOCALE)}{" "}
-                        {isArabic ? "عميل" : "customers"}
+                        {isArabic ? "عميل إجمالي" : "total customers"}
                       </p>
                     </div>
                   </div>
+
+                  <div
+                    aria-label={type.name}
+                    className="admin-tag-pie"
+                    style={{
+                      background: pieBackground(chartTags, totalCustomers),
+                    }}
+                  >
+                    <div>
+                      <strong>{totalCustomers.toLocaleString(NUMBER_LOCALE)}</strong>
+                      <span>{isArabic ? "عميل" : "customers"}</span>
+                    </div>
+                  </div>
+
+                  <div className="admin-tag-breakdown">
+                    {type.tags.length ? (
+                      type.tags.map((tag) => {
+                        const percent = totalCustomers
+                          ? Math.round((tag.count / totalCustomers) * 100)
+                          : 0;
+                        return (
+                          <div key={tag.id}>
+                            <i style={{ background: tag.color }} />
+                            <span>{tag.name}</span>
+                            <strong>
+                              {percent.toLocaleString(NUMBER_LOCALE)}%
+                            </strong>
+                            <small>
+                              {tag.count.toLocaleString(NUMBER_LOCALE)}{" "}
+                              {isArabic ? "عميل" : "customers"}
+                            </small>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="admin-empty">
+                        {isArabic
+                          ? "لا توجد وسوم مرتبطة بهذا النوع"
+                          : "No tags linked to this type"}
+                      </p>
+                    )}
+                  </div>
+
                   <button
-                    className="admin-action-btn"
+                    className="admin-action-btn admin-tag-card-edit"
                     onClick={() => {
                       setEditingTypeId(type.id);
                       setMessage("");

@@ -2415,6 +2415,11 @@ html[dir="ltr"] .dashboard-main {
   box-shadow: 0 18px 45px rgba(15, 35, 52, 0.06);
 }
 
+.admin-tag-card-edit {
+  width: 100%;
+  justify-self: stretch;
+}
+
 .admin-tag-type-head {
   display: flex;
   align-items: center;
