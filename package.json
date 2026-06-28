@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "next dev -p 5173",
     "build": "next build",
-    "start": "npx serve@latest out -l 5173",
-    "preview": "npx serve@latest out -l 5173"
+    "start": "next start -p 5173",
+    "preview": "next start -p 5173"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.3",
+    "mysql2": "^3.22.5",
     "next": "latest",
     "next-intl": "latest",
     "react": "latest",
