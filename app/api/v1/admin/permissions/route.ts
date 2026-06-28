@@ -71,8 +71,8 @@ export async function GET() {
   const companyId = await adminCompanyId(Number(session.sub));
   const userWhere =
     companyId === null || companyId === undefined
-      ? "id = ?"
-      : "(CompanyID = ? OR id = ?)";
+      ? "u.id = ?"
+      : "(u.CompanyID = ? OR u.id = ?)";
   const userParams =
     companyId === null || companyId === undefined
       ? [Number(session.sub)]

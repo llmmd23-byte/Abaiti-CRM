@@ -179,8 +179,8 @@ export async function GET() {
   const adminUserId = Number(session.sub);
   const usersWhereClause =
     adminCompanyId !== null && adminCompanyId !== undefined
-      ? "(CompanyID = ? OR CompanyID = ? OR id = ?)"
-      : "id = ?";
+      ? "(u.CompanyID = ? OR u.CompanyID = ? OR u.id = ?)"
+      : "u.id = ?";
   const usersWhereValues =
     adminCompanyId !== null && adminCompanyId !== undefined
       ? [adminCompanyId, adminUserId, adminUserId]
