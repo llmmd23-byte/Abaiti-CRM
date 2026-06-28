@@ -1330,8 +1330,10 @@ function AdminTagsSection({
   const [newTagDrafts, setNewTagDrafts] = useState<
     Record<number, { name: string; color: string }>
   >({});
+  const [editingTypeId, setEditingTypeId] = useState<number | null>(null);
   const [savingKey, setSavingKey] = useState("");
   const [message, setMessage] = useState("");
+  const editingType = groupedTypes.find((type) => type.id === editingTypeId);
 
   useEffect(() => {
     const nextTypes: Record<number, { name: string; color: string }> = {};
@@ -1423,57 +1425,99 @@ function AdminTagsSection({
     }
   }
 
-  function pieBackground(
-    tags: Array<{ color: string; count: number }>,
-    total: number,
-  ) {
-    if (!total) return "conic-gradient(#e2eef6 0 360deg)";
-    let start = 0;
-    const segments = tags
-      .filter((tag) => tag.count > 0)
-      .map((tag) => {
-        const end = start + (tag.count / total) * 360;
-        const segment = `${tag.color} ${start}deg ${end}deg`;
-        start = end;
-        return segment;
-      });
-    return `conic-gradient(${segments.join(", ")})`;
-  }
-
   return (
     <section className="admin-data-card admin-tags-page">
       <div className="admin-data-head">
         <div>
-          <span>{isArabic ? "تحليل الوسوم" : "Tag Analytics"}</span>
+          <span>{isArabic ? "إدارة الوسوم" : "Tag Management"}</span>
           <strong>
-            {groupedTypes.length.toLocaleString(NUMBER_LOCALE)}{" "}
-            {isArabic ? "نوع وسم" : "tag types"}
+            {editingType
+              ? isArabic
+                ? "تعديل نوع الوسم"
+                : "Edit Tag Type"
+              : `${groupedTypes.length.toLocaleString(NUMBER_LOCALE)} ${
+                  isArabic ? "نوع وسم" : "tag types"
+                }`}
           </strong>
         </div>
       </div>
 
+      {!editingType ? (
+        <div className="admin-tag-types-list">
+          {groupedTypes.length ? (
+            groupedTypes.map((type) => {
+              const totalCustomers = type.tags.reduce(
+                (sum, tag) => sum + tag.count,
+                0,
+              );
+              return (
+                <article className="admin-tag-type-list-row" key={type.id}>
+                  <div className="admin-tag-type-list-main">
+                    <span style={{ background: type.color }} />
+                    <div>
+                      <h3>{type.name}</h3>
+                      <p>
+                        {type.tags.length.toLocaleString(NUMBER_LOCALE)}{" "}
+                        {isArabic ? "وسم مرتبط" : "linked tags"} ·{" "}
+                        {totalCustomers.toLocaleString(NUMBER_LOCALE)}{" "}
+                        {isArabic ? "عميل" : "customers"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    className="admin-action-btn"
+                    onClick={() => {
+                      setEditingTypeId(type.id);
+                      setMessage("");
+                    }}
+                    type="button"
+                  >
+                    {isArabic ? "تعديل" : "Edit"}
+                  </button>
+                </article>
+              );
+            })
+          ) : (
+            <p className="admin-empty">
+              {isArabic
+                ? "لا توجد أنواع وسوم حتى الآن"
+                : "No tag types have been created yet"}
+            </p>
+          )}
+        </div>
+      ) : (
       <div className="admin-tag-manager">
         <div className="admin-tag-manager-title">
-          <span>{isArabic ? "إدارة أنواع الوسوم" : "Manage Tag Types"}</span>
+          <button
+            className="admin-permissions-back-btn"
+            onClick={() => {
+              setEditingTypeId(null);
+              setMessage("");
+            }}
+            type="button"
+          >
+            {isArabic ? "رجوع" : "Back"}
+          </button>
+          <span>{editingType.name}</span>
           <p>
             {isArabic
-              ? "عدّل نوع الوسم والوسوم المرتبطة به من نفس القائمة."
-              : "Edit each tag type and its linked tags from one list."}
+              ? "عدّل نوع الوسم والوسوم المرتبطة به في هذه الصفحة."
+              : "Edit this tag type and its linked tags on this page."}
           </p>
         </div>
 
-        {groupedTypes.length ? (
-          groupedTypes.map((type) => {
-            const typeDraft = typeDrafts[type.id] ?? {
-              name: type.name,
-              color: type.color,
-            };
-            const newDraft = newTagDrafts[type.id] ?? {
-              name: "",
-              color: "#00b4d8",
-            };
-            return (
-              <article className="admin-tag-manager-card" key={`manage-${type.id}`}>
+        {(() => {
+          const type = editingType;
+          const typeDraft = typeDrafts[type.id] ?? {
+            name: type.name,
+            color: type.color,
+          };
+          const newDraft = newTagDrafts[type.id] ?? {
+            name: "",
+            color: "#00b4d8",
+          };
+          return (
+            <article className="admin-tag-manager-card" key={`manage-${type.id}`}>
                 <div className="admin-tag-type-editor">
                   <label>
                     <span>{isArabic ? "نوع الوسم" : "Tag type"}</span>
@@ -1596,90 +1640,10 @@ function AdminTagsSection({
                   </button>
                 </div>
               </article>
-            );
-          })
-        ) : (
-          <p className="admin-empty">
-            {isArabic
-              ? "لا توجد أنواع وسوم حتى الآن"
-              : "No tag types have been created yet"}
-          </p>
-        )}
+          );
+        })()}
         {message ? <p className="admin-form-message">{message}</p> : null}
       </div>
-
-      {groupedTypes.length ? (
-        <div className="admin-tag-type-grid">
-          {groupedTypes.map((type) => {
-            const totalCustomers = type.tags.reduce(
-              (sum, tag) => sum + tag.count,
-              0,
-            );
-            const chartTags = type.tags.filter((tag) => tag.count > 0);
-            return (
-              <article className="admin-tag-type-card" key={type.id}>
-                <div className="admin-tag-type-head">
-                  <span style={{ background: type.color }} />
-                  <div>
-                    <h3>{type.name}</h3>
-                    <p>
-                      {totalCustomers.toLocaleString(NUMBER_LOCALE)}{" "}
-                      {isArabic ? "عميل إجمالي" : "total customers"}
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  aria-label={type.name}
-                  className="admin-tag-pie"
-                  style={{
-                    background: pieBackground(chartTags, totalCustomers),
-                  }}
-                >
-                  <div>
-                    <strong>{totalCustomers.toLocaleString(NUMBER_LOCALE)}</strong>
-                    <span>{isArabic ? "عميل" : "customers"}</span>
-                  </div>
-                </div>
-
-                <div className="admin-tag-breakdown">
-                  {type.tags.length ? (
-                    type.tags.map((tag) => {
-                      const percent = totalCustomers
-                        ? Math.round((tag.count / totalCustomers) * 100)
-                        : 0;
-                      return (
-                        <div key={tag.id}>
-                          <i style={{ background: tag.color }} />
-                          <span>{tag.name}</span>
-                          <strong>
-                            {percent.toLocaleString(NUMBER_LOCALE)}%
-                          </strong>
-                          <small>
-                            {tag.count.toLocaleString(NUMBER_LOCALE)}{" "}
-                            {isArabic ? "عميل" : "customers"}
-                          </small>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <p className="admin-empty">
-                      {isArabic
-                        ? "لا توجد وسوم مرتبطة بهذا النوع"
-                        : "No tags linked to this type"}
-                    </p>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="admin-empty">
-          {isArabic
-            ? "لا توجد أنواع وسوم حتى الآن"
-            : "No tag types have been created yet"}
-        </p>
       )}
     </section>
   );

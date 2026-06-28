@@ -2193,18 +2193,81 @@ html[dir="ltr"] .dashboard-main {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
-.admin-tag-manager-title {
+.admin-tag-types-list {
   display: grid;
+  gap: 12px;
+}
+
+.admin-tag-type-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid #e5edf3;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 14px 35px rgba(15, 41, 61, 0.05);
+}
+
+.admin-tag-type-list-main {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-shell[dir="rtl"] .admin-tag-type-list-main {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.admin-tag-type-list-main > span {
+  width: 12px;
+  height: 42px;
+  flex: 0 0 12px;
+  border-radius: 999px;
+  box-shadow: 0 10px 22px rgba(0, 180, 216, 0.18);
+}
+
+.admin-tag-type-list-main h3 {
+  margin: 0;
+  overflow: hidden;
+  color: #11293d;
+  font-size: 17px;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-tag-type-list-main p {
+  margin: 4px 0 0;
+  color: #8aa0b4;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.admin-tag-manager-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 5px;
   color: #11293d;
 }
 
+.admin-shell[dir="rtl"] .admin-tag-manager-title {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
 .admin-tag-manager-title span {
+  flex: 1 1 240px;
   font-size: 18px;
   font-weight: 950;
 }
 
 .admin-tag-manager-title p {
+  flex: 1 1 100%;
   margin: 0;
   color: #8aa0b4;
   font-size: 13px;
