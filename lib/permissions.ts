@@ -209,17 +209,7 @@ const roleSeeds: Record<string, PermissionSeed[]> = {
   })),
   affiliate: affiliatePermissionSeeds,
   Leader: affiliatePermissionSeeds,
-  sales: allPermissionKeys.map((key) => ({
-    key,
-    view: true,
-    create: key.startsWith("table.") && !key.includes("commissions"),
-    edit: key.startsWith("table.") && !key.includes("commissions"),
-    delete: false,
-    approve: false,
-    reports: true,
-    dashboard: true,
-    scope: "company",
-  })),
+  sales: affiliatePermissionSeeds,
   support: [
     { key: "page.admin.tickets", view: true, dashboard: true, scope: "company" },
     { key: "page.user.support", view: true, dashboard: true, scope: "own" },
