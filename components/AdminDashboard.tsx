@@ -1600,7 +1600,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           ]}
           value={roleDraft.role_type}
         />
-        <button className="admin-action-btn" onClick={createRole} type="button">
+        <button className="admin-create-role-btn" onClick={createRole} type="button">
           {isArabic ? "إنشاء الدور" : "Create Role"}
         </button>
       </div>

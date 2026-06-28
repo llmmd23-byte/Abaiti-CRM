@@ -11796,6 +11796,42 @@ html[dir="rtl"]
   box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
 }
 
+.admin-create-role-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 132px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid #11293d;
+  border-radius: 14px;
+  background: #11293d;
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(17, 41, 61, 0.16);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.admin-create-role-btn:hover {
+  border-color: #00a6bf;
+  background: #0f3148;
+  box-shadow: 0 16px 34px rgba(0, 180, 216, 0.18);
+  transform: translateY(-1px);
+}
+
+.admin-create-role-btn:active {
+  transform: translateY(0);
+}
+
 .admin-roles-list-card {
   display: grid;
   gap: 12px;
