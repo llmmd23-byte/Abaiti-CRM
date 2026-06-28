@@ -1348,78 +1348,71 @@ function AdminTagsSection({
     setTagDrafts(nextTags);
   }, [data.tagStats]);
 
-  async function saveType(typeId: number) {
-    const draft = typeDrafts[typeId];
-    if (!draft?.name.trim()) return;
-    setSavingKey(`type-${typeId}`);
-    setMessage(isArabic ? "جاري حفظ نوع الوسم..." : "Saving tag type...");
+  async function saveTagSettings(type: {
+    id: number;
+    name: string;
+    color: string;
+    tags: Array<{ id: number; name: string; color: string; count: number }>;
+  }) {
+    const typeDraft = typeDrafts[type.id] ?? {
+      name: type.name,
+      color: type.color,
+    };
+    if (!typeDraft.name.trim()) return;
+    setSavingKey(`tags-${type.id}`);
+    setMessage(isArabic ? "جاري حفظ التعديلات..." : "Saving changes...");
     try {
-      const response = await fetch(`/api/v1/data/lead-tag-types/${typeId}`, {
+      const typeResponse = await fetch(`/api/v1/data/lead-tag-types/${type.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json; charset=utf-8" },
         body: JSON.stringify({
-          type_name: draft.name.trim(),
-          type_color: draft.color,
+          type_name: typeDraft.name.trim(),
+          type_color: typeDraft.color,
         }),
       });
-      if (!response.ok) throw new Error("SAVE_TYPE_FAILED");
-      setMessage(isArabic ? "تم حفظ نوع الوسم" : "Tag type saved");
-      onReload();
-    } catch {
-      setMessage(isArabic ? "تعذر حفظ نوع الوسم" : "Could not save tag type");
-    } finally {
-      setSavingKey("");
-    }
-  }
+      if (!typeResponse.ok) throw new Error("SAVE_TYPE_FAILED");
 
-  async function saveTag(tagId: number) {
-    const draft = tagDrafts[tagId];
-    if (!draft?.name.trim()) return;
-    setSavingKey(`tag-${tagId}`);
-    setMessage(isArabic ? "جاري حفظ الوسم..." : "Saving tag...");
-    try {
-      const response = await fetch(`/api/v1/data/lead-tags/${tagId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json; charset=utf-8" },
-        body: JSON.stringify({
-          tag_name: draft.name.trim(),
-          tag_color: draft.color,
+      await Promise.all(
+        type.tags.map(async (tag) => {
+          const tagDraft = tagDrafts[tag.id] ?? {
+            name: tag.name,
+            color: tag.color,
+          };
+          if (!tagDraft.name.trim()) return;
+          const response = await fetch(`/api/v1/data/lead-tags/${tag.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify({
+              tag_name: tagDraft.name.trim(),
+              tag_color: tagDraft.color,
+            }),
+          });
+          if (!response.ok) throw new Error("SAVE_TAG_FAILED");
         }),
-      });
-      if (!response.ok) throw new Error("SAVE_TAG_FAILED");
-      setMessage(isArabic ? "تم حفظ الوسم" : "Tag saved");
-      onReload();
-    } catch {
-      setMessage(isArabic ? "تعذر حفظ الوسم" : "Could not save tag");
-    } finally {
-      setSavingKey("");
-    }
-  }
+      );
 
-  async function addTag(typeId: number) {
-    const draft = newTagDrafts[typeId] ?? { name: "", color: "#00b4d8" };
-    if (!draft.name.trim()) return;
-    setSavingKey(`new-tag-${typeId}`);
-    setMessage(isArabic ? "جاري إضافة الوسم..." : "Adding tag...");
-    try {
-      const response = await fetch("/api/v1/data/lead-tags", {
-        method: "POST",
-        headers: { "Content-Type": "application/json; charset=utf-8" },
-        body: JSON.stringify({
-          tag_type_id: typeId,
-          tag_name: draft.name.trim(),
-          tag_color: draft.color,
-        }),
-      });
-      if (!response.ok) throw new Error("ADD_TAG_FAILED");
-      setNewTagDrafts((current) => ({
-        ...current,
-        [typeId]: { name: "", color: "#00b4d8" },
-      }));
-      setMessage(isArabic ? "تمت إضافة الوسم" : "Tag added");
+      const newDraft = newTagDrafts[type.id] ?? { name: "", color: "#00b4d8" };
+      if (newDraft.name.trim()) {
+        const response = await fetch("/api/v1/data/lead-tags", {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({
+            tag_type_id: type.id,
+            tag_name: newDraft.name.trim(),
+            tag_color: newDraft.color,
+          }),
+        });
+        if (!response.ok) throw new Error("ADD_TAG_FAILED");
+        setNewTagDrafts((current) => ({
+          ...current,
+          [type.id]: { name: "", color: "#00b4d8" },
+        }));
+      }
+
+      setMessage(isArabic ? "تم حفظ التعديلات" : "Changes saved");
       onReload();
     } catch {
-      setMessage(isArabic ? "تعذر إضافة الوسم" : "Could not add tag");
+      setMessage(isArabic ? "تعذر حفظ التعديلات" : "Could not save changes");
     } finally {
       setSavingKey("");
     }
@@ -1482,8 +1475,8 @@ function AdminTagsSection({
     });
     setMessage(
       isArabic
-        ? "تم إنشاء التدرج اللوني. احفظ الوسوم لتثبيت التغييرات."
-        : "Gradient created. Save the tags to apply changes.",
+        ? "تم إنشاء التدرج اللوني. اضغط حفظ التعديلات لتثبيت التغييرات."
+        : "Gradient created. Save changes to apply it.",
     );
   }
 
@@ -1665,14 +1658,6 @@ function AdminTagsSection({
                       value={typeDraft.color}
                     />
                   </label>
-                  <button
-                    className="admin-action-btn"
-                    disabled={savingKey === `type-${type.id}`}
-                    onClick={() => void saveType(type.id)}
-                    type="button"
-                  >
-                    {isArabic ? "حفظ النوع" : "Save Type"}
-                  </button>
                 </div>
 
                 <div className="admin-linked-tags-editor">
@@ -1720,14 +1705,6 @@ function AdminTagsSection({
                             type="color"
                             value={tagDraft.color}
                           />
-                          <button
-                            className="admin-action-btn"
-                            disabled={savingKey === `tag-${tag.id}`}
-                            onClick={() => void saveTag(tag.id)}
-                            type="button"
-                          >
-                            {isArabic ? "حفظ الوسم" : "Save Tag"}
-                          </button>
                         </div>
                       );
                     })
@@ -1760,13 +1737,21 @@ function AdminTagsSection({
                     type="color"
                     value={newDraft.color}
                   />
+                </div>
+                <div className="admin-tag-save-footer">
                   <button
                     className="admin-action-btn primary"
-                    disabled={savingKey === `new-tag-${type.id}`}
-                    onClick={() => void addTag(type.id)}
+                    disabled={savingKey === `tags-${type.id}`}
+                    onClick={() => void saveTagSettings(type)}
                     type="button"
                   >
-                    {isArabic ? "إضافة وسم" : "Add Tag"}
+                    {savingKey === `tags-${type.id}`
+                      ? isArabic
+                        ? "جاري الحفظ..."
+                        : "Saving..."
+                      : isArabic
+                        ? "حفظ التعديلات"
+                        : "Save Changes"}
                   </button>
                 </div>
               </article>

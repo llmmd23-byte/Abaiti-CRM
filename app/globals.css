@@ -2288,7 +2288,7 @@ html[dir="ltr"] .dashboard-main {
 .admin-linked-tag-row,
 .admin-add-linked-tag {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) 90px auto;
+  grid-template-columns: minmax(220px, 1fr) 90px;
   align-items: end;
   gap: 12px;
 }
@@ -2363,6 +2363,16 @@ html[dir="ltr"] .dashboard-main {
 
 .admin-gradient-btn {
   background: linear-gradient(135deg, #ffffff, #effcfd);
+}
+
+.admin-tag-save-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.admin-shell[dir="rtl"] .admin-tag-save-footer {
+  justify-content: flex-start;
 }
 
 .admin-action-btn {
