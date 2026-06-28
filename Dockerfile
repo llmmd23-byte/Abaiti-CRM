@@ -15,7 +15,7 @@ ENV DB_USER=build_placeholder
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN DB_PASSWORD=build_placeholder AUTH_SECRET=build-placeholder-secret-32-characters-minimum npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
