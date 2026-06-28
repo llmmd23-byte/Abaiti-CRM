@@ -39,6 +39,9 @@ export function CustomersView() {
   const contacts = useBackend<BackendRow[]>("/api/v1/data/lead-contacts");
   const leadNotes = useBackend<BackendRow[]>("/api/v1/data/lead-notes");
   const leadTags = useBackend<BackendRow[]>("/api/v1/data/lead-tags");
+  const leadTagAssignments = useBackend<BackendRow[]>(
+    "/api/v1/data/lead-tag-assignments",
+  );
   const data = leads.data;
   const { data: industries } = useBackend<BackendRow[]>(
     "/api/v1/data/industries",
@@ -247,37 +250,49 @@ export function CustomersView() {
     }
     setTagStatus(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
-      await createBackend("lead-tags", {
+      const normalizedTagName = tagDraft.tag_name.trim();
+      const existingTag = (leadTags.data ?? []).find(
+        (tag) =>
+          String(tag.tag_name ?? "").trim().toLocaleLowerCase() ===
+          normalizedTagName.toLocaleLowerCase(),
+      );
+      const tag =
+        existingTag ??
+        (await createBackend<BackendRow>("lead-tags", {
+          tag_name: normalizedTagName,
+          tag_color: tagDraft.tag_color,
+        }));
+      await createBackend("lead-tag-assignments", {
         lead_id: tagsLead.id,
-        tag_name: tagDraft.tag_name.trim(),
-        tag_color: tagDraft.tag_color,
+        tag_id: tag.id,
       });
       setTagDraft({ tag_name: "", tag_color: "#00b4d8" });
       await leadTags.reload();
-      setTagStatus(isArabic ? "تمت إضافة الوسم" : "Tag has been added");
+      await leadTagAssignments.reload();
+      setTagStatus(isArabic ? "تم ربط الوسم بالعميل" : "Tag linked to customer");
     } catch {
-      setTagStatus(isArabic ? "تعذر حفظ الوسم" : "Unable to save tag");
+      setTagStatus(isArabic ? "تعذر ربط الوسم" : "Unable to link tag");
     }
   }
 
-  async function deleteLeadTag(tagId: number) {
+  async function deleteLeadTagAssignment(assignmentId: number) {
     if (!tagsLead) return;
-    setTagStatus(isArabic ? "جاري الحذف..." : "Deleting...");
+    setTagStatus(isArabic ? "جاري فك الربط..." : "Unlinking...");
     try {
-      const response = await fetch(`/api/v1/data/lead-tags/${tagId}`, {
+      const response = await fetch(`/api/v1/data/lead-tag-assignments/${assignmentId}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("DELETE_FAILED");
-      await leadTags.reload();
-      setTagStatus(isArabic ? "تم حذف الوسم" : "Tag has been deleted");
+      await leadTagAssignments.reload();
+      setTagStatus(isArabic ? "تم فك ربط الوسم" : "Tag has been unlinked");
     } catch {
-      setTagStatus(isArabic ? "تعذر حذف الوسم" : "Unable to delete tag");
+      setTagStatus(isArabic ? "تعذر فك ربط الوسم" : "Unable to unlink tag");
     }
   }
 
   if (tagsLead) {
-    const customerTags = (leadTags.data ?? []).filter(
-      (tag) => Number(tag.lead_id) === Number(tagsLead.id),
+    const customerAssignments = (leadTagAssignments.data ?? []).filter(
+      (assignment) => Number(assignment.lead_id) === Number(tagsLead.id),
     );
 
     return (
@@ -344,33 +359,38 @@ export function CustomersView() {
               </tr>
             </thead>
             <tbody>
-              {customerTags.map((tag) => {
-                const tagColor = String(tag.tag_color ?? "#00b4d8");
+              {customerAssignments.map((assignment) => {
+                const tag = (leadTags.data ?? []).find(
+                  (item) => Number(item.id) === Number(assignment.tag_id),
+                );
+                const tagColor = String(tag?.tag_color ?? "#00b4d8");
                 return (
-                  <tr key={tag.id}>
+                  <tr key={assignment.id}>
                     <td>
                       <span
                         className="lead-tag-pill"
                         style={{ borderColor: tagColor, color: tagColor }}
                       >
-                        {String(tag.tag_name ?? "?")}
+                        {String(tag?.tag_name ?? "?")}
                       </span>
                     </td>
                     <td dir="ltr">{tagColor}</td>
-                    <td>{formatUserDateTime(tag.created_at, isArabic)}</td>
+                    <td>{formatUserDateTime(assignment.created_at, isArabic)}</td>
                     <td>
                       <button
                         className="customer-row-edit-button customer-row-delete-button"
-                        onClick={() => void deleteLeadTag(Number(tag.id))}
+                        onClick={() =>
+                          void deleteLeadTagAssignment(Number(assignment.id))
+                        }
                         type="button"
                       >
-                        {isArabic ? "حذف" : "Delete"}
+                        {isArabic ? "فك الربط" : "Unlink"}
                       </button>
                     </td>
                   </tr>
                 );
               })}
-              {customerTags.length === 0 ? (
+              {customerAssignments.length === 0 ? (
                 <tr>
                   <td colSpan={4}>
                     {isArabic

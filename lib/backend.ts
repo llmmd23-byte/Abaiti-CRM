@@ -17,6 +17,7 @@ export type BackendResource =
   | "lead-contacts"
   | "lead-notes"
   | "lead-tags"
+  | "lead-tag-assignments"
   | "demo-requests"
   | "quotes"
   | "sales"
@@ -89,10 +90,16 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     writable: ["lead_id", "note"],
   },
   "lead-tags": {
-    table: "lead_tags",
+    table: "tags",
     ownerField: "affiliate_user_id",
     permissionKey: "table.leads",
-    writable: ["lead_id", "tag_name", "tag_color"],
+    writable: ["tag_name", "tag_color"],
+  },
+  "lead-tag-assignments": {
+    table: "lead_tag_assignments",
+    ownerField: "affiliate_user_id",
+    permissionKey: "table.leads",
+    writable: ["lead_id", "tag_id"],
   },
   "demo-requests": {
     table: "demo_requests",
@@ -322,18 +329,34 @@ async function ensureLeadNotesTable() {
 
 async function ensureLeadTagsTable() {
   await db.execute(
-    `CREATE TABLE IF NOT EXISTS lead_tags (
+    `CREATE TABLE IF NOT EXISTS tags (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      lead_id BIGINT UNSIGNED NOT NULL,
       affiliate_user_id BIGINT UNSIGNED NOT NULL,
       tag_name VARCHAR(120) NOT NULL,
       tag_color VARCHAR(24) NOT NULL DEFAULT '#00b4d8',
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
-      INDEX idx_lead_tags_lead_id (lead_id),
-      INDEX idx_lead_tags_affiliate_user_id (affiliate_user_id),
-      UNIQUE KEY uq_lead_tags_name (lead_id, affiliate_user_id, tag_name)
+      INDEX idx_tags_affiliate_user_id (affiliate_user_id),
+      UNIQUE KEY uq_tags_name (affiliate_user_id, tag_name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
+async function ensureLeadTagAssignmentsTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS lead_tag_assignments (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      lead_id BIGINT UNSIGNED NOT NULL,
+      tag_id BIGINT UNSIGNED NOT NULL,
+      affiliate_user_id BIGINT UNSIGNED NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      INDEX idx_lead_tag_assignments_lead_id (lead_id),
+      INDEX idx_lead_tag_assignments_tag_id (tag_id),
+      INDEX idx_lead_tag_assignments_affiliate_user_id (affiliate_user_id),
+      UNIQUE KEY uq_lead_tag_assignments (lead_id, tag_id, affiliate_user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
 }
@@ -396,6 +419,9 @@ export async function listResource(resource: string, session: MiddarSession) {
   }
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();
+  }
+  if (resource === "lead-tag-assignments") {
+    await ensureLeadTagAssignmentsTable();
   }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
@@ -492,7 +518,8 @@ const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   leads: ["name"],
   "lead-contacts": ["lead_id", "name"],
   "lead-notes": ["lead_id", "note"],
-  "lead-tags": ["lead_id", "tag_name"],
+  "lead-tags": ["tag_name"],
+  "lead-tag-assignments": ["lead_id", "tag_id"],
   "demo-requests": ["company_name", "contact_name"],
   quotes: ["lead_id", "product_id", "amount", "valid_until"],
   "support-tickets": ["category", "subject", "details"],
@@ -518,6 +545,9 @@ export async function createResource(
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();
   }
+  if (resource === "lead-tag-assignments") {
+    await ensureLeadTagAssignmentsTable();
+  }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
   }
@@ -533,6 +563,10 @@ export async function createResource(
     data.tag_name = String(data.tag_name ?? "").trim().slice(0, 120);
     const color = String(data.tag_color ?? "#00b4d8").trim();
     data.tag_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
+  }
+  if (resource === "lead-tag-assignments") {
+    data.lead_id = Number(data.lead_id);
+    data.tag_id = Number(data.tag_id);
   }
   if (resource === "team-members" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
@@ -600,6 +634,28 @@ export async function createResource(
       (error as { code?: string }).code === "ER_DUP_ENTRY"
     )
       throw new Error("DUPLICATE_CUSTOMER_QUOTE");
+    if (
+      resource === "lead-tags" &&
+      (error as { code?: string }).code === "ER_DUP_ENTRY"
+    ) {
+      const [existingTags] = await db.execute<RowDataPacket[]>(
+        `SELECT * FROM tags WHERE affiliate_user_id = ? AND tag_name = ? LIMIT 1`,
+        [Number(session.sub), String(data.tag_name ?? "")],
+      );
+      return existingTags[0] ?? null;
+    }
+    if (
+      resource === "lead-tag-assignments" &&
+      (error as { code?: string }).code === "ER_DUP_ENTRY"
+    ) {
+      const [existingAssignments] = await db.execute<RowDataPacket[]>(
+        `SELECT * FROM lead_tag_assignments
+          WHERE affiliate_user_id = ? AND lead_id = ? AND tag_id = ?
+          LIMIT 1`,
+        [Number(session.sub), Number(data.lead_id), Number(data.tag_id)],
+      );
+      return existingAssignments[0] ?? null;
+    }
     throw error;
   }
   if (resource === "support-tickets") {
@@ -633,6 +689,9 @@ export async function getResource(
   }
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();
+  }
+  if (resource === "lead-tag-assignments") {
+    await ensureLeadTagAssignmentsTable();
   }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
@@ -669,6 +728,9 @@ export async function updateResource(
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();
   }
+  if (resource === "lead-tag-assignments") {
+    await ensureLeadTagAssignmentsTable();
+  }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
   }
@@ -700,6 +762,10 @@ export async function updateResource(
       const color = String(data.tag_color).trim();
       data.tag_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
     }
+  }
+  if (resource === "lead-tag-assignments") {
+    if (data.lead_id) data.lead_id = Number(data.lead_id);
+    if (data.tag_id) data.tag_id = Number(data.tag_id);
   }
   if (resource === "team-members" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
@@ -759,6 +825,9 @@ export async function deleteResource(
   }
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();
+  }
+  if (resource === "lead-tag-assignments") {
+    await ensureLeadTagAssignmentsTable();
   }
   const existing = await getResource(resource, id, session);
   if (!existing) throw new Error("NOT_FOUND");
