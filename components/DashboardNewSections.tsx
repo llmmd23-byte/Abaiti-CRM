@@ -340,10 +340,13 @@ export function CustomersView() {
     const assignedTagIds = new Set(
       customerAssignments.map((assignment) => Number(assignment.tag_id)),
     );
-    const availableTags = (leadTags.data ?? []).filter(
-      (tag) => !assignedTagIds.has(Number(tag.id)),
-    );
     const availableTagTypes = leadTagTypes.data ?? [];
+    const selectedTagTypeId = tagDraft.tag_type_id ? Number(tagDraft.tag_type_id) : null;
+    const availableTags = (leadTags.data ?? []).filter((tag) => {
+      if (assignedTagIds.has(Number(tag.id))) return false;
+      if (!selectedTagTypeId) return true;
+      return Number(tag.tag_type_id) === selectedTagTypeId;
+    });
 
     return (
       <article className="table-card expanded-table-card lead-tags-screen">
@@ -371,6 +374,7 @@ export function CustomersView() {
                   ...current,
                   tag_type_id: value,
                   type_name: "",
+                  tag_id: "",
                 }))
               }
               options={availableTagTypes.map((type) => ({
@@ -401,6 +405,7 @@ export function CustomersView() {
                   ...current,
                   tag_type_id: "",
                   type_name: event.target.value,
+                  tag_id: "",
                 }))
               }
               placeholder={isArabic ? "مثال: مرحلة العميل" : "Example: Customer stage"}
