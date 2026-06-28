@@ -16,6 +16,7 @@ export type BackendResource =
   | "leads"
   | "lead-contacts"
   | "lead-notes"
+  | "lead-tags"
   | "demo-requests"
   | "quotes"
   | "sales"
@@ -86,6 +87,12 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     ownerField: "affiliate_user_id",
     permissionKey: "table.lead_notes",
     writable: ["lead_id", "note"],
+  },
+  "lead-tags": {
+    table: "lead_tags",
+    ownerField: "affiliate_user_id",
+    permissionKey: "table.leads",
+    writable: ["lead_id", "tag_name", "tag_color"],
   },
   "demo-requests": {
     table: "demo_requests",
@@ -313,6 +320,24 @@ async function ensureLeadNotesTable() {
   );
 }
 
+async function ensureLeadTagsTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS lead_tags (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      lead_id BIGINT UNSIGNED NOT NULL,
+      affiliate_user_id BIGINT UNSIGNED NOT NULL,
+      tag_name VARCHAR(120) NOT NULL,
+      tag_color VARCHAR(24) NOT NULL DEFAULT '#00b4d8',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      INDEX idx_lead_tags_lead_id (lead_id),
+      INDEX idx_lead_tags_affiliate_user_id (affiliate_user_id),
+      UNIQUE KEY uq_lead_tags_name (lead_id, affiliate_user_id, tag_name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
 async function ensureSupportTicketEventsTable() {
   await db.execute(
     `CREATE TABLE IF NOT EXISTS support_ticket_events (
@@ -368,6 +393,9 @@ export async function listResource(resource: string, session: MiddarSession) {
   }
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
+  }
+  if (resource === "lead-tags") {
+    await ensureLeadTagsTable();
   }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
@@ -464,6 +492,7 @@ const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   leads: ["name"],
   "lead-contacts": ["lead_id", "name"],
   "lead-notes": ["lead_id", "note"],
+  "lead-tags": ["lead_id", "tag_name"],
   "demo-requests": ["company_name", "contact_name"],
   quotes: ["lead_id", "product_id", "amount", "valid_until"],
   "support-tickets": ["category", "subject", "details"],
@@ -486,6 +515,9 @@ export async function createResource(
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
   }
+  if (resource === "lead-tags") {
+    await ensureLeadTagsTable();
+  }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
   }
@@ -497,6 +529,11 @@ export async function createResource(
   const data = cleanPayload(definition, payload);
   if (resource === "lead-contacts" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
+  if (resource === "lead-tags") {
+    data.tag_name = String(data.tag_name ?? "").trim().slice(0, 120);
+    const color = String(data.tag_color ?? "#00b4d8").trim();
+    data.tag_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
+  }
   if (resource === "team-members" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
   if (resource === "demo-requests" && !data.company_name && data.contact_name)
@@ -594,6 +631,9 @@ export async function getResource(
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
   }
+  if (resource === "lead-tags") {
+    await ensureLeadTagsTable();
+  }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
   }
@@ -626,6 +666,9 @@ export async function updateResource(
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
   }
+  if (resource === "lead-tags") {
+    await ensureLeadTagsTable();
+  }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
   }
@@ -651,6 +694,13 @@ export async function updateResource(
   const data = cleanPayload(definition, payload);
   if (resource === "lead-contacts" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
+  if (resource === "lead-tags") {
+    if (data.tag_name) data.tag_name = String(data.tag_name).trim().slice(0, 120);
+    if (data.tag_color) {
+      const color = String(data.tag_color).trim();
+      data.tag_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
+    }
+  }
   if (resource === "team-members" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
   const columns = Object.keys(data);
@@ -706,6 +756,9 @@ export async function deleteResource(
   }
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
+  }
+  if (resource === "lead-tags") {
+    await ensureLeadTagsTable();
   }
   const existing = await getResource(resource, id, session);
   if (!existing) throw new Error("NOT_FOUND");

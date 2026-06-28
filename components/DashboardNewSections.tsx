@@ -38,6 +38,7 @@ export function CustomersView() {
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
   const contacts = useBackend<BackendRow[]>("/api/v1/data/lead-contacts");
   const leadNotes = useBackend<BackendRow[]>("/api/v1/data/lead-notes");
+  const leadTags = useBackend<BackendRow[]>("/api/v1/data/lead-tags");
   const data = leads.data;
   const { data: industries } = useBackend<BackendRow[]>(
     "/api/v1/data/industries",
@@ -69,6 +70,12 @@ export function CustomersView() {
   const [notesLead, setNotesLead] = useState<BackendRow | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [noteStatus, setNoteStatus] = useState("");
+  const [tagsLead, setTagsLead] = useState<BackendRow | null>(null);
+  const [tagDraft, setTagDraft] = useState({
+    tag_name: "",
+    tag_color: "#00b4d8",
+  });
+  const [tagStatus, setTagStatus] = useState("");
   const stageLabels: Record<string, { ar: string; en: string }> = {
     new: { ar: "\u062c\u062f\u064a\u062f", en: "New" },
     interested: { ar: "\u0645\u0647\u062a\u0645", en: "Interested" },
@@ -224,6 +231,159 @@ export function CustomersView() {
     } catch {
       setNoteStatus(isArabic ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u0627\u0644\u0645\u0644\u0627\u062d\u0638\u0629" : "Unable to save note");
     }
+  }
+
+  function openLeadTags(row: BackendRow) {
+    setTagsLead(row);
+    setTagDraft({ tag_name: "", tag_color: "#00b4d8" });
+    setTagStatus("");
+  }
+
+  async function saveLeadTag() {
+    if (!tagsLead) return;
+    if (!tagDraft.tag_name.trim()) {
+      setTagStatus(isArabic ? "اسم الوسم مطلوب" : "Tag name is required");
+      return;
+    }
+    setTagStatus(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      await createBackend("lead-tags", {
+        lead_id: tagsLead.id,
+        tag_name: tagDraft.tag_name.trim(),
+        tag_color: tagDraft.tag_color,
+      });
+      setTagDraft({ tag_name: "", tag_color: "#00b4d8" });
+      await leadTags.reload();
+      setTagStatus(isArabic ? "تمت إضافة الوسم" : "Tag has been added");
+    } catch {
+      setTagStatus(isArabic ? "تعذر حفظ الوسم" : "Unable to save tag");
+    }
+  }
+
+  async function deleteLeadTag(tagId: number) {
+    if (!tagsLead) return;
+    setTagStatus(isArabic ? "جاري الحذف..." : "Deleting...");
+    try {
+      const response = await fetch(`/api/v1/data/lead-tags/${tagId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("DELETE_FAILED");
+      await leadTags.reload();
+      setTagStatus(isArabic ? "تم حذف الوسم" : "Tag has been deleted");
+    } catch {
+      setTagStatus(isArabic ? "تعذر حذف الوسم" : "Unable to delete tag");
+    }
+  }
+
+  if (tagsLead) {
+    const customerTags = (leadTags.data ?? []).filter(
+      (tag) => Number(tag.lead_id) === Number(tagsLead.id),
+    );
+
+    return (
+      <article className="table-card expanded-table-card lead-tags-screen">
+        <div className="customer-edit-modal-head">
+          <div>
+            <span>{isArabic ? "وسوم العميل" : "Customer Tags"}</span>
+            <h3>{String(tagsLead.name ?? tagsLead.company_name ?? "?")}</h3>
+          </div>
+          <button
+            aria-label={isArabic ? "الرجوع" : "Back"}
+            onClick={() => setTagsLead(null)}
+            type="button"
+          >
+            {isArabic ? "رجوع" : "Back"}
+          </button>
+        </div>
+
+        <div className="lead-contacts-form lead-tags-form">
+          <label>
+            <span>{isArabic ? "اسم الوسم" : "Tag Name"}</span>
+            <input
+              onChange={(event) =>
+                setTagDraft((current) => ({
+                  ...current,
+                  tag_name: event.target.value,
+                }))
+              }
+              placeholder={isArabic ? "مثال: عميل مهم" : "Example: Important customer"}
+              type="text"
+              value={tagDraft.tag_name}
+            />
+          </label>
+          <label>
+            <span>{isArabic ? "لون الوسم" : "Tag Color"}</span>
+            <input
+              onChange={(event) =>
+                setTagDraft((current) => ({
+                  ...current,
+                  tag_color: event.target.value,
+                }))
+              }
+              type="color"
+              value={tagDraft.tag_color}
+            />
+          </label>
+        </div>
+
+        <div className="lead-contacts-actions">
+          <button className="primary" onClick={() => void saveLeadTag()} type="button">
+            {isArabic ? "إضافة وسم" : "Add Tag"}
+          </button>
+          {tagStatus ? <p role="status">{tagStatus}</p> : null}
+        </div>
+
+        <div className="responsive-table lead-contacts-table lead-tags-table">
+          <table>
+            <thead>
+              <tr>
+                <th>{isArabic ? "الوسم" : "Tag"}</th>
+                <th>{isArabic ? "اللون" : "Color"}</th>
+                <th>{isArabic ? "تاريخ الإنشاء" : "Created At"}</th>
+                <th>{isArabic ? "إجراء" : "Action"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {customerTags.map((tag) => {
+                const tagColor = String(tag.tag_color ?? "#00b4d8");
+                return (
+                  <tr key={tag.id}>
+                    <td>
+                      <span
+                        className="lead-tag-pill"
+                        style={{ borderColor: tagColor, color: tagColor }}
+                      >
+                        {String(tag.tag_name ?? "?")}
+                      </span>
+                    </td>
+                    <td dir="ltr">{tagColor}</td>
+                    <td>{formatUserDateTime(tag.created_at, isArabic)}</td>
+                    <td>
+                      <button
+                        className="customer-row-edit-button customer-row-delete-button"
+                        onClick={() => void deleteLeadTag(Number(tag.id))}
+                        type="button"
+                      >
+                        {isArabic ? "حذف" : "Delete"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {customerTags.length === 0 ? (
+                <tr>
+                  <td colSpan={4}>
+                    {isArabic
+                      ? "لا توجد وسوم مرتبطة بهذا العميل"
+                      : "No tags linked to this customer"}
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    );
   }
 
   if (notesLead) {
@@ -712,6 +872,13 @@ export function CustomersView() {
                         >
                           {isArabic ? "ملاحظات" : "Notes"}
                         </button>
+                        <button
+                          className="customer-row-edit-button customer-row-tags-button"
+                          onClick={() => openLeadTags(row)}
+                          type="button"
+                        >
+                          {isArabic ? "وسوم" : "Tags"}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -813,6 +980,12 @@ export function CustomersView() {
                             type="button"
                           >
                             {isArabic ? "\u0645\u0644\u0627\u062d\u0638\u0627\u062a" : "Notes"}
+                          </button>
+                          <button
+                            onClick={() => openLeadTags(row)}
+                            type="button"
+                          >
+                            {isArabic ? "وسوم" : "Tags"}
                           </button>
                         </div>
                         <dl>

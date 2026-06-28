@@ -11475,7 +11475,8 @@ html[dir="rtl"]
   color: #0369a1;
 }
 
-.lead-contacts-screen {
+.lead-contacts-screen,
+.lead-tags-screen {
   display: grid;
   gap: 22px;
   width: 100%;
@@ -11647,6 +11648,43 @@ html[dir="rtl"]
   vertical-align: middle;
 }
 
+.lead-tags-form {
+  grid-template-columns: minmax(0, 1fr) 160px;
+}
+
+.lead-tags-form input[type="color"] {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.lead-tag-pill {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: rgba(0, 180, 216, 0.08);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.customer-row-tags-button {
+  border-color: #99f6e4;
+  color: #0f766e;
+}
+
+.customer-row-delete-button {
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.customer-row-delete-button:hover {
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
 @media (max-width: 760px) {
   .lead-contacts-form {
     grid-template-columns: 1fr;
@@ -11655,6 +11693,7 @@ html[dir="rtl"]
 
 .customer-edit-fullscreen .customer-edit-modal-head > button,
 .lead-contacts-screen .customer-edit-modal-head > button,
+.lead-tags-screen .customer-edit-modal-head > button,
 .lead-notes-screen .customer-edit-modal-head > button {
   display: inline-flex;
   width: auto;
@@ -11677,6 +11716,7 @@ html[dir="rtl"]
 
 .customer-edit-fullscreen .customer-edit-modal-head > button:hover,
 .lead-contacts-screen .customer-edit-modal-head > button:hover,
+.lead-tags-screen .customer-edit-modal-head > button:hover,
 .lead-notes-screen .customer-edit-modal-head > button:hover {
   background: #effcfd;
   color: #006f78;
