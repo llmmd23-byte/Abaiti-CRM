@@ -2432,9 +2432,10 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-tag-type-card {
+  position: relative;
   display: grid;
   gap: 20px;
-  padding: 22px;
+  padding: 62px 22px 22px;
   border: 1px solid #e5edf3;
   border-radius: 24px;
   background: #fff;
@@ -2442,8 +2443,13 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-tag-card-edit {
-  width: 100%;
-  justify-self: stretch;
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: auto;
+  min-height: 34px;
+  padding: 7px 14px;
+  justify-self: auto;
 }
 
 .admin-tag-type-head {
