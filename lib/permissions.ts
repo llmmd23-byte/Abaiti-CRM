@@ -323,10 +323,10 @@ export async function ensureRolesTable() {
     );
   }
   await db.execute(
-    "UPDATE roles SET role_type = 'admin' WHERE slug IN ('admin','sales','support')",
+    "UPDATE roles SET role_type = 'admin' WHERE slug IN ('admin','support')",
   );
   await db.execute(
-    "UPDATE roles SET role_type = 'user' WHERE slug IN ('affiliate')",
+    "UPDATE roles SET role_type = 'user' WHERE slug IN ('affiliate','sales')",
   );
 
   const [userRoleColumns] = await db.execute<RowDataPacket[]>(
