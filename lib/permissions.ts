@@ -54,6 +54,7 @@ export const pagePermissions = [
   "page.admin.tickets",
   "page.admin.accounts",
   "page.admin.products",
+  "page.admin.tags",
   "page.admin.activities",
   "page.admin.content",
   "page.admin.permissions",
@@ -77,6 +78,9 @@ export const tablePermissions = [
   "table.leads",
   "table.lead_contacts",
   "table.lead_notes",
+  "table.tag_types",
+  "table.tags",
+  "table.lead_tag_assignments",
   "table.demo_requests",
   "table.quotes",
   "table.sales",
@@ -105,6 +109,9 @@ export const adminPermissionKeys = allPermissionKeys.filter(
     key === "table.users" ||
     key === "table.products" ||
     key === "table.industries" ||
+    key === "table.tag_types" ||
+    key === "table.tags" ||
+    key === "table.lead_tag_assignments" ||
     key === "table.educational_assets" ||
     key === "table.support_tickets" ||
     key === "table.support_ticket_events" ||
@@ -122,6 +129,9 @@ export const userPermissionKeys = allPermissionKeys.filter(
       "table.leads",
       "table.lead_contacts",
       "table.lead_notes",
+      "table.tag_types",
+      "table.tags",
+      "table.lead_tag_assignments",
       "table.demo_requests",
       "table.quotes",
       "table.sales",
@@ -143,6 +153,9 @@ const userTableScopes = new Set([
   "table.leads",
   "table.lead_contacts",
   "table.lead_notes",
+  "table.tag_types",
+  "table.tags",
+  "table.lead_tag_assignments",
   "table.demo_requests",
   "table.quotes",
   "table.sales",
@@ -153,6 +166,9 @@ const userWritableTables = new Set([
   "table.leads",
   "table.lead_contacts",
   "table.lead_notes",
+  "table.tag_types",
+  "table.tags",
+  "table.lead_tag_assignments",
   "table.demo_requests",
   "table.quotes",
   "table.support_tickets",

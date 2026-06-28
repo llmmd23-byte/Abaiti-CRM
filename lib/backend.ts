@@ -93,19 +93,19 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   "lead-tag-types": {
     table: "tag_types",
     ownerField: "affiliate_user_id",
-    permissionKey: "table.leads",
+    permissionKey: "table.tag_types",
     writable: ["type_name", "type_color"],
   },
   "lead-tags": {
     table: "tags",
     ownerField: "affiliate_user_id",
-    permissionKey: "table.leads",
+    permissionKey: "table.tags",
     writable: ["tag_type_id", "tag_name", "tag_color"],
   },
   "lead-tag-assignments": {
     table: "lead_tag_assignments",
     ownerField: "affiliate_user_id",
-    permissionKey: "table.leads",
+    permissionKey: "table.lead_tag_assignments",
     writable: ["lead_id", "tag_id"],
   },
   "demo-requests": {
