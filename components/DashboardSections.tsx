@@ -768,7 +768,16 @@ export function CommissionTable({ expanded = false }: { expanded?: boolean }) {
 export function SalesTable({ expanded = false }: { expanded?: boolean }) {
   const isArabic = useLocale() === "ar";
   const { data } = useBackend<BackendRow[]>("/api/v1/data/sales");
+  const { data: currentUser } =
+    useBackend<{ userid: number }>("/api/v1/auth/me");
   const rows = data ?? [];
+  const currentUserId = Number(currentUser?.userid ?? 0);
+  const showUserColumn =
+    currentUserId > 0 &&
+    rows.some(
+      (row) =>
+        Number(row.affiliate_user_id ?? currentUserId) !== currentUserId,
+    );
   const statusLabel = (status: unknown) => {
     const key = String(status ?? "pending");
     const labels: Record<string, { ar: string; en: string }> = {
@@ -797,6 +806,9 @@ export function SalesTable({ expanded = false }: { expanded?: boolean }) {
               <th>{isArabic ? "العميل" : "Client"}</th>
               <th>{isArabic ? "المنتج" : "Product"}</th>
               <th>{isArabic ? "المبلغ" : "Amount"}</th>
+              {showUserColumn ? (
+                <th>{isArabic ? "المستخدم" : "User"}</th>
+              ) : null}
               <th>{isArabic ? "الحالة" : "Status"}</th>
               <th>{isArabic ? "رقم العرض" : "Quote Number"}</th>
               <th>{isArabic ? "التاريخ" : "Date"}</th>
@@ -809,6 +821,9 @@ export function SalesTable({ expanded = false }: { expanded?: boolean }) {
                 <td>{String(row.customer_name ?? "—")}</td>
                 <td>{String((isArabic ? row.product_name : row.product_name_en ?? row.product_name) ?? "—")}</td>
                 <td>{formatMoney(row.sale_amount, String(row.currency ?? "SAR"))}</td>
+                {showUserColumn ? (
+                  <td>{String(row.affiliate_user_name ?? "—")}</td>
+                ) : null}
                 <td>
                   <span className={`badge ${String(row.status ?? "pending")}`}>{statusLabel(row.status)}</span>
                 </td>
@@ -818,7 +833,9 @@ export function SalesTable({ expanded = false }: { expanded?: boolean }) {
             ))}
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7}>{isArabic ? "لا توجد مبيعات" : "No sales found"}</td>
+                <td colSpan={showUserColumn ? 8 : 7}>
+                  {isArabic ? "لا توجد مبيعات" : "No sales found"}
+                </td>
               </tr>
             ) : null}
           </tbody>
