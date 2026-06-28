@@ -1425,6 +1425,68 @@ function AdminTagsSection({
     }
   }
 
+  function hexToRgb(hex: string) {
+    const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex.slice(1) : "00b4d8";
+    return {
+      r: Number.parseInt(normalized.slice(0, 2), 16),
+      g: Number.parseInt(normalized.slice(2, 4), 16),
+      b: Number.parseInt(normalized.slice(4, 6), 16),
+    };
+  }
+
+  function rgbToHex({ r, g, b }: { r: number; g: number; b: number }) {
+    return `#${[r, g, b]
+      .map((value) =>
+        Math.max(0, Math.min(255, Math.round(value)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")}`;
+  }
+
+  function mixHex(startHex: string, endHex: string, ratio: number) {
+    const start = hexToRgb(startHex);
+    const end = hexToRgb(endHex);
+    return rgbToHex({
+      r: start.r + (end.r - start.r) * ratio,
+      g: start.g + (end.g - start.g) * ratio,
+      b: start.b + (end.b - start.b) * ratio,
+    });
+  }
+
+  function createTagGradient(type: {
+    id: number;
+    color: string;
+    tags: Array<{ id: number; name: string; color: string; count: number }>;
+  }) {
+    if (!type.tags.length) {
+      setMessage(
+        isArabic
+          ? "لا توجد وسوم لإنشاء تدرج لها"
+          : "No tags available for a gradient",
+      );
+      return;
+    }
+    const baseColor = typeDrafts[type.id]?.color ?? type.color;
+    const gradientEnd = "#11293d";
+    setTagDrafts((current) => {
+      const next = { ...current };
+      type.tags.forEach((tag, index) => {
+        const ratio = type.tags.length === 1 ? 0 : index / (type.tags.length - 1);
+        next[tag.id] = {
+          ...(next[tag.id] ?? { name: tag.name, color: tag.color }),
+          color: mixHex(baseColor, gradientEnd, ratio),
+        };
+      });
+      return next;
+    });
+    setMessage(
+      isArabic
+        ? "تم إنشاء التدرج اللوني. احفظ الوسوم لتثبيت التغييرات."
+        : "Gradient created. Save the tags to apply changes.",
+    );
+  }
+
   function pieBackground(
     tags: Array<{ color: string; count: number }>,
     total: number,
@@ -1614,7 +1676,16 @@ function AdminTagsSection({
                 </div>
 
                 <div className="admin-linked-tags-editor">
-                  <strong>{isArabic ? "الوسوم المرتبطة" : "Linked tags"}</strong>
+                  <div className="admin-linked-tags-head">
+                    <strong>{isArabic ? "الوسوم المرتبطة" : "Linked tags"}</strong>
+                    <button
+                      className="admin-action-btn admin-gradient-btn"
+                      onClick={() => createTagGradient(type)}
+                      type="button"
+                    >
+                      {isArabic ? "إنشاء تدرج لوني" : "Create color gradient"}
+                    </button>
+                  </div>
                   {type.tags.length ? (
                     type.tags.map((tag) => {
                       const tagDraft = tagDrafts[tag.id] ?? {

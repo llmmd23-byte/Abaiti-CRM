@@ -2344,9 +2344,25 @@ html[dir="ltr"] .dashboard-main {
   background: #fbfdff;
 }
 
-.admin-linked-tags-editor > strong {
+.admin-linked-tags-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-shell[dir="rtl"] .admin-linked-tags-head {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.admin-linked-tags-head > strong {
   color: #11293d;
   font-size: 14px;
+}
+
+.admin-gradient-btn {
+  background: linear-gradient(135deg, #ffffff, #effcfd);
 }
 
 .admin-action-btn {
