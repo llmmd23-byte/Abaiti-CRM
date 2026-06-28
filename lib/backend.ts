@@ -16,6 +16,7 @@ export type BackendResource =
   | "leads"
   | "lead-contacts"
   | "lead-notes"
+  | "lead-tag-types"
   | "lead-tags"
   | "lead-tag-assignments"
   | "demo-requests"
@@ -89,11 +90,17 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     permissionKey: "table.lead_notes",
     writable: ["lead_id", "note"],
   },
+  "lead-tag-types": {
+    table: "tag_types",
+    ownerField: "affiliate_user_id",
+    permissionKey: "table.leads",
+    writable: ["type_name", "type_color"],
+  },
   "lead-tags": {
     table: "tags",
     ownerField: "affiliate_user_id",
     permissionKey: "table.leads",
-    writable: ["tag_name", "tag_color"],
+    writable: ["tag_type_id", "tag_name", "tag_color"],
   },
   "lead-tag-assignments": {
     table: "lead_tag_assignments",
@@ -328,17 +335,50 @@ async function ensureLeadNotesTable() {
 }
 
 async function ensureLeadTagsTable() {
+  await ensureLeadTagTypesTable();
   await db.execute(
     `CREATE TABLE IF NOT EXISTS tags (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       affiliate_user_id BIGINT UNSIGNED NOT NULL,
+      tag_type_id BIGINT UNSIGNED NULL,
       tag_name VARCHAR(120) NOT NULL,
       tag_color VARCHAR(24) NOT NULL DEFAULT '#00b4d8',
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
+      INDEX idx_tags_tag_type_id (tag_type_id),
       INDEX idx_tags_affiliate_user_id (affiliate_user_id),
       UNIQUE KEY uq_tags_name (affiliate_user_id, tag_name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+  const [columns] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tags'
+        AND COLUMN_NAME = 'tag_type_id'
+      LIMIT 1`,
+  );
+  if (!columns.length) {
+    await db.execute(
+      `ALTER TABLE tags ADD COLUMN tag_type_id BIGINT UNSIGNED NULL AFTER affiliate_user_id`,
+    );
+    await db.execute(`ALTER TABLE tags ADD INDEX idx_tags_tag_type_id (tag_type_id)`);
+  }
+}
+
+async function ensureLeadTagTypesTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS tag_types (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      affiliate_user_id BIGINT UNSIGNED NOT NULL,
+      type_name VARCHAR(120) NOT NULL,
+      type_color VARCHAR(24) NOT NULL DEFAULT '#00b4d8',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      INDEX idx_tag_types_affiliate_user_id (affiliate_user_id),
+      UNIQUE KEY uq_tag_types_name (affiliate_user_id, type_name)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
 }
@@ -416,6 +456,9 @@ export async function listResource(resource: string, session: MiddarSession) {
   }
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
+  }
+  if (resource === "lead-tag-types") {
+    await ensureLeadTagTypesTable();
   }
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();
@@ -518,6 +561,7 @@ const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   leads: ["name"],
   "lead-contacts": ["lead_id", "name"],
   "lead-notes": ["lead_id", "note"],
+  "lead-tag-types": ["type_name"],
   "lead-tags": ["tag_name"],
   "lead-tag-assignments": ["lead_id", "tag_id"],
   "demo-requests": ["company_name", "contact_name"],
@@ -542,6 +586,9 @@ export async function createResource(
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
   }
+  if (resource === "lead-tag-types") {
+    await ensureLeadTagTypesTable();
+  }
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();
   }
@@ -560,9 +607,15 @@ export async function createResource(
   if (resource === "lead-contacts" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
   if (resource === "lead-tags") {
+    if (data.tag_type_id) data.tag_type_id = Number(data.tag_type_id);
     data.tag_name = String(data.tag_name ?? "").trim().slice(0, 120);
     const color = String(data.tag_color ?? "#00b4d8").trim();
     data.tag_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
+  }
+  if (resource === "lead-tag-types") {
+    data.type_name = String(data.type_name ?? "").trim().slice(0, 120);
+    const color = String(data.type_color ?? "#00b4d8").trim();
+    data.type_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
   }
   if (resource === "lead-tag-assignments") {
     data.lead_id = Number(data.lead_id);
@@ -635,6 +688,16 @@ export async function createResource(
     )
       throw new Error("DUPLICATE_CUSTOMER_QUOTE");
     if (
+      resource === "lead-tag-types" &&
+      (error as { code?: string }).code === "ER_DUP_ENTRY"
+    ) {
+      const [existingTypes] = await db.execute<RowDataPacket[]>(
+        `SELECT * FROM tag_types WHERE affiliate_user_id = ? AND type_name = ? LIMIT 1`,
+        [Number(session.sub), String(data.type_name ?? "")],
+      );
+      return existingTypes[0] ?? null;
+    }
+    if (
       resource === "lead-tags" &&
       (error as { code?: string }).code === "ER_DUP_ENTRY"
     ) {
@@ -687,6 +750,9 @@ export async function getResource(
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
   }
+  if (resource === "lead-tag-types") {
+    await ensureLeadTagTypesTable();
+  }
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();
   }
@@ -725,6 +791,9 @@ export async function updateResource(
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
   }
+  if (resource === "lead-tag-types") {
+    await ensureLeadTagTypesTable();
+  }
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();
   }
@@ -757,10 +826,18 @@ export async function updateResource(
   if (resource === "lead-contacts" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
   if (resource === "lead-tags") {
+    if (data.tag_type_id) data.tag_type_id = Number(data.tag_type_id);
     if (data.tag_name) data.tag_name = String(data.tag_name).trim().slice(0, 120);
     if (data.tag_color) {
       const color = String(data.tag_color).trim();
       data.tag_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
+    }
+  }
+  if (resource === "lead-tag-types") {
+    if (data.type_name) data.type_name = String(data.type_name).trim().slice(0, 120);
+    if (data.type_color) {
+      const color = String(data.type_color).trim();
+      data.type_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
     }
   }
   if (resource === "lead-tag-assignments") {
@@ -822,6 +899,9 @@ export async function deleteResource(
   }
   if (resource === "lead-notes") {
     await ensureLeadNotesTable();
+  }
+  if (resource === "lead-tag-types") {
+    await ensureLeadTagTypesTable();
   }
   if (resource === "lead-tags") {
     await ensureLeadTagsTable();

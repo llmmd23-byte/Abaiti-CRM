@@ -38,6 +38,7 @@ export function CustomersView() {
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
   const contacts = useBackend<BackendRow[]>("/api/v1/data/lead-contacts");
   const leadNotes = useBackend<BackendRow[]>("/api/v1/data/lead-notes");
+  const leadTagTypes = useBackend<BackendRow[]>("/api/v1/data/lead-tag-types");
   const leadTags = useBackend<BackendRow[]>("/api/v1/data/lead-tags");
   const leadTagAssignments = useBackend<BackendRow[]>(
     "/api/v1/data/lead-tag-assignments",
@@ -75,6 +76,9 @@ export function CustomersView() {
   const [noteStatus, setNoteStatus] = useState("");
   const [tagsLead, setTagsLead] = useState<BackendRow | null>(null);
   const [tagDraft, setTagDraft] = useState({
+    tag_type_id: "",
+    type_name: "",
+    type_color: "#00b4d8",
     tag_id: "",
     tag_name: "",
     tag_color: "#00b4d8",
@@ -239,7 +243,14 @@ export function CustomersView() {
 
   function openLeadTags(row: BackendRow) {
     setTagsLead(row);
-    setTagDraft({ tag_id: "", tag_name: "", tag_color: "#00b4d8" });
+    setTagDraft({
+      tag_type_id: "",
+      type_name: "",
+      type_color: "#00b4d8",
+      tag_id: "",
+      tag_name: "",
+      tag_color: "#00b4d8",
+    });
     setTagStatus("");
   }
 
@@ -254,6 +265,22 @@ export function CustomersView() {
     setTagStatus(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const normalizedTagName = tagDraft.tag_name.trim();
+      const normalizedTypeName = tagDraft.type_name.trim();
+      let tagTypeId = tagDraft.tag_type_id ? Number(tagDraft.tag_type_id) : null;
+      if (!tagTypeId && normalizedTypeName) {
+        const existingType = (leadTagTypes.data ?? []).find(
+          (item) =>
+            String(item.type_name ?? "").trim().toLocaleLowerCase() ===
+            normalizedTypeName.toLocaleLowerCase(),
+        );
+        const tagType =
+          existingType ??
+          (await createBackend<BackendRow>("lead-tag-types", {
+            type_name: normalizedTypeName,
+            type_color: tagDraft.type_color,
+          }));
+        tagTypeId = Number(tagType.id);
+      }
       let tag = (leadTags.data ?? []).find(
         (item) => Number(item.id) === Number(tagDraft.tag_id),
       );
@@ -265,6 +292,7 @@ export function CustomersView() {
               normalizedTagName.toLocaleLowerCase(),
           ) ??
           (await createBackend<BackendRow>("lead-tags", {
+            ...(tagTypeId ? { tag_type_id: tagTypeId } : {}),
             tag_name: normalizedTagName,
             tag_color: tagDraft.tag_color,
           }));
@@ -273,7 +301,15 @@ export function CustomersView() {
         lead_id: tagsLead.id,
         tag_id: tag.id,
       });
-      setTagDraft({ tag_id: "", tag_name: "", tag_color: "#00b4d8" });
+      setTagDraft({
+        tag_type_id: "",
+        type_name: "",
+        type_color: "#00b4d8",
+        tag_id: "",
+        tag_name: "",
+        tag_color: "#00b4d8",
+      });
+      await leadTagTypes.reload();
       await leadTags.reload();
       await leadTagAssignments.reload();
       setTagStatus(isArabic ? "تم ربط الوسم بالعميل" : "Tag linked to customer");
@@ -307,6 +343,7 @@ export function CustomersView() {
     const availableTags = (leadTags.data ?? []).filter(
       (tag) => !assignedTagIds.has(Number(tag.id)),
     );
+    const availableTagTypes = leadTagTypes.data ?? [];
 
     return (
       <article className="table-card expanded-table-card lead-tags-screen">
@@ -326,6 +363,65 @@ export function CustomersView() {
 
         <div className="lead-contacts-form lead-tags-form">
           <label>
+            <span>{isArabic ? "اختيار نوع الوسم" : "Select Tag Type"}</span>
+            <DashboardSelect
+              ariaLabel={isArabic ? "اختيار نوع الوسم" : "Select tag type"}
+              onValueChange={(value) =>
+                setTagDraft((current) => ({
+                  ...current,
+                  tag_type_id: value,
+                  type_name: "",
+                }))
+              }
+              options={availableTagTypes.map((type) => ({
+                value: String(type.id),
+                label: String(type.type_name ?? type.id),
+              }))}
+              placeholder={
+                availableTagTypes.length
+                  ? isArabic
+                    ? "اختر مجموعة الوسم"
+                    : "Choose tag group"
+                  : isArabic
+                    ? "لا توجد مجموعات بعد"
+                    : "No groups yet"
+              }
+              searchable
+              searchPlaceholder={
+                isArabic ? "ابحث عن نوع الوسم..." : "Search tag types..."
+              }
+              value={tagDraft.tag_type_id}
+            />
+          </label>
+          <label>
+            <span>{isArabic ? "أو اكتب نوعًا جديدًا" : "Or Create New Type"}</span>
+            <input
+              onChange={(event) =>
+                setTagDraft((current) => ({
+                  ...current,
+                  tag_type_id: "",
+                  type_name: event.target.value,
+                }))
+              }
+              placeholder={isArabic ? "مثال: مرحلة العميل" : "Example: Customer stage"}
+              type="text"
+              value={tagDraft.type_name}
+            />
+          </label>
+          <label>
+            <span>{isArabic ? "لون نوع الوسم" : "Type Color"}</span>
+            <input
+              onChange={(event) =>
+                setTagDraft((current) => ({
+                  ...current,
+                  type_color: event.target.value,
+                }))
+              }
+              type="color"
+              value={tagDraft.type_color}
+            />
+          </label>
+          <label>
             <span>{isArabic ? "اختيار وسم موجود" : "Select Existing Tag"}</span>
             <DashboardSelect
               ariaLabel={isArabic ? "اختيار وسم موجود" : "Select existing tag"}
@@ -338,7 +434,14 @@ export function CustomersView() {
               }
               options={availableTags.map((tag) => ({
                 value: String(tag.id),
-                label: String(tag.tag_name ?? tag.id),
+                label: (() => {
+                  const tagType = availableTagTypes.find(
+                    (type) => Number(type.id) === Number(tag.tag_type_id),
+                  );
+                  return tagType
+                    ? `${String(tag.tag_name ?? tag.id)} · ${String(tagType.type_name ?? "")}`
+                    : String(tag.tag_name ?? tag.id);
+                })(),
               }))}
               placeholder={
                 availableTags.length
@@ -396,6 +499,7 @@ export function CustomersView() {
             <thead>
               <tr>
                 <th>{isArabic ? "الوسم" : "Tag"}</th>
+                <th>{isArabic ? "نوع الوسم" : "Tag Type"}</th>
                 <th>{isArabic ? "اللون" : "Color"}</th>
                 <th>{isArabic ? "تاريخ الإنشاء" : "Created At"}</th>
                 <th>{isArabic ? "إجراء" : "Action"}</th>
@@ -406,7 +510,11 @@ export function CustomersView() {
                 const tag = (leadTags.data ?? []).find(
                   (item) => Number(item.id) === Number(assignment.tag_id),
                 );
+                const tagType = availableTagTypes.find(
+                  (type) => Number(type.id) === Number(tag?.tag_type_id),
+                );
                 const tagColor = String(tag?.tag_color ?? "#00b4d8");
+                const tagTypeColor = String(tagType?.type_color ?? "#00b4d8");
                 return (
                   <tr key={assignment.id}>
                     <td>
@@ -416,6 +524,18 @@ export function CustomersView() {
                       >
                         {String(tag?.tag_name ?? "?")}
                       </span>
+                    </td>
+                    <td>
+                      {tagType ? (
+                        <span
+                          className="lead-tag-pill lead-tag-type-pill"
+                          style={{ borderColor: tagTypeColor, color: tagTypeColor }}
+                        >
+                          {String(tagType.type_name ?? "?")}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td dir="ltr">{tagColor}</td>
                     <td>{formatUserDateTime(assignment.created_at, isArabic)}</td>
@@ -435,7 +555,7 @@ export function CustomersView() {
               })}
               {customerAssignments.length === 0 ? (
                 <tr>
-                  <td colSpan={4}>
+                  <td colSpan={5}>
                     {isArabic
                       ? "لا توجد وسوم مرتبطة بهذا العميل"
                       : "No tags linked to this customer"}
