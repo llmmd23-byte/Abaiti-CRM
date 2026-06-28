@@ -995,8 +995,8 @@ export function CustomersView() {
                 </th>
                 <th>
                   {isArabic
-                    ? "\u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0625\u0636\u0627\u0641\u064a\u0629"
-                    : "Additional Requirements"}
+                    ? "\u0627\u0644\u0648\u0633\u0648\u0645"
+                    : "Tags"}
                 </th>
                 <th>
                   {isArabic ? "\u0625\u062c\u0631\u0627\u0621" : "Action"}
@@ -1004,9 +1004,20 @@ export function CustomersView() {
               </tr>
             </thead>
             <tbody>
-              {filteredCustomers.map((row) => (
-                <Fragment key={row.id}>
-                  <tr>
+              {filteredCustomers.map((row) => {
+                const rowTagAssignments = (leadTagAssignments.data ?? []).filter(
+                  (assignment) => Number(assignment.lead_id) === Number(row.id),
+                );
+                const rowTags = rowTagAssignments
+                  .map((assignment) =>
+                    (leadTags.data ?? []).find(
+                      (tag) => Number(tag.id) === Number(assignment.tag_id),
+                    ),
+                  )
+                  .filter(Boolean);
+                return (
+                  <Fragment key={row.id}>
+                    <tr>
                     <td>{String(row.company_name ?? "?")}</td>
                     <td>
                       {String(
@@ -1033,9 +1044,27 @@ export function CustomersView() {
                     <td className="customers-details-cell">
                       {String(row.address ?? "").trim() || "—"}
                     </td>
-                    <td className="customers-details-cell">
-                      {String(row.requirements ?? "").trim() ||
-                        (isArabic ? "لا يوجد متطلبات" : "No requirements")}
+                    <td className="customers-details-cell customers-tags-cell">
+                      <div className="customers-tags-list">
+                        {rowTags.length ? (
+                          rowTags.map((tag) => {
+                            const tagColor = String(tag?.tag_color ?? "#00b4d8");
+                            return (
+                              <span
+                                className="lead-tag-pill"
+                                key={Number(tag?.id)}
+                                style={{ borderColor: tagColor, color: tagColor }}
+                              >
+                                {String(tag?.tag_name ?? "?")}
+                              </span>
+                            );
+                          })
+                        ) : (
+                          <span className="muted-table-value">
+                            {isArabic ? "لا توجد وسوم" : "No tags"}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <div className="customer-row-actions">
@@ -1069,9 +1098,10 @@ export function CustomersView() {
                         </button>
                       </div>
                     </td>
-                  </tr>
-                </Fragment>
-              ))}
+                    </tr>
+                  </Fragment>
+                );
+              })}
               {filteredCustomers.length === 0 ? (
                 <tr className="customer-search-empty-row">
                   <td colSpan={8}>
