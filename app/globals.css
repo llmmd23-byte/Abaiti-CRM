@@ -2526,13 +2526,15 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-tag-breakdown {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
+  align-items: center;
 }
 
 .admin-tag-breakdown > div {
-  display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) auto auto;
+  display: inline-flex;
+  min-width: 0;
   align-items: center;
   gap: 9px;
   padding: 10px 12px;
@@ -2542,7 +2544,7 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-shell[dir="rtl"] .admin-tag-breakdown > div {
-  grid-template-columns: auto auto minmax(0, 1fr) 12px;
+  flex-direction: row-reverse;
 }
 
 .admin-tag-breakdown i {
