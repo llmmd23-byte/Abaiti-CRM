@@ -11773,6 +11773,115 @@ html[dir="rtl"]
   box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
 }
 
+.admin-roles-list-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e2eef5;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.admin-roles-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-roles-list-head > div {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-roles-list-head span {
+  color: #00a6bf;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-roles-list-head strong {
+  color: #11293d;
+  font-size: 14px;
+}
+
+.admin-roles-list-head small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ecfeff;
+  color: #0086a3;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-roles-list-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-role-list-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e7f0f6;
+  border-radius: 16px;
+  background: #fbfdff;
+}
+
+.admin-role-list-row.is-selected {
+  border-color: #8de4ef;
+  background: #effdff;
+  box-shadow: inset 0 0 0 1px rgba(0, 180, 216, 0.12);
+}
+
+.admin-role-list-row > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.admin-role-list-row strong {
+  color: #11293d;
+  font-size: 13px;
+}
+
+.admin-role-list-row span {
+  color: #8aa0b4;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-role-type-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d8e7f0;
+  background: #f8fafc;
+  color: #64748b !important;
+  white-space: nowrap;
+}
+
+.admin-role-type-pill.admin {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #047857 !important;
+}
+
+.admin-role-type-pill.user {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #2563eb !important;
+}
+
 .admin-permissions-table-wrap {
   overflow-x: auto;
 }
@@ -11888,5 +11997,12 @@ html[dir="rtl"]
 
   .admin-role-create-panel {
     grid-template-columns: 1fr;
+  }
+
+  .admin-roles-list-head,
+  .admin-role-list-row {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 }

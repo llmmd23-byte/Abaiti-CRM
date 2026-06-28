@@ -1597,6 +1597,60 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
         </button>
       </div>
 
+      <div className="admin-roles-list-card">
+        <div className="admin-roles-list-head">
+          <div>
+            <span>{isArabic ? "قائمة الأدوار" : "Roles List"}</span>
+            <strong>
+              {isArabic
+                ? "اختر الدور لتعديل الصلاحيات المرتبطة به"
+                : "Choose a role to edit its linked permissions"}
+            </strong>
+          </div>
+          <small>
+            {permissionData.roles.length.toLocaleString(NUMBER_LOCALE)}{" "}
+            {isArabic ? "دور" : "roles"}
+          </small>
+        </div>
+        <div className="admin-roles-list-grid">
+          {permissionData.roles.map((role) => {
+            const isSelected =
+              subjectType === "role" && subjectId === String(role.slug);
+            return (
+              <div
+                className={`admin-role-list-row${isSelected ? " is-selected" : ""}`}
+                key={role.slug}
+              >
+                <div>
+                  <strong>{isArabic ? role.name_ar : role.name_en}</strong>
+                  <span>{role.slug}</span>
+                </div>
+                <span className={`admin-role-type-pill ${role.role_type ?? "user"}`}>
+                  {role.role_type === "admin"
+                    ? isArabic
+                      ? "شاشات الأدمن"
+                      : "Admin screens"
+                    : isArabic
+                      ? "شاشات المستخدم"
+                      : "User screens"}
+                </span>
+                <button
+                  className="admin-row-edit"
+                  onClick={() => {
+                    setSubject(`role:${role.slug}`);
+                    setQuery("");
+                    setMessage("");
+                  }}
+                  type="button"
+                >
+                  {isArabic ? "تعديل الصلاحيات" : "Edit Permissions"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="admin-table-wrap admin-permissions-table-wrap">
         <table className="admin-permissions-table">
           <thead>
