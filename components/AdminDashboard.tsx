@@ -45,7 +45,17 @@ type PermissionRecord = {
 type AdminPermissionData = {
   permissionKeys: string[];
   permissions: PermissionRecord[];
-  roles: Array<{ id: number; slug: string; name_ar: string; name_en: string }>;
+  permissionKeysByRoleType?: {
+    admin: string[];
+    user: string[];
+  };
+  roles: Array<{
+    id: number;
+    slug: string;
+    name_ar: string;
+    name_en: string;
+    role_type?: "admin" | "user";
+  }>;
   users: AdminRow[];
 };
 type ManagementData = {
@@ -1349,6 +1359,21 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
 
   const [subjectTypeRaw, subjectId] = subject.split(":");
   const subjectType = subjectTypeRaw === "user" ? "user" : "role";
+  const selectedRole =
+    subjectType === "role"
+      ? permissionData.roles.find((role) => role.slug === subjectId)
+      : permissionData.roles.find(
+          (role) =>
+            role.slug ===
+            String(
+              permissionData.users.find((user) => String(user.id) === subjectId)
+                ?.role ?? "",
+            ),
+        );
+  const selectedRoleType = selectedRole?.role_type ?? "user";
+  const availablePermissionKeys =
+    permissionData.permissionKeysByRoleType?.[selectedRoleType] ??
+    permissionData.permissionKeys;
   const subjectLabel =
     subjectType === "role"
       ? displayAdminValue(subjectId, isArabic)
@@ -1368,7 +1393,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       )
       .map((permission) => [permission.permission_key, permission]),
   );
-  const filteredKeys = permissionData.permissionKeys.filter((key) => {
+  const filteredKeys = availablePermissionKeys.filter((key) => {
     const label = permissionKeyLabels[key]?.[language] ?? key;
     const normalized = query.trim().toLocaleLowerCase();
     return normalized
@@ -1439,7 +1464,15 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
             options={[
               ...permissionData.roles.map((role) => ({
                 value: `role:${role.slug}`,
-                label: `${isArabic ? "دور" : "Role"} · ${isArabic ? role.name_ar : role.name_en}`,
+                label: `${isArabic ? "دور" : "Role"} · ${isArabic ? role.name_ar : role.name_en} · ${
+                  role.role_type === "admin"
+                    ? isArabic
+                      ? "أدمن"
+                      : "Admin"
+                    : isArabic
+                      ? "مستخدم"
+                      : "User"
+                }`,
               })),
               ...permissionData.users.map((user) => ({
                 value: `user:${user.id}`,

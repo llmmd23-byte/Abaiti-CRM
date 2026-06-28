@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS roles (
   slug VARCHAR(80) NOT NULL,
   name_ar VARCHAR(120) NOT NULL,
   name_en VARCHAR(120) NOT NULL,
+  role_type ENUM('admin','user') NOT NULL DEFAULT 'user',
   description VARCHAR(255) NULL,
   is_system TINYINT(1) NOT NULL DEFAULT 1,
   is_active TINYINT(1) NOT NULL DEFAULT 1,

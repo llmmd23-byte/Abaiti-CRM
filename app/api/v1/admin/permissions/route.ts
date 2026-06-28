@@ -8,8 +8,10 @@ import {
   ensurePermissionsTable,
   hasPermission,
   listRoles,
+  permissionKeysByRoleType,
   roleIdForSlug,
   type DataScope,
+  type RoleType,
 } from "@/lib/permissions";
 
 const allowedActions = [
@@ -39,6 +41,14 @@ type PermissionRow = RowDataPacket & {
   data_scope: DataScope;
 };
 
+type RoleOption = {
+  id: number;
+  slug: string;
+  name_ar: string;
+  name_en: string;
+  role_type: RoleType;
+};
+
 async function adminCompanyId(userId: number) {
   const [rows] = await db.execute<RowDataPacket[]>(
     "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
@@ -57,7 +67,7 @@ export async function GET() {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
 
   await ensurePermissionsTable();
-  const roles = await listRoles();
+  const roles = (await listRoles()) as RoleOption[];
   const companyId = await adminCompanyId(Number(session.sub));
   const userWhere =
     companyId === null || companyId === undefined
@@ -88,6 +98,7 @@ export async function GET() {
   return NextResponse.json({
     data: {
       permissionKeys: allPermissionKeys,
+      permissionKeysByRoleType,
       permissions,
       roles,
       users,
@@ -120,6 +131,18 @@ export async function PUT(request: Request) {
   if (subjectType === "role" && !roleId)
     return NextResponse.json({ error: "INVALID_ROLE" }, { status: 422 });
 
+  if (subjectType === "role") {
+    const roles = (await listRoles()) as RoleOption[];
+    const role = roles.find((item) => item.slug === subjectId);
+    const allowedKeys = permissionKeysByRoleType[role?.role_type ?? "user"];
+    if (!allowedKeys.includes(permissionKey)) {
+      return NextResponse.json(
+        { error: "PERMISSION_NOT_ALLOWED_FOR_ROLE_TYPE" },
+        { status: 422 },
+      );
+    }
+  }
+
   if (subjectType === "user") {
     const userId = Number(subjectId);
     if (!Number.isInteger(userId) || userId < 1)
@@ -127,14 +150,28 @@ export async function PUT(request: Request) {
     const companyId = await adminCompanyId(Number(session.sub));
     const [users] = await db.execute<RowDataPacket[]>(
       companyId === null || companyId === undefined
-        ? "SELECT id FROM users WHERE id = ? LIMIT 1"
-        : "SELECT id FROM users WHERE id = ? AND (CompanyID = ? OR id = ?) LIMIT 1",
+        ? `SELECT u.id, COALESCE(r.role_type, CASE WHEN u.role = 'admin' THEN 'admin' ELSE 'user' END) role_type
+             FROM users u
+             LEFT JOIN roles r ON r.id = u.role_id
+            WHERE u.id = ? LIMIT 1`
+        : `SELECT u.id, COALESCE(r.role_type, CASE WHEN u.role = 'admin' THEN 'admin' ELSE 'user' END) role_type
+             FROM users u
+             LEFT JOIN roles r ON r.id = u.role_id
+            WHERE u.id = ? AND (u.CompanyID = ? OR u.id = ?) LIMIT 1`,
       companyId === null || companyId === undefined
         ? [userId]
         : [userId, companyId, Number(session.sub)],
     );
     if (!users.length)
       return NextResponse.json({ error: "USER_NOT_FOUND" }, { status: 404 });
+    const allowedKeys =
+      permissionKeysByRoleType[String(users[0].role_type) === "admin" ? "admin" : "user"];
+    if (!allowedKeys.includes(permissionKey)) {
+      return NextResponse.json(
+        { error: "PERMISSION_NOT_ALLOWED_FOR_ROLE_TYPE" },
+        { status: 422 },
+      );
+    }
   }
 
   await ensurePermissionsTable();

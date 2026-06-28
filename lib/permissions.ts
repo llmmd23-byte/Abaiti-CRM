@@ -15,6 +15,7 @@ export type PermissionAction =
   | "can_dashboard";
 
 export type DataScope = "own" | "team" | "company" | "all";
+export type RoleType = "admin" | "user";
 
 type PermissionRow = RowDataPacket & {
   permission_key: string;
@@ -33,6 +34,7 @@ type RoleRow = RowDataPacket & {
   slug: string;
   name_ar: string;
   name_en: string;
+  role_type: RoleType;
 };
 
 type PermissionSeed = {
@@ -96,6 +98,46 @@ export const allPermissionKeys = [
   ...tablePermissions,
   ...specialPermissions,
 ];
+
+export const adminPermissionKeys = allPermissionKeys.filter(
+  (key) =>
+    key.startsWith("page.admin.") ||
+    key === "table.users" ||
+    key === "table.products" ||
+    key === "table.industries" ||
+    key === "table.educational_assets" ||
+    key === "table.support_tickets" ||
+    key === "table.support_ticket_events" ||
+    key === "commission.percentage",
+);
+
+export const userPermissionKeys = allPermissionKeys.filter(
+  (key) =>
+    key.startsWith("page.user.") ||
+    key === "data.team_members" ||
+    [
+      "table.products",
+      "table.industries",
+      "table.educational_assets",
+      "table.leads",
+      "table.lead_contacts",
+      "table.lead_notes",
+      "table.demo_requests",
+      "table.quotes",
+      "table.sales",
+      "table.commissions",
+      "table.support_tickets",
+      "table.support_ticket_events",
+      "table.team_members",
+      "table.social_accounts",
+      "table.payout_methods",
+    ].includes(key),
+);
+
+export const permissionKeysByRoleType: Record<RoleType, string[]> = {
+  admin: adminPermissionKeys,
+  user: userPermissionKeys,
+};
 
 const userTableScopes = new Set([
   "table.leads",
@@ -209,6 +251,33 @@ const seedColumns = (seed: PermissionSeed) => [
   seed.scope ?? "own",
 ];
 
+async function prunePermissionsByRoleType() {
+  const adminPlaceholders = adminPermissionKeys.map(() => "?").join(",");
+  const userPlaceholders = userPermissionKeys.map(() => "?").join(",");
+
+  if (adminPermissionKeys.length) {
+    await db.execute(
+      `DELETE p FROM permissions p
+        JOIN roles r ON r.id = p.role_id OR r.slug = p.subject_id
+       WHERE p.subject_type = 'role'
+         AND r.role_type = 'admin'
+         AND p.permission_key NOT IN (${adminPlaceholders})`,
+      adminPermissionKeys,
+    );
+  }
+
+  if (userPermissionKeys.length) {
+    await db.execute(
+      `DELETE p FROM permissions p
+        JOIN roles r ON r.id = p.role_id OR r.slug = p.subject_id
+       WHERE p.subject_type = 'role'
+         AND r.role_type = 'user'
+         AND p.permission_key NOT IN (${userPlaceholders})`,
+      userPermissionKeys,
+    );
+  }
+}
+
 export async function ensureRolesTable() {
   await db.execute(
     `CREATE TABLE IF NOT EXISTS roles (
@@ -216,6 +285,7 @@ export async function ensureRolesTable() {
       slug VARCHAR(80) NOT NULL,
       name_ar VARCHAR(120) NOT NULL,
       name_en VARCHAR(120) NOT NULL,
+      role_type ENUM('admin','user') NOT NULL DEFAULT 'user',
       description VARCHAR(255) NULL,
       is_system TINYINT(1) NOT NULL DEFAULT 1,
       is_active TINYINT(1) NOT NULL DEFAULT 1,
@@ -225,6 +295,15 @@ export async function ensureRolesTable() {
       UNIQUE KEY uq_roles_slug (slug)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+
+  const [roleTypeColumns] = await db.execute<RowDataPacket[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'roles' AND COLUMN_NAME = 'role_type' LIMIT 1",
+  );
+  if (!roleTypeColumns.length) {
+    await db.execute(
+      "ALTER TABLE roles ADD COLUMN role_type ENUM('admin','user') NOT NULL DEFAULT 'user' AFTER name_en",
+    );
+  }
 
   const roleRows = [
     ["admin", "مشرف", "Admin"],
@@ -243,6 +322,12 @@ export async function ensureRolesTable() {
       role,
     );
   }
+  await db.execute(
+    "UPDATE roles SET role_type = 'admin' WHERE slug IN ('admin','sales','support')",
+  );
+  await db.execute(
+    "UPDATE roles SET role_type = 'user' WHERE slug IN ('affiliate')",
+  );
 
   const [userRoleColumns] = await db.execute<RowDataPacket[]>(
     "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role_id' LIMIT 1",
@@ -261,7 +346,7 @@ export async function ensureRolesTable() {
 export async function listRoles() {
   await ensureRolesTable();
   const [rows] = await db.execute<RoleRow[]>(
-    "SELECT id,slug,name_ar,name_en FROM roles WHERE is_active = 1 ORDER BY id ASC",
+    "SELECT id,slug,name_ar,name_en,role_type FROM roles WHERE is_active = 1 ORDER BY role_type ASC, id ASC",
   );
   return rows;
 }
@@ -269,7 +354,7 @@ export async function listRoles() {
 export async function roleIdForSlug(slug: string) {
   await ensureRolesTable();
   const [rows] = await db.execute<RoleRow[]>(
-    "SELECT id,slug,name_ar,name_en FROM roles WHERE slug = ? AND is_active = 1 LIMIT 1",
+    "SELECT id,slug,name_ar,name_en,role_type FROM roles WHERE slug = ? AND is_active = 1 LIMIT 1",
     [slug],
   );
   return rows[0]?.id ? Number(rows[0].id) : null;
@@ -335,6 +420,7 @@ export async function ensurePermissionsTable() {
         );
       }
     }
+    await prunePermissionsByRoleType();
   })();
 
   return globalForPermissions.middarPermissionsReady;
