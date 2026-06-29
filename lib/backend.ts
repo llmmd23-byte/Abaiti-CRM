@@ -1056,12 +1056,9 @@ export async function getDashboardSummary(
   trendPeriod: "week" | "month" | "year" = "week",
 ) {
   const userId = Number(session.sub);
-  const scoped = !canManageGlobal(session);
-  const ownerClause = scoped ? " WHERE affiliate_user_id = ?" : "";
-  const ownerParams = scoped ? [userId] : [];
-  const salesPeriodOwnerClause = scoped
-    ? " AND affiliate_user_id = ?"
-    : "";
+  const ownerClause = " WHERE affiliate_user_id = ?";
+  const ownerParams = [userId];
+  const salesPeriodOwnerClause = " AND affiliate_user_id = ?";
   const trendConfig = {
     week: { interval: "6 DAY", dateFormat: "%Y-%m-%d" },
     month: { interval: "29 DAY", dateFormat: "%Y-%m-%d" },
@@ -1120,10 +1117,10 @@ export async function getDashboardSummary(
         ownerParams,
       ),
       db.execute<RowDataPacket[]>(
-        `SELECT COUNT(*) total FROM support_tickets${scoped ? " WHERE user_id = ?" : ""} AND status IN ('open','in_progress')`.replace(
-          "tickets AND",
-          "tickets WHERE",
-        ),
+        `SELECT COUNT(*) total
+           FROM support_tickets
+          WHERE user_id = ?
+            AND status IN ('open','in_progress')`,
         ownerParams,
       ),
     ]);
