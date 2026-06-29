@@ -244,7 +244,7 @@ export default function DashboardShell({
   };
 
   return (
-    <section className="dashboard-shell dashboard-route-shell" dir={direction} data-locale={locale}>
+    <section className="dashboard-shell dashboard-route-shell" dir={direction} data-locale={locale} data-section={active}>
       <aside className="sidebar">
         <Link className="sidebar-brand sidebar-official-brand cursor-pointer" href="/" aria-label={t("brand.home")}>
           <Image

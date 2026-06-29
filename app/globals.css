@@ -9174,6 +9174,22 @@ html[dir="ltr"] .settings-social-input input {
   line-height: 1.6;
 }
 
+.dashboard-route-shell[data-section="overview"] .metric-card span,
+.dashboard-route-shell[data-section="overview"] .metric-card small,
+.dashboard-route-shell[data-section="commissions"] .metric-card span,
+.dashboard-route-shell[data-section="commissions"] .metric-card small {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.dashboard-route-shell[data-section="overview"] .metric-card strong,
+.dashboard-route-shell[data-section="commissions"] .metric-card strong {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
 .dashboard-route-shell table,
 .dashboard-route-shell th,
 .dashboard-route-shell td {
