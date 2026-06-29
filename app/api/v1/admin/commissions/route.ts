@@ -11,6 +11,7 @@ type SaleRow = RowDataPacket & {
   sale_amount: number;
   currency: string;
   level: string | null;
+  comission_percentage: number | null;
 };
 
 const SALES_COMMISSION_TYPE = "\u0639\u0645\u0648\u0644\u0629 \u0645\u0628\u064a\u0639\u0627\u062a";
@@ -28,15 +29,16 @@ async function ensureCommissionTypeColumn() {
   }
 }
 
-const commissionPercentByLevel: Record<string, number> = {
-  مبتدئ: 20,
-  نشيط: 21,
-  منجز: 22,
-  محترف: 24,
-  "محترف فضي": 26,
-  "محترف ذهبي": 28,
-  "محترف ماسي": 30,
-};
+async function ensureUserCommissionPercentageColumn() {
+  const [columns] = await db.execute<RowDataPacket[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'comission_percentage' LIMIT 1",
+  );
+  if (!columns.length) {
+    await db.execute(
+      "ALTER TABLE users ADD COLUMN comission_percentage DECIMAL(5,2) NOT NULL DEFAULT 20.00 AFTER level",
+    );
+  }
+}
 
 function levelForSalesCount(count: number) {
   if (count >= 90) return "محترف ماسي";
@@ -58,32 +60,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
 
   await ensureCommissionTypeColumn();
+  await ensureUserCommissionPercentageColumn();
 
   const body = await request.json().catch(() => ({}));
   const saleId = Number(body.sale_id);
-  const requestedPercent =
-    body.commission_percent === undefined
-      ? null
-      : Number(body.commission_percent);
   if (!Number.isInteger(saleId) || saleId <= 0) {
     return NextResponse.json({ error: "INVALID_COMMISSION" }, { status: 400 });
   }
-  if (requestedPercent !== null) {
-    if (
-      !Number.isFinite(requestedPercent) ||
-      requestedPercent < 0 ||
-      requestedPercent > 100
-    )
-      return NextResponse.json(
-        { error: "INVALID_COMMISSION_PERCENTAGE" },
-        { status: 422 },
-      );
-    if (!(await hasPermission(session, "commission.percentage", "can_edit")))
-      return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
-  }
 
   const [sales] = await db.execute<SaleRow[]>(
-    "SELECT s.id,s.affiliate_user_id,s.sale_amount,s.currency,u.level,u.manager_id FROM sales s LEFT JOIN users u ON u.id=s.affiliate_user_id WHERE s.id = ? LIMIT 1",
+    "SELECT s.id,s.affiliate_user_id,s.sale_amount,s.currency,u.level,u.manager_id,u.comission_percentage FROM sales s LEFT JOIN users u ON u.id=s.affiliate_user_id WHERE s.id = ? LIMIT 1",
     [saleId],
   );
   const sale = sales[0];
@@ -110,8 +96,14 @@ export async function POST(request: Request) {
       [sale.affiliate_user_id],
     );
     const level = levelForSalesCount(Number(salesCountRows[0]?.total ?? 0));
-    const commissionPercent =
-      requestedPercent ?? commissionPercentByLevel[level] ?? 20;
+    const commissionPercent = Number(sale.comission_percentage ?? 20);
+    if (
+      !Number.isFinite(commissionPercent) ||
+      commissionPercent < 0 ||
+      commissionPercent > 100
+    ) {
+      throw new Error("INVALID_USER_COMMISSION_PERCENTAGE");
+    }
     await connection.execute("UPDATE users SET level = ? WHERE id = ?", [
       level,
       sale.affiliate_user_id,

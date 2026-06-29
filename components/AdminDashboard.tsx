@@ -157,19 +157,6 @@ function formatAdminDateTime(value: unknown, isArabic: boolean) {
   }).format(date);
 }
 
-function commissionPercentForLevel(level: unknown) {
-  const percentages: Record<string, number> = {
-    "مبتدئ": 20,
-    "نشيط": 21,
-    "منجز": 22,
-    "محترف": 24,
-    "محترف فضي": 26,
-    "محترف ذهبي": 28,
-    "محترف ماسي": 30,
-  };
-  return percentages[String(level ?? "")] ?? 20;
-}
-
 function commissionLevelForSalesCount(count: unknown) {
   const salesCount = Number(count ?? 0);
   if (salesCount >= 90) return "محترف ماسي";
@@ -3787,7 +3774,6 @@ function AdminSalesList({
         headers: { "Content-Type": "application/json; charset=utf-8" },
         body: JSON.stringify({
           sale_id: commissionSale.id,
-          commission_percent: Number(commissionPercent),
         }),
       });
       if (!response.ok) {
@@ -3872,11 +3858,7 @@ function AdminSalesList({
                       onClick={() => {
                         setCommissionMessage("");
                         setCommissionPercent(
-                          commissionPercentForLevel(
-                            commissionLevelForSalesCount(
-                              sale.affiliate_sales_count,
-                            ),
-                          ),
+                          Number(sale.affiliate_comission_percentage ?? 20),
                         );
                         setCommissionSale(sale);
                       }}

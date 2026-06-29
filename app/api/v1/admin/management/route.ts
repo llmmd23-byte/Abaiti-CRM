@@ -165,6 +165,11 @@ async function ensureAdminManagementSchema() {
       "commission_type",
       "ALTER TABLE commissions ADD COLUMN commission_type VARCHAR(80) NOT NULL DEFAULT 'عمولة مبيعات' AFTER currency",
     );
+    await addColumnIfMissing(
+      "users",
+      "comission_percentage",
+      "ALTER TABLE users ADD COLUMN comission_percentage DECIMAL(5,2) NOT NULL DEFAULT 20.00 AFTER level",
+    );
     await ensureSupportTicketEventsTable();
     await ensureTagTables();
   })();
@@ -258,7 +263,7 @@ export async function GET() {
   );
   const [sales] = await db.execute<RowDataPacket[]>(
     `SELECT s.id,s.sales_invoice_number,s.sale_amount,s.currency,s.status,s.receipt_url,s.sold_at,s.created_at,s.affiliate_user_id,c.id commission_id,l.name customer_name,p.name product_name,p.name_en product_name_en,
-               COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name,u.level affiliate_user_level,COALESCE(sc.sale_count,0) affiliate_sales_count,q.quote_number
+               COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name,u.level affiliate_user_level,COALESCE(u.comission_percentage,20) affiliate_comission_percentage,COALESCE(sc.sale_count,0) affiliate_sales_count,q.quote_number
          FROM sales s
          LEFT JOIN leads l ON l.id=s.lead_id
          LEFT JOIN products p ON p.id=s.product_id
