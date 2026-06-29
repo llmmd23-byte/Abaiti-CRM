@@ -6,6 +6,12 @@ import { authenticateUser, createSession, deleteSession } from "@/lib/auth";
 
 export type SignInState = { error?: string };
 
+const signInMessages = {
+  missing: "\u0623\u062f\u062e\u0644 \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a \u0648\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631.",
+  busy: "\u0642\u0627\u0639\u062f\u0629 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a \u0645\u0634\u063a\u0648\u0644\u0629 \u062d\u0627\u0644\u064a\u064b\u0627. \u064a\u0631\u062c\u0649 \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649 \u0628\u0639\u062f \u0644\u062d\u0638\u0627\u062a.",
+  invalid: "\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u062f\u062e\u0648\u0644 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d\u0629 \u0623\u0648 \u0627\u0644\u062d\u0633\u0627\u0628 \u063a\u064a\u0631 \u0646\u0634\u0637.",
+};
+
 export async function signInAction(
   _state: SignInState,
   formData: FormData,
@@ -16,10 +22,7 @@ export async function signInAction(
 
   if (!identifier || !password) {
     return {
-      error:
-        locale === "ar"
-          ? "أدخل البريد الإلكتروني وكلمة المرور."
-          : "Enter your email and password.",
+      error: locale === "ar" ? signInMessages.missing : "Enter your email and password.",
     };
   }
 
@@ -36,7 +39,7 @@ export async function signInAction(
       return {
         error:
           locale === "ar"
-            ? "قاعدة البيانات مشغولة حاليًا. يرجى المحاولة مرة أخرى بعد لحظات."
+            ? signInMessages.busy
             : "The database is currently busy. Please try again shortly.",
       };
     }
@@ -48,7 +51,7 @@ export async function signInAction(
     return {
       error:
         locale === "ar"
-          ? "بيانات الدخول غير صحيحة أو الحساب غير نشط."
+          ? signInMessages.invalid
           : "Invalid credentials or inactive account.",
     };
   }
