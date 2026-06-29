@@ -17,6 +17,13 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .next-dev*.log
+.codex-devserver.*.log
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
+
+# Runtime uploads
+public/uploads/
 
 # Environment files
 .env*
