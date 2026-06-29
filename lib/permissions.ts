@@ -295,6 +295,63 @@ async function prunePermissionsByRoleType() {
   }
 }
 
+function defaultSeedForRoleType(roleType: RoleType, key: string): PermissionSeed {
+  if (roleType === "admin") {
+    return {
+      key,
+      view: true,
+      create: true,
+      edit: true,
+      delete: true,
+      approve: true,
+      reports: true,
+      dashboard: true,
+      scope: "all",
+    };
+  }
+  if (key.startsWith("page.user.")) {
+    return { key, view: true, dashboard: true, scope: "own" };
+  }
+  return {
+    key,
+    view:
+      userWritableTables.has(key) ||
+      userTableScopes.has(key) ||
+      key === "table.products" ||
+      key === "table.industries" ||
+      key === "table.educational_assets" ||
+      key === "table.support_ticket_events",
+    create: userWritableTables.has(key),
+    edit: userWritableTables.has(key),
+    delete:
+      key === "table.lead_contacts" ||
+      key === "table.lead_notes" ||
+      key === "table.payout_methods",
+    scope: userTableScopes.has(key) ? "team" : "own",
+  };
+}
+
+async function backfillRoleTypePermissions() {
+  const [roles] = await db.execute<RoleRow[]>(
+    "SELECT id,slug,name_ar,name_en,role_type FROM roles WHERE is_active = 1",
+  );
+  for (const role of roles) {
+    const keys = permissionKeysByRoleType[role.role_type] ?? [];
+    for (const key of keys) {
+      const seed = defaultSeedForRoleType(role.role_type, key);
+      await db.execute(
+        `INSERT INTO permissions
+           (subject_type, subject_id, role_id, permission_key, can_view, can_create, can_edit, can_delete,
+            can_approve, can_reports, can_dashboard, data_scope)
+         VALUES ('role', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           role_id = COALESCE(role_id, VALUES(role_id))`,
+        [role.slug, role.id, seed.key, ...seedColumns(seed)],
+      );
+    }
+  }
+}
+
 export async function ensureRolesTable() {
   await db.execute(
     `CREATE TABLE IF NOT EXISTS roles (
@@ -442,6 +499,7 @@ export async function ensurePermissionsTable() {
         );
       }
     }
+    await backfillRoleTypePermissions();
     await prunePermissionsByRoleType();
   })();
 
