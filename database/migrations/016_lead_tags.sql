@@ -36,13 +36,16 @@ CREATE TABLE IF NOT EXISTS lead_tag_assignments (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   lead_id BIGINT UNSIGNED NOT NULL,
   tag_id BIGINT UNSIGNED NOT NULL,
+  tag_type_id BIGINT UNSIGNED NULL,
   affiliate_user_id BIGINT UNSIGNED NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_lead_tag_assignments (lead_id, tag_id, affiliate_user_id),
+  UNIQUE KEY uq_lead_tag_assignments_type (lead_id, tag_type_id, affiliate_user_id),
   KEY idx_lead_tag_assignments_lead_id (lead_id),
   KEY idx_lead_tag_assignments_tag_id (tag_id),
+  KEY idx_lead_tag_assignments_tag_type_id (tag_type_id),
   KEY idx_lead_tag_assignments_affiliate_user_id (affiliate_user_id),
   CONSTRAINT fk_lead_tag_assignments_lead
     FOREIGN KEY (lead_id) REFERENCES leads(id)
@@ -50,6 +53,9 @@ CREATE TABLE IF NOT EXISTS lead_tag_assignments (
   CONSTRAINT fk_lead_tag_assignments_tag
     FOREIGN KEY (tag_id) REFERENCES tags(id)
     ON DELETE CASCADE,
+  CONSTRAINT fk_lead_tag_assignments_tag_type
+    FOREIGN KEY (tag_type_id) REFERENCES tag_types(id)
+    ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT fk_lead_tag_assignments_affiliate_user
     FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
     ON DELETE CASCADE

@@ -384,21 +384,80 @@ async function ensureLeadTagTypesTable() {
 }
 
 async function ensureLeadTagAssignmentsTable() {
+  await ensureLeadTagsTable();
   await db.execute(
     `CREATE TABLE IF NOT EXISTS lead_tag_assignments (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       lead_id BIGINT UNSIGNED NOT NULL,
       tag_id BIGINT UNSIGNED NOT NULL,
+      tag_type_id BIGINT UNSIGNED NULL,
       affiliate_user_id BIGINT UNSIGNED NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
       INDEX idx_lead_tag_assignments_lead_id (lead_id),
       INDEX idx_lead_tag_assignments_tag_id (tag_id),
+      INDEX idx_lead_tag_assignments_tag_type_id (tag_type_id),
       INDEX idx_lead_tag_assignments_affiliate_user_id (affiliate_user_id),
-      UNIQUE KEY uq_lead_tag_assignments (lead_id, tag_id, affiliate_user_id)
+      UNIQUE KEY uq_lead_tag_assignments (lead_id, tag_id, affiliate_user_id),
+      UNIQUE KEY uq_lead_tag_assignments_type (lead_id, tag_type_id, affiliate_user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+  const [columns] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'lead_tag_assignments'
+        AND COLUMN_NAME = 'tag_type_id'
+      LIMIT 1`,
+  );
+  if (!columns.length) {
+    await db.execute(
+      `ALTER TABLE lead_tag_assignments ADD COLUMN tag_type_id BIGINT UNSIGNED NULL AFTER tag_id`,
+    );
+  }
+  await db.execute(
+    `UPDATE lead_tag_assignments lta
+      JOIN tags t ON t.id = lta.tag_id
+       SET lta.tag_type_id = t.tag_type_id
+     WHERE lta.tag_type_id IS NULL AND t.tag_type_id IS NOT NULL`,
+  );
+  const [typeIndex] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'lead_tag_assignments'
+        AND INDEX_NAME = 'idx_lead_tag_assignments_tag_type_id'
+      LIMIT 1`,
+  );
+  if (!typeIndex.length) {
+    await db.execute(
+      `ALTER TABLE lead_tag_assignments ADD INDEX idx_lead_tag_assignments_tag_type_id (tag_type_id)`,
+    );
+  }
+  const [uniqueTypeIndex] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'lead_tag_assignments'
+        AND INDEX_NAME = 'uq_lead_tag_assignments_type'
+      LIMIT 1`,
+  );
+  if (!uniqueTypeIndex.length) {
+    await db.execute(
+      `DELETE newer FROM lead_tag_assignments newer
+        JOIN lead_tag_assignments older
+          ON older.lead_id = newer.lead_id
+         AND older.affiliate_user_id = newer.affiliate_user_id
+         AND older.tag_type_id = newer.tag_type_id
+         AND older.id < newer.id
+       WHERE newer.tag_type_id IS NOT NULL`,
+    );
+    await db.execute(
+      `ALTER TABLE lead_tag_assignments
+        ADD UNIQUE KEY uq_lead_tag_assignments_type (lead_id, tag_type_id, affiliate_user_id)`,
+    );
+  }
 }
 
 async function ensureSupportTicketEventsTable() {
@@ -670,6 +729,27 @@ export async function createResource(
   );
   if (missing.length) throw new Error("VALIDATION_ERROR");
 
+  if (resource === "lead-tag-assignments") {
+    const [tagRows] = await db.execute<RowDataPacket[]>(
+      `SELECT id, tag_type_id FROM tags WHERE id = ? AND affiliate_user_id = ? LIMIT 1`,
+      [Number(data.tag_id), Number(session.sub)],
+    );
+    const tag = tagRows[0];
+    if (!tag || !tag.tag_type_id) throw new Error("TAG_TYPE_REQUIRED");
+    data.tag_type_id = Number(tag.tag_type_id);
+
+    const [sameTypeAssignments] = await db.execute<RowDataPacket[]>(
+      `SELECT lta.id
+         FROM lead_tag_assignments lta
+        WHERE lta.affiliate_user_id = ?
+          AND lta.lead_id = ?
+          AND lta.tag_type_id = ?
+        LIMIT 1`,
+      [Number(session.sub), Number(data.lead_id), Number(data.tag_type_id)],
+    );
+    if (sameTypeAssignments.length) throw new Error("DUPLICATE_TAG_TYPE_ASSIGNMENT");
+  }
+
   const columns = Object.keys(data);
   if (columns.length === 0) throw new Error("EMPTY_PAYLOAD");
   let result: ResultSetHeader;
@@ -715,9 +795,14 @@ export async function createResource(
     ) {
       const [existingAssignments] = await db.execute<RowDataPacket[]>(
         `SELECT * FROM lead_tag_assignments
-          WHERE affiliate_user_id = ? AND lead_id = ? AND tag_id = ?
+          WHERE affiliate_user_id = ? AND lead_id = ? AND (tag_id = ? OR tag_type_id = ?)
           LIMIT 1`,
-        [Number(session.sub), Number(data.lead_id), Number(data.tag_id)],
+        [
+          Number(session.sub),
+          Number(data.lead_id),
+          Number(data.tag_id),
+          Number(data.tag_type_id),
+        ],
       );
       return existingAssignments[0] ?? null;
     }
@@ -848,6 +933,27 @@ export async function updateResource(
   }
   if (resource === "team-members" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
+  if (resource === "lead-tag-assignments" && data.tag_id) {
+    const nextLeadId = Number(data.lead_id ?? existing.lead_id);
+    const [tagRows] = await db.execute<RowDataPacket[]>(
+      `SELECT id, tag_type_id FROM tags WHERE id = ? AND affiliate_user_id = ? LIMIT 1`,
+      [Number(data.tag_id), Number(session.sub)],
+    );
+    const tag = tagRows[0];
+    if (!tag || !tag.tag_type_id) throw new Error("TAG_TYPE_REQUIRED");
+    data.tag_type_id = Number(tag.tag_type_id);
+    const [sameTypeAssignments] = await db.execute<RowDataPacket[]>(
+      `SELECT id
+         FROM lead_tag_assignments
+        WHERE affiliate_user_id = ?
+          AND lead_id = ?
+          AND tag_type_id = ?
+          AND id <> ?
+        LIMIT 1`,
+      [Number(session.sub), nextLeadId, Number(data.tag_type_id), id],
+    );
+    if (sameTypeAssignments.length) throw new Error("DUPLICATE_TAG_TYPE_ASSIGNMENT");
+  }
   const columns = Object.keys(data);
   if (columns.length === 0) throw new Error("EMPTY_PAYLOAD");
   await db.execute(

@@ -9769,6 +9769,23 @@ html[dir="ltr"] .dashboard-route-shell .dashboard-main select {
   outline: none;
 }
 
+.dashboard-select-option.disabled,
+.dashboard-select-option:disabled {
+  cursor: not-allowed;
+  color: #94a3b8;
+  background: #f8fafc;
+  opacity: 0.62;
+}
+
+.dashboard-select-option.disabled:hover,
+.dashboard-select-option.disabled:focus-visible,
+.dashboard-select-option.disabled.active,
+.dashboard-select-option:disabled:hover,
+.dashboard-select-option:disabled:focus-visible {
+  color: #94a3b8;
+  background: #f8fafc;
+}
+
 .dashboard-select-check {
   width: 16px;
   height: 16px;

@@ -4,6 +4,7 @@ import {useEffect, useId, useRef, useState, type CSSProperties} from "react";
 import {createPortal} from "react-dom";
 
 export type DashboardSelectOption = {
+  disabled?: boolean;
   label: string;
   value: string;
 };
@@ -110,6 +111,7 @@ export default function DashboardSelect({
   }
 
   function chooseOption(option: DashboardSelectOption, index: number) {
+    if (option.disabled) return;
     if (value === undefined) {
       setInternalValue(option.value);
     }
@@ -142,7 +144,7 @@ export default function DashboardSelect({
     if ((event.key === "Enter" || event.key === " ") && isOpen) {
       event.preventDefault();
         const option = visibleOptions[activeIndex];
-        if (option) chooseOption(option, activeIndex);
+        if (option && !option.disabled) chooseOption(option, activeIndex);
     }
   }
 
@@ -179,8 +181,10 @@ export default function DashboardSelect({
 
         return (
           <button
+            aria-disabled={option.disabled || undefined}
             aria-selected={isSelected}
-            className={`dashboard-select-option ${isSelected ? "selected" : ""} ${isActive ? "active" : ""}`}
+            className={`dashboard-select-option ${isSelected ? "selected" : ""} ${isActive ? "active" : ""} ${option.disabled ? "disabled" : ""}`}
+            disabled={option.disabled}
             key={option.value}
             onClick={() => chooseOption(option, index)}
             onMouseEnter={() => setActiveIndex(index)}

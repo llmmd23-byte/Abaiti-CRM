@@ -296,6 +296,28 @@ export function CustomersView() {
       let tag = (leadTags.data ?? []).find(
         (item) => Number(item.id) === Number(tagDraft.tag_id),
       );
+      const existingAssignments = (leadTagAssignments.data ?? []).filter(
+        (assignment) => Number(assignment.lead_id) === Number(tagsLead.id),
+      );
+      const assignedTypeIds = new Set(
+        existingAssignments
+          .map((assignment) => {
+            const assignedTag = (leadTags.data ?? []).find(
+              (item) => Number(item.id) === Number(assignment.tag_id),
+            );
+            return Number(assignedTag?.tag_type_id);
+          })
+          .filter((typeId) => Number.isInteger(typeId) && typeId > 0),
+      );
+      const resolvedTypeId = tag ? Number(tag.tag_type_id) : Number(tagTypeId);
+      if (assignedTypeIds.has(resolvedTypeId)) {
+        setTagStatus(
+          isArabic
+            ? "لا يمكن إضافة أكثر من وسم واحد من نفس النوع لهذا العميل"
+            : "This customer already has a tag from this type",
+        );
+        return;
+      }
       if (!tag) {
         tag =
           (leadTags.data ?? []).find(
@@ -352,10 +374,21 @@ export function CustomersView() {
     const assignedTagIds = new Set(
       customerAssignments.map((assignment) => Number(assignment.tag_id)),
     );
+    const assignedTagTypeIds = new Set(
+      customerAssignments
+        .map((assignment) => {
+          const tag = (leadTags.data ?? []).find(
+            (item) => Number(item.id) === Number(assignment.tag_id),
+          );
+          return Number(tag?.tag_type_id);
+        })
+        .filter((typeId) => Number.isInteger(typeId) && typeId > 0),
+    );
     const availableTagTypes = leadTagTypes.data ?? [];
     const selectedTagTypeId = tagDraft.tag_type_id ? Number(tagDraft.tag_type_id) : null;
     const availableTags = (leadTags.data ?? []).filter((tag) => {
       if (assignedTagIds.has(Number(tag.id))) return false;
+      if (assignedTagTypeIds.has(Number(tag.tag_type_id))) return false;
       if (!selectedTagTypeId) return true;
       return Number(tag.tag_type_id) === selectedTagTypeId;
     });
@@ -392,6 +425,7 @@ export function CustomersView() {
               options={availableTagTypes.map((type) => ({
                 value: String(type.id),
                 label: String(type.type_name ?? type.id),
+                disabled: assignedTagTypeIds.has(Number(type.id)),
               }))}
               placeholder={
                 availableTagTypes.length
