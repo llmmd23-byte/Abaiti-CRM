@@ -562,7 +562,7 @@ const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   "lead-contacts": ["lead_id", "name"],
   "lead-notes": ["lead_id", "note"],
   "lead-tag-types": ["type_name"],
-  "lead-tags": ["tag_name"],
+  "lead-tags": ["tag_type_id", "tag_name"],
   "lead-tag-assignments": ["lead_id", "tag_id"],
   "demo-requests": ["company_name", "contact_name"],
   quotes: ["lead_id", "product_id", "amount", "valid_until"],
@@ -608,6 +608,8 @@ export async function createResource(
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
   if (resource === "lead-tags") {
     if (data.tag_type_id) data.tag_type_id = Number(data.tag_type_id);
+    if (!Number.isInteger(Number(data.tag_type_id)) || Number(data.tag_type_id) < 1)
+      data.tag_type_id = null;
     data.tag_name = String(data.tag_name ?? "").trim().slice(0, 120);
     const color = String(data.tag_color ?? "#00b4d8").trim();
     data.tag_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";

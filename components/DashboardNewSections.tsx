@@ -262,6 +262,18 @@ export function CustomersView() {
       );
       return;
     }
+    if (
+      !tagDraft.tag_id &&
+      !tagDraft.tag_type_id &&
+      !tagDraft.type_name.trim()
+    ) {
+      setTagStatus(
+        isArabic
+          ? "اختر نوع الوسم أو اكتب نوعًا جديدًا"
+          : "Select a tag type or write a new type",
+      );
+      return;
+    }
     setTagStatus(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const normalizedTagName = tagDraft.tag_name.trim();
