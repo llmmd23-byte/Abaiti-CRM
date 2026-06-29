@@ -9,6 +9,7 @@ const requiredEnv = (name: string) => {
 };
 
 const globalForDb = globalThis as typeof globalThis & { middarDbPool?: Pool };
+const connectionLimit = Math.max(1, Number(process.env.DB_CONNECTION_LIMIT ?? 1));
 
 export const db =
   globalForDb.middarDbPool ??
@@ -20,10 +21,11 @@ export const db =
     password: requiredEnv("DB_PASSWORD"),
     charset: "utf8mb4_unicode_ci",
     timezone: "Z",
-    connectionLimit: 1,
-    maxIdle: 0,
-    idleTimeout: 1000,
-    enableKeepAlive: false,
+    connectionLimit,
+    maxIdle: connectionLimit,
+    idleTimeout: 60000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10000,
     waitForConnections: true,
   });
 
