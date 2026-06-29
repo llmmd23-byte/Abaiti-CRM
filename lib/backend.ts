@@ -293,7 +293,7 @@ async function closeExpiredQuotes() {
   await db.execute(
     `UPDATE quotes
         SET status = 'expired'
-      WHERE status NOT IN ('expired', 'paid', 'cancelled')
+      WHERE status IN ('draft', 'sent', 'send')
         AND valid_until IS NOT NULL
         AND DATE(valid_until) < CURDATE()`,
   );
