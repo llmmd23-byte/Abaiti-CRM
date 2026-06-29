@@ -8,6 +8,7 @@ type SaleRow = RowDataPacket & {
   id: number;
   affiliate_user_id: number | null;
   manager_id: number | null;
+  CompanyID: number | null;
   sale_amount: number;
   currency: string;
   level: string | null;
@@ -69,12 +70,26 @@ export async function POST(request: Request) {
   }
 
   const [sales] = await db.execute<SaleRow[]>(
-    "SELECT s.id,s.affiliate_user_id,s.sale_amount,s.currency,u.level,u.manager_id,u.comission_percentage FROM sales s LEFT JOIN users u ON u.id=s.affiliate_user_id WHERE s.id = ? LIMIT 1",
+    "SELECT s.id,s.affiliate_user_id,s.sale_amount,s.currency,u.level,u.manager_id,u.CompanyID,u.comission_percentage FROM sales s LEFT JOIN users u ON u.id=s.affiliate_user_id WHERE s.id = ? LIMIT 1",
     [saleId],
   );
   const sale = sales[0];
   if (!sale || !sale.affiliate_user_id)
     return NextResponse.json({ error: "SALE_NOT_FOUND" }, { status: 404 });
+
+  const [adminRows] = await db.execute<RowDataPacket[]>(
+    "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
+    [Number(session.sub)],
+  );
+  const adminCompanyId = adminRows[0]?.CompanyID ?? null;
+  const saleBelongsToAdminCompany =
+    adminCompanyId !== null && adminCompanyId !== undefined
+      ? Number(sale.CompanyID) === Number(adminCompanyId) ||
+        Number(sale.affiliate_user_id) === Number(session.sub)
+      : Number(sale.affiliate_user_id) === Number(session.sub);
+  if (!saleBelongsToAdminCompany) {
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  }
 
   const [existing] = await db.execute<RowDataPacket[]>(
     "SELECT id FROM commissions WHERE sale_id = ? AND commission_type = ? LIMIT 1",

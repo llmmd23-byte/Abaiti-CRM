@@ -40,6 +40,36 @@ export async function PUT(
     );
   }
 
+  const [adminRows] = await db.execute<RowDataPacket[]>(
+    "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
+    [Number(session.sub)],
+  );
+  const adminCompanyId = adminRows[0]?.CompanyID ?? null;
+  const companyScope =
+    adminCompanyId !== null && adminCompanyId !== undefined
+      ? "(recipient.CompanyID = ? OR recipient.id = ?) AND (sale_user.CompanyID = ? OR sale_user.id = ?)"
+      : "recipient.id = ? AND sale_user.id = ?";
+  const companyParams =
+    adminCompanyId !== null && adminCompanyId !== undefined
+      ? [adminCompanyId, Number(session.sub), adminCompanyId, Number(session.sub)]
+      : [Number(session.sub), Number(session.sub)];
+  const [visibleRows] = await db.execute<RowDataPacket[]>(
+    `SELECT c.id
+       FROM commissions c
+       JOIN users recipient ON recipient.id = c.affiliate_user_id
+       JOIN sales s ON s.id = c.sale_id
+       JOIN users sale_user ON sale_user.id = s.affiliate_user_id
+      WHERE c.id = ? AND ${companyScope}
+      LIMIT 1`,
+    [commissionId, ...companyParams],
+  );
+  if (!visibleRows.length) {
+    return NextResponse.json(
+      { error: "COMMISSION_NOT_FOUND" },
+      { status: 404 },
+    );
+  }
+
   await ensurePaymentReferenceColumn();
   const [result] = await db.execute<ResultSetHeader>(
     "UPDATE commissions SET payment_reference = ?, status = 'paid', paid_at = COALESCE(paid_at, NOW()) WHERE id = ? AND status = 'approved'",

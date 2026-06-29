@@ -289,11 +289,13 @@ export async function GET() {
   const [commissions] = await db.execute<RowDataPacket[]>(
     `SELECT c.id,c.sale_id,s.sales_invoice_number,c.affiliate_user_id,c.commission_amount,c.commission_percent,c.currency,c.commission_type,c.status,c.payment_reference,c.created_at,c.approved_at,c.paid_at,u.name affiliate_user_name
          FROM commissions c
-         LEFT JOIN sales s ON s.id=c.sale_id
+         JOIN sales s ON s.id=c.sale_id
          JOIN users u ON u.id=c.affiliate_user_id
+         JOIN users sale_user ON sale_user.id=s.affiliate_user_id
         WHERE ${userScopeClause("u")}
+          AND ${userScopeClause("sale_user")}
         ORDER BY c.created_at DESC LIMIT 250`,
-    userScopeParams,
+    [...userScopeParams, ...userScopeParams],
   );
   const [ticketEvents] = await db.execute<RowDataPacket[]>(
     `SELECT e.id,e.ticket_id,e.user_id,e.actor_user_id,e.event_type,e.old_status,e.new_status,e.note,e.created_at,u.name actor_name
