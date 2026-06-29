@@ -4179,6 +4179,59 @@ html[dir="ltr"] .dashboard-main {
   text-align: center !important;
 }
 
+.customer-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px 4px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.customer-pagination > div {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.customer-pagination button {
+  min-width: 38px;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid rgba(0, 180, 216, 0.36);
+  border-radius: 999px;
+  color: #007f9d;
+  background: #ffffff;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.customer-pagination button:hover:not(:disabled),
+.customer-pagination button.active {
+  border-color: #00b4d8;
+  color: #ffffff;
+  background: #11293d;
+  box-shadow: 0 10px 20px rgba(17, 41, 61, 0.12);
+}
+
+.customer-pagination button:disabled {
+  cursor: not-allowed;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  box-shadow: none;
+}
+
 .customers-list-table thead th {
   text-align: center !important;
   vertical-align: middle;

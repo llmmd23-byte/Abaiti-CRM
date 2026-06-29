@@ -9,6 +9,7 @@ import { createBackend, useBackend } from "@/lib/client-backend";
 type BackendRow = Record<string, unknown> & { id: number };
 const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
+const CUSTOMER_PAGE_SIZE = 10;
 
 function parseDatabaseDate(value: unknown) {
   const raw = String(value ?? "").trim();
@@ -50,6 +51,7 @@ export function CustomersView() {
   const [editingLead, setEditingLead] = useState<BackendRow | null>(null);
   const [customerView, setCustomerView] = useState<"table" | "kanban">("table");
   const [customerSearch, setCustomerSearch] = useState("");
+  const [customerPage, setCustomerPage] = useState(1);
   const [draggedLeadId, setDraggedLeadId] = useState<number | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
   const [kanbanStatus, setKanbanStatus] = useState("");
@@ -117,6 +119,39 @@ export function CustomersView() {
         .includes(normalizedSearch),
     );
   });
+  const customerTotalPages = Math.max(
+    1,
+    Math.ceil(filteredCustomers.length / CUSTOMER_PAGE_SIZE),
+  );
+  const activeCustomerPage = Math.min(customerPage, customerTotalPages);
+  const paginatedCustomers = filteredCustomers.slice(
+    (activeCustomerPage - 1) * CUSTOMER_PAGE_SIZE,
+    activeCustomerPage * CUSTOMER_PAGE_SIZE,
+  );
+  const firstCustomerIndex =
+    filteredCustomers.length === 0
+      ? 0
+      : (activeCustomerPage - 1) * CUSTOMER_PAGE_SIZE + 1;
+  const lastCustomerIndex = Math.min(
+    activeCustomerPage * CUSTOMER_PAGE_SIZE,
+    filteredCustomers.length,
+  );
+  const firstPaginationButton = Math.min(
+    Math.max(1, activeCustomerPage - 2),
+    Math.max(1, customerTotalPages - 4),
+  );
+  const customerPageNumbers = Array.from(
+    { length: Math.min(5, customerTotalPages) },
+    (_, index) => firstPaginationButton + index,
+  );
+
+  useEffect(() => {
+    setCustomerPage(1);
+  }, [customerSearch, customerView]);
+
+  useEffect(() => {
+    if (customerPage > customerTotalPages) setCustomerPage(customerTotalPages);
+  }, [customerPage, customerTotalPages]);
 
   function openLeadEditor(row: BackendRow) {
     setEditingLead(row);
@@ -1045,7 +1080,7 @@ export function CustomersView() {
               </tr>
             </thead>
             <tbody>
-              {filteredCustomers.map((row) => {
+              {paginatedCustomers.map((row) => {
                 const rowTagAssignments = (leadTagAssignments.data ?? []).filter(
                   (assignment) => Number(assignment.lead_id) === Number(row.id),
                 );
@@ -1151,6 +1186,44 @@ export function CustomersView() {
               ) : null}
             </tbody>
           </table>
+          {filteredCustomers.length > CUSTOMER_PAGE_SIZE ? (
+            <div className="customer-pagination" aria-label={isArabic ? "ترقيم صفحات العملاء" : "Customer pagination"}>
+              <span>
+                {isArabic
+                  ? `${firstCustomerIndex.toLocaleString(NUMBER_LOCALE)}-${lastCustomerIndex.toLocaleString(NUMBER_LOCALE)} من ${filteredCustomers.length.toLocaleString(NUMBER_LOCALE)}`
+                  : `${firstCustomerIndex.toLocaleString(NUMBER_LOCALE)}-${lastCustomerIndex.toLocaleString(NUMBER_LOCALE)} of ${filteredCustomers.length.toLocaleString(NUMBER_LOCALE)}`}
+              </span>
+              <div>
+                <button
+                  disabled={activeCustomerPage === 1}
+                  onClick={() => setCustomerPage((page) => Math.max(1, page - 1))}
+                  type="button"
+                >
+                  {isArabic ? "السابق" : "Previous"}
+                </button>
+                {customerPageNumbers.map((page) => (
+                  <button
+                    aria-current={page === activeCustomerPage ? "page" : undefined}
+                    className={page === activeCustomerPage ? "active" : ""}
+                    key={page}
+                    onClick={() => setCustomerPage(page)}
+                    type="button"
+                  >
+                    {page.toLocaleString(NUMBER_LOCALE)}
+                  </button>
+                ))}
+                <button
+                  disabled={activeCustomerPage === customerTotalPages}
+                  onClick={() =>
+                    setCustomerPage((page) => Math.min(customerTotalPages, page + 1))
+                  }
+                  type="button"
+                >
+                  {isArabic ? "التالي" : "Next"}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div>
