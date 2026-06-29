@@ -1044,11 +1044,14 @@ export async function getDashboardSummary(
 
 export async function getProfile(session: MiddarSession) {
   const [rows] = await db.execute<RowDataPacket[]>(
-    `SELECT id, name, email, username, role, level, status, preferred_locale, phone, city, district,
-            referral_code, landing_slug, license_type, license_status, license_file_url,
-            skills_experience, skills_courses, skills_proof_files, joined_at,
-            CompanyID AS company_id, host_name, host_phone, last_login_at
-       FROM users WHERE id = ? LIMIT 1`,
+    `SELECT u.id, u.name, u.email, u.username, COALESCE(r.slug, 'affiliate') role, u.level, u.status,
+            u.preferred_locale, u.phone, u.city, u.district, u.referral_code, u.landing_slug,
+            u.license_type, u.license_status, u.license_file_url, u.skills_experience,
+            u.skills_courses, u.skills_proof_files, u.joined_at, u.CompanyID AS company_id,
+            u.host_name, u.host_phone, u.last_login_at
+       FROM users u
+       LEFT JOIN roles r ON r.id = u.role_id
+      WHERE u.id = ? LIMIT 1`,
     [Number(session.sub)],
   );
   return rows[0] ?? null;

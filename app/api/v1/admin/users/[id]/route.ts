@@ -35,13 +35,13 @@ export async function PUT(request: Request, {params}: {params: Promise<{id: stri
   }
 
   const [result] = await db.execute<ResultSetHeader>(
-    "UPDATE users SET name=?, role=?, role_id=?, status=?, is_active=? WHERE id=?",
-    [name, role, roleId, status, status === "active" ? 1 : 0, id]
+    "UPDATE users SET name=?, role_id=?, status=?, is_active=? WHERE id=?",
+    [name, roleId, status, status === "active" ? 1 : 0, id]
   );
   if (!result.affectedRows) return NextResponse.json({error: "NOT_FOUND"}, {status: 404});
 
   const [rows] = await db.execute<RowDataPacket[]>(
-    "SELECT u.id,u.name,u.email,u.username,u.phone,COALESCE(r.slug,u.role) role,u.status,u.is_active,u.created_at,u.last_login_at FROM users u LEFT JOIN roles r ON r.id=u.role_id WHERE u.id=? LIMIT 1",
+    "SELECT u.id,u.name,u.email,u.username,u.phone,COALESCE(r.slug,'affiliate') role,u.status,u.is_active,u.created_at,u.last_login_at FROM users u LEFT JOIN roles r ON r.id=u.role_id WHERE u.id=? LIMIT 1",
     [id]
   );
   return NextResponse.json({data: rows[0]});

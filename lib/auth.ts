@@ -52,7 +52,7 @@ async function verifyPassword(password: string, storedHash: string) {
 export async function authenticateUser(identifier: string, password: string) {
   const [rows] = await db.execute<UserRow[]>(
     `SELECT u.id, u.name, u.email, u.username, u.password_hash,
-            COALESCE(r.slug, u.role) AS role,
+            COALESCE(r.slug, 'affiliate') AS role,
             u.status, u.is_active, u.preferred_locale
        FROM users u
        LEFT JOIN roles r ON r.id = u.role_id

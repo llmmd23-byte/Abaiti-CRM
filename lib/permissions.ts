@@ -49,6 +49,14 @@ type PermissionSeed = {
   scope?: DataScope;
 };
 
+async function columnExists(tableName: string, columnName: string) {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1",
+    [tableName, columnName],
+  );
+  return rows.length > 0;
+}
+
 export const pagePermissions = [
   "page.admin.dashboard",
   "page.admin.tickets",
@@ -339,17 +347,21 @@ export async function ensureRolesTable() {
     "UPDATE roles SET role_type = 'user' WHERE slug IN ('affiliate','sales','Leader')",
   );
 
-  const [userRoleColumns] = await db.execute<RowDataPacket[]>(
-    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'role_id' LIMIT 1",
-  );
-  if (!userRoleColumns.length) {
-    await db.execute("ALTER TABLE users ADD COLUMN role_id BIGINT UNSIGNED NULL AFTER role");
+  if (!(await columnExists("users", "role_id"))) {
+    await db.execute("ALTER TABLE users ADD COLUMN role_id BIGINT UNSIGNED NULL AFTER password_hash");
+  }
+  if (await columnExists("users", "role")) {
+    await db.execute(
+      `UPDATE users u
+         JOIN roles r ON r.slug = u.role
+          SET u.role_id = r.id
+        WHERE u.role_id IS NULL`,
+    );
   }
   await db.execute(
-    `UPDATE users u
-       JOIN roles r ON r.slug = u.role
-        SET u.role_id = r.id
-      WHERE u.role_id IS NULL`,
+    `UPDATE users
+        SET role_id = (SELECT id FROM roles WHERE slug = 'affiliate' LIMIT 1)
+      WHERE role_id IS NULL`,
   );
 }
 

@@ -80,9 +80,9 @@ export async function registerAffiliate(formData: FormData) {
 
     await connection.execute<ResultSetHeader>(
       `INSERT INTO users
-        (name, email, password_hash, role, status, preferred_locale, phone,
+        (name, email, password_hash, role_id, status, preferred_locale, phone,
          manager_id, host_name, host_phone, is_active, joined_at)
-       VALUES (?, ?, ?, 'affiliate', ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE())`,
+       VALUES (?, ?, ?, (SELECT id FROM roles WHERE slug = 'affiliate' AND is_active = 1 LIMIT 1), ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE())`,
       [name, email, passwordHash, userStatus, locale, phone || null, managerId, hostName, hostPhone, isActive]
     );
     await connection.commit();

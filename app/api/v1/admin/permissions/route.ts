@@ -87,7 +87,7 @@ export async function GET() {
         ORDER BY subject_type, subject_id, permission_key`,
     ),
     db.execute<RowDataPacket[]>(
-      `SELECT u.id,u.name,u.email,u.username,COALESCE(r.slug,u.role) role,u.status,u.CompanyID AS company_id
+      `SELECT u.id,u.name,u.email,u.username,COALESCE(r.slug,'affiliate') role,u.status,u.CompanyID AS company_id
          FROM users u
          LEFT JOIN roles r ON r.id = u.role_id
         WHERE ${userWhere}
@@ -210,11 +210,11 @@ export async function PUT(request: Request) {
     const companyId = await adminCompanyId(Number(session.sub));
     const [users] = await db.execute<RowDataPacket[]>(
       companyId === null || companyId === undefined
-        ? `SELECT u.id, COALESCE(r.role_type, CASE WHEN u.role = 'admin' THEN 'admin' ELSE 'user' END) role_type
+        ? `SELECT u.id, COALESCE(r.role_type, 'user') role_type
              FROM users u
              LEFT JOIN roles r ON r.id = u.role_id
             WHERE u.id = ? LIMIT 1`
-        : `SELECT u.id, COALESCE(r.role_type, CASE WHEN u.role = 'admin' THEN 'admin' ELSE 'user' END) role_type
+        : `SELECT u.id, COALESCE(r.role_type, 'user') role_type
              FROM users u
              LEFT JOIN roles r ON r.id = u.role_id
             WHERE u.id = ? AND (u.CompanyID = ? OR u.id = ?) LIMIT 1`,

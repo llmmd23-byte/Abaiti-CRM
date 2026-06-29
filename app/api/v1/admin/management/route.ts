@@ -214,7 +214,7 @@ export async function GET() {
       : [adminUserId];
 
   const [users] = await db.execute<RowDataPacket[]>(
-    `SELECT u.id,u.name,u.email,u.username,u.phone,u.role_id,COALESCE(r.slug,u.role) role,COALESCE(r.role_type, CASE WHEN u.role = 'admin' THEN 'admin' ELSE 'user' END) role_type,u.status,u.is_active,u.CompanyID AS company_id,u.created_at,u.last_login_at
+    `SELECT u.id,u.name,u.email,u.username,u.phone,u.role_id,COALESCE(r.slug,'affiliate') role,COALESCE(r.role_type,'user') role_type,u.status,u.is_active,u.CompanyID AS company_id,u.created_at,u.last_login_at
          FROM users u
          LEFT JOIN roles r ON r.id = u.role_id
         WHERE ${usersWhereClause}
