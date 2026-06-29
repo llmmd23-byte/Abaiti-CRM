@@ -54,6 +54,7 @@ export async function GET(request: Request) {
   const hasCompany = adminCompanyId !== null && adminCompanyId !== undefined;
   const scopeParams = hasCompany ? [adminCompanyId, adminUserId] : [adminUserId];
   const userScope = scopedUserClause("u", hasCompany);
+  const saleUserScope = scopedUserClause("sale_user", hasCompany);
 
   const [summaryRows] = await db.execute<RowDataPacket[]>(
     `SELECT
@@ -65,9 +66,11 @@ export async function GET(request: Request) {
       (SELECT COUNT(*) FROM support_tickets t JOIN users u ON u.id=t.user_id WHERE ${userScope} AND t.status IN ('open','in_progress') AND t.${rangeCondition}) openTickets,
       (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope} AND q.status IN ('draft', 'sent', 'accepted') AND q.${rangeCondition}) openQuotes,
       (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope} AND s.status = 'pending' AND s.${rangeCondition}) uncreatedSalesCommissions,
-      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id WHERE ${userScope} AND c.status = 'pending' AND c.${rangeCondition}) invisibleCommissions,
-      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id WHERE ${userScope} AND c.status <> 'paid' AND c.${rangeCondition}) unpaidCommissions`,
+      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope} AND ${saleUserScope} AND c.status = 'pending' AND c.${rangeCondition}) invisibleCommissions,
+      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope} AND ${saleUserScope} AND c.status <> 'paid' AND c.${rangeCondition}) unpaidCommissions`,
     [
+      ...scopeParams,
+      ...scopeParams,
       ...scopeParams,
       ...scopeParams,
       ...scopeParams,
