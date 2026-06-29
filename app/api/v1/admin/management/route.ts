@@ -204,28 +204,33 @@ export async function GET() {
   );
   const adminCompanyId = adminRows[0]?.CompanyID ?? null;
   const adminUserId = Number(session.sub);
-  const usersWhereClause =
+  const userScopeClause = (alias: string) =>
     adminCompanyId !== null && adminCompanyId !== undefined
-      ? "(u.CompanyID = ? OR u.CompanyID = ? OR u.id = ?)"
-      : "u.id = ?";
-  const usersWhereValues =
+      ? `(${alias}.CompanyID = ? OR ${alias}.id = ?)`
+      : `${alias}.id = ?`;
+  const userScopeParams =
     adminCompanyId !== null && adminCompanyId !== undefined
-      ? [adminCompanyId, adminUserId, adminUserId]
+      ? [adminCompanyId, adminUserId]
       : [adminUserId];
 
   const [users] = await db.execute<RowDataPacket[]>(
     `SELECT u.id,u.name,u.email,u.phone,u.role_id,COALESCE(r.slug,'affiliate') role,COALESCE(r.role_type,'user') role_type,u.status,u.is_active,u.CompanyID AS company_id,u.created_at,u.last_login_at
-         FROM users u
+        FROM users u
          LEFT JOIN roles r ON r.id = u.role_id
-        WHERE ${usersWhereClause}
+        WHERE ${userScopeClause("u")}
         ORDER BY u.created_at DESC`,
-    usersWhereValues,
+    userScopeParams,
   );
   const [roles] = await db.execute<RowDataPacket[]>(
     "SELECT id,slug,name_ar,name_en,role_type,is_system,is_active FROM roles WHERE is_active = 1 ORDER BY role_type ASC,id ASC",
   );
   const [tickets] = await db.execute<RowDataPacket[]>(
-    "SELECT id,ticket_number,category,subject,details,notes,status,user_id,created_at FROM support_tickets ORDER BY created_at DESC LIMIT 250",
+    `SELECT t.id,t.ticket_number,t.category,t.subject,t.details,t.notes,t.status,t.user_id,t.created_at
+       FROM support_tickets t
+       JOIN users u ON u.id = t.user_id
+      WHERE ${userScopeClause("u")}
+      ORDER BY t.created_at DESC LIMIT 250`,
+    userScopeParams,
   );
   const [products] = await db.execute<RowDataPacket[]>(
     "SELECT id,name,name_en,slug,base_price,currency,status,created_at FROM products ORDER BY created_at DESC LIMIT 250",
@@ -242,15 +247,19 @@ export async function GET() {
               COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name
          FROM leads l
          LEFT JOIN industries i ON i.id=l.industry_id
-         LEFT JOIN users u ON u.id=l.affiliate_user_id
+         JOIN users u ON u.id=l.affiliate_user_id
+        WHERE ${userScopeClause("u")}
         ORDER BY l.created_at DESC LIMIT 250`,
+    userScopeParams,
   );
   const [demos] = await db.execute<RowDataPacket[]>(
     `SELECT d.id,d.contact_name,d.company_name,d.phone,d.status,d.created_at,d.affiliate_user_id,
               COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name
          FROM demo_requests d
-         LEFT JOIN users u ON u.id=d.affiliate_user_id
+         JOIN users u ON u.id=d.affiliate_user_id
+        WHERE ${userScopeClause("u")}
         ORDER BY d.created_at DESC LIMIT 250`,
+    userScopeParams,
   );
   const [quotes] = await db.execute<RowDataPacket[]>(
     `SELECT q.id,q.quote_number,q.amount,q.currency,q.status,q.valid_until,q.payment_receipt_url,q.sales_invoice_number,q.created_at,q.affiliate_user_id,l.name customer_name,p.name product_name,p.name_en product_name_en,p.base_price product_base_price,
@@ -258,8 +267,10 @@ export async function GET() {
          FROM quotes q
          LEFT JOIN leads l ON l.id=q.lead_id
          LEFT JOIN products p ON p.id=q.product_id
-         LEFT JOIN users u ON u.id=q.affiliate_user_id
+         JOIN users u ON u.id=q.affiliate_user_id
+        WHERE ${userScopeClause("u")}
         ORDER BY q.created_at DESC LIMIT 250`,
+    userScopeParams,
   );
   const [sales] = await db.execute<RowDataPacket[]>(
     `SELECT s.id,s.sales_invoice_number,s.sale_amount,s.currency,s.status,s.receipt_url,s.sold_at,s.created_at,s.affiliate_user_id,c.id commission_id,l.name customer_name,p.name product_name,p.name_en product_name_en,
@@ -267,24 +278,31 @@ export async function GET() {
          FROM sales s
          LEFT JOIN leads l ON l.id=s.lead_id
          LEFT JOIN products p ON p.id=s.product_id
-         LEFT JOIN users u ON u.id=s.affiliate_user_id
+         JOIN users u ON u.id=s.affiliate_user_id
          LEFT JOIN (SELECT affiliate_user_id,COUNT(*) sale_count FROM sales GROUP BY affiliate_user_id) sc ON sc.affiliate_user_id=s.affiliate_user_id
          LEFT JOIN quotes q ON q.id=s.quote_id
          LEFT JOIN (SELECT sale_id,MIN(id) id FROM commissions GROUP BY sale_id) c ON c.sale_id=s.id
+        WHERE ${userScopeClause("u")}
        ORDER BY s.created_at DESC LIMIT 250`,
+    userScopeParams,
   );
   const [commissions] = await db.execute<RowDataPacket[]>(
     `SELECT c.id,c.sale_id,s.sales_invoice_number,c.affiliate_user_id,c.commission_amount,c.commission_percent,c.currency,c.commission_type,c.status,c.payment_reference,c.created_at,c.approved_at,c.paid_at,u.name affiliate_user_name
          FROM commissions c
          LEFT JOIN sales s ON s.id=c.sale_id
-         LEFT JOIN users u ON u.id=c.affiliate_user_id
+         JOIN users u ON u.id=c.affiliate_user_id
+        WHERE ${userScopeClause("u")}
         ORDER BY c.created_at DESC LIMIT 250`,
+    userScopeParams,
   );
   const [ticketEvents] = await db.execute<RowDataPacket[]>(
     `SELECT e.id,e.ticket_id,e.user_id,e.actor_user_id,e.event_type,e.old_status,e.new_status,e.note,e.created_at,u.name actor_name
          FROM support_ticket_events e
          LEFT JOIN users u ON u.id=e.actor_user_id
+         JOIN users ticket_user ON ticket_user.id=e.user_id
+        WHERE ${userScopeClause("ticket_user")}
         ORDER BY e.created_at ASC LIMIT 1000`,
+    userScopeParams,
   );
   const [tagStats] = await db.execute<RowDataPacket[]>(
     `SELECT
@@ -298,8 +316,11 @@ export async function GET() {
        FROM tag_types tt
        LEFT JOIN tags t ON t.tag_type_id = tt.id
        LEFT JOIN lead_tag_assignments lta ON lta.tag_id = t.id
+       JOIN users u ON u.id = tt.affiliate_user_id
+      WHERE ${userScopeClause("u")}
       GROUP BY tt.id,tt.type_name,tt.type_color,t.id,t.tag_name,t.tag_color
       ORDER BY tt.created_at DESC,t.tag_name ASC`,
+    userScopeParams,
   );
 
   return NextResponse.json({

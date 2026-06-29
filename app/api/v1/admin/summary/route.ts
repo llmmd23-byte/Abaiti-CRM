@@ -7,6 +7,12 @@ import { hasPermission } from "@/lib/permissions";
 type CountRow = RowDataPacket & { total: number };
 type ActivityRow = RowDataPacket & { day: string; total: number };
 
+function scopedUserClause(alias: string, hasCompany: boolean) {
+  return hasCompany
+    ? `(${alias}.CompanyID = ? OR ${alias}.id = ?)`
+    : `${alias}.id = ?`;
+}
+
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session)
@@ -39,34 +45,56 @@ export async function GET(request: Request) {
         ? "DATE_FORMAT(created_at, '%Y-%m')"
         : "DATE_FORMAT(created_at, '%Y-%m-%d')";
 
+  const [adminRows] = await db.execute<RowDataPacket[]>(
+    "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
+    [Number(session.sub)],
+  );
+  const adminCompanyId = adminRows[0]?.CompanyID ?? null;
+  const adminUserId = Number(session.sub);
+  const hasCompany = adminCompanyId !== null && adminCompanyId !== undefined;
+  const scopeParams = hasCompany ? [adminCompanyId, adminUserId] : [adminUserId];
+  const userScope = scopedUserClause("u", hasCompany);
+
   const [summaryRows] = await db.execute<RowDataPacket[]>(
     `SELECT
-      (SELECT COUNT(*) FROM users WHERE ${rangeCondition}) users,
-      (SELECT COUNT(*) FROM leads WHERE ${rangeCondition}) clients,
-      (SELECT COUNT(*) FROM demo_requests WHERE ${rangeCondition}) demos,
-      (SELECT COUNT(*) FROM quotes WHERE ${rangeCondition}) quotes,
-      (SELECT COUNT(*) FROM sales WHERE ${rangeCondition}) sales,
-      (SELECT COUNT(*) FROM support_tickets WHERE status IN ('open','in_progress') AND ${rangeCondition}) openTickets,
-      (SELECT COUNT(*) FROM quotes WHERE status IN ('draft', 'sent', 'accepted') AND ${rangeCondition}) openQuotes,
-      (SELECT COUNT(*) FROM sales WHERE status = 'pending' AND ${rangeCondition}) uncreatedSalesCommissions,
-      (SELECT COUNT(*) FROM commissions WHERE status = 'pending' AND ${rangeCondition}) invisibleCommissions,
-      (SELECT COUNT(*) FROM commissions WHERE status <> 'paid' AND ${rangeCondition}) unpaidCommissions`,
+      (SELECT COUNT(*) FROM users u WHERE ${userScope} AND u.${rangeCondition}) users,
+      (SELECT COUNT(*) FROM leads l JOIN users u ON u.id=l.affiliate_user_id WHERE ${userScope} AND l.${rangeCondition}) clients,
+      (SELECT COUNT(*) FROM demo_requests d JOIN users u ON u.id=d.affiliate_user_id WHERE ${userScope} AND d.${rangeCondition}) demos,
+      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope} AND q.${rangeCondition}) quotes,
+      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope} AND s.${rangeCondition}) sales,
+      (SELECT COUNT(*) FROM support_tickets t JOIN users u ON u.id=t.user_id WHERE ${userScope} AND t.status IN ('open','in_progress') AND t.${rangeCondition}) openTickets,
+      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope} AND q.status IN ('draft', 'sent', 'accepted') AND q.${rangeCondition}) openQuotes,
+      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope} AND s.status = 'pending' AND s.${rangeCondition}) uncreatedSalesCommissions,
+      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id WHERE ${userScope} AND c.status = 'pending' AND c.${rangeCondition}) invisibleCommissions,
+      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id WHERE ${userScope} AND c.status <> 'paid' AND c.${rangeCondition}) unpaidCommissions`,
+    [
+      ...scopeParams,
+      ...scopeParams,
+      ...scopeParams,
+      ...scopeParams,
+      ...scopeParams,
+      ...scopeParams,
+      ...scopeParams,
+      ...scopeParams,
+      ...scopeParams,
+      ...scopeParams,
+    ],
   );
   const summary = summaryRows[0] ?? {};
 
   const metricQueries: Record<string, string> = {
-    users: `SELECT ${periodExpression} day, COUNT(*) total FROM users WHERE ${rangeCondition} GROUP BY ${periodExpression} ORDER BY day`,
-    clients: `SELECT ${periodExpression} day, COUNT(*) total FROM leads WHERE ${rangeCondition} GROUP BY ${periodExpression} ORDER BY day`,
-    demos: `SELECT ${periodExpression} day, COUNT(*) total FROM demo_requests WHERE ${rangeCondition} GROUP BY ${periodExpression} ORDER BY day`,
-    quotes: `SELECT ${periodExpression} day, COUNT(*) total FROM quotes WHERE ${rangeCondition} GROUP BY ${periodExpression} ORDER BY day`,
-    sales: `SELECT ${periodExpression} day, COUNT(*) total FROM sales WHERE ${rangeCondition} GROUP BY ${periodExpression} ORDER BY day`,
+    users: `SELECT ${periodExpression.replaceAll("created_at", "u.created_at")} day, COUNT(*) total FROM users u WHERE ${userScope} AND u.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "u.created_at")} ORDER BY day`,
+    clients: `SELECT ${periodExpression.replaceAll("created_at", "l.created_at")} day, COUNT(*) total FROM leads l JOIN users u ON u.id=l.affiliate_user_id WHERE ${userScope} AND l.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "l.created_at")} ORDER BY day`,
+    demos: `SELECT ${periodExpression.replaceAll("created_at", "d.created_at")} day, COUNT(*) total FROM demo_requests d JOIN users u ON u.id=d.affiliate_user_id WHERE ${userScope} AND d.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "d.created_at")} ORDER BY day`,
+    quotes: `SELECT ${periodExpression.replaceAll("created_at", "q.created_at")} day, COUNT(*) total FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope} AND q.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "q.created_at")} ORDER BY day`,
+    sales: `SELECT ${periodExpression.replaceAll("created_at", "s.created_at")} day, COUNT(*) total FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope} AND s.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "s.created_at")} ORDER BY day`,
   };
 
   const seriesEntries: Array<
     readonly [string, Array<{ date: string; value: number }>]
   > = [];
   for (const [key, query] of Object.entries(metricQueries)) {
-    const [rows] = await db.execute<ActivityRow[]>(query);
+    const [rows] = await db.execute<ActivityRow[]>(query, scopeParams);
     seriesEntries.push([
       key,
       rows.map((row) => ({ date: String(row.day), value: Number(row.total) })),
