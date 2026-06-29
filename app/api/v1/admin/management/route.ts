@@ -214,7 +214,7 @@ export async function GET() {
       : [adminUserId];
 
   const [users] = await db.execute<RowDataPacket[]>(
-    `SELECT u.id,u.name,u.email,u.username,u.phone,u.role_id,COALESCE(r.slug,'affiliate') role,COALESCE(r.role_type,'user') role_type,u.status,u.is_active,u.CompanyID AS company_id,u.created_at,u.last_login_at
+    `SELECT u.id,u.name,u.email,u.phone,u.role_id,COALESCE(r.slug,'affiliate') role,COALESCE(r.role_type,'user') role_type,u.status,u.is_active,u.CompanyID AS company_id,u.created_at,u.last_login_at
          FROM users u
          LEFT JOIN roles r ON r.id = u.role_id
         WHERE ${usersWhereClause}
@@ -239,7 +239,7 @@ export async function GET() {
   const [clients] = await db.execute<RowDataPacket[]>(
     `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.stage,l.industry_id,l.address,l.requirements,l.created_at,
               i.name industry_name,i.name_en industry_name_en,
-              COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name
+              COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name
          FROM leads l
          LEFT JOIN industries i ON i.id=l.industry_id
          LEFT JOIN users u ON u.id=l.affiliate_user_id
@@ -247,14 +247,14 @@ export async function GET() {
   );
   const [demos] = await db.execute<RowDataPacket[]>(
     `SELECT d.id,d.contact_name,d.company_name,d.phone,d.status,d.created_at,d.affiliate_user_id,
-              COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name
+              COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name
          FROM demo_requests d
          LEFT JOIN users u ON u.id=d.affiliate_user_id
         ORDER BY d.created_at DESC LIMIT 250`,
   );
   const [quotes] = await db.execute<RowDataPacket[]>(
     `SELECT q.id,q.quote_number,q.amount,q.currency,q.status,q.valid_until,q.payment_receipt_url,q.sales_invoice_number,q.created_at,q.affiliate_user_id,l.name customer_name,p.name product_name,p.name_en product_name_en,p.base_price product_base_price,
-               COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name
+               COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name
          FROM quotes q
          LEFT JOIN leads l ON l.id=q.lead_id
          LEFT JOIN products p ON p.id=q.product_id
@@ -263,7 +263,7 @@ export async function GET() {
   );
   const [sales] = await db.execute<RowDataPacket[]>(
     `SELECT s.id,s.sales_invoice_number,s.sale_amount,s.currency,s.status,s.receipt_url,s.sold_at,s.created_at,s.affiliate_user_id,c.id commission_id,l.name customer_name,p.name product_name,p.name_en product_name_en,
-               COALESCE(NULLIF(u.name, ''), NULLIF(u.username, ''), NULLIF(u.email, '')) affiliate_user_name,u.level affiliate_user_level,COALESCE(u.comission_percentage,20) affiliate_comission_percentage,COALESCE(sc.sale_count,0) affiliate_sales_count,q.quote_number
+               COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name,u.level affiliate_user_level,COALESCE(u.comission_percentage,20) affiliate_comission_percentage,COALESCE(sc.sale_count,0) affiliate_sales_count,q.quote_number
          FROM sales s
          LEFT JOIN leads l ON l.id=s.lead_id
          LEFT JOIN products p ON p.id=s.product_id

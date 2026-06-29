@@ -1044,7 +1044,7 @@ export async function getDashboardSummary(
 
 export async function getProfile(session: MiddarSession) {
   const [rows] = await db.execute<RowDataPacket[]>(
-    `SELECT u.id, u.name, u.email, u.username, COALESCE(r.slug, 'affiliate') role, u.level, u.status,
+    `SELECT u.id, u.name, u.email, COALESCE(r.slug, 'affiliate') role, u.level, u.status,
             u.preferred_locale, u.phone, u.city, u.district, u.referral_code, u.landing_slug,
             u.license_type, u.license_status, u.license_file_url, u.skills_experience,
             u.skills_courses, u.skills_proof_files, u.joined_at, u.CompanyID AS company_id,

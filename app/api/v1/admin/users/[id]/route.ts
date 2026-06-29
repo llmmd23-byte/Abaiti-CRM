@@ -41,7 +41,7 @@ export async function PUT(request: Request, {params}: {params: Promise<{id: stri
   if (!result.affectedRows) return NextResponse.json({error: "NOT_FOUND"}, {status: 404});
 
   const [rows] = await db.execute<RowDataPacket[]>(
-    "SELECT u.id,u.name,u.email,u.username,u.phone,COALESCE(r.slug,'affiliate') role,u.status,u.is_active,u.created_at,u.last_login_at FROM users u LEFT JOIN roles r ON r.id=u.role_id WHERE u.id=? LIMIT 1",
+    "SELECT u.id,u.name,u.email,u.phone,COALESCE(r.slug,'affiliate') role,u.status,u.is_active,u.created_at,u.last_login_at FROM users u LEFT JOIN roles r ON r.id=u.role_id WHERE u.id=? LIMIT 1",
     [id]
   );
   return NextResponse.json({data: rows[0]});

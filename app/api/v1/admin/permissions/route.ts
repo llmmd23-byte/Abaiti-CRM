@@ -87,7 +87,7 @@ export async function GET() {
         ORDER BY subject_type, subject_id, permission_key`,
     ),
     db.execute<RowDataPacket[]>(
-      `SELECT u.id,u.name,u.email,u.username,COALESCE(r.slug,'affiliate') role,u.status,u.CompanyID AS company_id
+      `SELECT u.id,u.name,u.email,COALESCE(r.slug,'affiliate') role,u.status,u.CompanyID AS company_id
          FROM users u
          LEFT JOIN roles r ON r.id = u.role_id
         WHERE ${userWhere}

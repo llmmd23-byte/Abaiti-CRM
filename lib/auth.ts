@@ -16,7 +16,6 @@ interface UserRow extends RowDataPacket {
   id: number;
   name: string;
   email: string;
-  username: string | null;
   password_hash: string;
   role: UserRole;
   status: "active" | "inactive" | "pending" | "suspended";
@@ -51,14 +50,14 @@ async function verifyPassword(password: string, storedHash: string) {
 
 export async function authenticateUser(identifier: string, password: string) {
   const [rows] = await db.execute<UserRow[]>(
-    `SELECT u.id, u.name, u.email, u.username, u.password_hash,
+    `SELECT u.id, u.name, u.email, u.password_hash,
             COALESCE(r.slug, 'affiliate') AS role,
             u.status, u.is_active, u.preferred_locale
        FROM users u
        LEFT JOIN roles r ON r.id = u.role_id
-      WHERE LOWER(u.email) = LOWER(?) OR LOWER(u.username) = LOWER(?)
+      WHERE LOWER(u.email) = LOWER(?)
       LIMIT 1`,
-    [identifier, identifier]
+    [identifier]
   );
 
   const user = rows[0];

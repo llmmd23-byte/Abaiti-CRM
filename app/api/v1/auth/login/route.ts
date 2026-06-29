@@ -3,7 +3,7 @@ import {NextResponse} from "next/server";
 import {authenticateUser, createSession} from "@/lib/auth";
 
 export async function POST(request: Request) {
-  let body: {email?: string; username?: string; password?: string; remember?: boolean};
+  let body: {email?: string; password?: string; remember?: boolean};
 
   try {
     body = await request.json();
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({error: "INVALID_JSON"}, {status: 400});
   }
 
-  const identifier = String(body.email ?? body.username ?? "").trim();
+  const identifier = String(body.email ?? "").trim();
   const password = String(body.password ?? "");
   if (!identifier || !password) {
     return NextResponse.json({error: "EMAIL_AND_PASSWORD_REQUIRED"}, {status: 422});
@@ -24,7 +24,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     data: {
       userid: user.id,
-      username: user.username,
       name: user.name,
       email: user.email,
       role: user.role,
