@@ -558,7 +558,7 @@ function generatedReference(resource: string) {
 const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   products: ["name", "slug"],
   industries: ["name", "slug"],
-  leads: ["name"],
+  leads: ["company_name"],
   "lead-contacts": ["lead_id", "name"],
   "lead-notes": ["lead_id", "note"],
   "lead-tag-types": ["type_name"],
