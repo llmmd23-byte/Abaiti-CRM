@@ -1,6 +1,6 @@
 import DashboardHeaderBanner from "@/components/DashboardHeaderBanner";
 import DashboardShell from "@/components/DashboardShell";
-import {CommissionTable, MetricsGrid} from "@/components/DashboardSections";
+import { MetricsGrid, SalesTable } from "@/components/DashboardSections";
 
 export default function DashboardCommissionsPage() {
   return (
@@ -8,7 +8,7 @@ export default function DashboardCommissionsPage() {
       <DashboardHeaderBanner section="sales" />
       <MetricsGrid />
       <div className="w-full">
-        <CommissionTable expanded />
+        <SalesTable expanded />
       </div>
     </DashboardShell>
   );

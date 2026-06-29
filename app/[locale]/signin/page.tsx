@@ -3,10 +3,13 @@ import Image from "next/image";
 import StaticSignInForm from "@/components/StaticSignInForm";
 
 import {Link} from "@/i18n/navigation";
+import {setRequestLocale} from "next-intl/server";
 
 export default async function SignInPage({params}: {params: Promise<{locale: string}>}) {
 
   const {locale} = await params;
+
+  setRequestLocale(locale);
 
   const isArabic = locale === "ar";
 
@@ -20,7 +23,7 @@ export default async function SignInPage({params}: {params: Promise<{locale: str
 
         subtitle: "أدخل بيانات حسابك للوصول إلى لوحة التحكم وإدارة عملياتك.",
 
-        email: "البريد الإلكتروني",
+        email: "البريد الإلكتروني أو اسم المستخدم",
 
         emailPlaceholder: "name@company.com",
 
@@ -34,6 +37,8 @@ export default async function SignInPage({params}: {params: Promise<{locale: str
 
         submit: "تسجيل الدخول",
 
+        submitting: "جارٍ تسجيل الدخول...",
+
         back: "العودة إلى الصفحة الرئيسية"
 
       }
@@ -46,7 +51,7 @@ export default async function SignInPage({params}: {params: Promise<{locale: str
 
         subtitle: "Enter your account details to access the dashboard and manage your operations.",
 
-        email: "Email address",
+        email: "Email address or username",
 
         emailPlaceholder: "name@company.com",
 
@@ -59,6 +64,8 @@ export default async function SignInPage({params}: {params: Promise<{locale: str
         forgot: "Forgot password?",
 
         submit: "Sign in",
+
+        submitting: "Signing in...",
 
         back: "Back to home"
 

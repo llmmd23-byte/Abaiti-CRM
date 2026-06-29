@@ -1,7 +1,8 @@
 "use client";
 
-import type {FormEvent} from "react";
-import {useRouter} from "@/i18n/navigation";
+import {useActionState} from "react";
+
+import {signInAction} from "@/app/auth-actions";
 
 type SignInCopy = {
   email: string;
@@ -11,27 +12,24 @@ type SignInCopy = {
   remember: string;
   forgot: string;
   submit: string;
+  submitting: string;
 };
 
 export default function StaticSignInForm({copy, locale}: {copy: SignInCopy; locale: string}) {
-  const router = useRouter();
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    router.push("/dashboard", {locale});
-  }
+  const [state, formAction, pending] = useActionState(signInAction, {});
 
   return (
-    <form className="signin-form" onSubmit={handleSubmit}>
+    <form action={formAction} className="signin-form">
+      <input name="locale" type="hidden" value={locale} />
       <label>
         <span>{copy.email}</span>
         <input
-          autoComplete="email"
+          autoComplete="username"
           dir="ltr"
           name="email"
           placeholder={copy.emailPlaceholder}
           required
-          type="email"
+          type="text"
         />
       </label>
       <label>
@@ -53,7 +51,10 @@ export default function StaticSignInForm({copy, locale}: {copy: SignInCopy; loca
         <button className="signin-forgot" type="button">{copy.forgot}</button>
       </div>
 
-      <button className="signin-submit" type="submit">{copy.submit}</button>
+      {state.error ? <p className="signin-error" role="alert">{state.error}</p> : null}
+      <button className="signin-submit" disabled={pending} type="submit">
+        {pending ? copy.submitting : copy.submit}
+      </button>
     </form>
   );
 }

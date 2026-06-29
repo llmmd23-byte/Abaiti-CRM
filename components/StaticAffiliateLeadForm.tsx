@@ -1,9 +1,9 @@
 "use client";
 
-import type {FormEvent} from "react";
-import {useState} from "react";
+import {useActionState} from "react";
 import {useLocale, useTranslations} from "next-intl";
 import DashboardSelect from "@/components/DashboardSelect";
+import {captureAffiliateLead} from "@/app/actions";
 
 export default function StaticAffiliateLeadForm({
   affiliateId,
@@ -16,15 +16,10 @@ export default function StaticAffiliateLeadForm({
 }) {
   const t = useTranslations();
   const locale = useLocale();
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsSubmitted(true);
-  }
+  const [state, formAction, pending] = useActionState(captureAffiliateLead, {});
 
   return (
-    <form className="demo-form" onSubmit={handleSubmit}>
+    <form action={formAction} className="demo-form">
       <input name="affiliateUsername" type="hidden" value={affiliateUsername} />
       <input name="affiliateId" type="hidden" value={affiliateId} />
       <input name="locale" type="hidden" value={locale} />
@@ -56,11 +51,11 @@ export default function StaticAffiliateLeadForm({
         <span>{t("affiliatePage.message")}</span>
         <textarea name="message" placeholder={t("affiliatePage.messagePlaceholder")} />
       </label>
-      <button className="button button-form" type="submit">
-        {t("form.submit")}
+      <button className="button button-form" disabled={pending} type="submit">
+        {pending ? "..." : t("form.submit")}
       </button>
       <p>
-        {isSubmitted
+        {state.success
           ? t("affiliatePage.formTag", {affiliateName})
           : t("affiliatePage.crmNote", {affiliateId})}
       </p>

@@ -4,6 +4,8 @@ import {useLocale, useTranslations} from "next-intl";
 import {Link, usePathname} from "@/i18n/navigation";
 import Image from "next/image";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import {signOutAction} from "@/app/auth-actions";
+import {useEffect, useState} from "react";
 
 type DashboardSection =
   | "overview"
@@ -196,9 +198,39 @@ export default function DashboardShell({
   const locale = useLocale();
   const pathname = usePathname();
   const direction = locale === "ar" ? "rtl" : "ltr";
-  const accountOwnerName = locale === "ar" ? "\u0639\u0628\u062f \u0627\u0644\u0644\u0647 \u0627\u0644\u0634\u0631\u064a\u0643" : "Abdullah Partner";
+  const [currentUser, setCurrentUser] = useState<{name?: string; role?: string; level?: string; status?: string} | null>(null);
+  useEffect(() => {
+    const loadCurrentUser = () => {
+      fetch("/api/v1/auth/me", {cache: "no-store"})
+        .then((response) => response.ok ? response.json() : null)
+        .then((body) => setCurrentUser(body?.data ?? null))
+        .catch(() => setCurrentUser(null));
+    };
+    loadCurrentUser();
+    window.addEventListener("profile-updated", loadCurrentUser);
+    return () => window.removeEventListener("profile-updated", loadCurrentUser);
+  }, []);
+  const accountOwnerName = currentUser?.name ?? (locale === "ar" ? "حساب ميدار" : "Middar account");
   const activityLabel = locale === "ar" ? "\u0645\u0633\u062a\u0648\u0649 \u0627\u0644\u0646\u0634\u0627\u0637" : "Activity level";
-  const activityLevel = locale === "ar" ? "\u0645\u062d\u062a\u0631\u0641 \u0630\u0647\u0628\u064a" : "Gold Pro";
+  const activityLevel = currentUser?.role ?? (locale === "ar" ? "مستخدم" : "User");
+  const levelLabels: Record<string, {ar: string; en: string}> = {
+    "\u0645\u0628\u062a\u062f\u0626": {ar: "\u0645\u0628\u062a\u062f\u0626", en: "Beginner"},
+    "\u0646\u0634\u064a\u0637": {ar: "\u0646\u0634\u064a\u0637", en: "Active"},
+    "\u0645\u0646\u062c\u0632": {ar: "\u0645\u0646\u062c\u0632", en: "Achiever"},
+    "\u0645\u062d\u062a\u0631\u0641": {ar: "\u0645\u062d\u062a\u0631\u0641", en: "Professional"},
+    "\u0645\u062d\u062a\u0631\u0641 \u0641\u0636\u064a": {ar: "\u0645\u062d\u062a\u0631\u0641 \u0641\u0636\u064a", en: "Silver Professional"},
+    "\u0645\u062d\u062a\u0631\u0641 \u0630\u0647\u0628\u064a": {ar: "\u0645\u062d\u062a\u0631\u0641 \u0630\u0647\u0628\u064a", en: "Gold Professional"},
+    "\u0645\u062d\u062a\u0631\u0641 \u0645\u0627\u0633\u064a": {ar: "\u0645\u062d\u062a\u0631\u0641 \u0645\u0627\u0633\u064a", en: "Diamond Professional"}
+  };
+  const userLevel = currentUser?.level ?? "\u0645\u0628\u062a\u062f\u0626";
+  const displayedLevel = levelLabels[userLevel]?.[locale === "ar" ? "ar" : "en"] ?? userLevel;
+  const accountStatus = currentUser?.status ?? "inactive";
+  const accountStatusLabels: Record<string, string> = {
+    active: locale === "ar" ? "\u0646\u0634\u0637" : "Active",
+    inactive: locale === "ar" ? "\u063a\u064a\u0631 \u0646\u0634\u0637" : "Inactive",
+    pending: locale === "ar" ? "\u0642\u064a\u062f \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629" : "Pending",
+    suspended: locale === "ar" ? "\u0645\u0648\u0642\u0648\u0641" : "Suspended"
+  };
   const isItemActive = (item: NavItem) => {
     if (!pathname) {
       return active === item.key;
@@ -278,13 +310,13 @@ export default function DashboardShell({
               <strong className="sidebar-profile-name">{accountOwnerName}</strong>
               <div className="sidebar-profile-row">
                 <span>{activityLabel}</span>
-                <b>{activityLevel}</b>
+                <b>{displayedLevel}</b>
               </div>
               <div className="sidebar-profile-row sidebar-status-row">
                 <span>{t("dashboardPages.sidebar.accountStatus")}</span>
-                <strong>
+                <strong className={`account-status-${accountStatus}`}>
                   <i aria-hidden="true" />
-                  {t("dashboardPages.sidebar.active")}
+                  {accountStatusLabels[accountStatus] ?? accountStatus}
                 </strong>
               </div>
             </div>
@@ -295,10 +327,13 @@ export default function DashboardShell({
           </div>
 
           <div className="sidebar-session-actions">
-            <Link className="sidebar-logout-link" href="/signin">
-              <LogoutIcon />
-              {t("dashboardPages.sidebar.logout")}
-            </Link>
+            <form action={signOutAction}>
+              <input name="locale" type="hidden" value={locale} />
+              <button className="sidebar-logout-link" type="submit">
+                <LogoutIcon />
+                {t("dashboardPages.sidebar.logout")}
+              </button>
+            </form>
           </div>
         </div>
       </aside>

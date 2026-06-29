@@ -3,13 +3,17 @@ import Image from "next/image";
 import LandingPointerGlow from "@/components/LandingPointerGlow";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {Link} from "@/i18n/navigation";
+import {registerAffiliate} from "@/app/actions";
 
 export default async function HomePage({
-  params
+  params,
+  searchParams
 }: {
   params: Promise<{locale: string}>;
+  searchParams: Promise<{registration?: string}>;
 }) {
   const {locale} = await params;
+  const {registration} = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations();
 
@@ -62,30 +66,38 @@ export default async function HomePage({
               <span>{t("form.recommended")}</span>
             </div>
             <h2>{t("form.title")}</h2>
-            <form className="demo-form">
+            <form action={registerAffiliate} className="demo-form">
+              <input name="locale" type="hidden" value={locale} />
               <label>
                 <span>{t("form.name")}</span>
-                <input type="text" placeholder={t("form.namePlaceholder")} />
+                <input name="name" required type="text" placeholder={t("form.namePlaceholder")} />
               </label>
               <label>
                 <span>{t("form.email")}</span>
-                <input type="email" placeholder="name@company.com" />
+                <input name="email" required type="email" placeholder="name@company.com" />
               </label>
               <label>
                 <span>{t("form.phone")}</span>
-                <input type="tel" placeholder="+966 5X XXX XXXX" />
+                <input name="phone" type="tel" placeholder="+966 5X XXX XXXX" />
               </label>
               <label>
                 <span>{t("form.password")}</span>
-                <input type="password" placeholder={t("form.passwordPlaceholder")} />
+                <input minLength={6} name="password" required type="password" placeholder={t("form.passwordPlaceholder")} />
               </label>
               <label>
                 <span>{t("form.confirmPassword")}</span>
-                <input type="password" placeholder={t("form.confirmPasswordPlaceholder")} />
+                <input minLength={6} name="confirmPassword" required type="password" placeholder={t("form.confirmPasswordPlaceholder")} />
               </label>
-              <button className="button button-form" type="button">
+              <button className="button button-form" type="submit">
                 {t("form.submit")}
               </button>
+              {registration === "pending" ? (
+                <p className="registration-message success" role="status">
+                  {locale === "ar"
+                    ? "\u062a\u0645 \u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0627\u0644\u0627\u0646\u0636\u0645\u0627\u0645. \u0627\u0644\u062d\u0633\u0627\u0628 \u0642\u064a\u062f \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629."
+                    : "Your join request was submitted. The account is pending approval."}
+                </p>
+              ) : null}
               <p>{t("form.note")}</p>
             </form>
           </aside>

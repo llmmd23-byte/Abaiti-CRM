@@ -1,10 +1,46 @@
-"use client";
+﻿"use client";
 
 import {useLocale} from "next-intl";
-import {useState} from "react";
+import {usePathname, useRouter} from "next/navigation";
+import {useEffect, useState} from "react";
 import DashboardSelect from "@/components/DashboardSelect";
+import {createBackend, saveSocialAccountsBackend, updateProfileBackend, useBackend} from "@/lib/client-backend";
 
-type SettingsTab = "profile" | "skills" | "host" | "payout" | "notifications" | "security";
+type SettingsTab = "profile" | "skills" | "host" | "social" | "payout" | "notifications" | "security";
+const NUMBER_LOCALE = "en-US";
+
+type PayoutMethod = {
+  id: number;
+  bank_name: string;
+  account_holder_name: string;
+  iban: string;
+  minimum_payout_amount: number | string;
+  currency: string;
+  is_default: number | boolean;
+};
+
+type NotificationSettings = {
+  email_new_lead: number;
+  email_quote_opened: number;
+  email_commission_approved: number;
+  payout_status_updates: number;
+};
+
+const defaultNotificationSettings: NotificationSettings = {
+  email_new_lead: 1,
+  email_quote_opened: 1,
+  email_commission_approved: 1,
+  payout_status_updates: 0,
+};
+
+const emptyPayoutDraft = {
+  bank_name: "",
+  account_holder_name: "",
+  iban: "",
+  minimum_payout_amount: "500",
+  currency: "SAR",
+  is_default: false
+};
 
 const content = {
   en: {
@@ -12,6 +48,7 @@ const content = {
       profile: "Profile & Branding",
       skills: "Skills",
       host: "Host",
+      social: "Social Media Accounts",
       payout: "Payout & Financial",
       notifications: "Notifications",
       security: "Security & Preferences"
@@ -128,6 +165,7 @@ const cleanArabicContent: typeof content.en = {
     profile: "\u0627\u0644\u062d\u0633\u0627\u0628 \u0648\u0627\u0644\u0647\u0648\u064a\u0629",
     skills: "\u0627\u0644\u0645\u0647\u0627\u0631\u0627\u062a",
     host: "\u0627\u0644\u0645\u0633\u062a\u0636\u064a\u0641",
+    social: "\u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u062a\u0648\u0627\u0635\u0644 \u0627\u0644\u0627\u062c\u062a\u0645\u0627\u0639\u064a",
     payout: "\u0627\u0644\u0645\u0627\u0644\u064a\u0629 \u0648\u0627\u0644\u0635\u0631\u0641",
     notifications: "\u0627\u0644\u062a\u0646\u0628\u064a\u0647\u0627\u062a",
     security: "\u0627\u0644\u0623\u0645\u0627\u0646 \u0648\u0627\u0644\u062e\u064a\u0627\u0631\u0627\u062a"
@@ -186,17 +224,25 @@ const cleanArabicContent: typeof content.en = {
   }
 };
 
-function Toggle({label, defaultChecked = true}: {label: string; defaultChecked?: boolean}) {
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
   return (
     <label className="settings-toggle-row">
       <span>{label}</span>
-      <input type="checkbox" defaultChecked={defaultChecked} />
+      <input checked={checked} onChange={(event) => onChange(event.target.checked)} type="checkbox" />
       <i aria-hidden="true" />
     </label>
   );
 }
 
-function SocialFieldIcon({name}: {name: "tiktok" | "snapchat" | "x" | "facebook" | "linkedin"}) {
+function SocialFieldIcon({name}: {name: "tiktok" | "snapchat" | "x" | "facebook" | "instagram" | "linkedin"}) {
   return (
     <span className={`settings-social-icon ${name}`} aria-hidden="true">
       {name === "tiktok" ? (
@@ -215,6 +261,10 @@ function SocialFieldIcon({name}: {name: "tiktok" | "snapchat" | "x" | "facebook"
         <svg viewBox="0 0 24 24">
           <path d="M14.3 8.2V6.5c0-.8.4-1.2 1.3-1.2h1.5V2.7a21 21 0 0 0-2.4-.1c-2.4 0-4 1.5-4 4.1v1.5H8v3h2.7v8.2h3.6v-8.2h2.4l.4-3h-2.8Z" />
         </svg>
+      ) : name === "instagram" ? (
+        <svg viewBox="0 0 24 24">
+          <path d="M7.2 2.8h9.6a4.4 4.4 0 0 1 4.4 4.4v9.6a4.4 4.4 0 0 1-4.4 4.4H7.2a4.4 4.4 0 0 1-4.4-4.4V7.2a4.4 4.4 0 0 1 4.4-4.4Zm0 2A2.4 2.4 0 0 0 4.8 7.2v9.6a2.4 2.4 0 0 0 2.4 2.4h9.6a2.4 2.4 0 0 0 2.4-2.4V7.2a2.4 2.4 0 0 0-2.4-2.4H7.2Zm10.3 1.5a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4ZM12 7.4a4.6 4.6 0 1 1 0 9.2 4.6 4.6 0 0 1 0-9.2Zm0 2a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2Z" />
+        </svg>
       ) : (
         <svg viewBox="0 0 24 24">
           <path d="M5 8.8h3.2V20H5V8.8Zm1.6-5.5a1.9 1.9 0 1 1 0 3.8 1.9 1.9 0 0 1 0-3.8ZM10.4 8.8h3.1v1.5h.1c.4-.8 1.5-1.8 3-1.8 3.2 0 3.8 2.1 3.8 4.9V20h-3.2v-5.8c0-1.4 0-3.1-1.9-3.1s-2.2 1.5-2.2 3V20h-3.2V8.8Z" />
@@ -224,14 +274,278 @@ function SocialFieldIcon({name}: {name: "tiktok" | "snapchat" | "x" | "facebook"
   );
 }
 
-const settingsTabOrder: SettingsTab[] = ["profile", "skills", "host", "payout", "notifications", "security"];
+const settingsTabOrder: SettingsTab[] = ["profile", "skills", "host", "social", "payout", "notifications", "security"];
 
 export default function SettingsDashboard() {
   const locale = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
   const isArabic = locale === "ar";
   const copy = isArabic ? cleanArabicContent : content.en;
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [skillProofs, setSkillProofs] = useState<Array<{name: string; url: string}>>([]);
+  const [skillsDraft, setSkillsDraft] = useState({skills_experience: "", skills_courses: ""});
+  const [skillsStatus, setSkillsStatus] = useState("");
+  const profile = useBackend<Record<string, unknown> & {id: number}>("/api/v1/profile");
+  const team = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/team-members");
+  const socialAccounts = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/profile/social-accounts");
+  const payoutMethods = useBackend<PayoutMethod[]>("/api/v1/profile/payout-methods");
+  const notificationSettings = useBackend<NotificationSettings>("/api/v1/profile/notification-settings");
+  const [profileDraft, setProfileDraft] = useState({name: "", phone: "", city: "", district: "", referral_code: "", company_id: "", landing_slug: "", license_type: "none"});
+  const [profileStatus, setProfileStatus] = useState("");
+  const [licenseUploadStatus, setLicenseUploadStatus] = useState("");
+  const [socialDraft, setSocialDraft] = useState<Record<string, string>>({tiktok: "", snapchat: "", x: "", facebook: "", instagram: "", linkedin: ""});
+  const [socialStatus, setSocialStatus] = useState("");
+  const [payoutDraft, setPayoutDraft] = useState(emptyPayoutDraft);
+  const [editingPayoutId, setEditingPayoutId] = useState<number | null>(null);
+  const [showPayoutForm, setShowPayoutForm] = useState(false);
+  const [payoutStatus, setPayoutStatus] = useState("");
+  const [teamName, setTeamName] = useState("");
+  const [teamPhone, setTeamPhone] = useState("");
+  const [showTeamMemberModal, setShowTeamMemberModal] = useState(false);
+  const [newTeamMember, setNewTeamMember] = useState({name: "", phone: ""});
+  const [teamMemberStatus, setTeamMemberStatus] = useState("");
+  const [passwordDraft, setPasswordDraft] = useState({current: "", next: "", confirm: ""});
+  const [preferredLocale, setPreferredLocale] = useState(locale);
+  const [securityStatus, setSecurityStatus] = useState("");
+  const [notificationDraft, setNotificationDraft] = useState<NotificationSettings>(defaultNotificationSettings);
+  const [notificationStatus, setNotificationStatus] = useState("");
+  useEffect(() => {
+    if (!profile.data) return;
+    setProfileDraft({
+      name: String(profile.data.name ?? ""),
+      phone: String(profile.data.phone ?? ""),
+      city: String(profile.data.city ?? ""),
+      district: String(profile.data.district ?? ""),
+      referral_code: String(profile.data.referral_code ?? ""),
+      company_id: String(profile.data.company_id ?? ""),
+      landing_slug: String(profile.data.landing_slug ?? ""),
+      license_type: String(profile.data.license_type ?? "none")
+    });
+    setSkillsDraft({
+      skills_experience: String(profile.data.skills_experience ?? ""),
+      skills_courses: String(profile.data.skills_courses ?? "")
+    });
+    try {
+      const storedProofs = JSON.parse(String(profile.data.skills_proof_files ?? "[]"));
+      setSkillProofs(Array.isArray(storedProofs)
+        ? storedProofs.filter((url): url is string => typeof url === "string").map((url, index) => ({name: `Skill proof ${index + 1}`, url}))
+        : []);
+    } catch {
+      setSkillProofs([]);
+    }
+    setTeamName(String(profile.data.host_name ?? ""));
+    setTeamPhone(String(profile.data.host_phone ?? ""));
+    setPreferredLocale(String(profile.data.preferred_locale ?? locale) === "en" ? "en" : "ar");
+  }, [profile.data]);
+  useEffect(() => {
+    if (!socialAccounts.data) return;
+    const values: Record<string, string> = {tiktok: "", snapchat: "", x: "", facebook: "", instagram: "", linkedin: ""};
+    socialAccounts.data.forEach((account) => {
+      const platform = String(account.platform ?? "");
+      if (platform in values) values[platform] = String(account.url ?? account.handle ?? "");
+    });
+    setSocialDraft(values);
+  }, [socialAccounts.data]);
+  useEffect(() => {
+    if (!notificationSettings.data) return;
+    setNotificationDraft({
+      email_new_lead: Number(notificationSettings.data.email_new_lead) ? 1 : 0,
+      email_quote_opened: Number(notificationSettings.data.email_quote_opened) ? 1 : 0,
+      email_commission_approved: Number(notificationSettings.data.email_commission_approved) ? 1 : 0,
+      payout_status_updates: Number(notificationSettings.data.payout_status_updates) ? 1 : 0,
+    });
+  }, [notificationSettings.data]);
+  async function saveProfile() {
+    setProfileStatus("Saving…");
+    try {
+      await updateProfileBackend(profileDraft);
+      setProfileStatus("Saved");
+      await profile.reload();
+      window.dispatchEvent(new Event("profile-updated"));
+    } catch {
+      setProfileStatus("Failed");
+    }
+  }
+  async function saveSecurityPreferences() {
+    const hasPasswordChange = Boolean(
+      passwordDraft.current || passwordDraft.next || passwordDraft.confirm,
+    );
+    if (hasPasswordChange) {
+      if (!passwordDraft.current || !passwordDraft.next || !passwordDraft.confirm) {
+        setSecurityStatus(isArabic ? "\u0623\u062f\u062e\u0644 \u062c\u0645\u064a\u0639 \u062d\u0642\u0648\u0644 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631" : "Complete all password fields");
+        return;
+      }
+      if (passwordDraft.next !== passwordDraft.confirm) {
+        setSecurityStatus(isArabic ? "\u0643\u0644\u0645\u062a\u0627 \u0627\u0644\u0645\u0631\u0648\u0631 \u063a\u064a\u0631 \u0645\u062a\u0637\u0627\u0628\u0642\u062a\u064a\u0646" : "New passwords do not match");
+        return;
+      }
+    }
+
+    setSecurityStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638..." : "Saving...");
+    try {
+      if (hasPasswordChange) {
+        const response = await fetch("/api/v1/profile/password", {
+          method: "PUT",
+          headers: {"Content-Type": "application/json; charset=utf-8"},
+          body: JSON.stringify({
+            currentPassword: passwordDraft.current,
+            newPassword: passwordDraft.next,
+          }),
+        });
+        const body = await response.json();
+        if (!response.ok) {
+          throw new Error(String(body.error ?? "PASSWORD_UPDATE_FAILED"));
+        }
+      }
+
+      await updateProfileBackend({preferred_locale: preferredLocale});
+      await profile.reload();
+      setPasswordDraft({current: "", next: "", confirm: ""});
+      setSecurityStatus(isArabic ? "\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u062e\u064a\u0627\u0631\u0627\u062a" : "Preferences saved");
+
+      if (preferredLocale !== locale) {
+        const nextPath = pathname.replace(/^\/(ar|en)(?=\/|$)/, `/${preferredLocale}`);
+        router.replace(nextPath);
+        router.refresh();
+      }
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      setSecurityStatus(
+        code === "CURRENT_PASSWORD_INCORRECT"
+          ? isArabic
+            ? "\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u0627\u0644\u062d\u0627\u0644\u064a\u0629 \u063a\u064a\u0631 \u0635\u062d\u064a\u062d\u0629"
+            : "Current password is incorrect"
+          : isArabic
+            ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u0627\u0644\u062e\u064a\u0627\u0631\u0627\u062a"
+            : "Unable to save preferences",
+      );
+    }
+  }
+  async function saveNotificationSettings() {
+    setNotificationStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638..." : "Saving...");
+    try {
+      const response = await fetch("/api/v1/profile/notification-settings", {
+        method: "PUT",
+        headers: {"Content-Type": "application/json; charset=utf-8"},
+        body: JSON.stringify(notificationDraft),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(String(body.error ?? "SAVE_FAILED"));
+      await notificationSettings.reload();
+      setNotificationStatus(isArabic ? "\u062a\u0645 \u062d\u0641\u0638 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u062a\u0646\u0628\u064a\u0647\u0627\u062a" : "Notification settings saved");
+    } catch {
+      setNotificationStatus(isArabic ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0627\u0644\u062a\u0646\u0628\u064a\u0647\u0627\u062a" : "Unable to save notification settings");
+    }
+  }
+  async function uploadLicenseFile(file: File | undefined) {
+    if (!file) return;
+    setLicenseUploadStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u0631\u0641\u0639..." : "Uploading...");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/v1/profile/license-file", {method: "POST", body: formData});
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "UPLOAD_FAILED");
+      setLicenseUploadStatus(isArabic ? "\u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u0645\u0644\u0641" : "File uploaded");
+      await profile.reload();
+    } catch {
+      setLicenseUploadStatus(isArabic ? "\u062a\u0639\u0630\u0631 \u0631\u0641\u0639 \u0627\u0644\u0645\u0644\u0641" : "Upload failed");
+    }
+  }
+  useEffect(() => {
+    if (!showTeamMemberModal) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowTeamMemberModal(false);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [showTeamMemberModal]);
+  async function addTeamMember() {
+    if (!newTeamMember.name.trim() || !newTeamMember.phone.trim()) {
+      setTeamMemberStatus(isArabic ? "\u0627\u0644\u0627\u0633\u0645 \u0648\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644 \u0645\u0637\u0644\u0648\u0628\u0627\u0646" : "Member name and mobile number are required");
+      return;
+    }
+    setTeamMemberStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u0625\u0636\u0627\u0641\u0629..." : "Adding...");
+    try {
+      await createBackend("team-members", {name: newTeamMember.name.trim(), phone: newTeamMember.phone.trim(), status: "inactive"});
+      setNewTeamMember({name: "", phone: ""});
+      setTeamMemberStatus("");
+      setShowTeamMemberModal(false);
+      await team.reload();
+    } catch (error) {
+      const duplicatePhone = error instanceof Error && error.message === "DUPLICATE_PHONE";
+      setTeamMemberStatus(duplicatePhone
+        ? (isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644 \u0645\u0633\u062c\u0644 \u0645\u0633\u0628\u0642\u0627\u064b" : "This mobile number is already registered")
+        : (isArabic ? "\u062a\u0639\u0630\u0631\u062a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0639\u0636\u0648" : "Unable to add member"));
+    }
+  }
+  async function saveSocialAccounts() {
+    setSocialStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638..." : "Saving...");
+    try {
+      await saveSocialAccountsBackend(socialDraft);
+      setSocialStatus(isArabic ? "\u062a\u0645 \u0627\u0644\u062d\u0641\u0638" : "Saved");
+      await socialAccounts.reload();
+    } catch {
+      setSocialStatus(isArabic ? "\u062a\u0639\u0630\u0631 \u0627\u0644\u062d\u0641\u0638" : "Save failed");
+    }
+  }
+  function editPayoutMethod(method: PayoutMethod) {
+    setShowPayoutForm(true);
+    setEditingPayoutId(method.id);
+    setPayoutDraft({
+      bank_name: String(method.bank_name ?? ""),
+      account_holder_name: String(method.account_holder_name ?? ""),
+      iban: String(method.iban ?? ""),
+      minimum_payout_amount: String(method.minimum_payout_amount ?? "500"),
+      currency: String(method.currency ?? "SAR"),
+      is_default: Boolean(Number(method.is_default))
+    });
+    setPayoutStatus("");
+  }
+  function resetPayoutForm() {
+    setShowPayoutForm(false);
+    setEditingPayoutId(null);
+    setPayoutDraft(emptyPayoutDraft);
+  }
+  function addAnotherPayoutMethod() {
+    setEditingPayoutId(null);
+    setPayoutDraft(emptyPayoutDraft);
+    setPayoutStatus("");
+    setShowPayoutForm(true);
+  }
+  async function savePayoutMethod() {
+    setPayoutStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638..." : "Saving...");
+    try {
+      const path = editingPayoutId
+        ? `/api/v1/profile/payout-methods/${editingPayoutId}`
+        : "/api/v1/profile/payout-methods";
+      const response = await fetch(path, {
+        method: editingPayoutId ? "PUT" : "POST",
+        headers: {"Content-Type": "application/json; charset=utf-8"},
+        body: JSON.stringify(payoutDraft)
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "SAVE_FAILED");
+      setPayoutStatus(isArabic ? "\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u0628\u0646\u0643\u064a" : "Bank account saved");
+      resetPayoutForm();
+      await payoutMethods.reload();
+    } catch {
+      setPayoutStatus(isArabic ? "\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0628\u0646\u0643\u064a\u0629" : "Check the bank account details");
+    }
+  }
+  async function removePayoutMethod(id: number) {
+    setPayoutStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0630\u0641..." : "Removing...");
+    try {
+      const response = await fetch(`/api/v1/profile/payout-methods/${id}`, {method: "DELETE"});
+      if (!response.ok) throw new Error("DELETE_FAILED");
+      if (editingPayoutId === id) resetPayoutForm();
+      setPayoutStatus(isArabic ? "\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062d\u0633\u0627\u0628" : "Bank account removed");
+      await payoutMethods.reload();
+    } catch {
+      setPayoutStatus(isArabic ? "\u062a\u0639\u0630\u0631 \u062d\u0630\u0641 \u0627\u0644\u062d\u0633\u0627\u0628" : "Unable to remove account");
+    }
+  }
   const getTabLabel = (tab: SettingsTab) => {
     if (tab === "skills") {
       return isArabic ? "\u0627\u0644\u0645\u0647\u0627\u0631\u0627\u062a" : "Skills";
@@ -239,6 +553,10 @@ export default function SettingsDashboard() {
 
     if (tab === "host") {
       return isArabic ? "\u0627\u0644\u0641\u0631\u064a\u0642" : "Team";
+    }
+
+    if (tab === "social") {
+      return isArabic ? "\u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u062a\u0648\u0627\u0635\u0644 \u0627\u0644\u0627\u062c\u062a\u0645\u0627\u0639\u064a" : "Social Media Accounts";
     }
 
     return copy.tabs[tab];
@@ -251,10 +569,18 @@ export default function SettingsDashboard() {
     district: isArabic ? "\u0627\u0644\u062d\u064a" : content.en.profile.district,
     joinedAt: isArabic ? "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0627\u0646\u0636\u0645\u0627\u0645" : content.en.profile.joinedAt,
     referralCode: isArabic ? "\u0631\u0645\u0632 \u0627\u0644\u0625\u062d\u0627\u0644\u0629 \u0644\u0644\u0645\u0633\u0648\u0642" : content.en.profile.referralCode,
+    companyId: isArabic ? "\u0631\u0645\u0632 \u0634\u0631\u0643\u0629 \u0627\u0644\u0645\u0633\u0648\u0642" : "Marketer Company ID",
     license: isArabic ? "\u0647\u0644 \u062a\u0645\u0644\u0643 \u0631\u062e\u0635\u0629 \u062a\u0633\u0648\u064a\u0642" : content.en.profile.license,
+    licenseNone: isArabic ? "\u0644\u0627 \u0623\u0645\u0644\u0643 \u0631\u062e\u0635\u0629" : "No license",
     licenseVerified: isArabic ? "\u0645\u0648\u062b\u0642" : content.en.profile.licenseVerified,
     licenseEcommerce: isArabic ? "\u0631\u062e\u0635\u0629 \u062a\u0633\u0648\u064a\u0642 \u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a" : content.en.profile.licenseEcommerce,
     licenseFal: isArabic ? "\u0631\u062e\u0635\u0629 \u0641\u0627\u0644" : content.en.profile.licenseFal
+  };
+  const licenseStatus = String(profile.data?.license_status ?? "pending");
+  const licenseStatusLabels: Record<string, string> = {
+    pending: isArabic ? "\u0642\u064a\u062f \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629" : "Pending review",
+    verified: isArabic ? "\u0645\u0648\u062b\u0642\u0629" : "Verified",
+    rejected: isArabic ? "\u0645\u0631\u0641\u0648\u0636\u0629" : "Rejected"
   };
   const skillsCopy = {
     title: isArabic ? "\u0627\u0644\u0645\u0647\u0627\u0631\u0627\u062a" : "Skills",
@@ -280,22 +606,49 @@ export default function SettingsDashboard() {
     pending: isArabic ? "\u0645\u0639\u0644\u0642" : "Pending",
     save: isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u0639\u0636\u0648" : "Add Member"
   };
-  const teamMembers = [
-    {name: isArabic ? "\u0639\u0628\u062f\u0627\u0644\u0644\u0647 \u0627\u0644\u0634\u0631\u064a\u0643" : "Abdullah Partner", phone: "+966 55 000 1244", status: hostCopy.active, statusClass: "paid"},
-    {name: isArabic ? "\u0646\u0648\u0631\u0629 \u0627\u0644\u063a\u0627\u0645\u062f\u064a" : "Noura Alghamdi", phone: "+966 54 882 1900", status: hostCopy.active, statusClass: "paid"},
-    {name: isArabic ? "\u0633\u0627\u0631\u0629 \u0627\u0644\u0639\u062a\u064a\u0628\u064a" : "Sarah Alotaibi", phone: "+966 50 431 7721", status: hostCopy.pending, statusClass: "pending"}
-  ];
+  const teamMembers = (team.data ?? []).map((member) => {
+    const status = String(member.status ?? "active");
+    const labels: Record<string, {ar: string; en: string}> = {
+      active: {ar: "\u0646\u0634\u0637", en: "Active"},
+      pending: {ar: "\u0642\u064a\u062f \u0627\u0644\u0627\u0646\u062a\u0638\u0627\u0631", en: "Pending"},
+      inactive: {ar: "\u063a\u064a\u0631 \u0646\u0634\u0637", en: "Inactive"}
+    };
+    return {
+      name: String(member.name ?? "—"),
+      phone: String(member.phone ?? "—"),
+      status: labels[status]?.[isArabic ? "ar" : "en"] ?? status,
+      statusClass: status
+    };
+  });
 
-  function handleSkillProofUpload(files: FileList | null) {
-    if (!files) {
-      return;
+  async function saveSkills() {
+    setSkillsStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638..." : "Saving...");
+    try {
+      await updateProfileBackend(skillsDraft);
+      setSkillsStatus(isArabic ? "\u062a\u0645 \u0627\u0644\u062d\u0641\u0638" : "Saved");
+      await profile.reload();
+    } catch {
+      setSkillsStatus(isArabic ? "\u062a\u0639\u0630\u0631 \u0627\u0644\u062d\u0641\u0638" : "Save failed");
     }
+  }
 
-    const images = Array.from(files)
-      .filter((file) => file.type.startsWith("image/"))
-      .map((file) => ({name: file.name, url: URL.createObjectURL(file)}));
-
-    setSkillProofs((current) => [...current, ...images].slice(0, 8));
+  async function handleSkillProofUpload(files: FileList | null) {
+    if (!files?.length) return;
+    setSkillsStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631..." : "Uploading images...");
+    try {
+      const formData = new FormData();
+      Array.from(files).forEach((file) => formData.append("files", file));
+      const response = await fetch("/api/v1/profile/skill-proofs", {method: "POST", body: formData});
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "UPLOAD_FAILED");
+      setSkillsStatus(isArabic ? "\u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631" : "Images uploaded");
+      const storedProofs: unknown = JSON.parse(String(body.data?.skills_proof_files ?? "[]"));
+      setSkillProofs(Array.isArray(storedProofs)
+        ? storedProofs.filter((url): url is string => typeof url === "string").map((url, index) => ({name: `Skill proof ${index + 1}`, url}))
+        : []);
+    } catch {
+      setSkillsStatus(isArabic ? "\u062a\u0639\u0630\u0631 \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631" : "Image upload failed");
+    }
   }
 
   return (
@@ -327,79 +680,105 @@ export default function SettingsDashboard() {
                 <legend>{copy.profile.personal}</legend>
                 <label>
                   <span>{profileFields.fullName}</span>
-                  <input defaultValue={isArabic ? "عبد الله الشريك" : "Abdullah Partner"} />
+                  <input onChange={(event) => setProfileDraft((current) => ({...current, name: event.target.value}))} value={profileDraft.name} />
                 </label>
                 <label>
                   <span>{profileFields.email}</span>
-                  <input defaultValue="partner@middar.com" type="email" />
+                  <input readOnly value={String(profile.data?.email ?? "")} type="email" />
                 </label>
                 <label>
                   <span>{profileFields.phone}</span>
-                  <input defaultValue="+966 55 000 1244" type="tel" />
+                  <input onChange={(event) => setProfileDraft((current) => ({...current, phone: event.target.value}))} value={profileDraft.phone} type="tel" />
                 </label>
                 <label>
                   <span>{profileFields.city}</span>
-                  <input defaultValue={isArabic ? "\u0627\u0644\u0631\u064a\u0627\u0636" : "Riyadh"} />
+                  <input onChange={(event) => setProfileDraft((current) => ({...current, city: event.target.value}))} value={profileDraft.city} />
                 </label>
                 <label>
                   <span>{profileFields.district}</span>
-                  <input defaultValue={isArabic ? "\u062d\u064a \u0627\u0644\u0645\u0644\u0642\u0627" : "Al Malqa"} />
+                  <input onChange={(event) => setProfileDraft((current) => ({...current, district: event.target.value}))} value={profileDraft.district} />
                 </label>
                 <label>
                   <span>{profileFields.joinedAt}</span>
-                  <input disabled readOnly value="2026-06-13" />
+                  <input disabled readOnly value={String(profile.data?.joined_at ?? "").slice(0, 10)} />
                 </label>
                 <label>
                   <span>{profileFields.referralCode}</span>
-                  <input defaultValue="btz-1942" pattern="[A-Za-z0-9-]+" placeholder="btz-1942" />
+                  <input onChange={(event) => setProfileDraft((current) => ({...current, referral_code: event.target.value}))} value={profileDraft.referral_code} pattern="[A-Za-z0-9-]+" placeholder="btz-1942" />
                 </label>
                 <label>
-                  <span>{profileFields.license}</span>
-                  <DashboardSelect
-                    ariaLabel={profileFields.license}
-                    defaultValue={profileFields.licenseVerified}
-                    options={[
-                      profileFields.licenseVerified,
-                      profileFields.licenseEcommerce,
-                      profileFields.licenseFal
-                    ].map((option) => ({label: option, value: option}))}
+                  <span>{profileFields.companyId}</span>
+                  <input
+                    inputMode="numeric"
+                    min="1"
+                    onChange={(event) => setProfileDraft((current) => ({...current, company_id: event.target.value.replace(/\D/g, "")}))}
+                    placeholder="1001"
+                    type="text"
+                    value={profileDraft.company_id}
                   />
                 </label>
-              </fieldset>
-              <fieldset className="settings-social-fields">
-                <legend>{isArabic ? "\u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627" : "Social Media Accounts"}</legend>
-                {[
-                  {key: "tiktok", label: isArabic ? "\u062a\u064a\u0643 \u062a\u0648\u0643" : "TikTok", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"},
-                  {key: "snapchat", label: isArabic ? "\u0633\u0646\u0627\u0628 \u0634\u0627\u062a" : "Snapchat", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"},
-                  {key: "x", label: isArabic ? "\u062a\u0648\u064a\u062a\u0631" : "X / Twitter", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"},
-                  {key: "facebook", label: isArabic ? "\u0641\u064a\u0633 \u0628\u0648\u0643" : "Facebook", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"},
-                  {key: "linkedin", label: isArabic ? "\u0644\u064a\u0646\u0643\u062f\u0646" : "LinkedIn", placeholder: isArabic ? "username@ \u0623\u0648 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628" : "username@ or profile link"}
-                ].map((field) => (
-                  <label key={field.key}>
-                    <span>{field.label}</span>
-                    <div className="settings-social-input">
-                      <SocialFieldIcon name={field.key as "tiktok" | "snapchat" | "x" | "facebook" | "linkedin"} />
-                      <input placeholder={field.placeholder} />
-                    </div>
+                <div className={`settings-license-row ${profileDraft.license_type === "none" ? "no-license" : ""}`}>
+                  <label>
+                    <span>{profileFields.license}</span>
+                    <DashboardSelect
+                      ariaLabel={profileFields.license}
+                      onValueChange={(value) => setProfileDraft((current) => ({...current, license_type: value}))}
+                      options={[
+                        {label: profileFields.licenseNone, value: "none"},
+                        {label: profileFields.licenseVerified, value: "verified"},
+                        {label: profileFields.licenseEcommerce, value: "e_marketing"},
+                        {label: profileFields.licenseFal, value: "fal"}
+                      ]}
+                      value={profileDraft.license_type}
+                    />
                   </label>
-                ))}
+                  {profileDraft.license_type !== "none" ? (
+                    <div className="settings-license-status-field">
+                      <span>{isArabic ? "\u062d\u0627\u0644\u0629 \u0627\u0644\u0631\u062e\u0635\u0629" : "License Status"}</span>
+                      <span className={`settings-license-status ${licenseStatus}`}>
+                        <i aria-hidden="true" />
+                        {licenseStatusLabels[licenseStatus] ?? licenseStatus}
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
+                {profileDraft.license_type !== "none" ? (
+                  <div className="settings-license-upload-wrap">
+                    <label className="settings-license-upload">
+                      <input
+                        accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx"
+                        onChange={(event) => void uploadLicenseFile(event.target.files?.[0])}
+                        type="file"
+                      />
+                      <strong>{isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u0635\u0648\u0631\u0629 \u0623\u0648 \u0645\u0644\u0641 \u0627\u0644\u0631\u062e\u0635\u0629" : "Add license image or document"}</strong>
+                      <span>{isArabic ? "PDF \u0623\u0648 Word \u0623\u0648 \u0635\u0648\u0631\u0629 - \u062d\u062a\u0649 10 MB" : "Image, PDF, or Word file - up to 10 MB"}</span>
+                    </label>
+                    {profile.data?.license_file_url ? (
+                      <a className="settings-license-file-link" href={String(profile.data.license_file_url)} rel="noreferrer" target="_blank">
+                        {isArabic ? "\u0639\u0631\u0636 \u0645\u0644\u0641 \u0627\u0644\u0631\u062e\u0635\u0629" : "View license file"}
+                      </a>
+                    ) : null}
+                    {licenseUploadStatus ? <small>{licenseUploadStatus}</small> : null}
+                  </div>
+                ) : null}
               </fieldset>
               <fieldset>
                 <legend>{copy.profile.link}</legend>
                 <label>
                   <span>{copy.profile.slug}</span>
-                  <input defaultValue="abdullah-growth" />
+                  <input onChange={(event) => setProfileDraft((current) => ({...current, landing_slug: event.target.value}))} value={profileDraft.landing_slug} />
                 </label>
                 <label>
                   <span>{copy.profile.url}</span>
                   <div className="copy-link-control">
-                    <input readOnly value="https://middar.com/p/abdullah-growth" />
+                    <input readOnly value={`https://middar.com/p/${profileDraft.landing_slug || "profile"}`} />
                     <button type="button">{copy.profile.copy}</button>
                   </div>
                 </label>
               </fieldset>
             </div>
-            <button className="settings-save-button" type="button">{copy.profile.save}</button>
+            <button className="settings-save-button" onClick={() => void saveProfile()} type="button">{copy.profile.save}</button>
+            {profileStatus ? <small>{profileStatus}</small> : null}
           </>
         ) : null}
 
@@ -412,11 +791,19 @@ export default function SettingsDashboard() {
               <div className="settings-skills-grid">
                 <label>
                   <span>{skillsCopy.experience}</span>
-                  <textarea placeholder={skillsCopy.experiencePlaceholder} />
+                  <textarea
+                    onChange={(event) => setSkillsDraft((current) => ({...current, skills_experience: event.target.value}))}
+                    placeholder={skillsCopy.experiencePlaceholder}
+                    value={skillsDraft.skills_experience}
+                  />
                 </label>
                 <label>
                   <span>{skillsCopy.courses}</span>
-                  <textarea placeholder={skillsCopy.coursesPlaceholder} />
+                  <textarea
+                    onChange={(event) => setSkillsDraft((current) => ({...current, skills_courses: event.target.value}))}
+                    placeholder={skillsCopy.coursesPlaceholder}
+                    value={skillsDraft.skills_courses}
+                  />
                 </label>
               </div>
               <label className="settings-proof-upload">
@@ -424,10 +811,10 @@ export default function SettingsDashboard() {
                 <input
                   accept="image/png,image/jpeg"
                   multiple
-                  onChange={(event) => handleSkillProofUpload(event.target.files)}
+                  onChange={(event) => void handleSkillProofUpload(event.target.files)}
                   type="file"
                 />
-                <strong aria-hidden="true">▧</strong>
+                <strong aria-hidden="true">{"\u2197"}</strong>
                 <p>{skillsCopy.upload}</p>
               </label>
               {skillProofs.length > 0 ? (
@@ -440,7 +827,8 @@ export default function SettingsDashboard() {
                 </div>
               ) : null}
             </div>
-            <button className="settings-save-button" type="button">{skillsCopy.save}</button>
+            <button className="settings-save-button" onClick={() => void saveSkills()} type="button">{skillsCopy.save}</button>
+            {skillsStatus ? <small>{skillsStatus}</small> : null}
           </>
         ) : null}
 
@@ -450,79 +838,219 @@ export default function SettingsDashboard() {
               <h3>{hostCopy.title}</h3>
             </div>
             <div className="settings-host-page">
-              <div className="settings-host-grid">
-                <label>
-                  <span>{hostCopy.hostName}</span>
-                  <input placeholder={hostCopy.hostNamePlaceholder} type="text" />
-                </label>
-                <label>
-                  <span>{hostCopy.hostPhone}</span>
-                  <input dir="ltr" placeholder={hostCopy.hostPhonePlaceholder} type="tel" />
-                </label>
-              </div>
-              <div className="settings-team-divider" />
-              <h4>{hostCopy.members}</h4>
-              <div className="settings-team-table">
-                <div className="settings-team-row settings-team-head">
-                  <span>{hostCopy.name}</span>
-                  <span>{hostCopy.phone}</span>
-                  <span>{hostCopy.status}</span>
-                </div>
-                {teamMembers.map((member) => (
-                  <div className="settings-team-row" key={member.phone}>
-                    <strong>{member.name}</strong>
-                    <span dir="ltr">{member.phone}</span>
-                    <span className={`badge ${member.statusClass}`}>{member.status}</span>
+              <section className="settings-parent-node">
+                <div className="settings-hierarchy-node-head">
+                  <span className="settings-hierarchy-icon parent" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8ZM5 21v-2.2A5.8 5.8 0 0 1 10.8 13h2.4a5.8 5.8 0 0 1 5.8 5.8V21" /><path d="M4 7h3M17 7h3" /></svg>
+                  </span>
+                  <div>
+                    <strong>{isArabic ? "\u0627\u0644\u0645\u0633\u062a\u0636\u064a\u0641 \u0627\u0644\u0631\u0626\u064a\u0633\u064a" : "Primary host"}</strong>
                   </div>
-                ))}
+                  <span className="settings-hierarchy-level">{isArabic ? "\u0627\u0644\u0645\u0633\u062a\u0648\u0649 \u0627\u0644\u0623\u0639\u0644\u0649" : "Top level"}</span>
+                </div>
+                <div className="settings-host-grid">
+                  <label>
+                    <span>{hostCopy.hostName}</span>
+                    <div className="settings-host-readonly-value">
+                      {teamName || (isArabic ? "\u063a\u064a\u0631 \u0645\u0631\u062a\u0628\u0637" : "Not linked")}
+                    </div>
+                  </label>
+                  <label>
+                    <span>{hostCopy.hostPhone}</span>
+                    <div className="settings-host-readonly-value" dir="ltr">
+                      {teamPhone || "\u2014"}
+                    </div>
+                  </label>
+                </div>
+              </section>
+
+              <div className="settings-hierarchy-connector" aria-hidden="true">
+                <i />
               </div>
+
+              <div className="settings-current-user-node">
+                <span className="settings-hierarchy-icon current" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" /><path d="M5.5 20a6.5 6.5 0 0 1 13 0" /></svg>
+                </span>
+                <div>
+                  <small>{isArabic ? "\u062d\u0633\u0627\u0628\u0643 \u0627\u0644\u062d\u0627\u0644\u064a" : "Your current account"}</small>
+                  <strong>{String(profile.data?.name ?? (isArabic ? "\u0627\u0644\u0645\u0633\u062a\u062e\u062f \u0627\u0644\u062d\u0627\u0644\u064a" : "Current user"))}</strong>
+                </div>
+                <span className="settings-hierarchy-level">{isArabic ? "\u062d\u0633\u0627\u0628\u0643" : "You"}</span>
+              </div>
+
+              <div className="settings-hierarchy-connector children" aria-hidden="true"><i /></div>
+
+              <section className="settings-children-node">
+                <div className="settings-children-head">
+                  <div>
+                    <span className="settings-hierarchy-icon children" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3" /><circle cx="17" cy="9" r="2.5" /><path d="M2.5 20a5.5 5.5 0 0 1 11 0M13 20a4.5 4.5 0 0 1 9 0" /></svg>
+                    </span>
+                    <div><small>{isArabic ? "\u0627\u0644\u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u0641\u0631\u0639\u064a\u0629" : "Child accounts"}</small><h4>{hostCopy.members}</h4></div>
+                  </div>
+                  <span>{teamMembers.length}</span>
+                </div>
+                <div className="settings-team-table">
+                  <div className="settings-team-row settings-team-head">
+                    <span>{hostCopy.name}</span>
+                    <span>{hostCopy.phone}</span>
+                    <span>{hostCopy.status}</span>
+                  </div>
+                  {teamMembers.map((member) => (
+                    <div className="settings-team-row settings-child-row" key={member.phone}>
+                      <strong>{member.name}</strong>
+                      <span dir="ltr">{member.phone}</span>
+                      <span className={`badge ${member.statusClass}`}>{member.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
             </div>
-            <button className="settings-save-button" type="button">{hostCopy.save}</button>
+            <button className="settings-save-button" onClick={() => { setTeamMemberStatus(""); setShowTeamMemberModal(true); }} type="button">{hostCopy.save}</button>
+            {showTeamMemberModal ? (
+              <div
+                className="team-member-modal-overlay"
+                onMouseDown={(event) => { if (event.target === event.currentTarget) setShowTeamMemberModal(false); }}
+                role="presentation"
+              >
+                <section aria-labelledby="team-member-modal-title" aria-modal="true" className="team-member-modal" role="dialog">
+                  <div className="team-member-modal-head">
+                    <div>
+                      <span>{isArabic ? "\u0639\u0636\u0648 \u0641\u0631\u0639\u064a \u062c\u062f\u064a\u062f" : "New child account"}</span>
+                      <h3 id="team-member-modal-title">{isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u0639\u0636\u0648 \u062c\u062f\u064a\u062f \u0644\u0644\u0641\u0631\u064a\u0642" : "Add a New Team Member"}</h3>
+                    </div>
+            <button aria-label={isArabic ? "\u0625\u063a\u0644\u0627\u0642" : "Close"} onClick={() => setShowTeamMemberModal(false)} type="button">?</button>
+                  </div>
+                  <div className="team-member-modal-fields">
+                    <label>
+                      <span>{isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u0639\u0636\u0648" : "Member Name"} <b className="required-mark" aria-hidden="true">*</b></span>
+                      <input autoFocus onChange={(event) => setNewTeamMember((current) => ({...current, name: event.target.value}))} placeholder={isArabic ? "\u0627\u0643\u062a\u0628 \u0627\u0633\u0645 \u0627\u0644\u0639\u0636\u0648..." : "Enter the member name..."} required type="text" value={newTeamMember.name} />
+                    </label>
+                    <label>
+                      <span>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644" : "Mobile Number"} <b className="required-mark" aria-hidden="true">*</b></span>
+                      <input dir="ltr" onChange={(event) => setNewTeamMember((current) => ({...current, phone: event.target.value}))} placeholder="+966 5x xxx xxxx" required type="tel" value={newTeamMember.phone} />
+                    </label>
+                  </div>
+                  {teamMemberStatus ? <p className="team-member-modal-status" role="status">{teamMemberStatus}</p> : null}
+                  <div className="team-member-modal-actions">
+                    <button className="primary" onClick={() => void addTeamMember()} type="button">{isArabic ? "\u062a\u0623\u0643\u064a\u062f \u0627\u0644\u0625\u0636\u0627\u0641\u0629" : "Confirm"}</button>
+                    <button className="secondary" onClick={() => setShowTeamMemberModal(false)} type="button">{isArabic ? "\u0625\u0644\u063a\u0627\u0621" : "Cancel"}</button>
+                  </div>
+                </section>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+
+        {activeTab === "social" ? (
+          <>
+            <div className="settings-section-head">
+              <h3>{isArabic ? "\u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u062a\u0648\u0627\u0635\u0644 \u0627\u0644\u0627\u062c\u062a\u0645\u0627\u0639\u064a" : "Social Media Accounts"}</h3>
+              <p>{isArabic ? "\u0627\u0643\u062a\u0628 \u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0623\u0648 \u0627\u0644\u0635\u0642 \u0631\u0627\u0628\u0637 \u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u0643\u0627\u0645\u0644." : "Enter a username or paste the full profile link for each platform."}</p>
+            </div>
+            <div className="settings-form-grid settings-social-page">
+              <fieldset className="settings-social-fields">
+                <legend>{isArabic ? "\u062d\u0633\u0627\u0628\u0627\u062a\u0643" : "Your accounts"}</legend>
+                {[
+                  {key: "tiktok", label: isArabic ? "\u062a\u064a\u0643 \u062a\u0648\u0643" : "TikTok", placeholder: "@username or https://tiktok.com/@username"},
+                  {key: "snapchat", label: isArabic ? "\u0633\u0646\u0627\u0628 \u0634\u0627\u062a" : "Snapchat", placeholder: "@username or https://snapchat.com/add/username"},
+                  {key: "x", label: isArabic ? "\u062a\u0648\u064a\u062a\u0631" : "X / Twitter", placeholder: "@username or https://x.com/username"},
+                  {key: "facebook", label: isArabic ? "\u0641\u064a\u0633 \u0628\u0648\u0643" : "Facebook", placeholder: "@username or https://facebook.com/username"},
+                  {key: "instagram", label: isArabic ? "\u0625\u0646\u0633\u062a\u063a\u0631\u0627\u0645" : "Instagram", placeholder: "@username or https://instagram.com/username"},
+                  {key: "linkedin", label: isArabic ? "\u0644\u064a\u0646\u0643\u062f\u0625\u0646" : "LinkedIn", placeholder: "@username or https://linkedin.com/in/username"}
+                ].map((field) => (
+                  <label className="settings-social-account-field" key={field.key}>
+                    <span>{field.label}</span>
+                    <div className="settings-social-input">
+                      <SocialFieldIcon name={field.key as "tiktok" | "snapchat" | "x" | "facebook" | "instagram" | "linkedin"} />
+                      <input
+                        autoComplete="off"
+                        dir="ltr"
+                        onChange={(event) => setSocialDraft((current) => ({...current, [field.key]: event.target.value}))}
+                        placeholder={field.placeholder}
+                        spellCheck={false}
+                        value={socialDraft[field.key] ?? ""}
+                      />
+                    </div>
+                  </label>
+                ))}
+              </fieldset>
+            </div>
+            <div className="settings-social-save-row">
+              <button className="settings-save-button" onClick={() => void saveSocialAccounts()} type="button">{isArabic ? "\u062d\u0641\u0638 \u0627\u0644\u062d\u0633\u0627\u0628\u0627\u062a" : "Save Accounts"}</button>
+              {socialStatus ? <small>{socialStatus}</small> : null}
+            </div>
           </>
         ) : null}
 
         {activeTab === "payout" ? (
           <>
             <div className="settings-section-head">
-              <h3>{copy.payout.title}</h3>
-              <p>{copy.payout.subtitle}</p>
+              <h3>{isArabic ? "\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u0628\u0646\u0643\u064a\u0629" : "Manage Bank Accounts"}</h3>
+              <p>{isArabic ? "\u0623\u0636\u0641 \u0648\u0639\u062f\u0644 \u0623\u0643\u062b\u0631 \u0645\u0646 \u062d\u0633\u0627\u0628 \u0628\u0646\u0643\u064a \u0648\u062d\u062f\u062f \u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u0627\u0641\u062a\u0631\u0627\u0636\u064a \u0644\u0644\u062f\u0641\u0639\u0627\u062a." : "Add and edit multiple bank accounts, then choose the default account for payouts."}</p>
             </div>
-            <div className="settings-form-grid">
+            <div className="settings-bank-manager-head">
+              <div>
+                <strong>{isArabic ? "\u0627\u0644\u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u0645\u062d\u0641\u0648\u0638\u0629" : "Saved accounts"}</strong>
+                <span>{isArabic ? `${(payoutMethods.data ?? []).length} \u062d\u0633\u0627\u0628` : `${(payoutMethods.data ?? []).length} account${(payoutMethods.data ?? []).length === 1 ? "" : "s"}`}</span>
+              </div>
+              {!showPayoutForm && (payoutMethods.data ?? []).length > 0 ? (
+                <button className="settings-add-bank-button" onClick={addAnotherPayoutMethod} type="button">
+                  <span aria-hidden="true">+</span>
+                  {isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u062d\u0633\u0627\u0628 \u0628\u0646\u0643\u064a" : "Add Bank Account"}
+                </button>
+              ) : null}
+            </div>
+            {(payoutMethods.data ?? []).length > 0 ? (
+              <div className="settings-bank-account-list">
+                {(payoutMethods.data ?? []).map((method) => (
+                  <article className={`settings-bank-account-card ${Number(method.is_default) === 1 ? "default" : ""}`} key={method.id}>
+                    <div className="settings-bank-account-info">
+                      <strong>{method.bank_name}</strong>
+                      <span>{method.account_holder_name}</span>
+                      <code dir="ltr">{method.iban}</code>
+                    </div>
+                    <div className="settings-bank-account-meta">
+                      {Number(method.is_default) === 1 ? <b>{isArabic ? "\u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u0627\u0641\u062a\u0631\u0627\u0636\u064a" : "Default account"}</b> : null}
+                      <span>{Number(method.minimum_payout_amount).toLocaleString(NUMBER_LOCALE)} {method.currency}</span>
+                    </div>
+                    <div className="settings-bank-account-actions">
+                      <button onClick={() => editPayoutMethod(method)} type="button">{isArabic ? "\u062a\u0639\u062f\u064a\u0644" : "Edit"}</button>
+                      <button className="danger" onClick={() => void removePayoutMethod(method.id)} type="button">{isArabic ? "\u062d\u0630\u0641" : "Remove"}</button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+            {showPayoutForm || (payoutMethods.data ?? []).length === 0 ? (
+              <>
+            <div className="settings-form-grid settings-payout-form">
               <fieldset>
-                <legend>{copy.payout.bank}</legend>
-                <label>
-                  <span>{copy.payout.bankName}</span>
-                  <input defaultValue={isArabic ? "البنك الأهلي السعودي" : "Saudi National Bank"} />
-                </label>
-                <label>
-                  <span>{copy.payout.holder}</span>
-                  <input defaultValue={isArabic ? "عبد الله الشريك" : "Abdullah Partner"} />
-                </label>
-                <label>
-                  <span>{copy.payout.iban}</span>
-                  <input defaultValue="SA03 8000 0000 6080 1016 7519" pattern="^[A-Z]{2}[0-9A-Z ]{13,32}$" />
-                </label>
-              </fieldset>
-              <fieldset>
-                <legend>{copy.payout.threshold}</legend>
-                <label>
-                  <span>{copy.payout.threshold}</span>
-                  <DashboardSelect
-                    ariaLabel={copy.payout.threshold}
-                    defaultValue="500"
-                    options={[
-                      {label: "$100", value: "100"},
-                      {label: "$500", value: "500"},
-                      {label: "$1,000", value: "1000"}
-                    ]}
-                  />
-                </label>
-                <div className="threshold-meter">
-                  <span />
+                <legend>{editingPayoutId ? (isArabic ? "\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u0628\u0646\u0643\u064a" : "Edit bank account") : (isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u062d\u0633\u0627\u0628 \u0628\u0646\u0643\u064a" : "Add bank account")}</legend>
+                <div className="settings-payout-input-grid">
+                  <label><span>{copy.payout.bankName}</span><input onChange={(event) => setPayoutDraft((current) => ({...current, bank_name: event.target.value}))} value={payoutDraft.bank_name} /></label>
+                  <label><span>{copy.payout.holder}</span><input onChange={(event) => setPayoutDraft((current) => ({...current, account_holder_name: event.target.value}))} value={payoutDraft.account_holder_name} /></label>
+                  <label><span>{copy.payout.iban}</span><input dir="ltr" onChange={(event) => setPayoutDraft((current) => ({...current, iban: event.target.value.toUpperCase()}))} placeholder="SA00 0000 0000 0000 0000 0000" value={payoutDraft.iban} /></label>
+                  <label><span>{copy.payout.threshold}</span><input inputMode="decimal" min="0" onChange={(event) => setPayoutDraft((current) => ({...current, minimum_payout_amount: event.target.value}))} type="number" value={payoutDraft.minimum_payout_amount} /></label>
+                  <label>
+                    <span>{isArabic ? "\u0627\u0644\u0639\u0645\u0644\u0629" : "Currency"}</span>
+                    <DashboardSelect ariaLabel={isArabic ? "\u0627\u0644\u0639\u0645\u0644\u0629" : "Currency"} onValueChange={(value) => setPayoutDraft((current) => ({...current, currency: value}))} options={[{label: "SAR", value: "SAR"}, {label: "USD", value: "USD"}, {label: "AED", value: "AED"}]} value={payoutDraft.currency} />
+                  </label>
+                  <label className="settings-default-bank-toggle">
+                    <input checked={payoutDraft.is_default} onChange={(event) => setPayoutDraft((current) => ({...current, is_default: event.target.checked}))} type="checkbox" />
+                    <span>{isArabic ? "\u062c\u0639\u0644\u0647 \u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u0627\u0641\u062a\u0631\u0627\u0636\u064a" : "Make this the default account"}</span>
+                  </label>
                 </div>
               </fieldset>
             </div>
-            <button className="settings-save-button" type="button">{copy.payout.save}</button>
+            <div className="settings-payout-actions">
+              <button className="settings-save-button" onClick={() => void savePayoutMethod()} type="button">{isArabic ? "\u062d\u0641\u0638 \u0627\u0644\u062a\u063a\u064a\u064a\u0631\u0627\u062a" : "Save Changes"}</button>
+              {editingPayoutId ? <button className="settings-cancel-button" onClick={resetPayoutForm} type="button">{isArabic ? "\u0625\u0644\u063a\u0627\u0621" : "Cancel"}</button> : null}
+              {payoutStatus ? <small>{payoutStatus}</small> : null}
+            </div>
+              </>
+            ) : null}
           </>
         ) : null}
 
@@ -535,16 +1063,33 @@ export default function SettingsDashboard() {
             <div className="settings-form-grid">
               <fieldset>
                 <legend>{copy.notifications.email}</legend>
-                <Toggle label={copy.notifications.lead} />
-                <Toggle label={copy.notifications.quote} />
-                <Toggle label={copy.notifications.commission} />
+                <Toggle
+                  checked={Boolean(notificationDraft.email_new_lead)}
+                  label={copy.notifications.lead}
+                  onChange={(checked) => setNotificationDraft((draft) => ({...draft, email_new_lead: checked ? 1 : 0}))}
+                />
+                <Toggle
+                  checked={Boolean(notificationDraft.email_quote_opened)}
+                  label={copy.notifications.quote}
+                  onChange={(checked) => setNotificationDraft((draft) => ({...draft, email_quote_opened: checked ? 1 : 0}))}
+                />
+                <Toggle
+                  checked={Boolean(notificationDraft.email_commission_approved)}
+                  label={copy.notifications.commission}
+                  onChange={(checked) => setNotificationDraft((draft) => ({...draft, email_commission_approved: checked ? 1 : 0}))}
+                />
               </fieldset>
               <fieldset>
                 <legend>{copy.notifications.system}</legend>
-                <Toggle label={copy.notifications.payout} defaultChecked={false} />
+                <Toggle
+                  checked={Boolean(notificationDraft.payout_status_updates)}
+                  label={copy.notifications.payout}
+                  onChange={(checked) => setNotificationDraft((draft) => ({...draft, payout_status_updates: checked ? 1 : 0}))}
+                />
               </fieldset>
             </div>
-            <button className="settings-save-button" type="button">{copy.notifications.save}</button>
+            {notificationStatus ? <p className="settings-status-message" role="status">{notificationStatus}</p> : null}
+            <button className="settings-save-button" onClick={() => void saveNotificationSettings()} type="button">{copy.notifications.save}</button>
           </>
         ) : null}
 
@@ -559,30 +1104,49 @@ export default function SettingsDashboard() {
                 <legend>{copy.security.password}</legend>
                 <label>
                   <span>{copy.security.current}</span>
-                  <input type="password" />
+                  <input
+                    autoComplete="current-password"
+                    onChange={(event) => setPasswordDraft((draft) => ({...draft, current: event.target.value}))}
+                    type="password"
+                    value={passwordDraft.current}
+                  />
                 </label>
                 <label>
                   <span>{copy.security.next}</span>
-                  <input type="password" />
+                  <input
+                    autoComplete="new-password"
+                    minLength={6}
+                    onChange={(event) => setPasswordDraft((draft) => ({...draft, next: event.target.value}))}
+                    type="password"
+                    value={passwordDraft.next}
+                  />
                 </label>
                 <label>
                   <span>{copy.security.confirm}</span>
-                  <input type="password" />
+                  <input
+                    autoComplete="new-password"
+                    minLength={6}
+                    onChange={(event) => setPasswordDraft((draft) => ({...draft, confirm: event.target.value}))}
+                    type="password"
+                    value={passwordDraft.confirm}
+                  />
                 </label>
               </fieldset>
               <fieldset>
                 <legend>{copy.security.language}</legend>
                 <DashboardSelect
                   ariaLabel={copy.security.language}
-                  defaultValue={locale}
+                  onValueChange={setPreferredLocale}
                   options={[
-                    {label: "العربية", value: "ar"},
+                    {label: isArabic ? "\u0627\u0644\u0639\u0631\u0628\u064a\u0629" : "Arabic", value: "ar"},
                     {label: "English", value: "en"}
                   ]}
+                  value={preferredLocale}
                 />
               </fieldset>
             </div>
-            <button className="settings-save-button" type="button">{copy.security.save}</button>
+            {securityStatus ? <p className="settings-status-message" role="status">{securityStatus}</p> : null}
+            <button className="settings-save-button" onClick={() => void saveSecurityPreferences()} type="button">{copy.security.save}</button>
           </>
         ) : null}
       </article>

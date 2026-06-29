@@ -1,6 +1,7 @@
 import {getTranslations, setRequestLocale} from "next-intl/server";
 import DashboardShell from "@/components/DashboardShell";
-import {DashboardHeader, HelpDeskPanel} from "@/components/DashboardSections";
+import {DashboardHeader} from "@/components/DashboardSections";
+import {HelpDeskPanel} from "@/components/DashboardSections";
 
 export default async function DashboardSupportPage({
   params

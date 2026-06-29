@@ -3,7 +3,7 @@
 import {useLocale} from "next-intl";
 import {useState, type CSSProperties, type ReactNode} from "react";
 import {DemoView} from "@/components/DashboardNewSections";
-import DashboardSelect from "@/components/DashboardSelect";
+import {useBackend} from "@/lib/client-backend";
 
 type ProductWorkspaceView = "catalog" | "form";
 type MarketingTab = "sectors" | "social" | "library";
@@ -422,6 +422,16 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const [copiedSectorId, setCopiedSectorId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<MarketingTab>("sectors");
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
+  const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
+  const displayedIndustries: Industry[] = industriesData.map((industry) => {
+    const live = liveIndustries?.find((row) => row.slug === industry.id);
+    return live ? {
+      ...industry,
+      title: String(live.name ?? industry.title),
+      subtitle: String(live.description ?? industry.subtitle),
+      url: String(live.landing_url ?? industry.url)
+    } : industry;
+  });
 
   async function handleCopyLink(url: string, sectorId: string) {
     await navigator.clipboard.writeText(url);
@@ -441,7 +451,9 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
           <h2 className="text-[#0f2942] text-xl font-bold md:text-2xl">{"\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u062d\u0645\u0644\u0627\u062a \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629"}</h2>
           <p className="marketing-hub-subtitle text-slate-500 text-sm">{"\u0645\u0633\u0627\u062d\u0629 \u0645\u0648\u062d\u062f\u0629 \u0644\u0631\u0648\u0627\u0628\u0637 \u0627\u0644\u0642\u0637\u0627\u0639\u0627\u062a\u060c \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627\u060c \u0648\u0627\u0644\u0623\u0635\u0648\u0644 \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629 \u0627\u0644\u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0633\u0648\u0642\u064a\u0646."}</p>
         </div>
-        <span className="growth-hub-chip bg-cyan-50/60 text-[#00b4d8] border border-cyan-100/50 px-4 py-1.5 rounded-full text-xs font-medium tracking-wide">{"Growth Hub"}</span>
+        <span className="growth-hub-chip bg-cyan-50/60 text-[#00b4d8] border border-cyan-100/50 px-4 py-1.5 rounded-full text-xs font-medium tracking-wide">
+          {isArabic ? "\u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642" : "Marketing Hub"}
+        </span>
       </div>
 
       <div className="marketing-tabs" role="tablist" aria-label={"\u062a\u0628\u0648\u064a\u0628\u0627\u062a \u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}>
@@ -469,7 +481,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
             </div>
 
             <div className="industry-sector-grid">
-              {industriesData.map((industry) => (
+              {displayedIndustries.map((industry) => (
                 <article
                   className="industry-sector-card"
                   key={industry.id}
@@ -579,64 +591,65 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
         ) : null}
       </div>
 
+      {/*
       <section className="dashboard-lead-request" dir="rtl">
         <div className="dashboard-lead-request-inner">
           <div className="dashboard-lead-request-card">
             <h2>{"\u0637\u0644\u0628 \u0639\u0631\u0636 \u062a\u062c\u0631\u064a\u0628\u064a \u0644\u0644\u0645\u0646\u0634\u0622\u062a"}</h2>
 
-            <form className="dashboard-lead-request-form">
+            <form className="dashboard-lead-request-form" onSubmit={(event) => void submitLeadRequest(event)}>
               <div className="dashboard-lead-request-grid">
                 <div className="dashboard-lead-request-stack">
                   <div>
                     <label>{"\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u0634\u0623\u0629"}</label>
-                    <input type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629 \u0623\u0648 \u0627\u0644\u0645\u0624\u0633\u0633\u0629"} />
+                    <input onChange={(event) => setLeadRequest((current) => ({...current, companyName: event.target.value}))} required type="text" value={leadRequest.companyName} placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629 \u0623\u0648 \u0627\u0644\u0645\u0624\u0633\u0633\u0629"} />
                   </div>
                   <div>
                     <label>{"\u0646\u0648\u0639 \u0627\u0644\u0646\u0634\u0627\u0637"}</label>
                     <DashboardSelect
                       ariaLabel={"\u0646\u0648\u0639 \u0627\u0644\u0646\u0634\u0627\u0637"}
-                      defaultValue={"\u0634\u0627\u0644\u064a\u0647\u0627\u062a \u0648\u0645\u0646\u062a\u062c\u0639\u0627\u062a"}
-                      options={[
-                        "\u0634\u0627\u0644\u064a\u0647\u0627\u062a \u0648\u0645\u0646\u062a\u062c\u0639\u0627\u062a",
-                        "\u0635\u0627\u0644\u0648\u0646\u0627\u062a \u0648\u0633\u0628\u0627",
-                        "\u0645\u063a\u0627\u0633\u0644 \u0633\u064a\u0627\u0631\u0627\u062a",
-                        "\u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u0632\u0644\u064a\u0629",
-                        "\u0623\u062e\u0631\u0649"
-                      ].map((option) => ({label: option, value: option}))}
+                      onValueChange={(value) => setLeadRequest((current) => ({...current, industryId: value}))}
+                      options={(liveIndustries ?? [])
+                        .filter((industry) => String(industry.status ?? "active") === "active")
+                        .map((industry) => ({label: String(industry.name ?? "—"), value: String(industry.id)}))}
+                      placeholder={"\u0627\u062e\u062a\u0631 \u0646\u0648\u0639 \u0627\u0644\u0646\u0634\u0627\u0637"}
+                      value={leadRequest.industryId}
                     />
                   </div>
                   <div>
                     <label>{"\u0627\u0644\u0639\u0646\u0648\u0627\u0646"}</label>
-                    <input type="text" placeholder={"\u0627\u0644\u0645\u062f\u064a\u0646\u0629\u060c \u0627\u0644\u062d\u064a"} />
+                    <input onChange={(event) => setLeadRequest((current) => ({...current, address: event.target.value}))} type="text" value={leadRequest.address} placeholder={"\u0627\u0644\u0645\u062f\u064a\u0646\u0629\u060c \u0627\u0644\u062d\u064a"} />
                   </div>
                 </div>
 
                 <div className="dashboard-lead-request-stack">
                   <div>
                     <label>{"\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644"}</label>
-                    <input type="text" placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0627\u0644\u062b\u0644\u0627\u062b\u064a"} />
+                    <input onChange={(event) => setLeadRequest((current) => ({...current, fullName: event.target.value}))} required type="text" value={leadRequest.fullName} placeholder={"\u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0627\u0644\u062b\u0644\u0627\u062b\u064a"} />
                   </div>
                   <div>
                     <label>{"\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a"}</label>
-                    <input dir="ltr" type="email" placeholder="name@company.com" />
+                    <input dir="ltr" onChange={(event) => setLeadRequest((current) => ({...current, email: event.target.value}))} type="email" value={leadRequest.email} placeholder="name@company.com" />
                   </div>
                   <div>
                     <label>{"\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644"}</label>
-                    <input dir="ltr" type="tel" placeholder="+966 5X XXX XXXX" />
+                    <input dir="ltr" onChange={(event) => setLeadRequest((current) => ({...current, phone: event.target.value}))} required type="tel" value={leadRequest.phone} placeholder="+966 5X XXX XXXX" />
                   </div>
                 </div>
               </div>
 
               <div>
                 <label>{"\u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0625\u0636\u0627\u0641\u064a\u0629"}</label>
-                <textarea rows={3} placeholder={"\u0627\u0630\u0643\u0631 \u0623\u064a \u0645\u062a\u0637\u0644\u0628\u0627\u062a \u062e\u0627\u0635\u0629 \u0623\u0648 \u062a\u0641\u0627\u0635\u064a\u0644 \u0625\u0636\u0627\u0641\u064a\u0629..."} />
+                <textarea onChange={(event) => setLeadRequest((current) => ({...current, requirements: event.target.value}))} rows={3} value={leadRequest.requirements} placeholder={"\u0627\u0630\u0643\u0631 \u0623\u064a \u0645\u062a\u0637\u0644\u0628\u0627\u062a \u062e\u0627\u0635\u0629 \u0623\u0648 \u062a\u0641\u0627\u0635\u064a\u0644 \u0625\u0636\u0627\u0641\u064a\u0629..."} />
               </div>
 
-              <button type="button">{"\u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0639\u0631\u0636"}</button>
+              <button type="submit">{"\u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0639\u0631\u0636"}</button>
+              {leadRequestStatus ? <p className="dashboard-lead-request-status" role="status">{leadRequestStatus}</p> : null}
             </form>
           </div>
         </div>
       </section>
+      */}
     </section>
   );
 }
