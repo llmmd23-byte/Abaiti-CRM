@@ -50,6 +50,7 @@ export async function registerAffiliate(formData: FormData) {
     let hostPhone: string | null = null;
     let userStatus: "active" | "pending" = "pending";
     let isActive = 0;
+    let companyId = 1;
 
     if (phoneDigits) {
       const [membershipRows] = await connection.execute<RowDataPacket[]>(
@@ -66,7 +67,7 @@ export async function registerAffiliate(formData: FormData) {
         userStatus = "active";
         isActive = 1;
         const [hostRows] = await connection.execute<RowDataPacket[]>(
-          `SELECT id, name, phone FROM users WHERE id = ? LIMIT 1 FOR UPDATE`,
+          `SELECT id, name, phone, CompanyID FROM users WHERE id = ? LIMIT 1 FOR UPDATE`,
           [Number(membership.user_id)]
         );
         const host = hostRows[0];
@@ -74,6 +75,7 @@ export async function registerAffiliate(formData: FormData) {
           managerId = Number(host.id);
           hostName = String(host.name ?? "") || null;
           hostPhone = String(host.phone ?? "") || null;
+          companyId = Number(host.CompanyID ?? 1) || 1;
         }
       }
     }
@@ -81,9 +83,9 @@ export async function registerAffiliate(formData: FormData) {
     await connection.execute<ResultSetHeader>(
       `INSERT INTO users
         (name, email, password_hash, role_id, status, preferred_locale, phone,
-         manager_id, host_name, host_phone, is_active, joined_at)
-       VALUES (?, ?, ?, (SELECT id FROM roles WHERE slug = 'affiliate' AND is_active = 1 LIMIT 1), ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE())`,
-      [name, email, passwordHash, userStatus, locale, phone || null, managerId, hostName, hostPhone, isActive]
+         manager_id, host_name, host_phone, CompanyID, is_active, joined_at)
+       VALUES (?, ?, ?, (SELECT id FROM roles WHERE slug = 'affiliate' AND is_active = 1 LIMIT 1), ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE())`,
+      [name, email, passwordHash, userStatus, locale, phone || null, managerId, hostName, hostPhone, companyId, isActive]
     );
     await connection.commit();
   } catch (error) {
