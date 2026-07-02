@@ -105,8 +105,8 @@ export function CustomersView() {
   const getCustomerName = (row: BackendRow | null) =>
     String(row?.name ?? "").trim() || emptyCustomerNameLabel;
   const getCustomerTitle = (row: BackendRow | null) =>
-    String(row?.name ?? "").trim() ||
     String(row?.company_name ?? "").trim() ||
+    String(row?.name ?? "").trim() ||
     "—";
   const displayValue = (value: unknown) => String(value ?? "").trim() || "—";
   const customerDateFilterOptions = [
