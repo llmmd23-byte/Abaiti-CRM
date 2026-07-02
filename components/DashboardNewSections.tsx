@@ -10,6 +10,7 @@ type BackendRow = Record<string, unknown> & { id: number };
 const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
 const CUSTOMER_PAGE_SIZE = 10;
+type CustomerDateFilter = "all" | "today" | "yesterday" | "week" | "month";
 
 function parseDatabaseDate(value: unknown) {
   const raw = String(value ?? "").trim();
@@ -51,6 +52,8 @@ export function CustomersView() {
   const [editingLead, setEditingLead] = useState<BackendRow | null>(null);
   const [customerView, setCustomerView] = useState<"table" | "kanban">("table");
   const [customerSearch, setCustomerSearch] = useState("");
+  const [customerDateFilter, setCustomerDateFilter] =
+    useState<CustomerDateFilter>("all");
   const [customerPage, setCustomerPage] = useState(1);
   const [draggedLeadId, setDraggedLeadId] = useState<number | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
@@ -97,8 +100,52 @@ export function CustomersView() {
     lost: { ar: "\u0645\u0641\u0642\u0648\u062f", en: "Lost" },
   };
   const stageOrder = ["new", "interested", "proposal", "won", "lost"];
+  const customerDateFilterOptions = [
+    { value: "all", label: isArabic ? "جميع العملاء" : "All Customers" },
+    { value: "today", label: isArabic ? "المضافين اليوم" : "Added Today" },
+    { value: "yesterday", label: isArabic ? "المضافين أمس" : "Added Yesterday" },
+    { value: "week", label: isArabic ? "هذا الأسبوع" : "This Week" },
+    { value: "month", label: isArabic ? "هذا الشهر" : "This Month" },
+  ];
+
+  function matchesCustomerDateFilter(value: unknown) {
+    if (customerDateFilter === "all") return true;
+    const createdAt = parseDatabaseDate(value);
+    if (!createdAt) return false;
+
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const startOfTomorrow = new Date(startOfToday);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    if (customerDateFilter === "today") {
+      return createdAt >= startOfToday && createdAt < startOfTomorrow;
+    }
+    if (customerDateFilter === "yesterday") {
+      return createdAt >= startOfYesterday && createdAt < startOfToday;
+    }
+    if (customerDateFilter === "week") {
+      return createdAt >= startOfWeek && createdAt < startOfTomorrow;
+    }
+    if (customerDateFilter === "month") {
+      return createdAt >= startOfMonth && createdAt < startOfTomorrow;
+    }
+    return true;
+  }
+
   const normalizedSearch = customerSearch.trim().toLocaleLowerCase();
   const filteredCustomers = (data ?? []).filter((row) => {
+    if (!matchesCustomerDateFilter(row.created_at)) return false;
     if (!normalizedSearch) return true;
     const industryName = industries?.find(
       (industry) => Number(industry.id) === Number(row.industry_id),
@@ -147,7 +194,7 @@ export function CustomersView() {
 
   useEffect(() => {
     setCustomerPage(1);
-  }, [customerSearch, customerView]);
+  }, [customerSearch, customerDateFilter, customerView]);
 
   useEffect(() => {
     if (customerPage > customerTotalPages) setCustomerPage(customerTotalPages);
@@ -1008,27 +1055,40 @@ export function CustomersView() {
           <h3>{t("dashboardPages.customers.tableTitle")}</h3>
           <span>{t("dashboardPages.customers.tableSubtitle")}</span>
         </div>
-        <div className="customer-search-bar">
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="6.5" />
-            <path d="m16 16 4 4" />
-          </svg>
-          <input
-            aria-label={
-              isArabic
-                ? "\u0627\u0644\u0628\u062d\u062b \u0641\u064a \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0645\u0644\u0627\u0621"
-                : "Search customer data"
-            }
-            onChange={(event) => setCustomerSearch(event.target.value)}
-            placeholder={
-              isArabic
-                ? "\u0627\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645\u060c \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u062c\u0648\u0627\u0644\u060c \u0627\u0644\u0646\u0634\u0627\u0637..."
-                : "Search by name, company, mobile, activity..."
-            }
-            type="search"
-            value={customerSearch}
-          />
-          <span>{filteredCustomers.length}</span>
+        <div className="customer-filter-controls">
+          <div className="customer-search-bar">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+            <input
+              aria-label={
+                isArabic
+                  ? "\u0627\u0644\u0628\u062d\u062b \u0641\u064a \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0645\u0644\u0627\u0621"
+                  : "Search customer data"
+              }
+              onChange={(event) => setCustomerSearch(event.target.value)}
+              placeholder={
+                isArabic
+                  ? "\u0627\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645\u060c \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u062c\u0648\u0627\u0644\u060c \u0627\u0644\u0646\u0634\u0627\u0637..."
+                  : "Search by name, company, mobile, activity..."
+              }
+              type="search"
+              value={customerSearch}
+            />
+            <span>{filteredCustomers.length}</span>
+          </div>
+          <div className="customer-date-filter">
+            <DashboardSelect
+              ariaLabel={isArabic ? "فلترة العملاء حسب تاريخ الإنشاء" : "Filter customers by creation date"}
+              onValueChange={(value) =>
+                setCustomerDateFilter(value as CustomerDateFilter)
+              }
+              options={customerDateFilterOptions}
+              portal
+              value={customerDateFilter}
+            />
+          </div>
         </div>
         <div
           className="customer-view-switch"

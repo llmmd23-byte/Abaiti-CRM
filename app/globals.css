@@ -4077,6 +4077,42 @@ html[dir="ltr"] .dashboard-main {
   box-shadow: 0 4px 12px rgba(17, 41, 61, 0.15);
 }
 
+.customer-filter-controls {
+  display: flex;
+  flex: 1 1 520px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: min(100%, 360px);
+  margin: 0 auto;
+}
+
+.customer-date-filter {
+  flex: 0 0 190px;
+}
+
+.customer-date-filter .dashboard-select,
+.customer-date-filter .dashboard-select-trigger {
+  width: 100%;
+}
+
+.customer-date-filter .dashboard-select-trigger {
+  min-height: 50px;
+  border-color: #dbe4ec;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #11293d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.customer-date-filter .dashboard-select-trigger.open,
+.customer-date-filter .dashboard-select-trigger:focus-visible {
+  border-color: #22b8b5;
+  box-shadow: 0 0 0 4px rgba(34, 184, 181, 0.1);
+}
+
 .customer-search-bar {
   display: grid;
   grid-template-columns: 20px minmax(0, 1fr) auto;
@@ -4085,7 +4121,7 @@ html[dir="ltr"] .dashboard-main {
   width: min(560px, 100%);
   flex: 1 1 340px;
   min-height: 50px;
-  margin: 0 auto;
+  margin: 0;
   padding: 0 14px;
   border: 1px solid #dbe4ec;
   border-radius: 13px;
