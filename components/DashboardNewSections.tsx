@@ -69,6 +69,7 @@ export function CustomersView() {
   });
   const [leadEditStatus, setLeadEditStatus] = useState("");
   const [contactsLead, setContactsLead] = useState<BackendRow | null>(null);
+  const [editingContactId, setEditingContactId] = useState<number | null>(null);
   const [contactDraft, setContactDraft] = useState({
     name: "",
     phone: "",
@@ -305,6 +306,24 @@ export function CustomersView() {
 
   function openLeadContacts(row: BackendRow) {
     setContactsLead(row);
+    setEditingContactId(null);
+    setContactDraft({ name: "", phone: "", email: "", job_title: "" });
+    setContactStatus("");
+  }
+
+  function openContactEditor(contact: BackendRow) {
+    setEditingContactId(Number(contact.id));
+    setContactDraft({
+      name: String(contact.name ?? ""),
+      phone: String(contact.phone ?? ""),
+      email: String(contact.email ?? ""),
+      job_title: String(contact.job_title ?? ""),
+    });
+    setContactStatus("");
+  }
+
+  function cancelContactEdit() {
+    setEditingContactId(null);
     setContactDraft({ name: "", phone: "", email: "", job_title: "" });
     setContactStatus("");
   }
@@ -319,21 +338,44 @@ export function CustomersView() {
     }
     setContactStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638..." : "Saving...");
     try {
-      await createBackend("lead-contacts", {
+      const payload = {
         lead_id: contactsLead.id,
         name: contactDraft.name.trim(),
         phone: contactDraft.phone.trim() || null,
         email: contactDraft.email.trim() || null,
         job_title: contactDraft.job_title.trim() || null,
-      });
+      };
+      if (editingContactId) {
+        const response = await fetch(`/api/v1/data/lead-contacts/${editingContactId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) throw new Error("UPDATE_FAILED");
+      } else {
+        await createBackend("lead-contacts", payload);
+      }
+      setEditingContactId(null);
       setContactDraft({ name: "", phone: "", email: "", job_title: "" });
       await contacts.reload();
       setContactStatus(
-        isArabic ? "\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u062c\u0647\u0629 \u0627\u0644\u0627\u062a\u0635\u0627\u0644" : "Contact has been added",
+        editingContactId
+          ? isArabic
+            ? "تم تعديل جهة الاتصال"
+            : "Contact has been updated"
+          : isArabic
+            ? "\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u062c\u0647\u0629 \u0627\u0644\u0627\u062a\u0635\u0627\u0644"
+            : "Contact has been added",
       );
     } catch {
       setContactStatus(
-        isArabic ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u062c\u0647\u0629 \u0627\u0644\u0627\u062a\u0635\u0627\u0644" : "Unable to save contact",
+        editingContactId
+          ? isArabic
+            ? "تعذر تعديل جهة الاتصال"
+            : "Unable to update contact"
+          : isArabic
+            ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u062c\u0647\u0629 \u0627\u0644\u0627\u062a\u0635\u0627\u0644"
+            : "Unable to save contact",
       );
     }
   }
@@ -353,6 +395,10 @@ export function CustomersView() {
       });
       if (!response.ok) throw new Error("DELETE_FAILED");
       await contacts.reload();
+      if (editingContactId === contactId) {
+        setEditingContactId(null);
+        setContactDraft({ name: "", phone: "", email: "", job_title: "" });
+      }
       setContactStatus(
         isArabic ? "تم حذف جهة الاتصال" : "Contact has been deleted",
       );
@@ -918,8 +964,19 @@ export function CustomersView() {
 
         <div className="lead-contacts-actions">
           <button className="primary" onClick={() => void saveLeadContact()} type="button">
-            {isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u062c\u0647\u0629 \u0627\u062a\u0635\u0627\u0644" : "Add Contact"}
+            {editingContactId
+              ? isArabic
+                ? "حفظ تعديل جهة الاتصال"
+                : "Save Contact"
+              : isArabic
+                ? "\u0625\u0636\u0627\u0641\u0629 \u062c\u0647\u0629 \u0627\u062a\u0635\u0627\u0644"
+                : "Add Contact"}
           </button>
+          {editingContactId ? (
+            <button className="secondary" onClick={cancelContactEdit} type="button">
+              {isArabic ? "إلغاء التعديل" : "Cancel Edit"}
+            </button>
+          ) : null}
           {contactStatus ? <p role="status">{contactStatus}</p> : null}
         </div>
 
@@ -942,13 +999,22 @@ export function CustomersView() {
                   <td dir="ltr">{String(contact.email ?? "?")}</td>
                   <td>{String(contact.job_title ?? "?")}</td>
                   <td>
-                    <button
-                      className="customer-row-edit-button customer-row-delete-button"
-                      onClick={() => void deleteLeadContact(Number(contact.id))}
-                      type="button"
-                    >
-                      {isArabic ? "\u062d\u0630\u0641" : "Delete"}
-                    </button>
+                    <div className="lead-contact-row-actions">
+                      <button
+                        className="customer-row-edit-button"
+                        onClick={() => openContactEditor(contact)}
+                        type="button"
+                      >
+                        {isArabic ? "تعديل" : "Edit"}
+                      </button>
+                      <button
+                        className="customer-row-edit-button customer-row-delete-button"
+                        onClick={() => void deleteLeadContact(Number(contact.id))}
+                        type="button"
+                      >
+                        {isArabic ? "\u062d\u0630\u0641" : "Delete"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

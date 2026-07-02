@@ -12220,6 +12220,17 @@ html[dir="rtl"]
   box-shadow: 0 14px 28px rgba(17, 41, 61, 0.14);
 }
 
+.lead-contacts-actions .secondary {
+  min-height: 46px;
+  padding: 0 20px;
+  border: 1px solid #d9e5ee;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  font-weight: 900;
+}
+
 .lead-contacts-actions p {
   margin: 0;
   color: #008fa3;
@@ -12236,6 +12247,13 @@ html[dir="rtl"]
 .lead-contacts-table :is(th, td) {
   text-align: center !important;
   vertical-align: middle;
+}
+
+.lead-contact-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .lead-tags-form {
