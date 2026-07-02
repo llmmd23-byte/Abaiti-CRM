@@ -1045,7 +1045,7 @@ export function CustomersView() {
                 ? "\u062a\u062d\u062f\u064a\u062b \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0645\u064a\u0644"
                 : "Update customer"}
             </span>
-            <h3>{String(leadEditDraft.name || editingLead.name || "?")}</h3>
+            <h3>{getCustomerTitle(editingLead)}</h3>
           </div>
           <button
             aria-label={isArabic ? "\u0627\u0644\u0631\u062c\u0648\u0639" : "Back"}
@@ -1173,7 +1173,10 @@ export function CustomersView() {
           </label>
           <div className="customer-edit-source">
             <span>{isArabic ? "\u0627\u0644\u0645\u0635\u062f\u0631" : "Source"}</span>
-            <strong>{String(editingLead.source ?? "?")}</strong>
+            <strong>
+              {String(editingLead.source ?? "").trim() ||
+                (isArabic ? "لا يوجد مصدر" : "No source")}
+            </strong>
           </div>
         </div>
         {leadEditStatus ? <p className="customer-edit-status">{leadEditStatus}</p> : null}
