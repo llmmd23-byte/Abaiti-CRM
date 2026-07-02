@@ -100,6 +100,13 @@ export function CustomersView() {
     lost: { ar: "\u0645\u0641\u0642\u0648\u062f", en: "Lost" },
   };
   const stageOrder = ["new", "interested", "proposal", "won", "lost"];
+  const emptyCustomerNameLabel = isArabic ? "لا يوجد اسم" : "No name";
+  const getCustomerName = (row: BackendRow | null) =>
+    String(row?.name ?? "").trim() || emptyCustomerNameLabel;
+  const getCustomerTitle = (row: BackendRow | null) =>
+    String(row?.name ?? "").trim() ||
+    String(row?.company_name ?? "").trim() ||
+    "—";
   const customerDateFilterOptions = [
     { value: "all", label: isArabic ? "جميع العملاء" : "All Customers" },
     { value: "today", label: isArabic ? "المضافين اليوم" : "Added Today" },
@@ -480,7 +487,7 @@ export function CustomersView() {
         <div className="customer-edit-modal-head">
           <div>
             <span>{isArabic ? "وسوم العميل" : "Customer Tags"}</span>
-            <h3>{String(tagsLead.name ?? tagsLead.company_name ?? "?")}</h3>
+            <h3>{getCustomerTitle(tagsLead)}</h3>
           </div>
           <button
             aria-label={isArabic ? "الرجوع" : "Back"}
@@ -716,7 +723,7 @@ export function CustomersView() {
         <div className="customer-edit-modal-head">
           <div>
             <span>{isArabic ? "\u0645\u0644\u0627\u062d\u0638\u0627\u062a \u0627\u0644\u0639\u0645\u064a\u0644" : "Customer Notes"}</span>
-            <h3>{String(notesLead.name ?? notesLead.company_name ?? "?")}</h3>
+            <h3>{getCustomerTitle(notesLead)}</h3>
           </div>
           <button
             aria-label={isArabic ? "\u0627\u0644\u0631\u062c\u0648\u0639" : "Back"}
@@ -778,7 +785,7 @@ export function CustomersView() {
         <div className="customer-edit-modal-head">
           <div>
             <span>{isArabic ? "\u062c\u0647\u0627\u062a \u0627\u0644\u0627\u062a\u0635\u0627\u0644" : "Contacts"}</span>
-            <h3>{String(contactsLead.name ?? contactsLead.company_name ?? "?")}</h3>
+            <h3>{getCustomerTitle(contactsLead)}</h3>
           </div>
           <button
             aria-label={isArabic ? "\u0627\u0644\u0631\u062c\u0648\u0639" : "Back"}
@@ -1175,7 +1182,7 @@ export function CustomersView() {
                         ] ?? String(row.stage ?? "new")}
                       </span>
                     </td>
-                    <td>{String(row.name ?? "?")}</td>
+                    <td>{getCustomerName(row)}</td>
                     <td dir="ltr">{String(row.phone ?? "?")}</td>
                     <td className="customers-details-cell customers-tags-cell">
                       <div className="customers-tags-list">
@@ -1347,7 +1354,7 @@ export function CustomersView() {
                       >
                         <div className="customer-kanban-card-head">
                           <div>
-                            <strong>{String(row.name ?? "?")}</strong>
+                            <strong>{getCustomerName(row)}</strong>
                             <span>{String(row.company_name ?? "?")}</span>
                           </div>
                           <button
