@@ -580,8 +580,9 @@ export async function listResource(resource: string, session: MiddarSession) {
     return rows;
   }
 
+  const rowLimit = resource === "leads" ? "" : " LIMIT 250";
   const [rows] = await db.execute<RowDataPacket[]>(
-    `SELECT * FROM ${definition.table}${where} ORDER BY created_at DESC LIMIT 250`,
+    `SELECT * FROM ${definition.table}${where} ORDER BY created_at DESC${rowLimit}`,
     params,
   );
   return rows;
