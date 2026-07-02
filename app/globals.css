@@ -12256,6 +12256,104 @@ html[dir="rtl"]
   gap: 8px;
 }
 
+.contact-delete-modal-overlay {
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(7, 20, 34, 0.48);
+  backdrop-filter: blur(8px);
+}
+
+.contact-delete-modal {
+  display: grid;
+  gap: 12px;
+  width: min(420px, 100%);
+  padding: 30px;
+  border: 1px solid #eef2f7;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(7, 20, 34, 0.22);
+  text-align: center;
+}
+
+.contact-delete-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  justify-self: center;
+  border-radius: 999px;
+  background: #fff1f2;
+  color: #dc2626;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.contact-delete-modal h3 {
+  margin: 0;
+  color: #11293d;
+  font-size: 21px;
+}
+
+.contact-delete-modal p {
+  margin: 0;
+  color: #718397;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.contact-delete-modal strong {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #11293d;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.contact-delete-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.contact-delete-actions button {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.contact-delete-actions .secondary {
+  border: 1px solid #d9e5ee;
+  background: #ffffff;
+  color: #475569;
+}
+
+.contact-delete-actions .danger {
+  border: 1px solid #fecaca;
+  background: #fff7f7;
+  color: #dc2626;
+}
+
+.contact-delete-actions .danger:hover {
+  border-color: #ef4444;
+  color: #b91c1c;
+  background: #fff1f2;
+}
+
 .lead-tags-form {
   grid-template-columns: repeat(2, minmax(220px, 1fr)) minmax(140px, 180px);
 }

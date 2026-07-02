@@ -70,6 +70,7 @@ export function CustomersView() {
   const [leadEditStatus, setLeadEditStatus] = useState("");
   const [contactsLead, setContactsLead] = useState<BackendRow | null>(null);
   const [editingContactId, setEditingContactId] = useState<number | null>(null);
+  const [contactDeleteTarget, setContactDeleteTarget] = useState<BackendRow | null>(null);
   const [contactDraft, setContactDraft] = useState({
     name: "",
     phone: "",
@@ -308,6 +309,7 @@ export function CustomersView() {
   function openLeadContacts(row: BackendRow) {
     setContactsLead(row);
     setEditingContactId(null);
+    setContactDeleteTarget(null);
     setContactDraft({ name: "", phone: "", email: "", job_title: "" });
     setContactStatus("");
   }
@@ -381,14 +383,9 @@ export function CustomersView() {
     }
   }
 
-  async function deleteLeadContact(contactId: number) {
+  async function deleteLeadContact(contact: BackendRow) {
     if (!contactsLead) return;
-    const confirmed = window.confirm(
-      isArabic
-        ? "هل تريد حذف جهة الاتصال؟"
-        : "Do you want to delete this contact?",
-    );
-    if (!confirmed) return;
+    const contactId = Number(contact.id);
     setContactStatus(isArabic ? "جاري حذف جهة الاتصال..." : "Deleting contact...");
     try {
       const response = await fetch(`/api/v1/data/lead-contacts/${contactId}`, {
@@ -403,6 +400,7 @@ export function CustomersView() {
       setContactStatus(
         isArabic ? "تم حذف جهة الاتصال" : "Contact has been deleted",
       );
+      setContactDeleteTarget(null);
     } catch {
       setContactStatus(
         isArabic ? "تعذر حذف جهة الاتصال" : "Unable to delete contact",
@@ -1010,7 +1008,7 @@ export function CustomersView() {
                       </button>
                       <button
                         className="customer-row-edit-button customer-row-delete-button"
-                        onClick={() => void deleteLeadContact(Number(contact.id))}
+                        onClick={() => setContactDeleteTarget(contact)}
                         type="button"
                       >
                         {isArabic ? "\u062d\u0630\u0641" : "Delete"}
@@ -1031,6 +1029,42 @@ export function CustomersView() {
             </tbody>
           </table>
         </div>
+        {contactDeleteTarget ? (
+          <div
+            aria-modal="true"
+            className="contact-delete-modal-overlay"
+            role="dialog"
+          >
+            <div className="contact-delete-modal">
+              <span className="contact-delete-icon" aria-hidden="true">
+                !
+              </span>
+              <h3>{isArabic ? "تأكيد حذف جهة الاتصال" : "Confirm Contact Delete"}</h3>
+              <p>
+                {isArabic
+                  ? "هل تريد حذف جهة الاتصال هذه؟ لا يمكن التراجع عن هذه العملية."
+                  : "Do you want to delete this contact? This action cannot be undone."}
+              </p>
+              <strong>{displayValue(contactDeleteTarget.name)}</strong>
+              <div className="contact-delete-actions">
+                <button
+                  className="secondary"
+                  onClick={() => setContactDeleteTarget(null)}
+                  type="button"
+                >
+                  {isArabic ? "إلغاء" : "Cancel"}
+                </button>
+                <button
+                  className="danger"
+                  onClick={() => void deleteLeadContact(contactDeleteTarget)}
+                  type="button"
+                >
+                  {isArabic ? "تأكيد الحذف" : "Confirm Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </article>
     );
   }
