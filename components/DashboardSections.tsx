@@ -850,6 +850,7 @@ export function HelpDeskPanel({ expanded = false }: { expanded?: boolean }) {
   const tickets = useBackend<BackendRow[]>("/api/v1/data/support-tickets");
   const ticketEvents = useBackend<BackendRow[]>("/api/v1/data/support-ticket-events");
   const [ticketFilter, setTicketFilter] = useState("all");
+  const [advancedTicketFilter, setAdvancedTicketFilter] = useState(false);
   const [category, setCategory] = useState("Commission Issue");
   const [subject, setSubject] = useState("");
   const [details, setDetails] = useState("");
@@ -877,9 +878,13 @@ export function HelpDeskPanel({ expanded = false }: { expanded?: boolean }) {
     const rawCategory = String(value ?? "");
     return categoryOptions.find((option) => option.value === rawCategory)?.label || rawCategory || "—";
   };
-  const filteredTickets = (tickets.data ?? []).filter(
-    (ticket) => ticketFilter === "all" || String(ticket.status ?? "open") === ticketFilter,
-  );
+  const filteredTickets = (tickets.data ?? []).filter((ticket) => {
+    const status = String(ticket.status ?? "open");
+    if (advancedTicketFilter && !["open", "in_progress"].includes(status)) {
+      return false;
+    }
+    return ticketFilter === "all" || status === ticketFilter;
+  });
 
   const createdAgo = (value: unknown) => {
     const date = parseDatabaseDate(value);
@@ -939,16 +944,26 @@ export function HelpDeskPanel({ expanded = false }: { expanded?: boolean }) {
             <h3>{isArabic ? "التذاكر السابقة" : "Past tickets"}</h3>
             <span>{isArabic ? "متابعة حالة طلبات الدعم" : "Track support requests"}</span>
           </div>
-          <div className="demo-status-filter">
-            <DashboardSelect
-              ariaLabel={isArabic ? "فلترة التذاكر حسب الحالة" : "Filter tickets by status"}
-              onValueChange={setTicketFilter}
-              options={[
-                { value: "all", label: isArabic ? "كل الحالات" : "All statuses" },
-                ...Object.entries(statusLabels).map(([value, label]) => ({ value, label })),
-              ]}
-              value={ticketFilter}
-            />
+          <div className="ticket-filter-tools">
+            <div className="demo-status-filter">
+              <DashboardSelect
+                ariaLabel={isArabic ? "فلترة التذاكر حسب الحالة" : "Filter tickets by status"}
+                onValueChange={setTicketFilter}
+                options={[
+                  { value: "all", label: isArabic ? "كل الحالات" : "All statuses" },
+                  ...Object.entries(statusLabels).map(([value, label]) => ({ value, label })),
+                ]}
+                value={ticketFilter}
+              />
+            </div>
+            <button
+              aria-pressed={advancedTicketFilter}
+              className={`ticket-advanced-filter${advancedTicketFilter ? " active" : ""}`}
+              onClick={() => setAdvancedTicketFilter((current) => !current)}
+              type="button"
+            >
+              {isArabic ? "فلترة متقدمة" : "Advanced Filter"}
+            </button>
           </div>
         </div>
         <div className="ticket-list">

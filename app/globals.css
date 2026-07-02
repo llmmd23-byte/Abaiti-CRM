@@ -7574,6 +7574,48 @@ html[dir="ltr"] .dashboard-route-shell .dashboard-main {
   padding: 9px 12px;
 }
 
+.ticket-filter-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ticket-filter-tools .demo-status-filter {
+  width: 170px;
+}
+
+.ticket-advanced-filter {
+  min-height: 42px;
+  padding: 9px 16px;
+  border: 1px solid #00b4d8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #087f8c;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+}
+
+.ticket-advanced-filter:hover {
+  background: #effcfd;
+}
+
+.ticket-advanced-filter.active {
+  border-color: #00a7a3;
+  background: #e9fbf9;
+  color: #006f78;
+  box-shadow: 0 8px 20px rgba(0, 180, 216, 0.12);
+}
+
 .ticket-list-empty {
   margin: 12px 0 0;
   color: var(--slate);
