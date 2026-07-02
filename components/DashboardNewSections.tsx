@@ -108,6 +108,7 @@ export function CustomersView() {
     String(row?.name ?? "").trim() ||
     String(row?.company_name ?? "").trim() ||
     "—";
+  const displayValue = (value: unknown) => String(value ?? "").trim() || "—";
   const customerDateFilterOptions = [
     { value: "all", label: isArabic ? "جميع العملاء" : "All Customers" },
     { value: "today", label: isArabic ? "المضافين اليوم" : "Added Today" },
@@ -994,10 +995,10 @@ export function CustomersView() {
             <tbody>
               {leadContacts.map((contact) => (
                 <tr key={contact.id}>
-                  <td>{String(contact.name ?? "?")}</td>
-                  <td dir="ltr">{String(contact.phone ?? "?")}</td>
-                  <td dir="ltr">{String(contact.email ?? "?")}</td>
-                  <td>{String(contact.job_title ?? "?")}</td>
+                  <td>{displayValue(contact.name)}</td>
+                  <td dir="ltr">{displayValue(contact.phone)}</td>
+                  <td dir="ltr">{displayValue(contact.email)}</td>
+                  <td>{displayValue(contact.job_title)}</td>
                   <td>
                     <div className="lead-contact-row-actions">
                       <button
