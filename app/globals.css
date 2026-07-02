@@ -4050,6 +4050,18 @@ html[dir="ltr"] .dashboard-main {
   color: #ffffff;
 }
 
+.customer-edit-modal-actions .danger {
+  border-color: #fecaca;
+  color: #dc2626;
+  background: #fff7f7;
+}
+
+.customer-edit-modal-actions .danger:hover {
+  border-color: #ef4444;
+  color: #b91c1c;
+  background: #fff1f2;
+}
+
 .customer-view-switch {
   display: inline-flex;
   gap: 4px;

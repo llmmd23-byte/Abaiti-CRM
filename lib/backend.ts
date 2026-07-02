@@ -1048,6 +1048,25 @@ export async function deleteResource(
     if (linkedRecords > 0) throw new Error("INDUSTRY_IN_USE");
   }
 
+  if (resource === "leads") {
+    await ensureLeadContactsTable();
+    await ensureLeadNotesTable();
+    await ensureLeadTagAssignmentsTable();
+    const ownerId = Number(existing.affiliate_user_id ?? session.sub);
+    await db.execute(
+      "DELETE FROM lead_tag_assignments WHERE lead_id = ? AND affiliate_user_id = ?",
+      [id, ownerId],
+    );
+    await db.execute(
+      "DELETE FROM lead_notes WHERE lead_id = ? AND affiliate_user_id = ?",
+      [id, ownerId],
+    );
+    await db.execute(
+      "DELETE FROM lead_contacts WHERE lead_id = ? AND affiliate_user_id = ?",
+      [id, ownerId],
+    );
+  }
+
   await db.execute(`DELETE FROM ${definition.table} WHERE id = ?`, [id]);
 }
 

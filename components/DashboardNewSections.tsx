@@ -246,6 +246,40 @@ export function CustomersView() {
     }
   }
 
+  async function deleteLead() {
+    if (!editingLead) return;
+    const confirmed = window.confirm(
+      isArabic
+        ? "هل تريد حذف هذا العميل؟"
+        : "Do you want to delete this customer?",
+    );
+    if (!confirmed) return;
+    setLeadEditStatus(
+      isArabic
+        ? "\u062c\u0627\u0631\u064a \u062d\u0630\u0641 \u0627\u0644\u0639\u0645\u064a\u0644..."
+        : "Deleting customer...",
+    );
+    try {
+      const response = await fetch(`/api/v1/data/leads/${editingLead.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("DELETE_FAILED");
+      await Promise.all([
+        leads.reload(),
+        contacts.reload(),
+        leadNotes.reload(),
+        leadTagAssignments.reload(),
+      ]);
+      setEditingLead(null);
+    } catch {
+      setLeadEditStatus(
+        isArabic
+          ? "\u062a\u0639\u0630\u0631 \u062d\u0630\u0641 \u0627\u0644\u0639\u0645\u064a\u0644"
+          : "Unable to delete customer",
+      );
+    }
+  }
+
   async function moveLeadToStage(leadId: number, stage: string) {
     const lead = (data ?? []).find((row) => row.id === leadId);
     setKanbanStatus("");
@@ -300,6 +334,31 @@ export function CustomersView() {
     } catch {
       setContactStatus(
         isArabic ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u062c\u0647\u0629 \u0627\u0644\u0627\u062a\u0635\u0627\u0644" : "Unable to save contact",
+      );
+    }
+  }
+
+  async function deleteLeadContact(contactId: number) {
+    if (!contactsLead) return;
+    const confirmed = window.confirm(
+      isArabic
+        ? "هل تريد حذف جهة الاتصال؟"
+        : "Do you want to delete this contact?",
+    );
+    if (!confirmed) return;
+    setContactStatus(isArabic ? "جاري حذف جهة الاتصال..." : "Deleting contact...");
+    try {
+      const response = await fetch(`/api/v1/data/lead-contacts/${contactId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("DELETE_FAILED");
+      await contacts.reload();
+      setContactStatus(
+        isArabic ? "تم حذف جهة الاتصال" : "Contact has been deleted",
+      );
+    } catch {
+      setContactStatus(
+        isArabic ? "تعذر حذف جهة الاتصال" : "Unable to delete contact",
       );
     }
   }
@@ -872,6 +931,7 @@ export function CustomersView() {
                 <th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644" : "Mobile Number"}</th>
                 <th>{isArabic ? "\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a" : "Email"}</th>
                 <th>{isArabic ? "\u0627\u0644\u0645\u0633\u0645\u0649 \u0627\u0644\u0648\u0638\u064a\u0641\u064a" : "Job Title"}</th>
+                <th>{isArabic ? "\u0625\u062c\u0631\u0627\u0621" : "Action"}</th>
               </tr>
             </thead>
             <tbody>
@@ -881,11 +941,20 @@ export function CustomersView() {
                   <td dir="ltr">{String(contact.phone ?? "?")}</td>
                   <td dir="ltr">{String(contact.email ?? "?")}</td>
                   <td>{String(contact.job_title ?? "?")}</td>
+                  <td>
+                    <button
+                      className="customer-row-edit-button customer-row-delete-button"
+                      onClick={() => void deleteLeadContact(Number(contact.id))}
+                      type="button"
+                    >
+                      {isArabic ? "\u062d\u0630\u0641" : "Delete"}
+                    </button>
+                  </td>
                 </tr>
               ))}
               {leadContacts.length === 0 ? (
                 <tr>
-                  <td colSpan={4}>
+                  <td colSpan={5}>
                     {isArabic
                       ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u062c\u0647\u0627\u062a \u0627\u062a\u0635\u0627\u0644 \u0645\u0631\u062a\u0628\u0637\u0629 \u0628\u0647\u0630\u0627 \u0627\u0644\u0639\u0645\u064a\u0644"
                       : "No contacts linked to this customer"}
@@ -1049,6 +1118,9 @@ export function CustomersView() {
           </button>
           <button onClick={() => setEditingLead(null)} type="button">
             {isArabic ? "\u0625\u0644\u063a\u0627\u0621" : "Cancel"}
+          </button>
+          <button className="danger" onClick={() => void deleteLead()} type="button">
+            {isArabic ? "\u062d\u0630\u0641 \u0627\u0644\u0639\u0645\u064a\u0644" : "Delete Customer"}
           </button>
         </div>
       </article>

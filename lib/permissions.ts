@@ -201,6 +201,7 @@ const affiliatePermissionSeeds: PermissionSeed[] = [
     create: userWritableTables.has(key),
     edit: userWritableTables.has(key),
     delete:
+      key === "table.leads" ||
       key === "table.lead_contacts" ||
       key === "table.lead_notes" ||
       key === "table.payout_methods",
@@ -324,6 +325,7 @@ function defaultSeedForRoleType(roleType: RoleType, key: string): PermissionSeed
     create: userWritableTables.has(key),
     edit: userWritableTables.has(key),
     delete:
+      key === "table.leads" ||
       key === "table.lead_contacts" ||
       key === "table.lead_notes" ||
       key === "table.payout_methods",
@@ -500,6 +502,14 @@ export async function ensurePermissionsTable() {
       }
     }
     await backfillRoleTypePermissions();
+    await db.execute(
+      `UPDATE permissions p
+         JOIN roles r ON r.id = p.role_id OR r.slug = p.subject_id
+          SET p.can_delete = 1
+        WHERE p.subject_type = 'role'
+          AND r.role_type = 'user'
+          AND p.permission_key = 'table.leads'`,
+    );
     await prunePermissionsByRoleType();
   })();
 
