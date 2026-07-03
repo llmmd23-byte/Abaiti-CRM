@@ -3746,6 +3746,27 @@ html[dir="ltr"] .dashboard-main {
   color: #007f9d;
 }
 
+.customer-action-icon-button {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  place-items: center;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.customer-action-icon-button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .dashboard-route-shell .dashboard-main .leads-hub-panel .badge.new {
   border-color: #bfdbfe;
   background: #eff6ff;
@@ -4477,6 +4498,22 @@ html[dir="ltr"] .dashboard-main {
   font-size: 11px;
   font-weight: 700;
   white-space: normal;
+}
+
+.customer-kanban-card-head .customer-action-icon-button {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 1px solid #bdeef3;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.customer-kanban-card-head .customer-action-icon-button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .customer-kanban-card dl {

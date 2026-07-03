@@ -11,6 +11,42 @@ const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
 const CUSTOMER_PAGE_SIZE = 10;
 type CustomerDateFilter = "all" | "today" | "yesterday" | "week" | "month";
+type CustomerActionIconName = "edit" | "contacts" | "notes" | "tags";
+
+function CustomerActionIcon({ name }: { name: CustomerActionIconName }) {
+  if (name === "edit") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M4 20h4l11-11-4-4L4 16v4Z" />
+        <path d="m13.5 6.5 4 4" />
+      </svg>
+    );
+  }
+  if (name === "contacts") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <circle cx="9" cy="8" r="3" />
+        <path d="M3.5 19v-1.5A4.5 4.5 0 0 1 8 13h2a4.5 4.5 0 0 1 4.5 4.5V19" />
+        <circle cx="17" cy="9" r="2.5" />
+        <path d="M16 14h1.5a3.5 3.5 0 0 1 3.5 3.5V19" />
+      </svg>
+    );
+  }
+  if (name === "notes") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M5 4h14v16H5z" />
+        <path d="M8 8h8M8 12h8M8 16h5" />
+      </svg>
+    );
+  }
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path d="M4 5h8l8 8-7 7-9-9V5Z" />
+      <circle cx="9" cy="10" r="1.5" />
+    </svg>
+  );
+}
 
 function parseDatabaseDate(value: unknown) {
   const raw = String(value ?? "").trim();
@@ -1706,32 +1742,40 @@ export function CustomersView() {
                     <td>
                       <div className="customer-row-actions">
                         <button
-                          className="customer-row-edit-button"
+                          aria-label={isArabic ? "تعديل" : "Edit"}
+                          className="customer-row-edit-button customer-action-icon-button"
                           onClick={() => openLeadEditor(row)}
+                          title={isArabic ? "تعديل" : "Edit"}
                           type="button"
                         >
-                          {isArabic ? "\u062a\u0639\u062f\u064a\u0644" : "Edit"}
+                          <CustomerActionIcon name="edit" />
                         </button>
                         <button
-                          className="customer-row-edit-button customer-row-contacts-button"
+                          aria-label={isArabic ? "جهات الاتصال" : "Contacts"}
+                          className="customer-row-edit-button customer-row-contacts-button customer-action-icon-button"
                           onClick={() => openLeadContacts(row)}
+                          title={isArabic ? "جهات الاتصال" : "Contacts"}
                           type="button"
                         >
-                          {isArabic ? "جهات الاتصال" : "Contacts"}
+                          <CustomerActionIcon name="contacts" />
                         </button>
                         <button
-                          className="customer-row-edit-button customer-row-notes-button"
+                          aria-label={isArabic ? "ملاحظات" : "Notes"}
+                          className="customer-row-edit-button customer-row-notes-button customer-action-icon-button"
                           onClick={() => openLeadNotes(row)}
+                          title={isArabic ? "ملاحظات" : "Notes"}
                           type="button"
                         >
-                          {isArabic ? "ملاحظات" : "Notes"}
+                          <CustomerActionIcon name="notes" />
                         </button>
                         <button
-                          className="customer-row-edit-button customer-row-tags-button"
+                          aria-label={isArabic ? "وسوم" : "Tags"}
+                          className="customer-row-edit-button customer-row-tags-button customer-action-icon-button"
                           onClick={() => openLeadTags(row)}
+                          title={isArabic ? "وسوم" : "Tags"}
                           type="button"
                         >
-                          {isArabic ? "وسوم" : "Tags"}
+                          <CustomerActionIcon name="tags" />
                         </button>
                       </div>
                     </td>
@@ -1855,30 +1899,40 @@ export function CustomersView() {
                             <span>{getCustomerName(row)}</span>
                           </div>
                           <button
+                            aria-label={isArabic ? "تعديل" : "Edit"}
+                            className="customer-action-icon-button"
                             onClick={() => openLeadEditor(row)}
+                            title={isArabic ? "تعديل" : "Edit"}
                             type="button"
                           >
-                            {isArabic
-                              ? "\u062a\u0639\u062f\u064a\u0644"
-                              : "Edit"}
+                            <CustomerActionIcon name="edit" />
                           </button>
                           <button
+                            aria-label={isArabic ? "جهات الاتصال" : "Contacts"}
+                            className="customer-action-icon-button"
                             onClick={() => openLeadContacts(row)}
+                            title={isArabic ? "جهات الاتصال" : "Contacts"}
                             type="button"
                           >
-                            {isArabic ? "\u062c\u0647\u0627\u062a \u0627\u0644\u0627\u062a\u0635\u0627\u0644" : "Contacts"}
+                            <CustomerActionIcon name="contacts" />
                           </button>
                           <button
+                            aria-label={isArabic ? "ملاحظات" : "Notes"}
+                            className="customer-action-icon-button"
                             onClick={() => openLeadNotes(row)}
+                            title={isArabic ? "ملاحظات" : "Notes"}
                             type="button"
                           >
-                            {isArabic ? "\u0645\u0644\u0627\u062d\u0638\u0627\u062a" : "Notes"}
+                            <CustomerActionIcon name="notes" />
                           </button>
                           <button
+                            aria-label={isArabic ? "وسوم" : "Tags"}
+                            className="customer-action-icon-button"
                             onClick={() => openLeadTags(row)}
+                            title={isArabic ? "وسوم" : "Tags"}
                             type="button"
                           >
-                            {isArabic ? "وسوم" : "Tags"}
+                            <CustomerActionIcon name="tags" />
                           </button>
                         </div>
                         <dl>
