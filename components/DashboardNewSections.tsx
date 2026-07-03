@@ -843,10 +843,6 @@ export function CustomersView() {
                   (isArabic ? "لا يوجد مصدر" : "No source")}
               </dd>
             </div>
-            <div>
-              <dt>{isArabic ? "تاريخ الإنشاء" : "Created At"}</dt>
-              <dd>{formatUserDateTime(tagsLead.created_at, isArabic)}</dd>
-            </div>
           </dl>
         </section>
 
