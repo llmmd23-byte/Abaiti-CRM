@@ -455,10 +455,11 @@ export function CustomersView() {
       );
       return;
     }
+    const isCreatingTagType = tagDraft.tag_type_id === "__new__";
     if (
       !tagDraft.tag_id &&
-      !tagDraft.tag_type_id &&
-      !tagDraft.type_name.trim()
+      (!tagDraft.tag_type_id ||
+        (isCreatingTagType && !tagDraft.type_name.trim()))
     ) {
       setTagStatus(
         isArabic
@@ -471,7 +472,10 @@ export function CustomersView() {
     try {
       const normalizedTagName = tagDraft.tag_name.trim();
       const normalizedTypeName = tagDraft.type_name.trim();
-      let tagTypeId = tagDraft.tag_type_id ? Number(tagDraft.tag_type_id) : null;
+      let tagTypeId =
+        tagDraft.tag_type_id && !isCreatingTagType
+          ? Number(tagDraft.tag_type_id)
+          : null;
       if (!tagTypeId && normalizedTypeName) {
         const existingType = (leadTagTypes.data ?? []).find(
           (item) =>
@@ -578,10 +582,15 @@ export function CustomersView() {
         .filter((typeId) => Number.isInteger(typeId) && typeId > 0),
     );
     const availableTagTypes = leadTagTypes.data ?? [];
-    const selectedTagTypeId = tagDraft.tag_type_id ? Number(tagDraft.tag_type_id) : null;
+    const isCreatingTagType = tagDraft.tag_type_id === "__new__";
+    const selectedTagTypeId =
+      tagDraft.tag_type_id && !isCreatingTagType
+        ? Number(tagDraft.tag_type_id)
+        : null;
     const availableTags = (leadTags.data ?? []).filter((tag) => {
       if (assignedTagIds.has(Number(tag.id))) return false;
       if (assignedTagTypeIds.has(Number(tag.tag_type_id))) return false;
+      if (isCreatingTagType) return false;
       if (!selectedTagTypeId) return true;
       return Number(tag.tag_type_id) === selectedTagTypeId;
     });
@@ -604,9 +613,17 @@ export function CustomersView() {
 
         <div className="lead-contacts-form lead-tags-form">
           <label>
-            <span>{isArabic ? "اختيار نوع الوسم" : "Select Tag Type"}</span>
+            <span>
+              {isArabic
+                ? "اختيار أو إضافة نوع وسم جديد"
+                : "Select or Add a New Tag Type"}
+            </span>
             <DashboardSelect
-              ariaLabel={isArabic ? "اختيار نوع الوسم" : "Select tag type"}
+              ariaLabel={
+                isArabic
+                  ? "اختيار أو إضافة نوع وسم جديد"
+                  : "Select or add a new tag type"
+              }
               onValueChange={(value) =>
                 setTagDraft((current) => ({
                   ...current,
@@ -615,19 +632,23 @@ export function CustomersView() {
                   tag_id: "",
                 }))
               }
-              options={availableTagTypes.map((type) => ({
-                value: String(type.id),
-                label: String(type.type_name ?? type.id),
-                disabled: assignedTagTypeIds.has(Number(type.id)),
-              }))}
+              options={[
+                ...availableTagTypes.map((type) => ({
+                  value: String(type.id),
+                  label: String(type.type_name ?? type.id),
+                  disabled: assignedTagTypeIds.has(Number(type.id)),
+                })),
+                {
+                  value: "__new__",
+                  label: isArabic
+                    ? "+ إضافة نوع وسم جديد"
+                    : "+ Add New Tag Type",
+                },
+              ]}
               placeholder={
-                availableTagTypes.length
-                  ? isArabic
-                    ? "اختر مجموعة الوسم"
-                    : "Choose tag group"
-                  : isArabic
-                    ? "لا توجد مجموعات بعد"
-                    : "No groups yet"
+                isArabic
+                  ? "اختر نوع الوسم أو أضف نوعًا جديدًا"
+                  : "Select a tag type or add a new one"
               }
               searchable
               searchPlaceholder={
@@ -636,35 +657,38 @@ export function CustomersView() {
               value={tagDraft.tag_type_id}
             />
           </label>
-          <label>
-            <span>{isArabic ? "أو اكتب نوعًا جديدًا" : "Or Create New Type"}</span>
-            <input
-              onChange={(event) =>
-                setTagDraft((current) => ({
-                  ...current,
-                  tag_type_id: "",
-                  type_name: event.target.value,
-                  tag_id: "",
-                }))
-              }
-              placeholder={isArabic ? "مثال: مرحلة العميل" : "Example: Customer stage"}
-              type="text"
-              value={tagDraft.type_name}
-            />
-          </label>
-          <label>
-            <span>{isArabic ? "لون نوع الوسم" : "Type Color"}</span>
-            <input
-              onChange={(event) =>
-                setTagDraft((current) => ({
-                  ...current,
-                  type_color: event.target.value,
-                }))
-              }
-              type="color"
-              value={tagDraft.type_color}
-            />
-          </label>
+          {isCreatingTagType ? (
+            <>
+              <label>
+                <span>{isArabic ? "اسم نوع الوسم الجديد" : "New Tag Type Name"}</span>
+                <input
+                  onChange={(event) =>
+                    setTagDraft((current) => ({
+                      ...current,
+                      type_name: event.target.value,
+                      tag_id: "",
+                    }))
+                  }
+                  placeholder={isArabic ? "مثال: مرحلة العميل" : "Example: Customer stage"}
+                  type="text"
+                  value={tagDraft.type_name}
+                />
+              </label>
+              <label>
+                <span>{isArabic ? "لون نوع الوسم" : "Type Color"}</span>
+                <input
+                  onChange={(event) =>
+                    setTagDraft((current) => ({
+                      ...current,
+                      type_color: event.target.value,
+                    }))
+                  }
+                  type="color"
+                  value={tagDraft.type_color}
+                />
+              </label>
+            </>
+          ) : null}
           <label>
             <span>{isArabic ? "اختيار وسم موجود" : "Select Existing Tag"}</span>
             <DashboardSelect
@@ -1530,8 +1554,8 @@ export function CustomersView() {
                       >
                         <div className="customer-kanban-card-head">
                           <div>
-                            <strong>{getCustomerName(row)}</strong>
-                            <span>{String(row.company_name ?? "?")}</span>
+                            <strong>{getCustomerTitle(row)}</strong>
+                            <span>{getCustomerName(row)}</span>
                           </div>
                           <button
                             onClick={() => openLeadEditor(row)}
@@ -2194,7 +2218,7 @@ export function DemoView() {
                       onClick={() => {
                         setSelectedLeadId(String(lead.id));
                         setCustomerQuery(
-                          `${String(lead.name ?? "?")} - ${String(lead.company_name ?? "?")}`,
+                          `${String(lead.company_name ?? "?")} - ${String(lead.name ?? "?")}`,
                         );
                         setCustomerMenuOpen(false);
                       }}
@@ -2202,8 +2226,8 @@ export function DemoView() {
                       type="button"
                     >
                       <span>
-                        <strong>{String(lead.name ?? "?")}</strong>
-                        <small>{String(lead.company_name ?? "?")}</small>
+                        <strong>{String(lead.company_name ?? "?")}</strong>
+                        <small>{String(lead.name ?? "?")}</small>
                       </span>
                       <small dir="ltr">{String(lead.phone ?? "?")}</small>
                     </button>
