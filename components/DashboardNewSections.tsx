@@ -1231,6 +1231,8 @@ export function CustomersView() {
           </button>
         </div>
 
+        {renderCustomerProfile(notesLead)}
+
         <label className="lead-note-input">
           <span>{isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u0645\u0644\u0627\u062d\u0638\u0629 \u062c\u062f\u064a\u062f\u0629" : "Add a New Note"}</span>
           <textarea
