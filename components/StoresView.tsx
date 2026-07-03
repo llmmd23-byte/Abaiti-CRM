@@ -14,10 +14,7 @@ const emptyStoreDraft = {
   industry_id: "",
   email: "",
   phone: "",
-  source: "",
   address: "",
-  requirements: "",
-  potential_value: "",
   currency: "SAR",
 };
 
@@ -74,9 +71,6 @@ export default function StoresView() {
         ...storeDraft,
         industry_id: storeDraft.industry_id
           ? Number(storeDraft.industry_id)
-          : null,
-        potential_value: storeDraft.potential_value
-          ? Number(storeDraft.potential_value)
           : null,
         stage: "active",
       });
@@ -232,35 +226,6 @@ export default function StoresView() {
                 setStoreDraft((current) => ({ ...current, address: event.target.value }))
               }
               value={storeDraft.address}
-            />
-          </label>
-          <label>
-            <span>{isArabic ? "المصدر" : "Source"}</span>
-            <input
-              onChange={(event) =>
-                setStoreDraft((current) => ({ ...current, source: event.target.value }))
-              }
-              value={storeDraft.source}
-            />
-          </label>
-          <label>
-            <span>{isArabic ? "القيمة المتوقعة" : "Potential Value"}</span>
-            <input
-              min="0"
-              onChange={(event) =>
-                setStoreDraft((current) => ({ ...current, potential_value: event.target.value }))
-              }
-              type="number"
-              value={storeDraft.potential_value}
-            />
-          </label>
-          <label className="stores-wide-field">
-            <span>{isArabic ? "المتطلبات الإضافية" : "Additional Requirements"}</span>
-            <textarea
-              onChange={(event) =>
-                setStoreDraft((current) => ({ ...current, requirements: event.target.value }))
-              }
-              value={storeDraft.requirements}
             />
           </label>
         </div>
