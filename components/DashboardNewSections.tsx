@@ -759,6 +759,15 @@ export function CustomersView() {
         .filter((typeId) => Number.isInteger(typeId) && typeId > 0),
     );
     const availableTagTypes = leadTagTypes.data ?? [];
+    const customerIndustry = industries?.find(
+      (industry) => Number(industry.id) === Number(tagsLead.industry_id),
+    );
+    const customerIndustryName = String(
+      customerIndustry?.[isArabic ? "name" : "name_en"] ??
+        customerIndustry?.name ??
+        "",
+    ).trim();
+    const customerStage = String(tagsLead.stage ?? "new");
     const selectedTagTypeId =
       tagDraft.tag_type_id ? Number(tagDraft.tag_type_id) : null;
     const availableTags = (leadTags.data ?? []).filter((tag) => {
@@ -783,6 +792,63 @@ export function CustomersView() {
             {isArabic ? "رجوع" : "Back"}
           </button>
         </div>
+
+        <section className="tag-customer-profile" aria-label={isArabic ? "بيانات العميل" : "Customer Details"}>
+          <div className="tag-customer-profile-head">
+            <div>
+              <span>{isArabic ? "بيانات العميل" : "Customer Details"}</span>
+              <h4>{getCustomerTitle(tagsLead)}</h4>
+            </div>
+            <span className={`badge ${customerStage}`}>
+              {stageLabels[customerStage]?.[isArabic ? "ar" : "en"] ??
+                customerStage}
+            </span>
+          </div>
+          <dl className="tag-customer-profile-grid">
+            <div>
+              <dt>{isArabic ? "اسم المنشأة" : "Company Name"}</dt>
+              <dd>{displayValue(tagsLead.company_name)}</dd>
+            </div>
+            <div>
+              <dt>{isArabic ? "الاسم الكامل" : "Full Name"}</dt>
+              <dd>{getCustomerName(tagsLead)}</dd>
+            </div>
+            <div>
+              <dt>{isArabic ? "نوع النشاط" : "Business Type"}</dt>
+              <dd>{customerIndustryName || "—"}</dd>
+            </div>
+            <div>
+              <dt>{isArabic ? "رقم الجوال" : "Mobile Number"}</dt>
+              <dd dir="ltr">{displayValue(tagsLead.phone)}</dd>
+            </div>
+            <div>
+              <dt>{isArabic ? "البريد الإلكتروني" : "Email"}</dt>
+              <dd dir="ltr">{displayValue(tagsLead.email)}</dd>
+            </div>
+            <div>
+              <dt>{isArabic ? "العنوان" : "Address"}</dt>
+              <dd>{displayValue(tagsLead.address)}</dd>
+            </div>
+            <div className="tag-customer-profile-wide">
+              <dt>{isArabic ? "المتطلبات الإضافية" : "Additional Requirements"}</dt>
+              <dd>
+                {String(tagsLead.requirements ?? "").trim() ||
+                  (isArabic ? "لا توجد متطلبات" : "No requirements")}
+              </dd>
+            </div>
+            <div>
+              <dt>{isArabic ? "المصدر" : "Source"}</dt>
+              <dd>
+                {String(tagsLead.source ?? "").trim() ||
+                  (isArabic ? "لا يوجد مصدر" : "No source")}
+              </dd>
+            </div>
+            <div>
+              <dt>{isArabic ? "تاريخ الإنشاء" : "Created At"}</dt>
+              <dd>{formatUserDateTime(tagsLead.created_at, isArabic)}</dd>
+            </div>
+          </dl>
+        </section>
 
         <div className="lead-contacts-form lead-tags-form">
           <label>
