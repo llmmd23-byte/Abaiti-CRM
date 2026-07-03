@@ -91,6 +91,9 @@ export function CustomersView() {
     tag_color: "#00b4d8",
   });
   const [tagStatus, setTagStatus] = useState("");
+  const [tagTypeModalOpen, setTagTypeModalOpen] = useState(false);
+  const [tagModalOpen, setTagModalOpen] = useState(false);
+  const [tagModalStatus, setTagModalStatus] = useState("");
   const stageLabels: Record<string, { ar: string; en: string }> = {
     new: { ar: "\u062c\u062f\u064a\u062f", en: "New" },
     interested: { ar: "\u0645\u0647\u062a\u0645", en: "Interested" },
@@ -445,6 +448,88 @@ export function CustomersView() {
       tag_color: "#00b4d8",
     });
     setTagStatus("");
+    setTagTypeModalOpen(false);
+    setTagModalOpen(false);
+    setTagModalStatus("");
+  }
+
+  async function createNewTagType() {
+    const typeName = tagDraft.type_name.trim();
+    if (!typeName) {
+      setTagModalStatus(
+        isArabic ? "اسم نوع الوسم مطلوب" : "Tag type name is required",
+      );
+      return;
+    }
+    setTagModalStatus(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const existingType = (leadTagTypes.data ?? []).find(
+        (item) =>
+          String(item.type_name ?? "").trim().toLocaleLowerCase() ===
+          typeName.toLocaleLowerCase(),
+      );
+      const createdType =
+        existingType ??
+        (await createBackend<BackendRow>("lead-tag-types", {
+          type_name: typeName,
+          type_color: tagDraft.type_color,
+        }));
+      await leadTagTypes.reload();
+      setTagDraft((current) => ({
+        ...current,
+        tag_type_id: String(createdType.id),
+        type_name: "",
+        tag_id: "",
+        tag_name: "",
+      }));
+      setTagTypeModalOpen(false);
+      setTagModalStatus("");
+    } catch {
+      setTagModalStatus(
+        isArabic ? "تعذر إنشاء نوع الوسم" : "Unable to create tag type",
+      );
+    }
+  }
+
+  async function createNewTag() {
+    const tagName = tagDraft.tag_name.trim();
+    const typeId = Number(tagDraft.tag_type_id);
+    if (!Number.isInteger(typeId) || typeId <= 0) {
+      setTagModalStatus(
+        isArabic ? "اختر نوع الوسم أولًا" : "Select a tag type first",
+      );
+      return;
+    }
+    if (!tagName) {
+      setTagModalStatus(isArabic ? "اسم الوسم مطلوب" : "Tag name is required");
+      return;
+    }
+    setTagModalStatus(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const existingTag = (leadTags.data ?? []).find(
+        (item) =>
+          Number(item.tag_type_id) === typeId &&
+          String(item.tag_name ?? "").trim().toLocaleLowerCase() ===
+            tagName.toLocaleLowerCase(),
+      );
+      const createdTag =
+        existingTag ??
+        (await createBackend<BackendRow>("lead-tags", {
+          tag_type_id: typeId,
+          tag_name: tagName,
+          tag_color: tagDraft.tag_color,
+        }));
+      await leadTags.reload();
+      setTagDraft((current) => ({
+        ...current,
+        tag_id: String(createdTag.id),
+        tag_name: "",
+      }));
+      setTagModalOpen(false);
+      setTagModalStatus("");
+    } catch {
+      setTagModalStatus(isArabic ? "تعذر إنشاء الوسم" : "Unable to create tag");
+    }
   }
 
   async function saveLeadTag() {
@@ -589,16 +674,11 @@ export function CustomersView() {
         .filter((typeId) => Number.isInteger(typeId) && typeId > 0),
     );
     const availableTagTypes = leadTagTypes.data ?? [];
-    const isCreatingTagType = tagDraft.tag_type_id === "__new__";
-    const isCreatingTag = tagDraft.tag_id === "__new__";
     const selectedTagTypeId =
-      tagDraft.tag_type_id && !isCreatingTagType
-        ? Number(tagDraft.tag_type_id)
-        : null;
+      tagDraft.tag_type_id ? Number(tagDraft.tag_type_id) : null;
     const availableTags = (leadTags.data ?? []).filter((tag) => {
       if (assignedTagIds.has(Number(tag.id))) return false;
       if (assignedTagTypeIds.has(Number(tag.tag_type_id))) return false;
-      if (isCreatingTagType) return false;
       if (!selectedTagTypeId) return true;
       return Number(tag.tag_type_id) === selectedTagTypeId;
     });
@@ -632,14 +712,24 @@ export function CustomersView() {
                   ? "اختيار أو إضافة نوع وسم جديد"
                   : "Select or add a new tag type"
               }
-              onValueChange={(value) =>
+              onValueChange={(value) => {
+                if (value === "__new__") {
+                  setTagDraft((current) => ({
+                    ...current,
+                    type_name: "",
+                    type_color: "#00b4d8",
+                  }));
+                  setTagModalStatus("");
+                  setTagTypeModalOpen(true);
+                  return;
+                }
                 setTagDraft((current) => ({
                   ...current,
                   tag_type_id: value,
                   type_name: "",
                   tag_id: "",
-                }))
-              }
+                }));
+              }}
               options={[
                 ...availableTagTypes.map((type) => ({
                   value: String(type.id),
@@ -665,38 +755,6 @@ export function CustomersView() {
               value={tagDraft.tag_type_id}
             />
           </label>
-          {isCreatingTagType ? (
-            <>
-              <label>
-                <span>{isArabic ? "اسم نوع الوسم الجديد" : "New Tag Type Name"}</span>
-                <input
-                  onChange={(event) =>
-                    setTagDraft((current) => ({
-                      ...current,
-                      type_name: event.target.value,
-                      tag_id: "",
-                    }))
-                  }
-                  placeholder={isArabic ? "مثال: مرحلة العميل" : "Example: Customer stage"}
-                  type="text"
-                  value={tagDraft.type_name}
-                />
-              </label>
-              <label>
-                <span>{isArabic ? "لون نوع الوسم" : "Type Color"}</span>
-                <input
-                  onChange={(event) =>
-                    setTagDraft((current) => ({
-                      ...current,
-                      type_color: event.target.value,
-                    }))
-                  }
-                  type="color"
-                  value={tagDraft.type_color}
-                />
-              </label>
-            </>
-          ) : null}
           <label>
             <span>
               {isArabic
@@ -709,13 +767,31 @@ export function CustomersView() {
                   ? "اختيار أو إضافة وسم جديد"
                   : "Select or add a new tag"
               }
-              onValueChange={(value) =>
+              onValueChange={(value) => {
+                if (value === "__new__") {
+                  if (!selectedTagTypeId) {
+                    setTagStatus(
+                      isArabic
+                        ? "اختر نوع الوسم أولًا"
+                        : "Select a tag type first",
+                    );
+                    return;
+                  }
+                  setTagDraft((current) => ({
+                    ...current,
+                    tag_name: "",
+                    tag_color: "#00b4d8",
+                  }));
+                  setTagModalStatus("");
+                  setTagModalOpen(true);
+                  return;
+                }
                 setTagDraft((current) => ({
                   ...current,
                   tag_id: value,
                   tag_name: "",
-                }))
-              }
+                }));
+              }}
               options={[
                 ...availableTags.map((tag) => ({
                   value: String(tag.id),
@@ -743,37 +819,6 @@ export function CustomersView() {
               value={tagDraft.tag_id}
             />
           </label>
-          {isCreatingTag ? (
-            <>
-              <label>
-                <span>{isArabic ? "اسم الوسم الجديد" : "New Tag Name"}</span>
-                <input
-                  onChange={(event) =>
-                    setTagDraft((current) => ({
-                      ...current,
-                      tag_name: event.target.value,
-                    }))
-                  }
-                  placeholder={isArabic ? "مثال: عميل مهم" : "Example: Important customer"}
-                  type="text"
-                  value={tagDraft.tag_name}
-                />
-              </label>
-              <label>
-                <span>{isArabic ? "لون الوسم" : "Tag Color"}</span>
-                <input
-                  onChange={(event) =>
-                    setTagDraft((current) => ({
-                      ...current,
-                      tag_color: event.target.value,
-                    }))
-                  }
-                  type="color"
-                  value={tagDraft.tag_color}
-                />
-              </label>
-            </>
-          ) : null}
         </div>
 
         <div className="lead-contacts-actions">
@@ -854,6 +899,160 @@ export function CustomersView() {
             </tbody>
           </table>
         </div>
+
+        {tagTypeModalOpen ? (
+          <div
+            className="tag-create-modal-overlay"
+            onMouseDown={() => setTagTypeModalOpen(false)}
+            role="presentation"
+          >
+            <section
+              aria-labelledby="new-tag-type-title"
+              aria-modal="true"
+              className="tag-create-modal"
+              onMouseDown={(event) => event.stopPropagation()}
+              role="dialog"
+            >
+              <div className="tag-create-modal-head">
+                <div>
+                  <span>{isArabic ? "أنواع الوسوم" : "Tag Types"}</span>
+                  <h3 id="new-tag-type-title">
+                    {isArabic ? "إضافة نوع وسم جديد" : "Add New Tag Type"}
+                  </h3>
+                </div>
+                <button
+                  aria-label={isArabic ? "إغلاق" : "Close"}
+                  onClick={() => setTagTypeModalOpen(false)}
+                  type="button"
+                >
+                  ×
+                </button>
+              </div>
+              <label>
+                <span>{isArabic ? "اسم نوع الوسم" : "Tag Type Name"}</span>
+                <input
+                  autoFocus
+                  onChange={(event) =>
+                    setTagDraft((current) => ({
+                      ...current,
+                      type_name: event.target.value,
+                    }))
+                  }
+                  placeholder={isArabic ? "مثال: مرحلة العميل" : "Example: Customer stage"}
+                  type="text"
+                  value={tagDraft.type_name}
+                />
+              </label>
+              <label>
+                <span>{isArabic ? "لون نوع الوسم" : "Tag Type Color"}</span>
+                <input
+                  onChange={(event) =>
+                    setTagDraft((current) => ({
+                      ...current,
+                      type_color: event.target.value,
+                    }))
+                  }
+                  type="color"
+                  value={tagDraft.type_color}
+                />
+              </label>
+              {tagModalStatus ? <p role="status">{tagModalStatus}</p> : null}
+              <div className="tag-create-modal-actions">
+                <button
+                  className="primary"
+                  onClick={() => void createNewTagType()}
+                  type="button"
+                >
+                  {isArabic ? "حفظ نوع الوسم" : "Save Tag Type"}
+                </button>
+                <button
+                  className="secondary"
+                  onClick={() => setTagTypeModalOpen(false)}
+                  type="button"
+                >
+                  {isArabic ? "إلغاء" : "Cancel"}
+                </button>
+              </div>
+            </section>
+          </div>
+        ) : null}
+
+        {tagModalOpen ? (
+          <div
+            className="tag-create-modal-overlay"
+            onMouseDown={() => setTagModalOpen(false)}
+            role="presentation"
+          >
+            <section
+              aria-labelledby="new-tag-title"
+              aria-modal="true"
+              className="tag-create-modal"
+              onMouseDown={(event) => event.stopPropagation()}
+              role="dialog"
+            >
+              <div className="tag-create-modal-head">
+                <div>
+                  <span>{isArabic ? "الوسوم" : "Tags"}</span>
+                  <h3 id="new-tag-title">
+                    {isArabic ? "إضافة وسم جديد" : "Add New Tag"}
+                  </h3>
+                </div>
+                <button
+                  aria-label={isArabic ? "إغلاق" : "Close"}
+                  onClick={() => setTagModalOpen(false)}
+                  type="button"
+                >
+                  ×
+                </button>
+              </div>
+              <label>
+                <span>{isArabic ? "اسم الوسم" : "Tag Name"}</span>
+                <input
+                  autoFocus
+                  onChange={(event) =>
+                    setTagDraft((current) => ({
+                      ...current,
+                      tag_name: event.target.value,
+                    }))
+                  }
+                  placeholder={isArabic ? "مثال: عميل مهم" : "Example: Important customer"}
+                  type="text"
+                  value={tagDraft.tag_name}
+                />
+              </label>
+              <label>
+                <span>{isArabic ? "لون الوسم" : "Tag Color"}</span>
+                <input
+                  onChange={(event) =>
+                    setTagDraft((current) => ({
+                      ...current,
+                      tag_color: event.target.value,
+                    }))
+                  }
+                  type="color"
+                  value={tagDraft.tag_color}
+                />
+              </label>
+              {tagModalStatus ? <p role="status">{tagModalStatus}</p> : null}
+              <div className="tag-create-modal-actions">
+                <button
+                  className="primary"
+                  onClick={() => void createNewTag()}
+                  type="button"
+                >
+                  {isArabic ? "حفظ الوسم" : "Save Tag"}
+                </button>
+                <button
+                  className="secondary"
+                  onClick={() => setTagModalOpen(false)}
+                  type="button"
+                >
+                  {isArabic ? "إلغاء" : "Cancel"}
+                </button>
+              </div>
+            </section>
+          </div>
+        ) : null}
       </article>
     );
   }

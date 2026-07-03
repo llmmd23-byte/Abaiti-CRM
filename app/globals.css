@@ -12363,6 +12363,124 @@ html[dir="rtl"]
   cursor: pointer;
 }
 
+.tag-create-modal-overlay {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(7, 20, 34, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+.tag-create-modal {
+  display: grid;
+  gap: 18px;
+  width: min(520px, 100%);
+  padding: 28px;
+  border: 1px solid #e5edf4;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(7, 20, 34, 0.24);
+}
+
+.tag-create-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tag-create-modal-head span {
+  color: #00a9c7;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.tag-create-modal-head h3 {
+  margin: 5px 0 0;
+  color: #11293d;
+  font-size: 22px;
+}
+
+.tag-create-modal-head > button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid #dce8f0;
+  border-radius: 50%;
+  background: #fff;
+  color: #60758a;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.tag-create-modal label {
+  display: grid;
+  gap: 8px;
+  color: #11293d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tag-create-modal input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid #dce6ef;
+  border-radius: 14px;
+  background: #fbfcfe;
+  color: #11293d;
+  outline: none;
+}
+
+.tag-create-modal input:focus {
+  border-color: #00b4d8;
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
+}
+
+.tag-create-modal input[type="color"] {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.tag-create-modal > p {
+  margin: 0;
+  color: #00a0bd;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tag-create-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.tag-create-modal-actions button {
+  min-height: 46px;
+  padding: 0 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.tag-create-modal-actions .primary {
+  border: 1px solid #11293d;
+  background: #11293d;
+  color: #fff;
+}
+
+.tag-create-modal-actions .secondary {
+  border: 1px solid #d9e5ee;
+  background: #fff;
+  color: #52677c;
+}
+
 .lead-tag-pill {
   display: inline-flex;
   min-height: 34px;
