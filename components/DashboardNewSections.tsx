@@ -1670,6 +1670,9 @@ export function CustomersView() {
                     : "Mobile Number"}
                 </th>
                 <th>
+                  {isArabic ? "المتطلبات الإضافية" : "Additional Requirements"}
+                </th>
+                <th>
                   {isArabic
                     ? "\u0627\u0644\u0648\u0633\u0648\u0645"
                     : "Tags"}
@@ -1717,6 +1720,10 @@ export function CustomersView() {
                     </td>
                     <td>{getCustomerName(row)}</td>
                     <td dir="ltr">{String(row.phone ?? "?")}</td>
+                    <td className="customers-details-cell customers-requirements-cell">
+                      {String(row.requirements ?? "").trim() ||
+                        (isArabic ? "لا توجد متطلبات" : "No requirements")}
+                    </td>
                     <td className="customers-details-cell customers-tags-cell">
                       <div className="customers-tags-list">
                         {rowTags.length ? (
@@ -1785,7 +1792,7 @@ export function CustomersView() {
               })}
               {filteredCustomers.length === 0 ? (
                 <tr className="customer-search-empty-row">
-                  <td colSpan={7}>
+                  <td colSpan={8}>
                     {isArabic
                       ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0646\u062a\u0627\u0626\u062c \u0645\u0637\u0627\u0628\u0642\u0629"
                       : "No matching customers"}

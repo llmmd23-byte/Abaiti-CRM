@@ -3686,6 +3686,11 @@ html[dir="ltr"] .dashboard-main {
   min-width: 220px;
 }
 
+.customers-requirements-cell {
+  min-width: 210px;
+  color: #52677c;
+}
+
 .customers-tags-list {
   display: flex;
   flex-wrap: wrap;
