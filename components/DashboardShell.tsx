@@ -10,6 +10,7 @@ import {useEffect, useState} from "react";
 type DashboardSection =
   | "overview"
   | "customers"
+  | "stores"
   | "demo"
   | "accounts"
   | "productInfo"
@@ -23,6 +24,7 @@ type DashboardSection =
 type DashboardHref =
   | "/dashboard"
   | "/dashboard/customers"
+  | "/dashboard/stores"
   | "/dashboard/demo"
   | "/dashboard/accounts"
   | "/dashboard/product-info"
@@ -43,6 +45,7 @@ type NavItem = {
     | "products"
     | "marketing"
     | "leads"
+    | "stores"
     | "quotes"
     | "sales"
     | "education"
@@ -57,6 +60,7 @@ const sectionPermissionKeys: Partial<Record<DashboardSection, string>> = {
   overview: "page.user.overview",
   products: "page.user.marketing",
   customers: "page.user.customers",
+  stores: "page.user.stores",
   quotes: "page.user.quotes",
   commissions: "page.user.sales",
   productInfo: "page.user.activation",
@@ -80,6 +84,12 @@ const coreGrowthItems: NavItem[] = [
     href: "/dashboard/customers",
     label: "portal.potentialCustomers",
     icon: "leads"
+  },
+  {
+    key: "stores",
+    href: "/dashboard/stores",
+    label: "portal.stores",
+    icon: "stores"
   },
   {key: "quotes", href: "/dashboard/quotes", label: "portal.salesTools", icon: "quotes"},
   {
@@ -153,6 +163,13 @@ function NavItemIcon({icon}: {icon: NavItem["icon"]}) {
             <path d="M15 3v5h5" />
             <path d="M10 12h6" />
             <path d="M10 16h5" />
+          </>
+        ) : icon === "stores" ? (
+          <>
+            <path d="M4 9h16l-1.5-5h-13L4 9Z" />
+            <path d="M5 9v11h14V9" />
+            <path d="M9 20v-6h6v6" />
+            <path d="M4 9c0 1.7 2.7 2.7 4 1.2 1.3 1.5 3.7 1.5 5 0 1.3 1.5 4 0 4-1.2" />
           </>
         ) : icon === "sales" ? (
           <>

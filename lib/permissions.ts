@@ -69,6 +69,7 @@ export const pagePermissions = [
   "page.user.overview",
   "page.user.marketing",
   "page.user.customers",
+  "page.user.stores",
   "page.user.quotes",
   "page.user.sales",
   "page.user.activation",
@@ -89,6 +90,8 @@ export const tablePermissions = [
   "table.tag_types",
   "table.tags",
   "table.lead_tag_assignments",
+  "table.store",
+  "table.stock",
   "table.demo_requests",
   "table.quotes",
   "table.sales",
@@ -140,6 +143,8 @@ export const userPermissionKeys = allPermissionKeys.filter(
       "table.tag_types",
       "table.tags",
       "table.lead_tag_assignments",
+      "table.store",
+      "table.stock",
       "table.demo_requests",
       "table.quotes",
       "table.sales",
@@ -164,6 +169,8 @@ const userTableScopes = new Set([
   "table.tag_types",
   "table.tags",
   "table.lead_tag_assignments",
+  "table.store",
+  "table.stock",
   "table.demo_requests",
   "table.quotes",
   "table.sales",
@@ -177,6 +184,8 @@ const userWritableTables = new Set([
   "table.tag_types",
   "table.tags",
   "table.lead_tag_assignments",
+  "table.store",
+  "table.stock",
   "table.demo_requests",
   "table.quotes",
   "table.support_tickets",
@@ -204,6 +213,8 @@ const affiliatePermissionSeeds: PermissionSeed[] = [
       key === "table.leads" ||
       key === "table.lead_contacts" ||
       key === "table.lead_notes" ||
+      key === "table.store" ||
+      key === "table.stock" ||
       key === "table.payout_methods",
     scope: userTableScopes.has(key) ? ("team" as const) : ("own" as const),
   })),
@@ -328,6 +339,8 @@ function defaultSeedForRoleType(roleType: RoleType, key: string): PermissionSeed
       key === "table.leads" ||
       key === "table.lead_contacts" ||
       key === "table.lead_notes" ||
+      key === "table.store" ||
+      key === "table.stock" ||
       key === "table.payout_methods",
     scope: userTableScopes.has(key) ? "team" : "own",
   };

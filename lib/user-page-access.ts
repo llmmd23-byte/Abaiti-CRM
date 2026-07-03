@@ -9,6 +9,7 @@ export const USER_PAGE_ACCESS = [
   { key: "page.user.overview", path: "/dashboard" },
   { key: "page.user.marketing", path: "/dashboard/products" },
   { key: "page.user.customers", path: "/dashboard/customers" },
+  { key: "page.user.stores", path: "/dashboard/stores" },
   { key: "page.user.quotes", path: "/dashboard/quotes" },
   { key: "page.user.sales", path: "/dashboard/commissions" },
   { key: "page.user.activation", path: "/dashboard/product-info" },

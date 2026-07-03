@@ -19,6 +19,8 @@ export type BackendResource =
   | "lead-tag-types"
   | "lead-tags"
   | "lead-tag-assignments"
+  | "stores"
+  | "stock"
   | "demo-requests"
   | "quotes"
   | "sales"
@@ -107,6 +109,42 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     ownerField: "affiliate_user_id",
     permissionKey: "table.lead_tag_assignments",
     writable: ["lead_id", "tag_id"],
+  },
+  stores: {
+    table: "`store`",
+    ownerField: "affiliate_user_id",
+    permissionKey: "table.store",
+    writable: [
+      "industry_id",
+      "name",
+      "company_name",
+      "email",
+      "phone",
+      "source",
+      "address",
+      "requirements",
+      "stage",
+      "potential_value",
+      "currency",
+    ],
+    defaults: { stage: "active", currency: "SAR" },
+  },
+  stock: {
+    table: "stock",
+    ownerField: "affiliate_user_id",
+    permissionKey: "table.stock",
+    writable: [
+      "store_id",
+      "product_id",
+      "item_name",
+      "sku",
+      "quantity",
+      "reorder_level",
+      "unit_price",
+      "currency",
+      "notes",
+    ],
+    defaults: { quantity: 0, reorder_level: 0, currency: "SAR" },
   },
   "demo-requests": {
     table: "demo_requests",
@@ -334,6 +372,64 @@ async function ensureLeadNotesTable() {
   );
 }
 
+async function ensureStoreTables() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS \`store\` (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      affiliate_user_id BIGINT UNSIGNED NOT NULL,
+      industry_id BIGINT UNSIGNED NULL,
+      name VARCHAR(190) NULL,
+      company_name VARCHAR(190) NOT NULL,
+      email VARCHAR(190) NULL,
+      phone VARCHAR(80) NULL,
+      source VARCHAR(190) NULL,
+      address VARCHAR(255) NULL,
+      requirements TEXT NULL,
+      stage VARCHAR(60) NOT NULL DEFAULT 'active',
+      potential_value DECIMAL(15,2) NULL,
+      currency VARCHAR(10) NOT NULL DEFAULT 'SAR',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      INDEX idx_store_affiliate_user_id (affiliate_user_id),
+      INDEX idx_store_industry_id (industry_id),
+      INDEX idx_store_company_name (company_name),
+      INDEX idx_store_stage (stage)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS stock (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      store_id BIGINT UNSIGNED NOT NULL,
+      affiliate_user_id BIGINT UNSIGNED NOT NULL,
+      product_id BIGINT UNSIGNED NULL,
+      item_name VARCHAR(190) NOT NULL,
+      sku VARCHAR(120) NULL,
+      quantity DECIMAL(15,3) NOT NULL DEFAULT 0,
+      reorder_level DECIMAL(15,3) NOT NULL DEFAULT 0,
+      unit_price DECIMAL(15,2) NULL,
+      currency VARCHAR(10) NOT NULL DEFAULT 'SAR',
+      notes TEXT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      INDEX idx_stock_store_id (store_id),
+      INDEX idx_stock_affiliate_user_id (affiliate_user_id),
+      INDEX idx_stock_product_id (product_id),
+      INDEX idx_stock_sku (sku),
+      CONSTRAINT fk_stock_store
+        FOREIGN KEY (store_id) REFERENCES \`store\` (id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
+async function ensureResourceTable(resource: string) {
+  if (resource === "stores" || resource === "stock") {
+    await ensureStoreTables();
+  }
+}
+
 async function ensureLeadTagsTable() {
   await ensureLeadTagTypesTable();
   await db.execute(
@@ -509,6 +605,7 @@ async function recordSupportTicketEvent({
 export async function listResource(resource: string, session: MiddarSession) {
   const definition = definitionFor(resource);
   await assertResourcePermission(definition, session, "can_view");
+  await ensureResourceTable(resource);
 
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
@@ -580,6 +677,25 @@ export async function listResource(resource: string, session: MiddarSession) {
     return rows;
   }
 
+  if (resource === "stock") {
+    const { clause: scopedWhere, params: scopedParams } = await ownerFilter(
+      definition,
+      session,
+      "st.",
+    );
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT st.*, s.company_name store_name,
+              p.name product_name, p.name_en product_name_en
+         FROM stock st
+         JOIN \`store\` s ON s.id = st.store_id
+         LEFT JOIN products p ON p.id = st.product_id
+        ${scopedWhere}
+        ORDER BY st.created_at DESC LIMIT 250`,
+      scopedParams,
+    );
+    return rows;
+  }
+
   const rowLimit = resource === "leads" ? "" : " LIMIT 250";
   const [rows] = await db.execute<RowDataPacket[]>(
     `SELECT * FROM ${definition.table}${where} ORDER BY created_at DESC${rowLimit}`,
@@ -624,6 +740,8 @@ const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   "lead-tag-types": ["type_name"],
   "lead-tags": ["tag_type_id", "tag_name"],
   "lead-tag-assignments": ["lead_id", "tag_id"],
+  stores: ["company_name"],
+  stock: ["store_id", "item_name", "quantity"],
   "demo-requests": ["company_name", "contact_name"],
   quotes: ["lead_id", "product_id", "amount", "valid_until"],
   "support-tickets": ["category", "subject", "details"],
@@ -640,6 +758,7 @@ export async function createResource(
 ) {
   const definition = definitionFor(resource);
   await assertResourcePermission(definition, session, "can_create");
+  await ensureResourceTable(resource);
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
   }
@@ -665,6 +784,8 @@ export async function createResource(
 
   const data = cleanPayload(definition, payload);
   if (resource === "lead-contacts" && data.phone)
+    data.phone = String(data.phone).replace(/[^\d+]/g, "");
+  if (resource === "stores" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
   if (resource === "lead-tags") {
     if (data.tag_type_id) data.tag_type_id = Number(data.tag_type_id);
@@ -703,6 +824,19 @@ export async function createResource(
     data.currency = product.currency ?? "SAR";
   }
   if (definition.ownerField) data[definition.ownerField] = Number(session.sub);
+  if (resource === "stock") {
+    data.store_id = Number(data.store_id);
+    if (data.product_id) data.product_id = Number(data.product_id);
+    data.quantity = Number(data.quantity ?? 0);
+    data.reorder_level = Number(data.reorder_level ?? 0);
+    if (data.unit_price !== undefined && data.unit_price !== null)
+      data.unit_price = Number(data.unit_price);
+    const [storeRows] = await db.execute<RowDataPacket[]>(
+      "SELECT id FROM `store` WHERE id = ? AND affiliate_user_id = ? LIMIT 1",
+      [Number(data.store_id), Number(session.sub)],
+    );
+    if (!storeRows.length) throw new Error("STORE_NOT_FOUND");
+  }
   if (resource === "demo-requests" && data.lead_id) {
     const [existingDemos] = await db.execute<RowDataPacket[]>(
       `SELECT id FROM demo_requests WHERE affiliate_user_id = ? AND lead_id = ? LIMIT 1`,
@@ -832,6 +966,7 @@ export async function getResource(
 ) {
   const definition = definitionFor(resource);
   await assertResourcePermission(definition, session, "can_view");
+  await ensureResourceTable(resource);
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
   }
@@ -873,6 +1008,7 @@ export async function updateResource(
 ) {
   const definition = definitionFor(resource);
   await assertResourcePermission(definition, session, "can_edit");
+  await ensureResourceTable(resource);
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
   }
@@ -913,6 +1049,8 @@ export async function updateResource(
   const data = cleanPayload(definition, payload);
   if (resource === "lead-contacts" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
+  if (resource === "stores" && data.phone)
+    data.phone = String(data.phone).replace(/[^\d+]/g, "");
   if (resource === "lead-tags") {
     if (data.tag_type_id) data.tag_type_id = Number(data.tag_type_id);
     if (data.tag_name) data.tag_name = String(data.tag_name).trim().slice(0, 120);
@@ -934,6 +1072,21 @@ export async function updateResource(
   }
   if (resource === "team-members" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
+  if (resource === "stock") {
+    const nextStoreId = Number(data.store_id ?? existing.store_id);
+    const [storeRows] = await db.execute<RowDataPacket[]>(
+      "SELECT id FROM `store` WHERE id = ? AND affiliate_user_id = ? LIMIT 1",
+      [nextStoreId, Number(session.sub)],
+    );
+    if (!storeRows.length) throw new Error("STORE_NOT_FOUND");
+    if (data.store_id) data.store_id = nextStoreId;
+    if (data.product_id) data.product_id = Number(data.product_id);
+    if (data.quantity !== undefined) data.quantity = Number(data.quantity);
+    if (data.reorder_level !== undefined)
+      data.reorder_level = Number(data.reorder_level);
+    if (data.unit_price !== undefined && data.unit_price !== null)
+      data.unit_price = Number(data.unit_price);
+  }
   if (resource === "lead-tag-assignments" && data.tag_id) {
     const nextLeadId = Number(data.lead_id ?? existing.lead_id);
     const [tagRows] = await db.execute<RowDataPacket[]>(
@@ -1003,6 +1156,7 @@ export async function deleteResource(
 ) {
   const definition = definitionFor(resource);
   await assertResourcePermission(definition, session, "can_delete");
+  await ensureResourceTable(resource);
   if (resource === "lead-contacts") {
     await ensureLeadContactsTable();
   }
@@ -1047,6 +1201,15 @@ export async function deleteResource(
       Number(references[0]?.lead_count ?? 0) +
       Number(references[0]?.demo_count ?? 0);
     if (linkedRecords > 0) throw new Error("INDUSTRY_IN_USE");
+  }
+
+  if (resource === "stores") {
+    const [references] = await db.execute<RowDataPacket[]>(
+      "SELECT COUNT(*) AS stock_count FROM stock WHERE store_id = ?",
+      [id],
+    );
+    if (Number(references[0]?.stock_count ?? 0) > 0)
+      throw new Error("STORE_HAS_STOCK");
   }
 
   if (resource === "leads") {
