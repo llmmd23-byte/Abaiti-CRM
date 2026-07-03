@@ -795,14 +795,7 @@ export function CustomersView() {
               options={[
                 ...availableTags.map((tag) => ({
                   value: String(tag.id),
-                  label: (() => {
-                    const tagType = availableTagTypes.find(
-                      (type) => Number(type.id) === Number(tag.tag_type_id),
-                    );
-                    return tagType
-                      ? `${String(tag.tag_name ?? tag.id)} · ${String(tagType.type_name ?? "")}`
-                      : String(tag.tag_name ?? tag.id);
-                  })(),
+                  label: String(tag.tag_name ?? tag.id),
                 })),
                 {
                   value: "__new__",
