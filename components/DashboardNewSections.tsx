@@ -832,8 +832,8 @@ export function CustomersView() {
           <table>
             <thead>
               <tr>
-                <th>{isArabic ? "الوسم" : "Tag"}</th>
                 <th>{isArabic ? "نوع الوسم" : "Tag Type"}</th>
+                <th>{isArabic ? "الوسم" : "Tag"}</th>
                 <th>{isArabic ? "اللون" : "Color"}</th>
                 <th>{isArabic ? "تاريخ الإنشاء" : "Created At"}</th>
                 <th>{isArabic ? "إجراء" : "Action"}</th>
@@ -852,24 +852,24 @@ export function CustomersView() {
                 return (
                   <tr key={assignment.id}>
                     <td>
-                      <span
-                        className="lead-tag-pill"
-                        style={{ borderColor: tagColor, color: tagColor }}
-                      >
-                        {String(tag?.tag_name ?? "?")}
-                      </span>
-                    </td>
-                    <td>
                       {tagType ? (
                         <span
                           className="lead-tag-pill lead-tag-type-pill"
                           style={{ borderColor: tagTypeColor, color: tagTypeColor }}
                         >
-                          {String(tagType.type_name ?? "?")}
+                          {String(tagType.type_name ?? "—")}
                         </span>
                       ) : (
                         "—"
                       )}
+                    </td>
+                    <td>
+                      <span
+                        className="lead-tag-pill"
+                        style={{ borderColor: tagColor, color: tagColor }}
+                      >
+                        {String(tag?.tag_name ?? "—")}
+                      </span>
                     </td>
                     <td dir="ltr">{tagColor}</td>
                     <td>{formatUserDateTime(assignment.created_at, isArabic)}</td>
