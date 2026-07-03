@@ -2,6 +2,7 @@ import {getTranslations, setRequestLocale} from "next-intl/server";
 import DashboardShell from "@/components/DashboardShell";
 import {DashboardHeader} from "@/components/DashboardSections";
 import {HelpDeskPanel} from "@/components/DashboardSections";
+import {requireUserPageAccess} from "@/lib/user-page-access";
 
 export default async function DashboardSupportPage({
   params
@@ -9,6 +10,7 @@ export default async function DashboardSupportPage({
   params: Promise<{locale: string}>;
 }) {
   const {locale} = await params;
+  await requireUserPageAccess("page.user.support", locale);
   setRequestLocale(locale);
   const t = await getTranslations();
 

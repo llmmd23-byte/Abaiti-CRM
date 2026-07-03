@@ -1,8 +1,11 @@
 import DashboardShell from "@/components/DashboardShell";
 import {DashboardHeader} from "@/components/DashboardSections";
 import {EducationalHubView} from "@/components/DashboardNewSections";
+import {requireUserPageAccess} from "@/lib/user-page-access";
 
-export default function DashboardEducationalHubPage() {
+export default async function DashboardEducationalHubPage({params}: {params: Promise<{locale: string}>}) {
+  const {locale} = await params;
+  await requireUserPageAccess("page.user.education", locale);
   return (
     <DashboardShell active="education">
       <DashboardHeader

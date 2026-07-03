@@ -1,12 +1,11 @@
 import DashboardShell from "@/components/DashboardShell";
 import {DashboardHeader} from "@/components/DashboardSections";
 import {EducationalHubView} from "@/components/DashboardNewSections";
-import {getSession} from "@/lib/auth";
-import {redirect} from "next/navigation";
+import {requireUserPageAccess} from "@/lib/user-page-access";
 
 export default async function EducationalHubPage({params}: {params: Promise<{locale: string}>}) {
   const {locale} = await params;
-  if (!(await getSession())) redirect(`/${locale}/signin`);
+  await requireUserPageAccess("page.user.education", locale);
   return (
     <DashboardShell active="education">
       <DashboardHeader

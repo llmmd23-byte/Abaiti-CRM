@@ -51,6 +51,21 @@ type NavItem = {
     | "settings";
 };
 
+type SessionPermission = {can_view?: boolean};
+
+const sectionPermissionKeys: Partial<Record<DashboardSection, string>> = {
+  overview: "page.user.overview",
+  products: "page.user.marketing",
+  customers: "page.user.customers",
+  quotes: "page.user.quotes",
+  commissions: "page.user.sales",
+  productInfo: "page.user.activation",
+  education: "page.user.education",
+  support: "page.user.support",
+  accounts: "page.user.accounts",
+  settings: "page.user.settings",
+};
+
 const overviewItem: NavItem = {key: "overview", href: "/dashboard", label: "portal.overview", icon: "dashboard"};
 
 const coreGrowthItems: NavItem[] = [
@@ -198,7 +213,13 @@ export default function DashboardShell({
   const locale = useLocale();
   const pathname = usePathname();
   const direction = locale === "ar" ? "rtl" : "ltr";
-  const [currentUser, setCurrentUser] = useState<{name?: string; role?: string; level?: string; status?: string} | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    name?: string;
+    role?: string;
+    level?: string;
+    status?: string;
+    permissions?: Record<string, SessionPermission>;
+  } | null>(null);
   useEffect(() => {
     const loadCurrentUser = () => {
       fetch("/api/v1/auth/me", {cache: "no-store"})
@@ -231,6 +252,11 @@ export default function DashboardShell({
     pending: locale === "ar" ? "\u0642\u064a\u062f \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629" : "Pending",
     suspended: locale === "ar" ? "\u0645\u0648\u0642\u0648\u0641" : "Suspended"
   };
+  const canViewItem = (item: NavItem) => {
+    const permissionKey = sectionPermissionKeys[item.key];
+    if (!permissionKey || !currentUser) return false;
+    return currentUser.permissions?.[permissionKey]?.can_view === true;
+  };
   const isItemActive = (item: NavItem) => {
     if (!pathname) {
       return active === item.key;
@@ -258,15 +284,17 @@ export default function DashboardShell({
         </Link>
 
         <nav className="sidebar-nav" aria-label={t("nav.dashboard")}>
-          <div className="sidebar-nav-item">
-            <Link className={`${isItemActive(overviewItem) ? "active" : ""} has-nav-icon`} href={overviewItem.href}>
-              <NavItemIcon icon={overviewItem.icon} />
-              {t(overviewItem.label)}
-            </Link>
-          </div>
+          {canViewItem(overviewItem) ? (
+            <div className="sidebar-nav-item">
+              <Link className={`${isItemActive(overviewItem) ? "active" : ""} has-nav-icon`} href={overviewItem.href}>
+                <NavItemIcon icon={overviewItem.icon} />
+                {t(overviewItem.label)}
+              </Link>
+            </div>
+          ) : null}
 
           <div className="sidebar-nav-group core-growth-group">
-            {coreGrowthItems.map((item) => {
+            {coreGrowthItems.filter(canViewItem).map((item) => {
               const itemLabel = t(item.label);
 
               return (
@@ -286,7 +314,7 @@ export default function DashboardShell({
           <div className="sidebar-nav-divider" aria-hidden="true" />
 
           <div className="sidebar-nav-group support-resource-group">
-            {supportResourceItems.map((item) => {
+            {supportResourceItems.filter(canViewItem).map((item) => {
               const itemLabel = t(item.label);
 
               return (

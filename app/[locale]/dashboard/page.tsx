@@ -1,8 +1,11 @@
 import DashboardShell from "@/components/DashboardShell";
 import DashboardHeaderBanner from "@/components/DashboardHeaderBanner";
 import {MetricsGrid, PerformanceChart} from "@/components/DashboardSections";
+import {requireUserPageAccess} from "@/lib/user-page-access";
 
-export default function DashboardOverviewPage() {
+export default async function DashboardOverviewPage({params}: {params: Promise<{locale: string}>}) {
+  const {locale} = await params;
+  await requireUserPageAccess("page.user.overview", locale);
   return (
     <DashboardShell active="overview">
       <DashboardHeaderBanner section="overview" />
