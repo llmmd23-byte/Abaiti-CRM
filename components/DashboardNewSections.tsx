@@ -54,6 +54,8 @@ export function CustomersView() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerDateFilter, setCustomerDateFilter] =
     useState<CustomerDateFilter>("all");
+  const [customerTagTypeFilter, setCustomerTagTypeFilter] = useState("all");
+  const [customerTagFilter, setCustomerTagFilter] = useState("all");
   const [customerPage, setCustomerPage] = useState(1);
   const [draggedLeadId, setDraggedLeadId] = useState<number | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
@@ -120,6 +122,29 @@ export function CustomersView() {
     { value: "week", label: isArabic ? "هذا الأسبوع" : "This Week" },
     { value: "month", label: isArabic ? "هذا الشهر" : "This Month" },
   ];
+  const customerTagTypeFilterOptions = [
+    {
+      value: "all",
+      label: isArabic ? "جميع أنواع الوسوم" : "All Tag Types",
+    },
+    ...(leadTagTypes.data ?? []).map((type) => ({
+      value: String(type.id),
+      label: String(type.type_name ?? type.id),
+    })),
+  ];
+  const customerTagFilterOptions = [
+    { value: "all", label: isArabic ? "جميع الوسوم" : "All Tags" },
+    ...(leadTags.data ?? [])
+      .filter(
+        (tag) =>
+          customerTagTypeFilter === "all" ||
+          Number(tag.tag_type_id) === Number(customerTagTypeFilter),
+      )
+      .map((tag) => ({
+        value: String(tag.id),
+        label: String(tag.tag_name ?? tag.id),
+      })),
+  ];
 
   function matchesCustomerDateFilter(value: unknown) {
     if (customerDateFilter === "all") return true;
@@ -159,6 +184,24 @@ export function CustomersView() {
   const normalizedSearch = customerSearch.trim().toLocaleLowerCase();
   const filteredCustomers = (data ?? []).filter((row) => {
     if (!matchesCustomerDateFilter(row.created_at)) return false;
+    const rowTagIds = (leadTagAssignments.data ?? [])
+      .filter((assignment) => Number(assignment.lead_id) === Number(row.id))
+      .map((assignment) => Number(assignment.tag_id));
+    if (
+      customerTagFilter !== "all" &&
+      !rowTagIds.includes(Number(customerTagFilter))
+    ) {
+      return false;
+    }
+    if (customerTagFilter === "all" && customerTagTypeFilter !== "all") {
+      const hasTagFromSelectedType = rowTagIds.some((tagId) => {
+        const tag = (leadTags.data ?? []).find(
+          (item) => Number(item.id) === tagId,
+        );
+        return Number(tag?.tag_type_id) === Number(customerTagTypeFilter);
+      });
+      if (!hasTagFromSelectedType) return false;
+    }
     if (!normalizedSearch) return true;
     const industryName = industries?.find(
       (industry) => Number(industry.id) === Number(row.industry_id),
@@ -207,7 +250,13 @@ export function CustomersView() {
 
   useEffect(() => {
     setCustomerPage(1);
-  }, [customerSearch, customerDateFilter, customerView]);
+  }, [
+    customerSearch,
+    customerDateFilter,
+    customerTagTypeFilter,
+    customerTagFilter,
+    customerView,
+  ]);
 
   useEffect(() => {
     if (customerPage > customerTotalPages) setCustomerPage(customerTotalPages);
@@ -1508,6 +1557,41 @@ export function CustomersView() {
               portal
               value={customerDateFilter}
             />
+          </div>
+          <div className="customer-tag-filters">
+            <div className="customer-tag-filter">
+              <DashboardSelect
+                ariaLabel={
+                  isArabic ? "فلترة العملاء حسب نوع الوسم" : "Filter customers by tag type"
+                }
+                onValueChange={(value) => {
+                  setCustomerTagTypeFilter(value);
+                  setCustomerTagFilter("all");
+                }}
+                options={customerTagTypeFilterOptions}
+                portal
+                searchable
+                searchPlaceholder={
+                  isArabic ? "ابحث عن نوع الوسم..." : "Search tag types..."
+                }
+                value={customerTagTypeFilter}
+              />
+            </div>
+            <div className="customer-tag-filter">
+              <DashboardSelect
+                ariaLabel={
+                  isArabic ? "فلترة العملاء حسب الوسم" : "Filter customers by tag"
+                }
+                onValueChange={setCustomerTagFilter}
+                options={customerTagFilterOptions}
+                portal
+                searchable
+                searchPlaceholder={
+                  isArabic ? "ابحث عن وسم..." : "Search tags..."
+                }
+                value={customerTagFilter}
+              />
+            </div>
           </div>
         </div>
         <div

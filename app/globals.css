@@ -4125,6 +4125,51 @@ html[dir="ltr"] .dashboard-main {
   box-shadow: 0 0 0 4px rgba(34, 184, 181, 0.1);
 }
 
+.customer-tag-filters {
+  display: flex;
+  flex: 1 1 390px;
+  align-items: center;
+  gap: 10px;
+  min-width: min(100%, 320px);
+}
+
+.customer-tag-filter {
+  flex: 1 1 190px;
+  min-width: 170px;
+}
+
+.customer-tag-filter .dashboard-select,
+.customer-tag-filter .dashboard-select-trigger {
+  width: 100%;
+}
+
+.customer-tag-filter .dashboard-select-trigger {
+  min-height: 50px;
+  border-color: #dbe4ec;
+  border-radius: 13px;
+  background: #fff;
+  color: #11293d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.customer-tag-filter .dashboard-select-trigger.open,
+.customer-tag-filter .dashboard-select-trigger:focus-visible {
+  border-color: #22b8b5;
+  box-shadow: 0 0 0 4px rgba(34, 184, 181, 0.1);
+}
+
+@media (max-width: 720px) {
+  .customer-tag-filters {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+  }
+
+  .customer-tag-filter {
+    flex-basis: 100%;
+  }
+}
+
 .customer-search-bar {
   display: grid;
   grid-template-columns: 20px minmax(0, 1fr) auto;
