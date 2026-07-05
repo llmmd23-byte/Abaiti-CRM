@@ -361,7 +361,14 @@ export async function GET() {
   const [clients] = await db.execute<RowDataPacket[]>(
     `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.stage,l.industry_id,l.address,l.requirements,l.created_at,
               i.name industry_name,i.name_en industry_name_en,
-              COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name
+              COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name,
+              (SELECT GROUP_CONCAT(DISTINCT t.tag_type_id)
+                 FROM lead_tag_assignments lta
+                 JOIN tags t ON t.id = lta.tag_id
+                WHERE lta.lead_id = l.id) tag_type_ids,
+              (SELECT GROUP_CONCAT(DISTINCT lta.tag_id)
+                 FROM lead_tag_assignments lta
+                WHERE lta.lead_id = l.id) tag_ids
          FROM leads l
          LEFT JOIN industries i ON i.id=l.industry_id
          JOIN users u ON u.id=l.affiliate_user_id

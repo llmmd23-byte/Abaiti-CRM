@@ -169,12 +169,12 @@ function commissionLevelForSalesCount(count: unknown) {
 }
 
 function isWithinPeriod(row: AdminRow, period: DashboardPeriod) {
+  if (period === "all") return true;
   const rawDate = String(row.created_at ?? "");
   const date = new Date(rawDate);
   if (Number.isNaN(date.getTime())) return false;
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (period === "all") return true;
   if (period === "week") start.setDate(start.getDate() - 6);
   if (period === "month") start.setDate(1);
   if (period === "year") start.setMonth(0, 1);
@@ -576,6 +576,8 @@ function AdminMetricList({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [clientUserFilter, setClientUserFilter] = useState("all");
+  const [clientTagTypeFilter, setClientTagTypeFilter] = useState("all");
+  const [clientTagFilter, setClientTagFilter] = useState("all");
   const [editingRow, setEditingRow] = useState<AdminRow | null>(null);
   const [editDraft, setEditDraft] = useState<Record<string, string>>({});
   const [editMessage, setEditMessage] = useState("");
@@ -586,6 +588,8 @@ function AdminMetricList({
     setSearch("");
     setStatusFilter("all");
     setClientUserFilter("all");
+    setClientTagTypeFilter("all");
+    setClientTagFilter("all");
     setEditingRow(null);
     setEditMessage("");
     setPasswordRow(null);
@@ -720,6 +724,42 @@ function AdminMetricList({
           ).values(),
         )
       : [];
+  const parseIdList = (value: unknown) =>
+    String(value ?? "")
+      .split(",")
+      .map((item) => Number(item.trim()))
+      .filter((item) => Number.isInteger(item) && item > 0);
+  const tagTypeFilterOptions = Array.from(
+    new Map(
+      (data.tagStats ?? [])
+        .filter((row) => row.tag_type_id)
+        .map((row) => [
+          String(row.tag_type_id),
+          {
+            value: String(row.tag_type_id),
+            label: String(row.type_name ?? row.tag_type_id),
+          },
+        ]),
+    ).values(),
+  );
+  const tagFilterOptions = Array.from(
+    new Map(
+      (data.tagStats ?? [])
+        .filter((row) => row.tag_id)
+        .filter(
+          (row) =>
+            clientTagTypeFilter === "all" ||
+            String(row.tag_type_id) === clientTagTypeFilter,
+        )
+        .map((row) => [
+          String(row.tag_id),
+          {
+            value: String(row.tag_id),
+            label: String(row.tag_name ?? row.tag_id),
+          },
+        ]),
+    ).values(),
+  );
   const visibleRows = config.rows.filter((row) => {
     const matchesSearch =
       !normalizedSearch ||
@@ -735,9 +775,21 @@ function AdminMetricList({
       !hasUserFilter ||
       clientUserFilter === "all" ||
       String(row.affiliate_user_name ?? "") === clientUserFilter;
+    const rowTagTypeIds = metric === "clients" ? parseIdList(row.tag_type_ids) : [];
+    const rowTagIds = metric === "clients" ? parseIdList(row.tag_ids) : [];
+    const matchesTagType =
+      metric !== "clients" ||
+      clientTagTypeFilter === "all" ||
+      rowTagTypeIds.includes(Number(clientTagTypeFilter));
+    const matchesTag =
+      metric !== "clients" ||
+      clientTagFilter === "all" ||
+      rowTagIds.includes(Number(clientTagFilter));
     return (
       matchesSearch &&
       matchesClientUser &&
+      matchesTagType &&
+      matchesTag &&
       (statusFilter === "all" || rowStatus === statusFilter)
     );
   });
@@ -908,6 +960,41 @@ function AdminMetricList({
                 value={clientUserFilter}
               />
             </div>
+          ) : null}
+          {metric === "clients" ? (
+            <Fragment>
+              <div className="admin-user-status-filter admin-client-user-filter">
+                <DashboardSelect
+                  ariaLabel={isArabic ? "فلترة حسب نوع الوسم" : "Filter by tag type"}
+                  onValueChange={(value) => {
+                    setClientTagTypeFilter(value);
+                    setClientTagFilter("all");
+                  }}
+                  options={[
+                    {
+                      value: "all",
+                      label: isArabic ? "كل أنواع الوسوم" : "All Tag Types",
+                    },
+                    ...tagTypeFilterOptions,
+                  ]}
+                  value={clientTagTypeFilter}
+                />
+              </div>
+              <div className="admin-user-status-filter admin-client-user-filter">
+                <DashboardSelect
+                  ariaLabel={isArabic ? "فلترة حسب الوسم" : "Filter by tag"}
+                  onValueChange={setClientTagFilter}
+                  options={[
+                    {
+                      value: "all",
+                      label: isArabic ? "كل الوسوم" : "All Tags",
+                    },
+                    ...tagFilterOptions,
+                  ]}
+                  value={clientTagFilter}
+                />
+              </div>
+            </Fragment>
           ) : null}
           <strong>
             {visibleRows.length.toLocaleString(NUMBER_LOCALE)}
