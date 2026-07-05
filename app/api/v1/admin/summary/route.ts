@@ -58,7 +58,7 @@ export async function GET(request: Request) {
 
   const [summaryRows] = await db.execute<RowDataPacket[]>(
     `SELECT
-      (SELECT COUNT(*) FROM users u WHERE ${userScope} AND u.${rangeCondition}) users,
+      (SELECT COUNT(*) FROM users u WHERE ${userScope}) users,
       (SELECT COUNT(*) FROM leads l JOIN users u ON u.id=l.affiliate_user_id WHERE ${userScope} AND l.${rangeCondition}) clients,
       (SELECT COUNT(*) FROM demo_requests d JOIN users u ON u.id=d.affiliate_user_id WHERE ${userScope} AND d.${rangeCondition}) demos,
       (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope} AND q.${rangeCondition}) quotes,
