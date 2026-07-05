@@ -24,14 +24,17 @@ export async function GET(request: Request) {
 
   const requestedPeriod = new URL(request.url).searchParams.get("period");
   const period =
+    requestedPeriod === "all" ||
     requestedPeriod === "day" ||
     requestedPeriod === "week" ||
     requestedPeriod === "month" ||
     requestedPeriod === "year"
       ? requestedPeriod
-      : "week";
+      : "all";
   const rangeCondition =
-    period === "day"
+    period === "all"
+      ? "created_at IS NOT NULL"
+      : period === "day"
       ? "created_at >= CURDATE()"
       : period === "month"
         ? "created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')"
@@ -41,7 +44,7 @@ export async function GET(request: Request) {
   const periodExpression =
     period === "day"
       ? "DATE_FORMAT(created_at, '%H')"
-      : period === "year"
+      : period === "all" || period === "year"
         ? "DATE_FORMAT(created_at, '%Y-%m')"
         : "DATE_FORMAT(created_at, '%Y-%m-%d')";
 

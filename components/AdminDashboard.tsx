@@ -8,7 +8,7 @@ import Image from "next/image";
 import DashboardSelect from "@/components/DashboardSelect";
 
 type MetricKey = "users" | "clients" | "demos" | "quotes" | "sales";
-type DashboardPeriod = "day" | "week" | "month" | "year";
+type DashboardPeriod = "all" | "day" | "week" | "month" | "year";
 type Summary = {
   totals: Record<MetricKey, number> & {
     openTickets: number;
@@ -174,6 +174,7 @@ function isWithinPeriod(row: AdminRow, period: DashboardPeriod) {
   if (Number.isNaN(date.getTime())) return false;
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (period === "all") return true;
   if (period === "week") start.setDate(start.getDate() - 6);
   if (period === "month") start.setDate(1);
   if (period === "year") start.setMonth(0, 1);
@@ -186,7 +187,7 @@ function chartDateLabel(
   isArabic: boolean,
 ) {
   if (period === "day") return `${value}:00`;
-  if (period === "year")
+  if (period === "all" || period === "year")
     return new Date(`${value}-01T12:00:00`).toLocaleDateString(
       isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE,
       { month: "short" },
@@ -254,7 +255,7 @@ export default function AdminDashboard() {
   const language = isArabic ? "ar" : "en";
   const [summary, setSummary] = useState<Summary | null>(null);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("users");
-  const [period, setPeriod] = useState<DashboardPeriod>("week");
+  const [period, setPeriod] = useState<DashboardPeriod>("all");
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
   const [management, setManagement] = useState<ManagementData | null>(null);
   const [managementError, setManagementError] = useState("");
@@ -443,6 +444,7 @@ export default function AdminDashboard() {
                       setPeriod(value as DashboardPeriod)
                     }
                     options={[
+                      { value: "all", label: isArabic ? "الكل" : "All" },
                       { value: "day", label: isArabic ? "اليوم" : "Today" },
                       {
                         value: "week",
