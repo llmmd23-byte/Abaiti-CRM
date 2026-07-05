@@ -105,7 +105,6 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   },
   "lead-tag-assignments": {
     table: "lead_tag_assignments",
-    ownerField: "affiliate_user_id",
     permissionKey: "table.lead_tag_assignments",
     writable: ["lead_id", "tag_id"],
   },
@@ -514,7 +513,6 @@ async function ensureLeadTagsTable() {
          AND canonical_tag.id < duplicate_tag.id
         JOIN lead_tag_assignments older
           ON older.lead_id = newer.lead_id
-         AND older.affiliate_user_id = newer.affiliate_user_id
          AND older.tag_id = canonical_tag.id`,
     );
     await db.execute(
@@ -767,16 +765,14 @@ async function ensureLeadTagAssignmentsTable() {
       lead_id BIGINT UNSIGNED NOT NULL,
       tag_id BIGINT UNSIGNED NOT NULL,
       tag_type_id BIGINT UNSIGNED NULL,
-      affiliate_user_id BIGINT UNSIGNED NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
       INDEX idx_lead_tag_assignments_lead_id (lead_id),
       INDEX idx_lead_tag_assignments_tag_id (tag_id),
       INDEX idx_lead_tag_assignments_tag_type_id (tag_type_id),
-      INDEX idx_lead_tag_assignments_affiliate_user_id (affiliate_user_id),
-      UNIQUE KEY uq_lead_tag_assignments (lead_id, tag_id, affiliate_user_id),
-      UNIQUE KEY uq_lead_tag_assignments_type (lead_id, tag_type_id, affiliate_user_id)
+      UNIQUE KEY uq_lead_tag_assignments (lead_id, tag_id),
+      UNIQUE KEY uq_lead_tag_assignments_type (lead_id, tag_type_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
   const [columns] = await db.execute<RowDataPacket[]>(
@@ -811,6 +807,85 @@ async function ensureLeadTagAssignmentsTable() {
       `ALTER TABLE lead_tag_assignments ADD INDEX idx_lead_tag_assignments_tag_type_id (tag_type_id)`,
     );
   }
+  await db.execute(
+    `DELETE newer FROM lead_tag_assignments newer
+      JOIN lead_tag_assignments older
+        ON older.lead_id = newer.lead_id
+       AND older.tag_id = newer.tag_id
+       AND older.id < newer.id`,
+  );
+  await db.execute(
+    `DELETE newer FROM lead_tag_assignments newer
+      JOIN lead_tag_assignments older
+        ON older.lead_id = newer.lead_id
+       AND older.tag_type_id = newer.tag_type_id
+       AND older.id < newer.id
+     WHERE newer.tag_type_id IS NOT NULL`,
+  );
+  const [oldUniqueIndexes] = await db.execute<RowDataPacket[]>(
+    `SELECT DISTINCT INDEX_NAME
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'lead_tag_assignments'
+        AND INDEX_NAME IN ('uq_lead_tag_assignments', 'uq_lead_tag_assignments_type')`,
+  );
+  for (const row of oldUniqueIndexes) {
+    await db.execute(
+      `ALTER TABLE lead_tag_assignments DROP INDEX \`${row.INDEX_NAME}\``,
+    );
+  }
+  const [affiliateColumns] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'lead_tag_assignments'
+        AND COLUMN_NAME = 'affiliate_user_id'
+      LIMIT 1`,
+  );
+  if (affiliateColumns.length) {
+    const [foreignKeys] = await db.execute<RowDataPacket[]>(
+      `SELECT CONSTRAINT_NAME
+         FROM information_schema.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'lead_tag_assignments'
+          AND COLUMN_NAME = 'affiliate_user_id'
+          AND REFERENCED_TABLE_NAME IS NOT NULL`,
+    );
+    for (const row of foreignKeys) {
+      await db.execute(
+        `ALTER TABLE lead_tag_assignments DROP FOREIGN KEY \`${row.CONSTRAINT_NAME}\``,
+      );
+    }
+    const [oldIndexes] = await db.execute<RowDataPacket[]>(
+      `SELECT DISTINCT INDEX_NAME
+         FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'lead_tag_assignments'
+          AND COLUMN_NAME = 'affiliate_user_id'
+          AND INDEX_NAME <> 'PRIMARY'`,
+    );
+    for (const row of oldIndexes) {
+      await db.execute(
+        `ALTER TABLE lead_tag_assignments DROP INDEX \`${row.INDEX_NAME}\``,
+      );
+    }
+    await db.execute(
+      `ALTER TABLE lead_tag_assignments DROP COLUMN affiliate_user_id`,
+    );
+  }
+  const [uniqueTagIndex] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'lead_tag_assignments'
+        AND INDEX_NAME = 'uq_lead_tag_assignments'
+      LIMIT 1`,
+  );
+  if (!uniqueTagIndex.length) {
+    await db.execute(
+      `ALTER TABLE lead_tag_assignments ADD UNIQUE KEY uq_lead_tag_assignments (lead_id, tag_id)`,
+    );
+  }
   const [uniqueTypeIndex] = await db.execute<RowDataPacket[]>(
     `SELECT 1
        FROM information_schema.STATISTICS
@@ -824,14 +899,13 @@ async function ensureLeadTagAssignmentsTable() {
       `DELETE newer FROM lead_tag_assignments newer
         JOIN lead_tag_assignments older
           ON older.lead_id = newer.lead_id
-         AND older.affiliate_user_id = newer.affiliate_user_id
          AND older.tag_type_id = newer.tag_type_id
          AND older.id < newer.id
        WHERE newer.tag_type_id IS NOT NULL`,
     );
     await db.execute(
       `ALTER TABLE lead_tag_assignments
-        ADD UNIQUE KEY uq_lead_tag_assignments_type (lead_id, tag_type_id, affiliate_user_id)`,
+        ADD UNIQUE KEY uq_lead_tag_assignments_type (lead_id, tag_type_id)`,
     );
   }
 }
@@ -988,6 +1062,21 @@ export async function listResource(resource: string, session: MiddarSession) {
          JOIN tag_types tt ON tt.id = t.tag_type_id
         ${scopedWhere}
         ORDER BY t.created_at DESC LIMIT 250`,
+      scopedParams,
+    );
+    return rows;
+  }
+
+  if (resource === "lead-tag-assignments") {
+    const { clause: scopedWhere, params: scopedParams } =
+      await tagTypeCompanyFilter(session, "tt.");
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT lta.*
+         FROM lead_tag_assignments lta
+         JOIN tags t ON t.id = lta.tag_id
+         JOIN tag_types tt ON tt.id = t.tag_type_id
+        ${scopedWhere}
+        ORDER BY lta.created_at DESC LIMIT 250`,
       scopedParams,
     );
     return rows;
@@ -1185,11 +1274,10 @@ export async function createResource(
     const [sameTypeAssignments] = await db.execute<RowDataPacket[]>(
       `SELECT lta.id
          FROM lead_tag_assignments lta
-        WHERE lta.affiliate_user_id = ?
-          AND lta.lead_id = ?
+        WHERE lta.lead_id = ?
           AND lta.tag_type_id = ?
         LIMIT 1`,
-      [Number(session.sub), Number(data.lead_id), Number(data.tag_type_id)],
+      [Number(data.lead_id), Number(data.tag_type_id)],
     );
     if (sameTypeAssignments.length) throw new Error("DUPLICATE_TAG_TYPE_ASSIGNMENT");
   }
@@ -1239,10 +1327,9 @@ export async function createResource(
     ) {
       const [existingAssignments] = await db.execute<RowDataPacket[]>(
         `SELECT * FROM lead_tag_assignments
-          WHERE affiliate_user_id = ? AND lead_id = ? AND (tag_id = ? OR tag_type_id = ?)
+          WHERE lead_id = ? AND (tag_id = ? OR tag_type_id = ?)
           LIMIT 1`,
         [
-          Number(session.sub),
           Number(data.lead_id),
           Number(data.tag_id),
           Number(data.tag_type_id),
@@ -1309,6 +1396,21 @@ export async function getResource(
          FROM tags t
          JOIN tag_types tt ON tt.id = t.tag_type_id
         WHERE t.id = ?
+          ${scopedWhere.replace(/^ WHERE /, "AND ")}
+        LIMIT 1`,
+      [id, ...scopedParams],
+    );
+    return rows[0] ?? null;
+  }
+  if (resource === "lead-tag-assignments") {
+    const { clause: scopedWhere, params: scopedParams } =
+      await tagTypeCompanyFilter(session, "tt.");
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT lta.*
+         FROM lead_tag_assignments lta
+         JOIN tags t ON t.id = lta.tag_id
+         JOIN tag_types tt ON tt.id = t.tag_type_id
+        WHERE lta.id = ?
           ${scopedWhere.replace(/^ WHERE /, "AND ")}
         LIMIT 1`,
       [id, ...scopedParams],
@@ -1433,12 +1535,11 @@ export async function updateResource(
     const [sameTypeAssignments] = await db.execute<RowDataPacket[]>(
       `SELECT id
          FROM lead_tag_assignments
-        WHERE affiliate_user_id = ?
-          AND lead_id = ?
+        WHERE lead_id = ?
           AND tag_type_id = ?
           AND id <> ?
         LIMIT 1`,
-      [Number(session.sub), nextLeadId, Number(data.tag_type_id), id],
+      [nextLeadId, Number(data.tag_type_id), id],
     );
     if (sameTypeAssignments.length) throw new Error("DUPLICATE_TAG_TYPE_ASSIGNMENT");
   }
@@ -1552,8 +1653,8 @@ export async function deleteResource(
     await ensureLeadTagAssignmentsTable();
     const ownerId = Number(existing.affiliate_user_id ?? session.sub);
     await db.execute(
-      "DELETE FROM lead_tag_assignments WHERE lead_id = ? AND affiliate_user_id = ?",
-      [id, ownerId],
+      "DELETE FROM lead_tag_assignments WHERE lead_id = ?",
+      [id],
     );
     await db.execute(
       "DELETE FROM lead_notes WHERE lead_id = ? AND affiliate_user_id = ?",
