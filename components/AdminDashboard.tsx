@@ -748,7 +748,7 @@ function AdminMetricList({
         .filter((row) => row.tag_id)
         .filter(
           (row) =>
-            clientTagTypeFilter === "all" ||
+            clientTagTypeFilter !== "all" &&
             String(row.tag_type_id) === clientTagTypeFilter,
         )
         .map((row) => [
@@ -760,6 +760,22 @@ function AdminMetricList({
         ]),
     ).values(),
   );
+  const tagSelectOptions =
+    clientTagTypeFilter === "all"
+      ? [
+          {
+            value: "__select_type_first__",
+            label: isArabic ? "اختر نوع الوسم أولًا" : "Select a tag type first",
+            disabled: true,
+          },
+        ]
+      : [
+          {
+            value: "all",
+            label: isArabic ? "كل وسوم هذا النوع" : "All tags in this type",
+          },
+          ...tagFilterOptions,
+        ];
   const visibleRows = config.rows.filter((row) => {
     const matchesSearch =
       !normalizedSearch ||
@@ -984,13 +1000,7 @@ function AdminMetricList({
                 <DashboardSelect
                   ariaLabel={isArabic ? "فلترة حسب الوسم" : "Filter by tag"}
                   onValueChange={setClientTagFilter}
-                  options={[
-                    {
-                      value: "all",
-                      label: isArabic ? "كل الوسوم" : "All Tags",
-                    },
-                    ...tagFilterOptions,
-                  ]}
+                  options={tagSelectOptions}
                   value={clientTagFilter}
                 />
               </div>
