@@ -302,25 +302,8 @@ async function companyIdForSession(session: MiddarSession) {
   return (await getSessionUserCompanyId(session)) ?? Number(session.sub);
 }
 
-async function companyFilterForPermission(
-  session: MiddarSession,
-  permissionKey: string,
-  qualifier = "",
-) {
-  const ownerIds = await ownerIdsForScope(session, permissionKey);
-  if (!ownerIds) return { clause: "", params: [] as SqlValue[] };
-  const [rows] = await db.execute<RowDataPacket[]>(
-    `SELECT DISTINCT COALESCE(CompanyID, id) company_id
-       FROM users
-      WHERE id IN (${ownerIds.map(() => "?").join(", ")})`,
-    ownerIds,
-  );
-  const companyIds = rows
-    .map((row) => Number(row.company_id))
-    .filter(Number.isFinite);
-  const scopedCompanyIds = companyIds.length
-    ? Array.from(new Set(companyIds))
-    : [await companyIdForSession(session)];
+async function companyFilterForSession(session: MiddarSession, qualifier = "") {
+  const scopedCompanyIds = [await companyIdForSession(session)];
   return {
     clause: ` WHERE ${qualifier}company_id IN (${scopedCompanyIds.map(() => "?").join(", ")})`,
     params: scopedCompanyIds,
@@ -328,7 +311,7 @@ async function companyFilterForPermission(
 }
 
 async function tagTypeCompanyFilter(session: MiddarSession, qualifier = "") {
-  return companyFilterForPermission(session, "table.tag_types", qualifier);
+  return companyFilterForSession(session, qualifier);
 }
 
 async function tagTypeCompanyGuard(session: MiddarSession, prefix = " AND ") {
