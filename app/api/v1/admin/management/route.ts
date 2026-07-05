@@ -236,7 +236,7 @@ async function ensureTagTables() {
   await addColumnIfMissing(
     "tags",
     "tag_type_id",
-    "ALTER TABLE tags ADD COLUMN tag_type_id BIGINT UNSIGNED NULL AFTER company_id",
+    "ALTER TABLE tags ADD COLUMN tag_type_id BIGINT UNSIGNED NULL AFTER id",
   );
 }
 
