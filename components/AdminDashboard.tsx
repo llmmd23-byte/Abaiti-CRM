@@ -629,7 +629,7 @@ function AdminMetricList({
         ["stage", isArabic ? "الحالة" : "Status"],
         ["name", isArabic ? "الاسم" : "Name"],
         ["phone", isArabic ? "رقم الجوال" : "Mobile"],
-        ["address", isArabic ? "العنوان" : "Address"],
+        ["tag_names", isArabic ? "الوسوم" : "Tags"],
         ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
       ],
     },

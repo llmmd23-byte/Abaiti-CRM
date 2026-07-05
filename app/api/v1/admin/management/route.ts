@@ -368,7 +368,11 @@ export async function GET() {
                 WHERE lta.lead_id = l.id) tag_type_ids,
               (SELECT GROUP_CONCAT(DISTINCT lta.tag_id)
                  FROM lead_tag_assignments lta
-                WHERE lta.lead_id = l.id) tag_ids
+                WHERE lta.lead_id = l.id) tag_ids,
+              (SELECT GROUP_CONCAT(DISTINCT t.tag_name ORDER BY t.tag_name SEPARATOR ', ')
+                 FROM lead_tag_assignments lta
+                 JOIN tags t ON t.id = lta.tag_id
+                WHERE lta.lead_id = l.id) tag_names
          FROM leads l
          LEFT JOIN industries i ON i.id=l.industry_id
          JOIN users u ON u.id=l.affiliate_user_id
