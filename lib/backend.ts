@@ -303,14 +303,7 @@ async function companyIdForSession(session: MiddarSession) {
 }
 
 async function companyFilterForSession(session: MiddarSession, qualifier = "") {
-  const sessionCompanyId = await companyIdForSession(session);
-  const [companyTagTypes] = await db.execute<RowDataPacket[]>(
-    "SELECT 1 FROM tag_types WHERE company_id = ? LIMIT 1",
-    [sessionCompanyId],
-  );
-  const scopedCompanyIds = companyTagTypes.length
-    ? [sessionCompanyId]
-    : [sessionCompanyId, Number(session.sub)];
+  const scopedCompanyIds = [await companyIdForSession(session)];
   return {
     clause: ` WHERE ${qualifier}company_id IN (${scopedCompanyIds.map(() => "?").join(", ")})`,
     params: scopedCompanyIds,
@@ -645,6 +638,14 @@ async function ensureLeadTagTypesTable() {
       `ALTER TABLE tag_types MODIFY company_id BIGINT UNSIGNED NOT NULL`,
     );
   }
+  await db.execute(
+    `UPDATE tag_types tt
+      JOIN users legacy_user ON legacy_user.id = tt.company_id
+      LEFT JOIN users company_user ON company_user.CompanyID = tt.company_id
+       SET tt.company_id = legacy_user.CompanyID
+     WHERE legacy_user.CompanyID IS NOT NULL
+       AND company_user.id IS NULL`,
+  );
 
   const [companyIndex] = await db.execute<RowDataPacket[]>(
     `SELECT 1
@@ -676,17 +677,6 @@ async function ensureLeadTagTypesTable() {
          AND canonical_type.type_name = duplicate_type.type_name
          AND canonical_type.id < duplicate_type.id
          SET t.tag_type_id = canonical_type.id`,
-    );
-  }
-  if (existingTagTables.has("lead_tag_assignments")) {
-    await db.execute(
-      `UPDATE lead_tag_assignments lta
-        JOIN tag_types duplicate_type ON duplicate_type.id = lta.tag_type_id
-        JOIN tag_types canonical_type
-          ON canonical_type.company_id = duplicate_type.company_id
-         AND canonical_type.type_name = duplicate_type.type_name
-         AND canonical_type.id < duplicate_type.id
-         SET lta.tag_type_id = canonical_type.id`,
     );
   }
   await db.execute(
