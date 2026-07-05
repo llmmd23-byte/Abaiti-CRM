@@ -131,6 +131,108 @@ async function ensureTagTables() {
   });
   await db.execute("UPDATE tag_types SET company_id = 0 WHERE company_id IS NULL");
   await db.execute("ALTER TABLE tag_types MODIFY company_id BIGINT UNSIGNED NOT NULL");
+
+  const [tagTables] = await db.execute<RowDataPacket[]>(
+    `SELECT TABLE_NAME
+       FROM information_schema.TABLES
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME IN ('tags', 'lead_tag_assignments')`,
+  );
+  const existingTagTables = new Set(tagTables.map((row) => String(row.TABLE_NAME)));
+  if (existingTagTables.has("tags")) {
+    await db.execute(
+      `UPDATE tags t
+        JOIN tag_types duplicate_type ON duplicate_type.id = t.tag_type_id
+        JOIN tag_types canonical_type
+          ON canonical_type.company_id = duplicate_type.company_id
+         AND canonical_type.type_name = duplicate_type.type_name
+         AND canonical_type.id < duplicate_type.id
+         SET t.tag_type_id = canonical_type.id`,
+    );
+  }
+  if (existingTagTables.has("lead_tag_assignments")) {
+    await db.execute(
+      `UPDATE lead_tag_assignments lta
+        JOIN tag_types duplicate_type ON duplicate_type.id = lta.tag_type_id
+        JOIN tag_types canonical_type
+          ON canonical_type.company_id = duplicate_type.company_id
+         AND canonical_type.type_name = duplicate_type.type_name
+         AND canonical_type.id < duplicate_type.id
+         SET lta.tag_type_id = canonical_type.id`,
+    );
+  }
+  await db.execute(
+    `DELETE duplicate_type
+       FROM tag_types duplicate_type
+       JOIN tag_types canonical_type
+         ON canonical_type.company_id = duplicate_type.company_id
+        AND canonical_type.type_name = duplicate_type.type_name
+        AND canonical_type.id < duplicate_type.id`,
+  );
+
+  const [oldForeignKeys] = await db.execute<RowDataPacket[]>(
+    `SELECT CONSTRAINT_NAME
+       FROM information_schema.KEY_COLUMN_USAGE
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tag_types'
+        AND COLUMN_NAME = 'affiliate_user_id'
+        AND REFERENCED_TABLE_NAME IS NOT NULL`,
+  );
+  for (const row of oldForeignKeys) {
+    await db.execute(
+      `ALTER TABLE tag_types DROP FOREIGN KEY \`${row.CONSTRAINT_NAME}\``,
+    );
+  }
+
+  const [oldIndexes] = await db.execute<RowDataPacket[]>(
+    `SELECT DISTINCT INDEX_NAME
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tag_types'
+        AND COLUMN_NAME = 'affiliate_user_id'
+        AND INDEX_NAME <> 'PRIMARY'`,
+  );
+  for (const row of oldIndexes) {
+    await db.execute(`ALTER TABLE tag_types DROP INDEX \`${row.INDEX_NAME}\``);
+  }
+
+  const [companyIndex] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tag_types'
+        AND INDEX_NAME = 'idx_tag_types_company_id'
+      LIMIT 1`,
+  );
+  if (!companyIndex.length) {
+    await db.execute("ALTER TABLE tag_types ADD INDEX idx_tag_types_company_id (company_id)");
+  }
+
+  const [companyUnique] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tag_types'
+        AND INDEX_NAME = 'uq_tag_types_company_name'
+      LIMIT 1`,
+  );
+  if (!companyUnique.length) {
+    await db.execute(
+      "ALTER TABLE tag_types ADD UNIQUE KEY uq_tag_types_company_name (company_id, type_name)",
+    );
+  }
+
+  const [affiliateColumns] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tag_types'
+        AND COLUMN_NAME = 'affiliate_user_id'
+      LIMIT 1`,
+  );
+  if (affiliateColumns.length) {
+    await db.execute("ALTER TABLE tag_types DROP COLUMN affiliate_user_id");
+  }
   await addColumnIfMissing(
     "tags",
     "tag_type_id",

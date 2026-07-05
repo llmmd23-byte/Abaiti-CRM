@@ -71,6 +71,16 @@ BEGIN
 
   IF EXISTS (
     SELECT 1
+      FROM information_schema.table_constraints
+     WHERE table_schema = DATABASE()
+       AND table_name = 'tag_types'
+       AND constraint_name = 'fk_tag_types_affiliate_user'
+  ) THEN
+    ALTER TABLE tag_types DROP FOREIGN KEY fk_tag_types_affiliate_user;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
       FROM information_schema.statistics
      WHERE table_schema = DATABASE()
        AND table_name = 'tag_types'
@@ -110,16 +120,6 @@ BEGIN
   END IF;
 
   ALTER TABLE tag_types MODIFY company_id BIGINT UNSIGNED NOT NULL;
-
-  IF EXISTS (
-    SELECT 1
-      FROM information_schema.table_constraints
-     WHERE table_schema = DATABASE()
-       AND table_name = 'tag_types'
-       AND constraint_name = 'fk_tag_types_affiliate_user'
-  ) THEN
-    ALTER TABLE tag_types DROP FOREIGN KEY fk_tag_types_affiliate_user;
-  END IF;
 
   IF EXISTS (
     SELECT 1
