@@ -303,7 +303,14 @@ async function companyIdForSession(session: MiddarSession) {
 }
 
 async function companyFilterForSession(session: MiddarSession, qualifier = "") {
-  const scopedCompanyIds = [await companyIdForSession(session)];
+  const sessionCompanyId = await companyIdForSession(session);
+  const [companyTagTypes] = await db.execute<RowDataPacket[]>(
+    "SELECT 1 FROM tag_types WHERE company_id = ? LIMIT 1",
+    [sessionCompanyId],
+  );
+  const scopedCompanyIds = companyTagTypes.length
+    ? [sessionCompanyId]
+    : [sessionCompanyId, Number(session.sub)];
   return {
     clause: ` WHERE ${qualifier}company_id IN (${scopedCompanyIds.map(() => "?").join(", ")})`,
     params: scopedCompanyIds,
