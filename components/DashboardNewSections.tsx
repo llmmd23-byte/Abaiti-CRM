@@ -831,11 +831,29 @@ export function CustomersView() {
     const selectedTagTypeId =
       tagDraft.tag_type_id ? Number(tagDraft.tag_type_id) : null;
     const availableTags = (leadTags.data ?? []).filter((tag) => {
+      if (!selectedTagTypeId) return false;
       if (assignedTagIds.has(Number(tag.id))) return false;
       if (assignedTagTypeIds.has(Number(tag.tag_type_id))) return false;
-      if (!selectedTagTypeId) return true;
       return Number(tag.tag_type_id) === selectedTagTypeId;
     });
+    const tagOptions = selectedTagTypeId
+      ? [
+          ...availableTags.map((tag) => ({
+            value: String(tag.id),
+            label: String(tag.tag_name ?? tag.id),
+          })),
+          {
+            value: "__new__",
+            label: isArabic ? "+ إضافة وسم جديد" : "+ Add New Tag",
+          },
+        ]
+      : [
+          {
+            value: "__select_type_first__",
+            label: isArabic ? "اختر نوع الوسم أولًا" : "Select a tag type first",
+            disabled: true,
+          },
+        ];
 
     return (
       <article className="table-card expanded-table-card lead-tags-screen">
@@ -948,20 +966,15 @@ export function CustomersView() {
                   tag_name: "",
                 }));
               }}
-              options={[
-                ...availableTags.map((tag) => ({
-                  value: String(tag.id),
-                  label: String(tag.tag_name ?? tag.id),
-                })),
-                {
-                  value: "__new__",
-                  label: isArabic ? "+ إضافة وسم جديد" : "+ Add New Tag",
-                },
-              ]}
+              options={tagOptions}
               placeholder={
-                isArabic
-                  ? "اختر وسمًا أو أضف وسمًا جديدًا"
-                  : "Select a tag or add a new one"
+                selectedTagTypeId
+                  ? isArabic
+                    ? "اختر وسمًا أو أضف وسمًا جديدًا"
+                    : "Select a tag or add a new one"
+                  : isArabic
+                    ? "اختر نوع الوسم أولًا"
+                    : "Select a tag type first"
               }
               searchable
               searchPlaceholder={isArabic ? "ابحث عن وسم..." : "Search tags..."}
