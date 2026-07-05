@@ -12866,6 +12866,8 @@ html[dir="rtl"]
 
 .stores-outline-button,
 .stores-delete-button {
+  display: inline-grid;
+  place-items: center;
   min-height: 36px;
   padding: 0 14px;
   border-radius: 999px;
@@ -12873,6 +12875,7 @@ html[dir="rtl"]
   cursor: pointer;
   font-size: 12px;
   font-weight: 900;
+  text-decoration: none;
 }
 
 .stores-outline-button {
@@ -12883,6 +12886,34 @@ html[dir="rtl"]
 .stores-delete-button {
   border: 1px solid #fecaca;
   color: #dc2626;
+}
+
+.stores-page-link {
+  white-space: nowrap;
+}
+
+.stock-edit-list {
+  display: grid;
+  gap: 18px;
+}
+
+.stock-edit-item {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #e7eef4;
+  border-radius: 18px;
+  background: #fbfdff;
+}
+
+.stock-edit-empty {
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed #cfe2ef;
+  border-radius: 16px;
+  color: #60758a;
+  text-align: center;
+  font-weight: 800;
 }
 
 .stock-management-card {

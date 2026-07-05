@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "next-intl";
+import Link from "next/link";
 
 import DashboardSelect from "@/components/DashboardSelect";
 import { createBackend, useBackend } from "@/lib/client-backend";
@@ -269,13 +270,12 @@ export default function StoresView() {
                     <td>{String(item.address ?? "").trim() || "—"}</td>
                     <td>{itemCount.toLocaleString("en-US")}</td>
                     <td>
-                      <button
+                      <Link
                         className="stores-outline-button"
-                        onClick={() => setSelectedStoreId(String(item.id))}
-                        type="button"
+                        href={`/${isArabic ? "ar" : "en"}/dashboard/stores/${item.id}/stock`}
                       >
                         {isArabic ? "إدارة المخزون" : "Manage Stock"}
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 );

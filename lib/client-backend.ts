@@ -34,6 +34,9 @@ async function request<T>(path: string, method: "POST" | "PUT", body: Record<str
 export const createBackend = <T,>(resource: string, body: Record<string, unknown>) =>
   request<T>(`/api/v1/data/${resource}`, "POST", body);
 
+export const updateBackend = <T,>(resource: string, id: number | string, body: Record<string, unknown>) =>
+  request<T>(`/api/v1/data/${resource}/${id}`, "PUT", body);
+
 export const updateProfileBackend = <T,>(body: Record<string, unknown>) => request<T>("/api/v1/profile", "PUT", body);
 
 export const saveSocialAccountsBackend = <T,>(body: Record<string, unknown>) =>
