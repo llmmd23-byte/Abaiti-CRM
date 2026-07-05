@@ -213,6 +213,7 @@ const affiliatePermissionSeeds: PermissionSeed[] = [
       key === "table.leads" ||
       key === "table.lead_contacts" ||
       key === "table.lead_notes" ||
+      key === "table.lead_tag_assignments" ||
       key === "table.store" ||
       key === "table.stock" ||
       key === "table.payout_methods",
@@ -339,6 +340,7 @@ function defaultSeedForRoleType(roleType: RoleType, key: string): PermissionSeed
       key === "table.leads" ||
       key === "table.lead_contacts" ||
       key === "table.lead_notes" ||
+      key === "table.lead_tag_assignments" ||
       key === "table.store" ||
       key === "table.stock" ||
       key === "table.payout_methods",
@@ -521,7 +523,7 @@ export async function ensurePermissionsTable() {
           SET p.can_delete = 1
         WHERE p.subject_type = 'role'
           AND r.role_type = 'user'
-          AND p.permission_key = 'table.leads'`,
+          AND p.permission_key IN ('table.leads','table.lead_tag_assignments')`,
     );
     await prunePermissionsByRoleType();
   })();
