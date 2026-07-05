@@ -2573,6 +2573,24 @@ html[dir="ltr"] .dashboard-main {
   font-weight: 800;
 }
 
+.admin-client-tags-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  max-width: 260px;
+}
+
+.admin-client-tags-cell span {
+  border: 1px solid rgba(0, 180, 216, 0.22);
+  border-radius: 999px;
+  background: rgba(0, 180, 216, 0.08);
+  color: #075985;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  white-space: nowrap;
+}
+
 .admin-status {
   display: inline-flex;
   padding: 5px 10px;

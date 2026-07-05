@@ -1040,6 +1040,7 @@ function AdminMetricList({
                   const isStatus =
                     key === "status" || key === "stage" || key === "role";
                   const isActiveFlag = key === "is_active";
+                  const isTagNames = metric === "clients" && key === "tag_names";
                   const isDate =
                     key.includes("created") ||
                     key.includes("sold_at") ||
@@ -1069,6 +1070,23 @@ function AdminMetricList({
                         </span>
                       ) : isAmount ? (
                         `${Number(value ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(row.currency ?? "SAR")}`
+                      ) : isTagNames ? (
+                        String(value ?? "")
+                          .split(",")
+                          .map((tag) => tag.trim())
+                          .filter(Boolean).length ? (
+                          <div className="admin-client-tags-cell">
+                            {String(value ?? "")
+                              .split(",")
+                              .map((tag) => tag.trim())
+                              .filter(Boolean)
+                              .map((tag) => (
+                                <span key={tag}>{tag}</span>
+                              ))}
+                          </div>
+                        ) : (
+                          "—"
+                        )
                       ) : (
                         String(value ?? "—")
                       )}
