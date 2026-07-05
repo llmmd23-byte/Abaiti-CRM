@@ -1435,9 +1435,11 @@ function AdminTagsSection({
     Record<number, { name: string; color: string }>
   >({});
   const [editingTypeId, setEditingTypeId] = useState<number | null>(null);
+  const [viewingTypeId, setViewingTypeId] = useState<number | null>(null);
   const [savingKey, setSavingKey] = useState("");
   const [message, setMessage] = useState("");
   const editingType = groupedTypes.find((type) => type.id === editingTypeId);
+  const viewingType = groupedTypes.find((type) => type.id === viewingTypeId);
 
   useEffect(() => {
     const nextTypes: Record<number, { name: string; color: string }> = {};
@@ -1611,6 +1613,10 @@ function AdminTagsSection({
               ? isArabic
                 ? "تعديل نوع الوسم"
                 : "Edit Tag Type"
+              : viewingType
+                ? isArabic
+                  ? "كل وسوم النوع"
+                  : "All Tags in Type"
               : `${groupedTypes.length.toLocaleString(NUMBER_LOCALE)} ${
                   isArabic ? "نوع وسم" : "tag types"
                 }`}
@@ -1618,7 +1624,48 @@ function AdminTagsSection({
         </div>
       </div>
 
-      {!editingType ? (
+      {viewingType && !editingType ? (
+        <div className="admin-tag-manager">
+          <div className="admin-tag-manager-title">
+            <button
+              className="admin-permissions-back-btn"
+              onClick={() => setViewingTypeId(null)}
+              type="button"
+            >
+              {isArabic ? "رجوع" : "Back"}
+            </button>
+            <div>
+              <span>{isArabic ? "نوع الوسم" : "Tag type"}</span>
+              <h3>{viewingType.name}</h3>
+              <p>
+                {viewingType.tags.length.toLocaleString(NUMBER_LOCALE)}{" "}
+                {isArabic ? "وسم" : "tags"}
+              </p>
+            </div>
+          </div>
+          <div className="admin-all-tags-list">
+            {[...viewingType.tags]
+              .sort((first, second) => second.count - first.count)
+              .map((tag) => (
+                <div className="admin-all-tag-row" key={tag.id}>
+                  <i style={{ background: tag.color }} />
+                  <span>{tag.name}</span>
+                  <strong>
+                    {tag.count.toLocaleString(NUMBER_LOCALE)}{" "}
+                    {isArabic ? "عميل" : "customers"}
+                  </strong>
+                </div>
+              ))}
+            {!viewingType.tags.length ? (
+              <p className="admin-empty">
+                {isArabic
+                  ? "لا توجد وسوم مرتبطة بهذا النوع"
+                  : "No tags linked to this type"}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : !editingType ? (
         <div className="admin-tag-type-grid">
           {groupedTypes.length ? (
             groupedTypes.map((type) => {
@@ -1627,6 +1674,9 @@ function AdminTagsSection({
                 0,
               );
               const chartTags = type.tags.filter((tag) => tag.count > 0);
+              const topTags = [...type.tags]
+                .sort((first, second) => second.count - first.count)
+                .slice(0, 3);
               return (
                 <article className="admin-tag-type-card" key={type.id}>
                   <div className="admin-tag-type-head">
@@ -1655,7 +1705,7 @@ function AdminTagsSection({
 
                   <div className="admin-tag-breakdown">
                     {type.tags.length ? (
-                      type.tags.map((tag) => {
+                      topTags.map((tag) => {
                         const percent = totalCustomers
                           ? Math.round((tag.count / totalCustomers) * 100)
                           : 0;
@@ -1681,6 +1731,19 @@ function AdminTagsSection({
                       </p>
                     )}
                   </div>
+
+                  {type.tags.length > 3 ? (
+                    <button
+                      className="admin-action-btn admin-tag-view-more"
+                      onClick={() => {
+                        setViewingTypeId(type.id);
+                        setMessage("");
+                      }}
+                      type="button"
+                    >
+                      {isArabic ? "مشاهدة المزيد" : "View more"}
+                    </button>
+                  ) : null}
 
                   <button
                     className="admin-action-btn admin-tag-card-edit"
