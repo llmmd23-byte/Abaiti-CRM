@@ -106,16 +106,31 @@ async function ensureTagTables() {
   await db.execute(
     `CREATE TABLE IF NOT EXISTS tag_types (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      affiliate_user_id BIGINT UNSIGNED NOT NULL,
+      company_id BIGINT UNSIGNED NOT NULL,
       type_name VARCHAR(120) NOT NULL,
       type_color VARCHAR(24) NOT NULL DEFAULT '#00b4d8',
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
-      UNIQUE KEY uq_tag_types_name (affiliate_user_id, type_name),
-      KEY idx_tag_types_affiliate_user_id (affiliate_user_id)
+      UNIQUE KEY uq_tag_types_company_name (company_id, type_name),
+      KEY idx_tag_types_company_id (company_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+  await addColumnIfMissing(
+    "tag_types",
+    "company_id",
+    "ALTER TABLE tag_types ADD COLUMN company_id BIGINT UNSIGNED NULL AFTER id",
+  );
+  await db.execute(
+    `UPDATE tag_types tt
+      JOIN users u ON u.id = tt.affiliate_user_id
+       SET tt.company_id = COALESCE(u.CompanyID, u.id)
+     WHERE tt.company_id IS NULL`,
+  ).catch((error) => {
+    if ((error as { code?: string }).code !== "ER_BAD_FIELD_ERROR") throw error;
+  });
+  await db.execute("UPDATE tag_types SET company_id = 0 WHERE company_id IS NULL");
+  await db.execute("ALTER TABLE tag_types MODIFY company_id BIGINT UNSIGNED NOT NULL");
   await addColumnIfMissing(
     "tags",
     "tag_type_id",
@@ -315,14 +330,13 @@ export async function GET() {
         t.tag_name,
         t.tag_color,
         COUNT(DISTINCT lta.lead_id) customer_count
-       FROM tag_types tt
-       LEFT JOIN tags t ON t.tag_type_id = tt.id
-       LEFT JOIN lead_tag_assignments lta ON lta.tag_id = t.id
-       JOIN users u ON u.id = tt.affiliate_user_id
-      WHERE ${userScopeClause("u")}
+        FROM tag_types tt
+        LEFT JOIN tags t ON t.tag_type_id = tt.id
+        LEFT JOIN lead_tag_assignments lta ON lta.tag_id = t.id
+      WHERE tt.company_id = ?
       GROUP BY tt.id,tt.type_name,tt.type_color,t.id,t.tag_name,t.tag_color
       ORDER BY tt.created_at DESC,t.tag_name ASC`,
-    userScopeParams,
+    [adminCompanyId ?? adminUserId],
   );
 
   return NextResponse.json({
