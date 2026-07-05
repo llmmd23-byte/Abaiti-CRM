@@ -4,13 +4,14 @@ import { useLocale, useTranslations } from "next-intl";
 import { Fragment, useEffect, useRef, useState } from "react";
 import DashboardSelect from "@/components/DashboardSelect";
 import LeadRequestForm from "@/components/LeadRequestForm";
-import { createBackend, useBackend } from "@/lib/client-backend";
+import { createBackend, updateBackend, useBackend } from "@/lib/client-backend";
 
 type BackendRow = Record<string, unknown> & { id: number };
 const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
 const CUSTOMER_PAGE_SIZE = 10;
 type CustomerDateFilter = "all" | "today" | "yesterday" | "week" | "month";
+type CustomerOwnerFilter = "all" | "own" | "team";
 type CustomerActionIconName = "edit" | "contacts" | "notes" | "tags";
 
 function CustomerActionIcon({ name }: { name: CustomerActionIconName }) {
@@ -70,6 +71,38 @@ function formatUserDateTime(value: unknown, isArabic: boolean) {
   }).format(date);
 }
 
+function normalizeHexColor(value: unknown) {
+  const color = String(value ?? "").trim();
+  return /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
+}
+
+function hexToRgb(hex: string) {
+  const clean = normalizeHexColor(hex).slice(1);
+  return {
+    r: Number.parseInt(clean.slice(0, 2), 16),
+    g: Number.parseInt(clean.slice(2, 4), 16),
+    b: Number.parseInt(clean.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex({ r, g, b }: { r: number; g: number; b: number }) {
+  return `#${[r, g, b]
+    .map((channel) =>
+      Math.round(channel).toString(16).padStart(2, "0").slice(0, 2),
+    )
+    .join("")}`;
+}
+
+function mixHex(startHex: string, endHex: string, ratio: number) {
+  const start = hexToRgb(startHex);
+  const end = hexToRgb(endHex);
+  return rgbToHex({
+    r: start.r + (end.r - start.r) * ratio,
+    g: start.g + (end.g - start.g) * ratio,
+    b: start.b + (end.b - start.b) * ratio,
+  });
+}
+
 export function CustomersView() {
   const t = useTranslations();
   const isArabic = useLocale() === "ar";
@@ -81,6 +114,11 @@ export function CustomersView() {
   const leadTagAssignments = useBackend<BackendRow[]>(
     "/api/v1/data/lead-tag-assignments",
   );
+  const { data: currentUser } = useBackend<{
+    userid: number;
+    role: string;
+    permissions?: Record<string, { data_scope?: string }>;
+  }>("/api/v1/auth/me");
   const data = leads.data;
   const { data: industries } = useBackend<BackendRow[]>(
     "/api/v1/data/industries",
@@ -92,6 +130,9 @@ export function CustomersView() {
     useState<CustomerDateFilter>("all");
   const [customerTagTypeFilter, setCustomerTagTypeFilter] = useState("all");
   const [customerTagFilter, setCustomerTagFilter] = useState("all");
+  const [customerOwnerFilter, setCustomerOwnerFilter] =
+    useState<CustomerOwnerFilter>("all");
+  const [customerTeamUserFilter, setCustomerTeamUserFilter] = useState("all");
   const [customerPage, setCustomerPage] = useState(1);
   const [draggedLeadId, setDraggedLeadId] = useState<number | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
@@ -250,6 +291,44 @@ export function CustomersView() {
         label: String(tag.tag_name ?? tag.id),
       })),
   ];
+  const currentUserId = Number(currentUser?.userid ?? 0);
+  const currentUserRole = String(currentUser?.role ?? "").toLocaleLowerCase();
+  const canSeeTeamCustomers =
+    currentUserRole === "leader" ||
+    currentUser?.permissions?.["table.leads"]?.data_scope === "team" ||
+    (currentUserId > 0 &&
+      (data ?? []).some(
+        (row) => Number(row.affiliate_user_id ?? currentUserId) !== currentUserId,
+      ));
+  const customerOwnerFilterOptions = [
+    { value: "all", label: isArabic ? "كل العملاء" : "All Customers" },
+    { value: "own", label: isArabic ? "عملائي" : "My Customers" },
+    { value: "team", label: isArabic ? "عملاء الفريق" : "Team Customers" },
+  ];
+  const customerTeamUserFilterOptions = [
+    { value: "all", label: isArabic ? "كل المستخدمين" : "All Users" },
+    ...Array.from(
+      (data ?? [])
+        .filter(
+          (row) =>
+            currentUserId > 0 &&
+            Number(row.affiliate_user_id ?? currentUserId) !== currentUserId,
+        )
+        .reduce((options, row) => {
+          const userId = Number(row.affiliate_user_id);
+          if (!Number.isFinite(userId) || userId <= 0) return options;
+          const fallbackLabel = isArabic
+            ? `مستخدم ${userId.toLocaleString(NUMBER_LOCALE)}`
+            : `User ${userId.toLocaleString(NUMBER_LOCALE)}`;
+          options.set(String(userId), {
+            value: String(userId),
+            label: String(row.affiliate_user_name ?? "").trim() || fallbackLabel,
+          });
+          return options;
+        }, new Map<string, { value: string; label: string }>())
+        .values(),
+    ),
+  ];
 
   function matchesCustomerDateFilter(value: unknown) {
     if (customerDateFilter === "all") return true;
@@ -288,6 +367,32 @@ export function CustomersView() {
 
   const normalizedSearch = customerSearch.trim().toLocaleLowerCase();
   const filteredCustomers = (data ?? []).filter((row) => {
+    const ownerId = Number(row.affiliate_user_id ?? currentUserId);
+    if (
+      canSeeTeamCustomers &&
+      currentUserId > 0 &&
+      customerOwnerFilter === "own" &&
+      ownerId !== currentUserId
+    ) {
+      return false;
+    }
+    if (
+      canSeeTeamCustomers &&
+      currentUserId > 0 &&
+      customerOwnerFilter === "team" &&
+      ownerId === currentUserId
+    ) {
+      return false;
+    }
+    if (
+      canSeeTeamCustomers &&
+      currentUserId > 0 &&
+      customerOwnerFilter === "team" &&
+      customerTeamUserFilter !== "all" &&
+      ownerId !== Number(customerTeamUserFilter)
+    ) {
+      return false;
+    }
     if (!matchesCustomerDateFilter(row.created_at)) return false;
     const rowTagIds = (leadTagAssignments.data ?? [])
       .filter((assignment) => Number(assignment.lead_id) === Number(row.id))
@@ -360,8 +465,16 @@ export function CustomersView() {
     customerDateFilter,
     customerTagTypeFilter,
     customerTagFilter,
+    customerOwnerFilter,
+    customerTeamUserFilter,
     customerView,
   ]);
+
+  useEffect(() => {
+    if (customerOwnerFilter !== "team" && customerTeamUserFilter !== "all") {
+      setCustomerTeamUserFilter("all");
+    }
+  }, [customerOwnerFilter, customerTeamUserFilter]);
 
   useEffect(() => {
     if (customerPage > customerTotalPages) setCustomerPage(customerTotalPages);
@@ -645,6 +758,37 @@ export function CustomersView() {
     }
   }
 
+  async function rebalanceTagTypeGradient(
+    typeId: number,
+    createdTag: BackendRow,
+    fallbackTypeColor?: string,
+  ) {
+    const tagType = (leadTagTypes.data ?? []).find(
+      (item) => Number(item.id) === typeId,
+    );
+    const baseColor = normalizeHexColor(tagType?.type_color ?? fallbackTypeColor);
+    const gradientEnd = "#11293d";
+    const tagsById = new Map<number, BackendRow>();
+    (leadTags.data ?? [])
+      .filter((item) => Number(item.tag_type_id) === typeId)
+      .forEach((item) => tagsById.set(Number(item.id), item));
+    tagsById.set(Number(createdTag.id), {
+      ...createdTag,
+      tag_type_id: typeId,
+    });
+    const tags = Array.from(tagsById.values()).sort(
+      (first, second) => Number(first.id) - Number(second.id),
+    );
+    await Promise.all(
+      tags.map((tag, index) => {
+        const ratio = tags.length === 1 ? 0 : index / (tags.length - 1);
+        return updateBackend("lead-tags", tag.id, {
+          tag_color: mixHex(baseColor, gradientEnd, ratio),
+        });
+      }),
+    );
+  }
+
   async function createNewTag() {
     const tagName = tagDraft.tag_name.trim();
     const typeId = Number(tagDraft.tag_type_id);
@@ -666,6 +810,7 @@ export function CustomersView() {
           String(item.tag_name ?? "").trim().toLocaleLowerCase() ===
             tagName.toLocaleLowerCase(),
       );
+      const isNewTag = !existingTag;
       const createdTag =
         existingTag ??
         (await createBackend<BackendRow>("lead-tags", {
@@ -673,6 +818,9 @@ export function CustomersView() {
           tag_name: tagName,
           tag_color: tagDraft.tag_color,
         }));
+      if (isNewTag) {
+        await rebalanceTagTypeGradient(typeId, createdTag);
+      }
       await leadTags.reload();
       setTagDraft((current) => ({
         ...current,
@@ -761,18 +909,23 @@ export function CustomersView() {
         return;
       }
       if (!tag) {
+        const existingTag = (leadTags.data ?? []).find(
+          (item) =>
+            String(item.tag_name ?? "").trim().toLocaleLowerCase() ===
+              normalizedTagName.toLocaleLowerCase() &&
+            Number(item.tag_type_id) === Number(tagTypeId),
+        );
+        const isNewTag = !existingTag;
         tag =
-          (leadTags.data ?? []).find(
-            (item) =>
-              String(item.tag_name ?? "").trim().toLocaleLowerCase() ===
-                normalizedTagName.toLocaleLowerCase() &&
-              Number(item.tag_type_id) === Number(tagTypeId),
-          ) ??
+          existingTag ??
           (await createBackend<BackendRow>("lead-tags", {
             ...(tagTypeId ? { tag_type_id: tagTypeId } : {}),
             tag_name: normalizedTagName,
             tag_color: tagDraft.tag_color,
           }));
+        if (isNewTag && tagTypeId) {
+          await rebalanceTagTypeGradient(Number(tagTypeId), tag, tagDraft.type_color);
+        }
       }
       await createBackend("lead-tag-assignments", {
         lead_id: tagsLead.id,
@@ -1682,6 +1835,42 @@ export function CustomersView() {
               value={customerDateFilter}
             />
           </div>
+          {canSeeTeamCustomers ? (
+            <div className="customer-date-filter">
+              <DashboardSelect
+                ariaLabel={
+                  isArabic
+                    ? "فلترة العملاء حسب المستخدم"
+                    : "Filter customers by user"
+                }
+                onValueChange={(value) =>
+                  setCustomerOwnerFilter(value as CustomerOwnerFilter)
+                }
+                options={customerOwnerFilterOptions}
+                portal
+                value={customerOwnerFilter}
+              />
+            </div>
+          ) : null}
+          {canSeeTeamCustomers && customerOwnerFilter === "team" ? (
+            <div className="customer-date-filter">
+              <DashboardSelect
+                ariaLabel={
+                  isArabic
+                    ? "اختيار مستخدم من الفريق"
+                    : "Select a team user"
+                }
+                onValueChange={setCustomerTeamUserFilter}
+                options={customerTeamUserFilterOptions}
+                portal
+                searchable
+                searchPlaceholder={
+                  isArabic ? "ابحث عن مستخدم..." : "Search users..."
+                }
+                value={customerTeamUserFilter}
+              />
+            </div>
+          ) : null}
           <div className="customer-tag-filters">
             <div className="customer-tag-filter">
               <DashboardSelect

@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS affiliate_payout_methods (
 CREATE TABLE IF NOT EXISTS team_members (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id BIGINT UNSIGNED NOT NULL,
+  assign_member BIGINT UNSIGNED NULL,
   name VARCHAR(160) NOT NULL,
   phone VARCHAR(40) NULL,
   email VARCHAR(190) NULL,
@@ -101,6 +102,7 @@ CREATE TABLE IF NOT EXISTS team_members (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_team_members_user_status (user_id, status),
+  KEY idx_team_members_assign_member (assign_member),
   CONSTRAINT fk_team_members_user
     FOREIGN KEY (user_id) REFERENCES users(id)
     ON DELETE CASCADE ON UPDATE CASCADE

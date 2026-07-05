@@ -300,8 +300,6 @@ export default function SettingsDashboard() {
   const [editingPayoutId, setEditingPayoutId] = useState<number | null>(null);
   const [showPayoutForm, setShowPayoutForm] = useState(false);
   const [payoutStatus, setPayoutStatus] = useState("");
-  const [teamName, setTeamName] = useState("");
-  const [teamPhone, setTeamPhone] = useState("");
   const [showTeamMemberModal, setShowTeamMemberModal] = useState(false);
   const [newTeamMember, setNewTeamMember] = useState({name: "", phone: ""});
   const [teamMemberStatus, setTeamMemberStatus] = useState("");
@@ -334,8 +332,6 @@ export default function SettingsDashboard() {
     } catch {
       setSkillProofs([]);
     }
-    setTeamName(String(profile.data.host_name ?? ""));
-    setTeamPhone(String(profile.data.host_phone ?? ""));
     setPreferredLocale(String(profile.data.preferred_locale ?? locale) === "en" ? "en" : "ar");
   }, [profile.data]);
   useEffect(() => {
@@ -594,10 +590,8 @@ export default function SettingsDashboard() {
   };
   const hostCopy = {
     title: isArabic ? "\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0641\u0631\u064a\u0642" : "Team Details",
-    hostName: isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u0636\u064a\u0641" : "Host Name",
-    hostNamePlaceholder: isArabic ? "\u0627\u0643\u062a\u0628 \u0627\u0633\u0645 \u0627\u0644\u0634\u062e\u0635 \u0623\u0648 \u0627\u0644\u062c\u0647\u0629 \u0627\u0644\u0645\u0633\u062a\u0636\u064a\u0641\u0629..." : "Write the host person or organization name...",
-    hostPhone: isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0645\u0633\u062a\u0636\u064a\u0641" : "Host Number",
-    hostPhonePlaceholder: "+966 5x xxx xxxx",
+    hostName: isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u0645\u062f\u064a\u0631" : "Manager Name",
+    hostPhone: isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0645\u062f\u064a\u0631" : "Manager Number",
     members: isArabic ? "\u0623\u0639\u0636\u0627\u0621 \u0627\u0644\u0641\u0631\u064a\u0642" : "Team Members",
     name: isArabic ? "\u0627\u0644\u0627\u0633\u0645" : "Name",
     phone: isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644" : "Mobile Number",
@@ -620,6 +614,8 @@ export default function SettingsDashboard() {
       statusClass: status
     };
   });
+  const managerName = String(profile.data?.manager_name ?? "").trim();
+  const managerPhone = String(profile.data?.manager_phone ?? "").trim();
 
   async function saveSkills() {
     setSkillsStatus(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638..." : "Saving...");
@@ -844,7 +840,7 @@ export default function SettingsDashboard() {
                     <svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8ZM5 21v-2.2A5.8 5.8 0 0 1 10.8 13h2.4a5.8 5.8 0 0 1 5.8 5.8V21" /><path d="M4 7h3M17 7h3" /></svg>
                   </span>
                   <div>
-                    <strong>{isArabic ? "\u0627\u0644\u0645\u0633\u062a\u0636\u064a\u0641 \u0627\u0644\u0631\u0626\u064a\u0633\u064a" : "Primary host"}</strong>
+                    <strong>{isArabic ? "\u0627\u0644\u0645\u062f\u064a\u0631 \u0627\u0644\u0645\u0628\u0627\u0634\u0631" : "Direct manager"}</strong>
                   </div>
                   <span className="settings-hierarchy-level">{isArabic ? "\u0627\u0644\u0645\u0633\u062a\u0648\u0649 \u0627\u0644\u0623\u0639\u0644\u0649" : "Top level"}</span>
                 </div>
@@ -852,13 +848,13 @@ export default function SettingsDashboard() {
                   <label>
                     <span>{hostCopy.hostName}</span>
                     <div className="settings-host-readonly-value">
-                      {teamName || (isArabic ? "\u063a\u064a\u0631 \u0645\u0631\u062a\u0628\u0637" : "Not linked")}
+                      {managerName || (isArabic ? "\u063a\u064a\u0631 \u0645\u0631\u062a\u0628\u0637" : "Not linked")}
                     </div>
                   </label>
                   <label>
                     <span>{hostCopy.hostPhone}</span>
                     <div className="settings-host-readonly-value" dir="ltr">
-                      {teamPhone || "\u2014"}
+                      {managerPhone || "\u2014"}
                     </div>
                   </label>
                 </div>

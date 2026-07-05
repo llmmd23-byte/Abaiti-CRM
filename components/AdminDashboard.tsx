@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useLocale } from "next-intl";
@@ -1643,27 +1643,57 @@ function AdminTagsSection({
               </p>
             </div>
           </div>
-          <div className="admin-all-tags-list">
-            {[...viewingType.tags]
-              .sort((first, second) => second.count - first.count)
-              .map((tag) => (
-                <div className="admin-all-tag-row" key={tag.id}>
-                  <i style={{ background: tag.color }} />
-                  <span>{tag.name}</span>
-                  <strong>
-                    {tag.count.toLocaleString(NUMBER_LOCALE)}{" "}
-                    {isArabic ? "عميل" : "customers"}
-                  </strong>
+          {(() => {
+            const sortedTags = [...viewingType.tags].sort(
+              (first, second) => second.count - first.count,
+            );
+            const totalCustomers = sortedTags.reduce(
+              (sum, tag) => sum + tag.count,
+              0,
+            );
+            const chartTags = sortedTags.filter((tag) => tag.count > 0);
+            return (
+              <div className="admin-all-tags-insights">
+                <div
+                  aria-label={viewingType.name}
+                  className="admin-tag-pie admin-all-tags-pie"
+                  style={{
+                    background: pieBackground(chartTags, totalCustomers),
+                  }}
+                >
+                  <div>
+                    <strong>{totalCustomers.toLocaleString(NUMBER_LOCALE)}</strong>
+                    <span>{isArabic ? "عميل" : "customers"}</span>
+                  </div>
                 </div>
-              ))}
-            {!viewingType.tags.length ? (
-              <p className="admin-empty">
-                {isArabic
-                  ? "لا توجد وسوم مرتبطة بهذا النوع"
-                  : "No tags linked to this type"}
-              </p>
-            ) : null}
-          </div>
+                <div className="admin-all-tags-list">
+                  {sortedTags.map((tag) => {
+                    const percent = totalCustomers
+                      ? Math.round((tag.count / totalCustomers) * 100)
+                      : 0;
+                    return (
+                      <div className="admin-all-tag-row" key={tag.id}>
+                        <i style={{ background: tag.color }} />
+                        <span>{tag.name}</span>
+                        <strong>{percent.toLocaleString(NUMBER_LOCALE)}%</strong>
+                        <small>
+                          {tag.count.toLocaleString(NUMBER_LOCALE)}{" "}
+                          {isArabic ? "عميل" : "customers"}
+                        </small>
+                      </div>
+                    );
+                  })}
+                  {!sortedTags.length ? (
+                    <p className="admin-empty">
+                      {isArabic
+                        ? "لا توجد وسوم مرتبطة بهذا النوع"
+                        : "No tags linked to this type"}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       ) : !editingType ? (
         <div className="admin-tag-type-grid">
@@ -2623,7 +2653,7 @@ function AdminManagementSection({
       const oldStatus = String(event.old_status ?? "");
       const newStatus = String(event.new_status ?? "");
       if (!oldStatus) return displayAdminValue(newStatus, isArabic);
-      const arrow = isArabic ? "←" : "→";
+      const arrow = isArabic ? "\u2190" : "\u2192";
       return `${displayAdminValue(oldStatus, isArabic)} ${arrow} ${displayAdminValue(newStatus, isArabic)}`;
     }
     return String(event.note ?? "");

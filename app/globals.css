@@ -2579,37 +2579,68 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-all-tags-list {
+  display: flex;
+  gap: 0.75rem;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-block-end: 0.25rem;
+  width: 100%;
+}
+
+.admin-all-tags-insights {
+  align-items: center;
   display: grid;
-  gap: 0.85rem;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+}
+
+.admin-all-tags-pie {
+  margin: 0 auto;
+  width: min(340px, 74vw);
 }
 
 .admin-all-tag-row {
   align-items: center;
   background: #ffffff;
   border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 18px;
+  border-radius: 14px;
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: auto 1fr auto;
-  padding: 0.9rem 1rem;
+  flex: 0 0 190px;
+  gap: 0.4rem 0.65rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 72px;
+  padding: 0.65rem 0.8rem;
+  width: 190px;
 }
 
 .admin-all-tag-row i {
   border-radius: 999px;
   display: block;
-  height: 14px;
-  width: 14px;
+  height: 11px;
+  width: 11px;
 }
 
 .admin-all-tag-row span {
   color: #102a43;
+  font-size: 0.9rem;
   font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-all-tag-row strong {
-  color: #526579;
+  color: #00a7a3;
   font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.admin-all-tag-row small {
+  color: #6c8297;
+  font-size: 0.76rem;
   font-weight: 800;
+  grid-column: 2 / 4;
 }
 
 .admin-client-tags-cell {

@@ -221,7 +221,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     table: "team_members",
     ownerField: "user_id",
     permissionKey: "table.team_members",
-    writable: ["name", "phone", "email", "status"],
+    writable: ["name", "phone", "email", "status", "assign_member"],
     defaults: { status: "inactive" },
   },
   "social-accounts": {
@@ -300,6 +300,33 @@ async function ownerGuard(
 
 async function companyIdForSession(session: MiddarSession) {
   return (await getSessionUserCompanyId(session)) ?? Number(session.sub);
+}
+
+async function columnExists(tableName: string, columnName: string) {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+      LIMIT 1`,
+    [tableName, columnName],
+  );
+  return rows.length > 0;
+}
+
+async function ensureUserTeamColumns() {
+  if (!(await columnExists("users", "manager_id"))) {
+    await db.execute(
+      "ALTER TABLE users ADD COLUMN manager_id BIGINT UNSIGNED NULL AFTER CompanyID",
+    );
+  }
+  if (await columnExists("users", "host_name")) {
+    await db.execute("ALTER TABLE users DROP COLUMN host_name");
+  }
+  if (await columnExists("users", "host_phone")) {
+    await db.execute("ALTER TABLE users DROP COLUMN host_phone");
+  }
 }
 
 async function companyFilterForSession(session: MiddarSession, qualifier = "") {
@@ -445,6 +472,9 @@ async function ensureStoreTables() {
 async function ensureResourceTable(resource: string) {
   if (resource === "stores" || resource === "stock") {
     await ensureStoreTables();
+  }
+  if (resource === "team-members") {
+    await ensureTeamMembersTable();
   }
 }
 
@@ -881,6 +911,73 @@ async function ensureSupportTicketEventsTable() {
   );
 }
 
+async function ensureTeamMembersTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS team_members (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      user_id BIGINT UNSIGNED NOT NULL,
+      assign_member BIGINT UNSIGNED NULL,
+      name VARCHAR(160) NOT NULL,
+      phone VARCHAR(40) NULL,
+      email VARCHAR(190) NULL,
+      status ENUM('active', 'pending', 'inactive') NOT NULL DEFAULT 'active',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      KEY idx_team_members_user_status (user_id, status),
+      KEY idx_team_members_assign_member (assign_member)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+  if (!(await columnExists("team_members", "assign_member"))) {
+    await db.execute(
+      "ALTER TABLE team_members ADD COLUMN assign_member BIGINT UNSIGNED NULL AFTER user_id",
+    );
+  }
+  await db.execute(
+    `UPDATE team_members tm
+      JOIN users member_user
+        ON (
+          tm.phone IS NOT NULL
+          AND tm.phone <> ''
+          AND REPLACE(REPLACE(REPLACE(member_user.phone, ' ', ''), '-', ''), '(', '') = REPLACE(REPLACE(REPLACE(tm.phone, ' ', ''), '-', ''), '(', '')
+        )
+        OR (
+          tm.email IS NOT NULL
+          AND tm.email <> ''
+          AND LOWER(member_user.email) = LOWER(tm.email)
+        )
+       SET tm.assign_member = member_user.id
+     WHERE tm.assign_member IS NULL`,
+  );
+  await db.execute(
+    `UPDATE users member_user
+      JOIN team_members tm ON tm.assign_member = member_user.id
+       SET member_user.manager_id = tm.user_id
+     WHERE member_user.manager_id IS NULL`,
+  );
+}
+
+async function assignedTeamMemberUserId(data: Record<string, SqlValue>) {
+  const phone = String(data.phone ?? "").replace(/[^\d+]/g, "");
+  const email = String(data.email ?? "").trim();
+  if (!phone && !email) return null;
+  const filters: string[] = [];
+  const params: SqlValue[] = [];
+  if (phone) {
+    filters.push("REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', '') = ?");
+    params.push(phone);
+  }
+  if (email) {
+    filters.push("LOWER(email) = LOWER(?)");
+    params.push(email);
+  }
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT id FROM users WHERE ${filters.join(" OR ")} ORDER BY id ASC LIMIT 1`,
+    params,
+  );
+  return rows[0]?.id ? Number(rows[0].id) : null;
+}
+
 async function recordSupportTicketEvent({
   ticketId,
   userId,
@@ -999,6 +1096,23 @@ export async function listResource(resource: string, session: MiddarSession) {
          LEFT JOIN products p ON p.id = st.product_id
         ${scopedWhere}
         ORDER BY st.created_at DESC LIMIT 250`,
+      scopedParams,
+    );
+    return rows;
+  }
+
+  if (resource === "leads") {
+    const { clause: scopedWhere, params: scopedParams } = await ownerFilter(
+      definition,
+      session,
+      "l.",
+    );
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT l.*, u.name affiliate_user_name
+         FROM leads l
+         LEFT JOIN users u ON u.id = l.affiliate_user_id
+        ${scopedWhere}
+        ORDER BY l.created_at DESC`,
       scopedParams,
     );
     return rows;
@@ -1149,8 +1263,18 @@ export async function createResource(
     data.lead_id = Number(data.lead_id);
     data.tag_id = Number(data.tag_id);
   }
-  if (resource === "team-members" && data.phone)
-    data.phone = String(data.phone).replace(/[^\d+]/g, "");
+  if (resource === "team-members") {
+    if (data.phone) data.phone = String(data.phone).replace(/[^\d+]/g, "");
+    const assignedUserId = await assignedTeamMemberUserId(data);
+    data.assign_member = assignedUserId;
+    if (assignedUserId) {
+      await ensureUserTeamColumns();
+      await db.execute(
+        "UPDATE users SET manager_id = ? WHERE id = ? AND (manager_id IS NULL OR manager_id = ?)",
+        [Number(session.sub), assignedUserId, Number(session.sub)],
+      );
+    }
+  }
   if (resource === "demo-requests" && !data.company_name && data.contact_name)
     data.company_name = data.contact_name;
   if (resource === "quotes" && data.product_id) {
@@ -1452,8 +1576,23 @@ export async function updateResource(
     if (data.lead_id) data.lead_id = Number(data.lead_id);
     if (data.tag_id) data.tag_id = Number(data.tag_id);
   }
-  if (resource === "team-members" && data.phone)
-    data.phone = String(data.phone).replace(/[^\d+]/g, "");
+  if (resource === "team-members") {
+    if (data.phone) data.phone = String(data.phone).replace(/[^\d+]/g, "");
+    if (data.phone !== undefined || data.email !== undefined) {
+      const assignedUserId = await assignedTeamMemberUserId({
+        ...existing,
+        ...data,
+      });
+      data.assign_member = assignedUserId;
+      if (assignedUserId) {
+        await ensureUserTeamColumns();
+        await db.execute(
+          "UPDATE users SET manager_id = ? WHERE id = ? AND (manager_id IS NULL OR manager_id = ?)",
+          [Number(session.sub), assignedUserId, Number(session.sub)],
+        );
+      }
+    }
+  }
   if (resource === "stock") {
     const nextStoreId = Number(data.store_id ?? existing.store_id);
     const [storeRows] = await db.execute<RowDataPacket[]>(
@@ -1716,14 +1855,19 @@ export async function getDashboardSummary(
 }
 
 export async function getProfile(session: MiddarSession) {
+  await ensureUserTeamColumns();
   const [rows] = await db.execute<RowDataPacket[]>(
     `SELECT u.id, u.name, u.email, COALESCE(r.slug, 'affiliate') role, u.level, u.status,
             u.preferred_locale, u.phone, u.city, u.district, u.referral_code, u.landing_slug,
             u.license_type, u.license_status, u.license_file_url, u.skills_experience,
             u.skills_courses, u.skills_proof_files, u.joined_at, u.CompanyID AS company_id,
-            u.host_name, u.host_phone, u.last_login_at
+            u.manager_id,
+            manager.name AS manager_name,
+            manager.phone AS manager_phone,
+            u.last_login_at
        FROM users u
        LEFT JOIN roles r ON r.id = u.role_id
+       LEFT JOIN users manager ON manager.id = u.manager_id
       WHERE u.id = ? LIMIT 1`,
     [Number(session.sub)],
   );
@@ -1745,8 +1889,6 @@ export async function updateProfile(
     "license_type",
     "skills_experience",
     "skills_courses",
-    "host_name",
-    "host_phone",
   ];
   const data: Record<string, SqlValue> = {};
   for (const column of allowed) {
