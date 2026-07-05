@@ -100,7 +100,6 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   },
   "lead-tags": {
     table: "tags",
-    ownerField: "affiliate_user_id",
     permissionKey: "table.tags",
     writable: ["tag_type_id", "tag_name", "tag_color"],
   },
@@ -300,12 +299,16 @@ async function ownerGuard(
   };
 }
 
-async function tagTypeCompanyIdForSession(session: MiddarSession) {
+async function companyIdForSession(session: MiddarSession) {
   return (await getSessionUserCompanyId(session)) ?? Number(session.sub);
 }
 
-async function tagTypeCompanyFilter(session: MiddarSession, qualifier = "") {
-  const ownerIds = await ownerIdsForScope(session, "table.tag_types");
+async function companyFilterForPermission(
+  session: MiddarSession,
+  permissionKey: string,
+  qualifier = "",
+) {
+  const ownerIds = await ownerIdsForScope(session, permissionKey);
   if (!ownerIds) return { clause: "", params: [] as SqlValue[] };
   const [rows] = await db.execute<RowDataPacket[]>(
     `SELECT DISTINCT COALESCE(CompanyID, id) company_id
@@ -318,15 +321,32 @@ async function tagTypeCompanyFilter(session: MiddarSession, qualifier = "") {
     .filter(Number.isFinite);
   const scopedCompanyIds = companyIds.length
     ? Array.from(new Set(companyIds))
-    : [await tagTypeCompanyIdForSession(session)];
+    : [await companyIdForSession(session)];
   return {
     clause: ` WHERE ${qualifier}company_id IN (${scopedCompanyIds.map(() => "?").join(", ")})`,
     params: scopedCompanyIds,
   };
 }
 
+async function tagTypeCompanyFilter(session: MiddarSession, qualifier = "") {
+  return companyFilterForPermission(session, "table.tag_types", qualifier);
+}
+
+async function tagCompanyFilter(session: MiddarSession, qualifier = "") {
+  return companyFilterForPermission(session, "table.tags", qualifier);
+}
+
 async function tagTypeCompanyGuard(session: MiddarSession, prefix = " AND ") {
   const filter = await tagTypeCompanyFilter(session);
+  if (!filter.clause) return filter;
+  return {
+    clause: `${prefix}${filter.clause.replace(/^ WHERE /, "")}`,
+    params: filter.params,
+  };
+}
+
+async function tagCompanyGuard(session: MiddarSession, prefix = " AND ") {
+  const filter = await tagCompanyFilter(session);
   if (!filter.clause) return filter;
   return {
     clause: `${prefix}${filter.clause.replace(/^ WHERE /, "")}`,
@@ -463,7 +483,7 @@ async function ensureLeadTagsTable() {
   await db.execute(
     `CREATE TABLE IF NOT EXISTS tags (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      affiliate_user_id BIGINT UNSIGNED NOT NULL,
+      company_id BIGINT UNSIGNED NOT NULL,
       tag_type_id BIGINT UNSIGNED NULL,
       tag_name VARCHAR(120) NOT NULL,
       tag_color VARCHAR(24) NOT NULL DEFAULT '#00b4d8',
@@ -471,10 +491,42 @@ async function ensureLeadTagsTable() {
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
       INDEX idx_tags_tag_type_id (tag_type_id),
-      INDEX idx_tags_affiliate_user_id (affiliate_user_id),
-      UNIQUE KEY uq_tags_name (affiliate_user_id, tag_name)
+      INDEX idx_tags_company_id (company_id),
+      UNIQUE KEY uq_tags_company_name (company_id, tag_name)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+  const [companyColumns] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tags'
+        AND COLUMN_NAME = 'company_id'
+      LIMIT 1`,
+  );
+  if (!companyColumns.length) {
+    await db.execute(
+      `ALTER TABLE tags ADD COLUMN company_id BIGINT UNSIGNED NULL AFTER id`,
+    );
+    const [affiliateColumns] = await db.execute<RowDataPacket[]>(
+      `SELECT COLUMN_NAME
+         FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'tags'
+          AND COLUMN_NAME = 'affiliate_user_id'
+        LIMIT 1`,
+    );
+    if (affiliateColumns.length) {
+      await db.execute(
+        `UPDATE tags t
+          JOIN users u ON u.id = t.affiliate_user_id
+           SET t.company_id = COALESCE(u.CompanyID, u.id)
+         WHERE t.company_id IS NULL`,
+      );
+    }
+    await db.execute(`UPDATE tags SET company_id = 0 WHERE company_id IS NULL`);
+    await db.execute(`ALTER TABLE tags MODIFY company_id BIGINT UNSIGNED NOT NULL`);
+  }
+
   const [columns] = await db.execute<RowDataPacket[]>(
     `SELECT COLUMN_NAME
        FROM information_schema.COLUMNS
@@ -485,9 +537,116 @@ async function ensureLeadTagsTable() {
   );
   if (!columns.length) {
     await db.execute(
-      `ALTER TABLE tags ADD COLUMN tag_type_id BIGINT UNSIGNED NULL AFTER affiliate_user_id`,
+      `ALTER TABLE tags ADD COLUMN tag_type_id BIGINT UNSIGNED NULL AFTER company_id`,
     );
     await db.execute(`ALTER TABLE tags ADD INDEX idx_tags_tag_type_id (tag_type_id)`);
+  }
+
+  await db.execute(
+    `UPDATE tags t
+      JOIN tag_types tt ON tt.id = t.tag_type_id
+       SET t.company_id = tt.company_id
+     WHERE t.tag_type_id IS NOT NULL
+       AND t.company_id <> tt.company_id`,
+  );
+  const [assignmentTables] = await db.execute<RowDataPacket[]>(
+    `SELECT TABLE_NAME
+       FROM information_schema.TABLES
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'lead_tag_assignments'
+      LIMIT 1`,
+  );
+  if (assignmentTables.length) {
+    await db.execute(
+      `DELETE newer
+        FROM lead_tag_assignments newer
+        JOIN tags duplicate_tag ON duplicate_tag.id = newer.tag_id
+        JOIN tags canonical_tag
+          ON canonical_tag.company_id = duplicate_tag.company_id
+         AND canonical_tag.tag_name = duplicate_tag.tag_name
+         AND canonical_tag.id < duplicate_tag.id
+        JOIN lead_tag_assignments older
+          ON older.lead_id = newer.lead_id
+         AND older.affiliate_user_id = newer.affiliate_user_id
+         AND older.tag_id = canonical_tag.id`,
+    );
+    await db.execute(
+      `UPDATE lead_tag_assignments lta
+        JOIN tags duplicate_tag ON duplicate_tag.id = lta.tag_id
+        JOIN tags canonical_tag
+          ON canonical_tag.company_id = duplicate_tag.company_id
+         AND canonical_tag.tag_name = duplicate_tag.tag_name
+         AND canonical_tag.id < duplicate_tag.id
+         SET lta.tag_id = canonical_tag.id`,
+    );
+  }
+  await db.execute(
+    `DELETE duplicate_tag
+       FROM tags duplicate_tag
+       JOIN tags canonical_tag
+         ON canonical_tag.company_id = duplicate_tag.company_id
+        AND canonical_tag.tag_name = duplicate_tag.tag_name
+        AND canonical_tag.id < duplicate_tag.id`,
+  );
+
+  const [companyIndex] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tags'
+        AND INDEX_NAME = 'idx_tags_company_id'
+      LIMIT 1`,
+  );
+  if (!companyIndex.length) {
+    await db.execute(`ALTER TABLE tags ADD INDEX idx_tags_company_id (company_id)`);
+  }
+
+  const [companyUnique] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tags'
+        AND INDEX_NAME = 'uq_tags_company_name'
+      LIMIT 1`,
+  );
+  if (!companyUnique.length) {
+    await db.execute(
+      `ALTER TABLE tags ADD UNIQUE KEY uq_tags_company_name (company_id, tag_name)`,
+    );
+  }
+
+  const [affiliateColumns] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tags'
+        AND COLUMN_NAME = 'affiliate_user_id'
+      LIMIT 1`,
+  );
+  if (affiliateColumns.length) {
+    const [foreignKeys] = await db.execute<RowDataPacket[]>(
+      `SELECT CONSTRAINT_NAME
+         FROM information_schema.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'tags'
+          AND COLUMN_NAME = 'affiliate_user_id'
+          AND REFERENCED_TABLE_NAME IS NOT NULL`,
+    );
+    for (const row of foreignKeys) {
+      await db.execute(`ALTER TABLE tags DROP FOREIGN KEY \`${row.CONSTRAINT_NAME}\``);
+    }
+    const [oldIndexes] = await db.execute<RowDataPacket[]>(
+      `SELECT DISTINCT INDEX_NAME
+         FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'tags'
+          AND COLUMN_NAME = 'affiliate_user_id'
+          AND INDEX_NAME <> 'PRIMARY'`,
+    );
+    for (const row of oldIndexes) {
+      await db.execute(`ALTER TABLE tags DROP INDEX \`${row.INDEX_NAME}\``);
+    }
+    await db.execute(`ALTER TABLE tags DROP COLUMN affiliate_user_id`);
   }
 }
 
@@ -799,6 +958,8 @@ export async function listResource(resource: string, session: MiddarSession) {
   const { clause: where, params } =
     resource === "lead-tag-types"
       ? await tagTypeCompanyFilter(session)
+      : resource === "lead-tags"
+        ? await tagCompanyFilter(session)
       : await ownerFilter(definition, session);
 
   if (resource === "sales") {
@@ -960,12 +1121,20 @@ export async function createResource(
     data.tag_name = String(data.tag_name ?? "").trim().slice(0, 120);
     const color = String(data.tag_color ?? "#00b4d8").trim();
     data.tag_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
+    data.company_id = await companyIdForSession(session);
+    if (data.tag_type_id) {
+      const [typeRows] = await db.execute<RowDataPacket[]>(
+        `SELECT id FROM tag_types WHERE id = ? AND company_id = ? LIMIT 1`,
+        [Number(data.tag_type_id), Number(data.company_id)],
+      );
+      if (!typeRows.length) throw new Error("TAG_TYPE_NOT_FOUND");
+    }
   }
   if (resource === "lead-tag-types") {
     data.type_name = String(data.type_name ?? "").trim().slice(0, 120);
     const color = String(data.type_color ?? "#00b4d8").trim();
     data.type_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
-    data.company_id = await tagTypeCompanyIdForSession(session);
+    data.company_id = await companyIdForSession(session);
   }
   if (resource === "lead-tag-assignments") {
     data.lead_id = Number(data.lead_id);
@@ -1033,8 +1202,8 @@ export async function createResource(
 
   if (resource === "lead-tag-assignments") {
     const [tagRows] = await db.execute<RowDataPacket[]>(
-      `SELECT id, tag_type_id FROM tags WHERE id = ? AND affiliate_user_id = ? LIMIT 1`,
-      [Number(data.tag_id), Number(session.sub)],
+      `SELECT id, tag_type_id FROM tags WHERE id = ? AND company_id = ? LIMIT 1`,
+      [Number(data.tag_id), await companyIdForSession(session)],
     );
     const tag = tagRows[0];
     if (!tag || !tag.tag_type_id) throw new Error("TAG_TYPE_REQUIRED");
@@ -1086,8 +1255,8 @@ export async function createResource(
       (error as { code?: string }).code === "ER_DUP_ENTRY"
     ) {
       const [existingTags] = await db.execute<RowDataPacket[]>(
-        `SELECT * FROM tags WHERE affiliate_user_id = ? AND tag_name = ? LIMIT 1`,
-        [Number(session.sub), String(data.tag_name ?? "")],
+        `SELECT * FROM tags WHERE company_id = ? AND tag_name = ? LIMIT 1`,
+        [Number(data.company_id), String(data.tag_name ?? "")],
       );
       return existingTags[0] ?? null;
     }
@@ -1158,6 +1327,8 @@ export async function getResource(
   const { clause: ownerCheck, params: ownerParams } =
     resource === "lead-tag-types"
       ? await tagTypeCompanyGuard(session)
+      : resource === "lead-tags"
+        ? await tagCompanyGuard(session)
       : await ownerGuard(definition, session);
   const params: SqlValue[] = [id, ...ownerParams];
   const [rows] = await db.execute<RowDataPacket[]>(
@@ -1225,6 +1396,13 @@ export async function updateResource(
       const color = String(data.tag_color).trim();
       data.tag_color = /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
     }
+    if (data.tag_type_id) {
+      const [typeRows] = await db.execute<RowDataPacket[]>(
+        `SELECT id FROM tag_types WHERE id = ? AND company_id = ? LIMIT 1`,
+        [Number(data.tag_type_id), await companyIdForSession(session)],
+      );
+      if (!typeRows.length) throw new Error("TAG_TYPE_NOT_FOUND");
+    }
   }
   if (resource === "lead-tag-types") {
     if (data.type_name) data.type_name = String(data.type_name).trim().slice(0, 120);
@@ -1257,8 +1435,8 @@ export async function updateResource(
   if (resource === "lead-tag-assignments" && data.tag_id) {
     const nextLeadId = Number(data.lead_id ?? existing.lead_id);
     const [tagRows] = await db.execute<RowDataPacket[]>(
-      `SELECT id, tag_type_id FROM tags WHERE id = ? AND affiliate_user_id = ? LIMIT 1`,
-      [Number(data.tag_id), Number(session.sub)],
+      `SELECT id, tag_type_id FROM tags WHERE id = ? AND company_id = ? LIMIT 1`,
+      [Number(data.tag_id), await companyIdForSession(session)],
     );
     const tag = tagRows[0];
     if (!tag || !tag.tag_type_id) throw new Error("TAG_TYPE_REQUIRED");
