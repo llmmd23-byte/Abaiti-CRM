@@ -1240,7 +1240,7 @@ export function CustomersView() {
                   onClick={() => setTagTypeModalOpen(false)}
                   type="button"
                 >
-                  ×
+                  X
                 </button>
               </div>
               <label>
@@ -1317,7 +1317,7 @@ export function CustomersView() {
                   onClick={() => setTagModalOpen(false)}
                   type="button"
                 >
-                  ×
+                  X
                 </button>
               </div>
               <label>

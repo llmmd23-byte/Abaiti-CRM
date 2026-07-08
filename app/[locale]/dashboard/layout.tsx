@@ -1,6 +1,9 @@
 import {redirect} from "next/navigation";
 
+import DashboardShell from "@/components/DashboardShell";
 import {getSession} from "@/lib/auth";
+import {getProfile} from "@/lib/backend";
+import {getSessionPermissions} from "@/lib/permissions";
 
 export default async function ProtectedDashboardLayout({
   children,
@@ -10,5 +13,22 @@ export default async function ProtectedDashboardLayout({
   const session = await getSession();
 
   if (!session) redirect(`/${locale}/signin`);
-  return children;
+  const [profile, permissions] = await Promise.all([
+    getProfile(session),
+    getSessionPermissions(session),
+  ]);
+
+  return (
+    <DashboardShell
+      initialUser={{
+        name: String(profile?.name ?? session.name),
+        role: session.role,
+        permissions,
+        level: String(profile?.level ?? "مبتدئ"),
+        status: String(profile?.status ?? "inactive"),
+      }}
+    >
+      {children}
+    </DashboardShell>
+  );
 }

@@ -916,7 +916,7 @@ export default function SettingsDashboard() {
                       <span>{isArabic ? "\u0639\u0636\u0648 \u0641\u0631\u0639\u064a \u062c\u062f\u064a\u062f" : "New child account"}</span>
                       <h3 id="team-member-modal-title">{isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u0639\u0636\u0648 \u062c\u062f\u064a\u062f \u0644\u0644\u0641\u0631\u064a\u0642" : "Add a New Team Member"}</h3>
                     </div>
-            <button aria-label={isArabic ? "\u0625\u063a\u0644\u0627\u0642" : "Close"} onClick={() => setShowTeamMemberModal(false)} type="button">?</button>
+            <button aria-label={isArabic ? "\u0625\u063a\u0644\u0627\u0642" : "Close"} onClick={() => setShowTeamMemberModal(false)} type="button">X</button>
                   </div>
                   <div className="team-member-modal-fields">
                     <label>

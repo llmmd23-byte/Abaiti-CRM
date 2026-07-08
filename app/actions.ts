@@ -12,6 +12,18 @@ export type LeadCaptureState = {success?: boolean; error?: string};
 export async function captureAffiliateLead(_state: LeadCaptureState, formData: FormData): Promise<LeadCaptureState> {
   const affiliateUsername = String(formData.get("affiliateUsername") || "unknown");
   const affiliateId = String(formData.get("affiliateId") || affiliateUsername);
+  const propertyName = String(formData.get("propertyName") || "").trim();
+  const businessType = String(formData.get("businessType") || "").trim();
+  const address = String(formData.get("address") || "").trim();
+  const message = String(formData.get("message") || "").trim();
+  const details = [
+    propertyName ? `Property: ${propertyName}` : "",
+    businessType ? `Business type: ${businessType}` : "",
+    address ? `Address: ${address}` : "",
+    message,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   await pushAffiliateLeadToCrm({
     affiliateId,
@@ -20,7 +32,7 @@ export async function captureAffiliateLead(_state: LeadCaptureState, formData: F
     email: String(formData.get("email") || ""),
     phone: String(formData.get("phone") || ""),
     companySize: String(formData.get("companySize") || ""),
-    message: String(formData.get("message") || ""),
+    message: details,
     source: `affiliate-page/${affiliateUsername}`,
     status: "New Demo Request",
     createdAt: new Date().toISOString()

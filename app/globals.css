@@ -1200,6 +1200,32 @@ html[dir="ltr"] .dashboard-main {
   cursor: default;
 }
 
+.dashboard-page-loading {
+  display: grid;
+  min-height: min(520px, calc(100vh - 90px));
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.dashboard-page-loading span {
+  width: 38px;
+  height: 38px;
+  border: 3px solid #d9eef3;
+  border-top-color: #00a7a3;
+  border-radius: 50%;
+  animation: dashboard-loading-spin 800ms linear infinite;
+}
+
+@keyframes dashboard-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .dashboard-route-shell
   :is(
     input:not([type]),
@@ -1748,7 +1774,8 @@ html[dir="ltr"] .dashboard-main {
   z-index: 1300;
   inset: 0;
   display: grid;
-  place-items: center;
+  align-items: center;
+  justify-items: center;
   padding: 20px;
   background: rgba(7, 24, 39, 0.48);
   backdrop-filter: blur(5px);
@@ -1760,19 +1787,81 @@ html[dir="ltr"] .dashboard-main {
   display: grid;
   width: min(500px, 100%);
   max-height: calc(100vh - 40px);
-  gap: 17px;
-  padding: 26px;
-  border-radius: 22px;
+  gap: 18px;
+  padding: 0;
+  border: 1px solid rgba(219, 229, 236, 0.92);
+  border-radius: 18px;
   background: #fff;
   box-shadow: 0 28px 70px rgba(7, 24, 39, 0.25);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+.admin-edit-modal:has(.admin-user-edit-grid) {
+  width: min(1080px, 100%);
+}
+
+.admin-user-edit-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0 26px;
+}
+
+.admin-user-edit-wide {
+  grid-column: 1 / -1;
+}
+
+.admin-user-readonly-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 26px;
+  padding: 16px;
+  border-block: 1px solid #e5edf3;
+  background: #f8fbfd;
+}
+
+.admin-user-readonly-grid h4 {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #11293d;
+  font-size: 14px;
+}
+
+.admin-user-readonly-grid div {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-user-readonly-grid span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-user-readonly-grid strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #11293d;
+  font-size: 13px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .admin-edit-head {
+  position: sticky;
+  z-index: 2;
+  top: 0;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  padding: 22px 26px 18px;
+  border-bottom: 1px solid #e8f0f5;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
 }
 .admin-edit-head span {
   color: #00a7a3;
@@ -1785,13 +1874,19 @@ html[dir="ltr"] .dashboard-main {
   font-size: 18px;
 }
 .admin-edit-head > button {
-  width: 34px;
-  height: 34px;
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
   border: 0;
   border-radius: 50%;
   background: #f1f5f9;
   color: #64748b;
-  font-size: 22px;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
 }
 .admin-edit-modal label {
   display: grid;
@@ -1800,38 +1895,103 @@ html[dir="ltr"] .dashboard-main {
   font-size: 13px;
   font-weight: 700;
 }
-.admin-edit-modal input {
+.admin-edit-modal input,
+.admin-edit-modal textarea {
+  width: 100%;
   min-height: 46px;
   padding: 10px 13px;
   border: 1px solid #dbe5ec;
-  border-radius: 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #11293d;
   font: inherit;
   outline: none;
 }
+
+.admin-edit-modal input:focus,
+.admin-edit-modal textarea:focus {
+  border-color: #00a7a3;
+  box-shadow: 0 0 0 3px rgba(0, 167, 163, 0.12);
+}
+
+.admin-edit-modal textarea {
+  min-height: 84px;
+  resize: vertical;
+}
 .admin-edit-modal > p {
-  margin: 0;
+  margin: 0 26px;
   color: #b91c1c;
   font-size: 12px;
 }
 .admin-edit-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-start;
+  padding: 16px 26px 22px;
+  border-top: 1px solid #e8f0f5;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
 }
 .admin-edit-actions button {
   min-height: 42px;
-  padding: 9px 18px;
+  padding: 9px 20px;
   border: 1px solid #dbe5ec;
-  border-radius: 11px;
+  border-radius: 10px;
   background: #fff;
   color: #475569;
   font: inherit;
   font-weight: 700;
+  cursor: pointer;
 }
 .admin-edit-actions button.primary {
   border-color: #11293d;
   background: #11293d;
   color: #fff;
+}
+
+@media (max-width: 980px) {
+  .admin-user-edit-grid,
+  .admin-user-readonly-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-edit-overlay {
+    align-items: center;
+    padding: 10px;
+  }
+
+  .admin-edit-modal,
+  .admin-edit-modal:has(.admin-user-edit-grid) {
+    width: 100%;
+    max-height: calc(100vh - 20px);
+  }
+
+  .admin-edit-head,
+  .admin-user-edit-grid,
+  .admin-edit-actions {
+    padding-inline: 18px;
+  }
+
+  .admin-user-readonly-grid {
+    margin-inline: 18px;
+  }
+
+  .admin-ticket-edit-modal > label,
+  .admin-ticket-timeline-modal > .admin-ticket-timeline-summary,
+  .admin-ticket-timeline-modal > .admin-ticket-timeline {
+    margin-inline: 18px;
+  }
+
+  .admin-user-edit-grid,
+  .admin-user-readonly-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .admin-edit-select-menu {
@@ -2028,6 +2188,33 @@ html[dir="ltr"] .dashboard-main {
   box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1);
 }
 
+.admin-ticket-edit-modal {
+  width: min(560px, 100%);
+}
+
+.admin-edit-overlay:has(.admin-ticket-edit-modal),
+.admin-edit-overlay:has(.admin-ticket-timeline-modal) {
+  align-items: center;
+}
+
+.admin-ticket-edit-modal > label,
+.admin-ticket-timeline-modal > .admin-ticket-timeline-summary,
+.admin-ticket-timeline-modal > .admin-ticket-timeline {
+  margin-inline: 26px;
+}
+
+.admin-ticket-edit-modal > label {
+  padding: 0;
+}
+
+.admin-ticket-edit-modal .admin-ticket-notes {
+  min-height: 150px;
+}
+
+.admin-ticket-edit-modal .dashboard-select-trigger {
+  width: 100%;
+}
+
 .admin-row-timeline {
   min-height: 34px;
   padding: 7px 12px;
@@ -2046,7 +2233,7 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-ticket-timeline-modal {
-  width: min(620px, 100%);
+  width: min(680px, 100%);
 }
 
 .admin-ticket-timeline-summary {
@@ -2072,6 +2259,10 @@ html[dir="ltr"] .dashboard-main {
 .admin-ticket-timeline {
   max-height: 360px;
   overflow-y: auto;
+}
+
+.admin-ticket-timeline .ticket-timeline-step small {
+  word-break: break-word;
 }
 
 .admin-ticket-timeline-empty {
@@ -7313,6 +7504,105 @@ html[dir="rtl"] .compact-action {
   padding-top: 62px;
 }
 
+.public-industry-landing {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding-block: 42px 70px;
+}
+
+.public-industry-landing .industry-specs-grid article p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.public-industry-landing .chalets-lead-section {
+  gap: 20px;
+}
+
+.public-industry-landing .section-heading {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.public-industry-landing .section-heading h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.chalets-problem-grid,
+.chalets-workflow-grid,
+.chalets-feature-list {
+  display: grid;
+  gap: 12px;
+}
+
+.chalets-problem-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chalets-problem-grid article,
+.chalets-workflow-grid article,
+.chalets-feature-list article {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(221, 230, 238, 0.9);
+  border-radius: 14px;
+  background: rgba(248, 252, 253, 0.84);
+}
+
+.chalets-problem-grid article > span {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 0 0 6px rgba(34, 184, 184, 0.12);
+}
+
+.chalets-problem-grid strong,
+.chalets-workflow-grid strong,
+.chalets-feature-list strong {
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.chalets-problem-grid p,
+.chalets-workflow-grid p,
+.chalets-feature-list p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.chalets-workflow-panel > div:first-child {
+  display: grid;
+  gap: 8px;
+}
+
+.chalets-workflow-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chalets-workflow-grid span {
+  color: var(--teal-deep);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.chalets-feature-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .industry-back-button {
   position: sticky;
   inset-block-start: 18px;
@@ -8854,7 +9144,7 @@ html[dir="ltr"] .settings-social-input input {
 
 @media (max-width: 600px) {
   .team-member-modal-overlay {
-    align-items: end;
+    align-items: center;
     padding: 12px;
   }
 
@@ -10603,6 +10893,80 @@ html[dir="ltr"] .landing-main .hero {
   outline-offset: 3px;
 }
 
+.chalets-landing .chalets-hero {
+  min-height: min(620px, calc(100vh - 90px));
+  background:
+    linear-gradient(90deg, rgba(8, 31, 50, 0.78), rgba(8, 31, 50, 0.42)),
+    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80")
+      center/cover;
+}
+
+.chalets-lead-section {
+  display: grid;
+  gap: 24px;
+}
+
+.chalets-lead-panel {
+  width: min(920px, 100%);
+  justify-self: center;
+}
+
+.chalets-lead-form {
+  display: grid;
+  gap: 18px;
+}
+
+.chalets-form-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.chalets-lead-form label {
+  display: grid;
+  gap: 8px;
+  color: #11293d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.chalets-lead-form input,
+.chalets-lead-form select,
+.chalets-lead-form textarea {
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 14px;
+  border: 1px solid #dbe5ec;
+  border-radius: 12px;
+  background: #fff;
+  color: #11293d;
+  font: inherit;
+  outline: none;
+}
+
+.chalets-lead-form textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.chalets-lead-form input:focus,
+.chalets-lead-form select:focus,
+.chalets-lead-form textarea:focus {
+  border-color: #00a7a3;
+  box-shadow: 0 0 0 3px rgba(0, 167, 163, 0.12);
+}
+
+.chalets-lead-form > p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.chalets-lead-form > p.success {
+  color: #008f8a;
+}
+
 @media (max-width: 1050px) {
   .landing-main .hero,
   html[dir="ltr"] .landing-main .hero {
@@ -10630,6 +10994,16 @@ html[dir="ltr"] .landing-main .hero {
   .landing-main .feature-grid article:hover,
   .landing-main .dashboard-entry-card:hover {
     transform: none;
+  }
+
+  .chalets-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chalets-problem-grid,
+  .chalets-workflow-grid,
+  .chalets-feature-list {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -13479,5 +13853,692 @@ html[dir="rtl"]
     align-items: stretch;
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+}
+
+.chalets-old-page {
+  background: #f4f8fb;
+  color: #0f2942;
+  overflow-x: hidden;
+}
+
+.chalets-old-container {
+  margin-inline: auto;
+  width: min(1240px, calc(100% - 48px));
+}
+
+.chalets-old-hero {
+  min-height: 780px;
+  padding: 24px 0 70px;
+  position: relative;
+  color: #ffffff;
+  background-image: url("https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1900&q=86");
+  background-position: center;
+  background-size: cover;
+}
+
+.chalets-old-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 58% 68%, rgba(34, 199, 217, 0.18), transparent 12%),
+    linear-gradient(90deg, rgba(7, 29, 53, 0.62), rgba(7, 29, 53, 0.9) 54%, rgba(7, 29, 53, 0.78));
+}
+
+.chalets-old-nav {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+  width: min(1280px, calc(100% - 96px));
+  min-height: 82px;
+  margin: 0 auto;
+  padding: 12px 26px;
+  border: 1px solid rgba(224, 242, 247, 0.9);
+  border-radius: 34px;
+  background: rgba(248, 253, 255, 0.95);
+  box-shadow: 0 24px 70px rgba(5, 22, 38, 0.22);
+}
+
+.chalets-old-brand {
+  display: flex;
+  width: 170px;
+}
+
+.chalets-old-brand img,
+.chalets-old-footer img {
+  width: 100%;
+  height: auto;
+}
+
+.chalets-old-links,
+.chalets-old-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.chalets-old-links {
+  justify-content: center;
+}
+
+.chalets-old-links a,
+.chalets-old-actions a {
+  color: #5d6f82;
+  font-size: 1rem;
+  font-weight: 850;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.chalets-old-login {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid #d8e4ef;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f2942 !important;
+}
+
+.chalets-old-start,
+.chalets-old-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 0 28px;
+  border-radius: 999px;
+  background: #22c7d9;
+  color: #061b2f !important;
+  font-weight: 950;
+  text-decoration: none;
+  box-shadow: 0 18px 38px rgba(34, 199, 217, 0.34);
+}
+
+.chalets-old-actions .chalets-old-start {
+  background: #071d35;
+  color: #ffffff !important;
+  box-shadow: 0 18px 38px rgba(7, 29, 53, 0.22);
+}
+
+.chalets-old-hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(430px, 0.78fr);
+  align-items: center;
+  gap: 76px;
+  min-height: 640px;
+  padding-top: 58px;
+}
+
+.chalets-old-copy {
+  max-width: 760px;
+}
+
+.chalets-old-pill,
+.chalets-old-kicker {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.chalets-old-pill {
+  margin-bottom: 22px;
+  padding: 11px 16px;
+  border: 1px solid rgba(224, 242, 247, 0.34);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.chalets-old-copy h1 {
+  margin: 0;
+  max-width: 760px;
+  color: #ffffff;
+  font-size: clamp(3.4rem, 6vw, 6rem);
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1.05;
+  text-shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+}
+
+.chalets-old-copy p {
+  max-width: 710px;
+  margin: 24px 0 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(1.1rem, 1.45vw, 1.35rem);
+  font-weight: 700;
+  line-height: 1.9;
+}
+
+.chalets-old-copy strong {
+  display: block;
+  margin-top: 14px;
+  color: #ffffff;
+  font-size: 1.08rem;
+}
+
+.chalets-old-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.chalets-old-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 0 28px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.chalets-old-copy small {
+  display: block;
+  margin-top: 18px;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 800;
+}
+
+.chalets-old-calendar {
+  overflow: hidden;
+  border: 1px solid rgba(218, 232, 242, 0.96);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f2942;
+  box-shadow: 0 28px 80px rgba(5, 22, 38, 0.34);
+}
+
+.chalets-old-window {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  padding: 18px 22px 0;
+}
+
+.chalets-old-window b {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #22c7d9;
+}
+
+.chalets-old-window b:nth-child(3) {
+  background: #f5a400;
+}
+
+.chalets-old-calendar-head {
+  padding: 12px 22px 18px;
+  border-bottom: 1px solid #e4edf4;
+}
+
+.chalets-old-calendar h2 {
+  margin: 0;
+  color: #0f2942;
+  font-size: 1.1rem;
+}
+
+.chalets-old-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 22px;
+}
+
+.chalets-old-stats article {
+  padding: 22px;
+  border: 1px solid #dce8f1;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.chalets-old-stats span,
+.chalets-old-stats small {
+  color: #6b7f94;
+  font-size: 0.86rem;
+}
+
+.chalets-old-stats strong {
+  display: block;
+  margin: 8px 0;
+  color: #0f2942;
+  font-size: 1.55rem;
+}
+
+.chalets-old-calendar section {
+  margin: 0 22px 18px;
+  padding: 20px;
+  border: 1px solid #dce8f1;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.chalets-old-month {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  color: #6b7f94;
+}
+
+.chalets-old-month strong {
+  color: #0f2942;
+}
+
+.chalets-old-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.chalets-old-days small {
+  color: #7d8fa3;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.chalets-old-days span {
+  display: grid;
+  min-height: 38px;
+  place-items: center;
+  border-radius: 10px;
+  background: #edf3f8;
+  color: #0f2942;
+  font-weight: 900;
+}
+
+.chalets-old-days span.active {
+  background: #bff6fb;
+  color: #087f8c;
+}
+
+.chalets-old-days span.pending {
+  background: #fff2bf;
+  color: #a15b00;
+}
+
+.chalets-old-new-booking {
+  margin: 0 22px 22px;
+  padding: 22px;
+  border: 1px solid #aeeff5;
+  border-radius: 16px;
+  background: #eafeff;
+}
+
+.chalets-old-new-booking strong,
+.chalets-old-new-booking span,
+.chalets-old-new-booking small {
+  display: block;
+}
+
+.chalets-old-new-booking strong {
+  color: #0f2942;
+  font-size: 1.15rem;
+}
+
+.chalets-old-new-booking span,
+.chalets-old-new-booking small {
+  margin-top: 6px;
+  color: #61778b;
+}
+
+.chalets-old-problem,
+.chalets-old-features,
+.chalets-old-form-section {
+  padding: 86px 0;
+}
+
+.chalets-old-two,
+.chalets-old-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 68px;
+}
+
+.chalets-old-kicker {
+  margin-bottom: 16px;
+  padding: 9px 14px;
+  background: #eafeff;
+  color: #008da3;
+}
+
+.chalets-old-page h2 {
+  margin: 0;
+  color: #0f2942;
+  font-size: clamp(2rem, 3.6vw, 3.8rem);
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1.16;
+}
+
+.chalets-old-page p {
+  color: #61758a;
+  font-size: 1.05rem;
+  line-height: 1.9;
+}
+
+.chalets-old-card,
+.chalets-old-feature-grid article,
+.chalets-old-form-card {
+  border: 1px solid #dce8f1;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 22px 70px rgba(15, 41, 66, 0.08);
+}
+
+.chalets-old-card {
+  padding: 30px;
+}
+
+.chalets-old-card h2 {
+  margin-bottom: 18px;
+  font-size: 1.45rem;
+}
+
+.chalets-old-card span {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid #e6eef5;
+  color: #0f2942;
+  font-weight: 850;
+}
+
+.chalets-old-card span::before {
+  content: "✓";
+  color: #22c7d9;
+}
+
+.chalets-old-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: #071d35;
+  color: #ffffff;
+}
+
+.chalets-old-strip article {
+  padding: 32px 22px;
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.chalets-old-strip strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #3dd5e5;
+  font-size: 1.25rem;
+}
+
+.chalets-old-strip span {
+  color: rgba(255, 255, 255, 0.76);
+  font-weight: 800;
+}
+
+.chalets-old-head {
+  margin-bottom: 34px;
+  max-width: 780px;
+}
+
+.chalets-old-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.chalets-old-feature-grid article {
+  min-height: 230px;
+  padding: 24px;
+}
+
+.chalets-old-feature-grid i {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 14px;
+  background: #eafeff;
+  color: #008da3;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.chalets-old-feature-grid h3 {
+  margin: 20px 0 8px;
+  color: #0f2942;
+  font-size: 1.05rem;
+}
+
+.chalets-old-feature-grid p {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.chalets-old-saudi {
+  padding: 92px 0;
+  background:
+    linear-gradient(90deg, rgba(7, 29, 53, 0.98), rgba(7, 29, 53, 0.9)),
+    url("https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1800&q=82");
+  background-position: center;
+  background-size: cover;
+  color: #ffffff;
+}
+
+.chalets-old-saudi h2,
+.chalets-old-saudi p {
+  color: #ffffff;
+}
+
+.chalets-old-saudi .chalets-old-kicker {
+  background: rgba(61, 213, 229, 0.12);
+  color: #3dd5e5;
+}
+
+.chalets-old-dark-list {
+  display: grid;
+  gap: 14px;
+}
+
+.chalets-old-dark-list article {
+  padding: 22px;
+  border: 1px solid rgba(61, 213, 229, 0.24);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.chalets-old-dark-list strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #3dd5e5;
+}
+
+.chalets-old-dark-list span {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.chalets-old-form-section {
+  background: linear-gradient(180deg, #f4f8fb 0%, #eef7fb 100%);
+}
+
+.chalets-old-form-card {
+  padding: 30px;
+}
+
+.chalets-old-page .chalets-lead-form {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.chalets-old-page .chalets-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.chalets-old-page .chalets-lead-form label {
+  display: grid;
+  gap: 8px;
+  color: #0f2942;
+  font-weight: 850;
+}
+
+.chalets-old-page .chalets-lead-form input,
+.chalets-old-page .chalets-lead-form select,
+.chalets-old-page .chalets-lead-form textarea {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid #dce8f1;
+  border-radius: 14px;
+  background: #fbfdff;
+  color: #0f2942;
+  font: inherit;
+}
+
+.chalets-old-page .chalets-lead-form textarea {
+  min-height: 128px;
+  resize: vertical;
+}
+
+.chalets-old-page .button-form {
+  min-height: 54px;
+  border: 0;
+  border-radius: 999px;
+  background: #071d35;
+  color: #ffffff;
+  font-weight: 950;
+}
+
+.chalets-old-page .chalets-lead-form > p {
+  margin: 0;
+  color: #61758a;
+  font-size: 0.95rem;
+}
+
+.chalets-old-page .chalets-lead-form > p.success {
+  color: #008da3;
+  font-weight: 900;
+}
+
+.chalets-old-footer {
+  padding: 34px 0;
+  background: #071d35;
+  color: #ffffff;
+}
+
+.chalets-old-footer .chalets-old-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.chalets-old-footer img {
+  max-width: 120px;
+  filter: brightness(0) invert(1);
+}
+
+.chalets-old-footer nav {
+  display: flex;
+  gap: 18px;
+}
+
+.chalets-old-footer a {
+  color: rgba(255, 255, 255, 0.76);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+@media (max-width: 1020px) {
+  .chalets-old-nav,
+  .chalets-old-hero-grid,
+  .chalets-old-two,
+  .chalets-old-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chalets-old-nav {
+    width: min(100% - 32px, 1280px);
+    border-radius: 28px;
+  }
+
+  .chalets-old-brand {
+    margin-inline: auto;
+  }
+
+  .chalets-old-links,
+  .chalets-old-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .chalets-old-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .chalets-old-container,
+  .chalets-old-nav {
+    width: min(100% - 28px, 1240px);
+  }
+
+  .chalets-old-hero {
+    min-height: auto;
+    padding-bottom: 52px;
+  }
+
+  .chalets-old-hero-grid {
+    gap: 34px;
+    min-height: auto;
+    padding-top: 42px;
+  }
+
+  .chalets-old-copy h1 {
+    font-size: 2.7rem;
+  }
+
+  .chalets-old-copy p {
+    font-size: 0.98rem;
+  }
+
+  .chalets-old-buttons,
+  .chalets-old-footer .chalets-old-container {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .chalets-old-primary,
+  .chalets-old-secondary {
+    width: 100%;
+  }
+
+  .chalets-old-stats,
+  .chalets-old-strip,
+  .chalets-old-feature-grid,
+  .chalets-old-page .chalets-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chalets-old-problem,
+  .chalets-old-features,
+  .chalets-old-form-section,
+  .chalets-old-saudi {
+    padding: 58px 0;
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import {useLocale, useTranslations} from "next-intl";
-import {Link, usePathname} from "@/i18n/navigation";
+import {Link, usePathname, useRouter} from "@/i18n/navigation";
 import Image from "next/image";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {signOutAction} from "@/app/auth-actions";
@@ -109,7 +109,7 @@ const coreGrowthItems: NavItem[] = [
 const supportResourceItems: NavItem[] = [
   {
     key: "education",
-    href: "/educational-hub",
+    href: "/dashboard/educational-hub",
     label: "portal.educationalHub",
     icon: "education"
   },
@@ -220,23 +220,32 @@ function LogoutIcon() {
 }
 
 export default function DashboardShell({
-  active,
+  initialUser,
   children
 }: {
-  active: DashboardSection;
+  active?: DashboardSection;
+  initialUser?: {
+    name?: string;
+    role?: string;
+    level?: string;
+    status?: string;
+    permissions?: Record<string, SessionPermission>;
+  } | null;
   children: React.ReactNode;
 }) {
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
   const direction = locale === "ar" ? "rtl" : "ltr";
+  const [pendingHref, setPendingHref] = useState<DashboardHref | null>(null);
   const [currentUser, setCurrentUser] = useState<{
     name?: string;
     role?: string;
     level?: string;
     status?: string;
     permissions?: Record<string, SessionPermission>;
-  } | null>(null);
+  } | null>(initialUser ?? null);
   useEffect(() => {
     const loadCurrentUser = () => {
       fetch("/api/v1/auth/me", {cache: "no-store"})
@@ -248,6 +257,9 @@ export default function DashboardShell({
     window.addEventListener("profile-updated", loadCurrentUser);
     return () => window.removeEventListener("profile-updated", loadCurrentUser);
   }, []);
+  useEffect(() => {
+    setPendingHref(null);
+  }, [pathname]);
   const accountOwnerName = currentUser?.name ?? (locale === "ar" ? "حساب ميدار" : "Middar account");
   const activityLabel = locale === "ar" ? "\u0645\u0633\u062a\u0648\u0649 \u0627\u0644\u0646\u0634\u0627\u0637" : "Activity level";
   const activityLevel = currentUser?.role ?? (locale === "ar" ? "مستخدم" : "User");
@@ -274,9 +286,38 @@ export default function DashboardShell({
     if (!permissionKey || !currentUser) return false;
     return currentUser.permissions?.[permissionKey]?.can_view === true;
   };
+  const prefetchItem = (item: NavItem) => {
+    router.prefetch(item.href);
+  };
+  const handleNavIntent = (item: NavItem) => {
+    setPendingHref(item.href);
+    prefetchItem(item);
+  };
+  useEffect(() => {
+    if (!currentUser) return;
+    [overviewItem, ...coreGrowthItems, ...supportResourceItems]
+      .filter((item) => {
+        const permissionKey = sectionPermissionKeys[item.key];
+        return Boolean(
+          permissionKey && currentUser.permissions?.[permissionKey]?.can_view,
+        );
+      })
+      .forEach((item) => router.prefetch(item.href));
+  }, [currentUser, router]);
+  const normalizedPathname = pathname || "/dashboard";
+  const activeSection =
+    [...coreGrowthItems, ...supportResourceItems, overviewItem].find((item) => {
+      if (item.href === "/dashboard") return normalizedPathname === "/dashboard";
+      return (
+        normalizedPathname === item.href ||
+        normalizedPathname.startsWith(`${item.href}/`)
+      );
+    })?.key ?? "overview";
   const isItemActive = (item: NavItem) => {
+    if (pendingHref === item.href) return true;
+
     if (!pathname) {
-      return active === item.key;
+      return activeSection === item.key;
     }
 
     if (item.href === "/dashboard") {
@@ -287,7 +328,7 @@ export default function DashboardShell({
   };
 
   return (
-    <section className="dashboard-shell dashboard-route-shell" dir={direction} data-locale={locale} data-section={active}>
+    <section className="dashboard-shell dashboard-route-shell" dir={direction} data-locale={locale} data-section={activeSection}>
       <aside className="sidebar">
         <Link className="sidebar-brand sidebar-official-brand cursor-pointer" href="/" aria-label={t("brand.home")}>
           <Image
@@ -303,7 +344,13 @@ export default function DashboardShell({
         <nav className="sidebar-nav" aria-label={t("nav.dashboard")}>
           {canViewItem(overviewItem) ? (
             <div className="sidebar-nav-item">
-              <Link className={`${isItemActive(overviewItem) ? "active" : ""} has-nav-icon`} href={overviewItem.href}>
+              <Link
+                className={`${isItemActive(overviewItem) ? "active" : ""} has-nav-icon`}
+                href={overviewItem.href}
+                onClick={() => handleNavIntent(overviewItem)}
+                onPointerEnter={() => prefetchItem(overviewItem)}
+                prefetch
+              >
                 <NavItemIcon icon={overviewItem.icon} />
                 {t(overviewItem.label)}
               </Link>
@@ -319,6 +366,9 @@ export default function DashboardShell({
                   <Link
                     className={`${isItemActive(item) ? "active" : ""} ${item.icon ? "has-nav-icon" : ""}`}
                     href={item.href}
+                    onClick={() => handleNavIntent(item)}
+                    onPointerEnter={() => prefetchItem(item)}
+                    prefetch
                   >
                     <NavItemIcon icon={item.icon} />
                     {itemLabel}
@@ -339,6 +389,9 @@ export default function DashboardShell({
                   <Link
                     className={`${isItemActive(item) ? "active" : ""} ${item.icon ? "has-nav-icon" : ""}`}
                     href={item.href}
+                    onClick={() => handleNavIntent(item)}
+                    onPointerEnter={() => prefetchItem(item)}
+                    prefetch
                   >
                     <NavItemIcon icon={item.icon} />
                     {itemLabel}

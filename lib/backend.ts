@@ -911,6 +911,76 @@ async function ensureSupportTicketEventsTable() {
   );
 }
 
+async function ensureSupportTicketsUserRelation() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS support_tickets (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      ticket_number VARCHAR(80) NOT NULL,
+      user_id BIGINT UNSIGNED NULL,
+      category VARCHAR(120) NOT NULL,
+      subject VARCHAR(180) NOT NULL,
+      details TEXT NOT NULL,
+      notes TEXT NULL,
+      status ENUM('open', 'in_progress', 'resolved', 'closed') NOT NULL DEFAULT 'open',
+      priority ENUM('low', 'normal', 'high', 'urgent') NOT NULL DEFAULT 'normal',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_support_tickets_number (ticket_number),
+      KEY idx_support_tickets_status_priority (status, priority),
+      KEY idx_support_tickets_user (user_id),
+      CONSTRAINT fk_support_tickets_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+  if (!(await columnExists("support_tickets", "user_id"))) {
+    await db.execute(
+      "ALTER TABLE support_tickets ADD COLUMN user_id BIGINT UNSIGNED NULL AFTER ticket_number",
+    );
+  }
+  await db.execute(
+    `UPDATE support_tickets t
+      LEFT JOIN users u ON u.id = t.user_id
+       SET t.user_id = NULL
+     WHERE t.user_id IS NOT NULL AND u.id IS NULL`,
+  );
+
+  const [indexes] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'support_tickets'
+        AND INDEX_NAME = 'idx_support_tickets_user'
+      LIMIT 1`,
+  );
+  if (!indexes.length) {
+    await db.execute(
+      "ALTER TABLE support_tickets ADD INDEX idx_support_tickets_user (user_id)",
+    );
+  }
+
+  const [foreignKeys] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.KEY_COLUMN_USAGE
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'support_tickets'
+        AND COLUMN_NAME = 'user_id'
+        AND REFERENCED_TABLE_NAME = 'users'
+        AND REFERENCED_COLUMN_NAME = 'id'
+      LIMIT 1`,
+  );
+  if (!foreignKeys.length) {
+    await db.execute("ALTER TABLE support_tickets MODIFY user_id BIGINT UNSIGNED NULL");
+    await db.execute(
+      `ALTER TABLE support_tickets
+         ADD CONSTRAINT fk_support_tickets_user
+         FOREIGN KEY (user_id) REFERENCES users(id)
+         ON DELETE SET NULL ON UPDATE CASCADE`,
+    );
+  }
+}
+
 async function ensureTeamMembersTable() {
   await db.execute(
     `CREATE TABLE IF NOT EXISTS team_members (
@@ -1026,6 +1096,9 @@ export async function listResource(resource: string, session: MiddarSession) {
   }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
+  }
+  if (resource === "support-tickets") {
+    await ensureSupportTicketsUserRelation();
   }
 
   if (resource === "demo-requests") {
@@ -1227,6 +1300,9 @@ export async function createResource(
   }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
+  }
+  if (resource === "support-tickets") {
+    await ensureSupportTicketsUserRelation();
   }
   if (resource === "quotes") {
     await closeExpiredQuotes();
@@ -1455,6 +1531,9 @@ export async function getResource(
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
   }
+  if (resource === "support-tickets") {
+    await ensureSupportTicketsUserRelation();
+  }
   if (resource === "quotes") {
     await closeExpiredQuotes();
   }
@@ -1525,6 +1604,9 @@ export async function updateResource(
   }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
+  }
+  if (resource === "support-tickets") {
+    await ensureSupportTicketsUserRelation();
   }
   if (resource === "quotes") {
     await closeExpiredQuotes();

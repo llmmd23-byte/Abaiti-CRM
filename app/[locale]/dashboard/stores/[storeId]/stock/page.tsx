@@ -1,4 +1,3 @@
-import DashboardShell from "@/components/DashboardShell";
 import StockEditView from "@/components/StockEditView";
 import { requireUserPageAccess } from "@/lib/user-page-access";
 
@@ -11,8 +10,8 @@ export default async function DashboardStoreStockPage({
   await requireUserPageAccess("page.user.stores", locale);
 
   return (
-    <DashboardShell active="stores">
+    <>
       <StockEditView storeId={storeId} />
-    </DashboardShell>
+    </>
   );
 }

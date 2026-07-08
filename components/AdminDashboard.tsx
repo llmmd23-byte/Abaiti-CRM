@@ -709,6 +709,31 @@ function AdminMetricList({
       { value: "refunded", label: isArabic ? "مسترد" : "Refunded" },
     ],
   };
+  const userTextFields = [
+    ["name", isArabic ? "الاسم" : "Name", "text"],
+    ["email", isArabic ? "البريد الإلكتروني" : "Email", "email"],
+    ["phone", isArabic ? "رقم الجوال" : "Mobile", "tel"],
+    ["city", isArabic ? "المدينة" : "City", "text"],
+    ["district", isArabic ? "الحي" : "District", "text"],
+    ["referral_code", isArabic ? "رمز الإحالة" : "Referral Code", "text"],
+    ["landing_slug", isArabic ? "رابط الصفحة" : "Landing Slug", "text"],
+    ["license_file_url", isArabic ? "رابط ملف الرخصة" : "License File URL", "text"],
+    ["joined_at", isArabic ? "تاريخ الانضمام" : "Joined Date", "date"],
+  ] as const;
+  const userTextareaFields = [
+    ["skills_experience", isArabic ? "الخبرات" : "Experience"],
+    ["skills_courses", isArabic ? "الدورات" : "Courses"],
+  ] as const;
+  const userReadonlyFields = [
+    ["id", isArabic ? "رقم المستخدم" : "User ID"],
+    ["role_type", isArabic ? "نوع الدور" : "Role Type"],
+    ["manager_name", isArabic ? "اسم المدير" : "Manager Name"],
+    ["is_active", isArabic ? "مفعل" : "Active"],
+    ["created_at", isArabic ? "تاريخ الإنشاء" : "Created At"],
+    ["updated_at", isArabic ? "تاريخ التحديث" : "Updated At"],
+    ["last_login_at", isArabic ? "آخر دخول" : "Last Login"],
+    ["skills_proof_files", isArabic ? "ملفات إثبات المهارات" : "Skill Proof Files"],
+  ] as const;
   const normalizedSearch = search.trim().toLocaleLowerCase();
   const hasUserFilter = ["clients", "demos", "quotes", "sales"].includes(
     metric,
@@ -816,8 +841,28 @@ function AdminMetricList({
       metric === "users"
         ? {
             name: String(row.name ?? ""),
+            email: String(row.email ?? ""),
+            phone: String(row.phone ?? ""),
             role: String(row.role ?? "affiliate"),
             status: String(row.status ?? "pending"),
+            preferred_locale: String(row.preferred_locale ?? "ar"),
+            city: String(row.city ?? ""),
+            district: String(row.district ?? ""),
+            referral_code: String(row.referral_code ?? ""),
+            landing_slug: String(row.landing_slug ?? ""),
+            company_id: row.company_id == null ? "" : String(row.company_id),
+            manager_id: row.manager_id == null ? "" : String(row.manager_id),
+            level: String(row.level ?? ""),
+            comission_percentage:
+              row.comission_percentage == null
+                ? ""
+                : String(row.comission_percentage),
+            license_type: String(row.license_type ?? "none"),
+            license_status: String(row.license_status ?? "pending"),
+            license_file_url: String(row.license_file_url ?? ""),
+            skills_experience: String(row.skills_experience ?? ""),
+            skills_courses: String(row.skills_courses ?? ""),
+            joined_at: String(row.joined_at ?? "").slice(0, 10),
           }
         : metric === "clients"
           ? {
@@ -1147,22 +1192,184 @@ function AdminMetricList({
                 </h3>
               </div>
               <button onClick={() => setEditingRow(null)} type="button">
-                ?
+                X
               </button>
             </div>
             {metric === "users" ? (
-              <label>
-                <span>{isArabic ? "الاسم" : "Name"}</span>
-                <input
-                  onChange={(event) =>
-                    setEditDraft((current) => ({
-                      ...current,
-                      name: event.target.value,
-                    }))
-                  }
-                  value={editDraft.name ?? ""}
-                />
-              </label>
+              <div className="admin-user-edit-grid">
+                {userTextFields.map(([field, label, type]) => (
+                  <label key={field}>
+                    <span>{label}</span>
+                    <input
+                      dir={
+                        field === "phone" ||
+                        field === "email"
+                          ? "ltr"
+                          : undefined
+                      }
+                      onChange={(event) =>
+                        setEditDraft((current) => ({
+                          ...current,
+                          [field]: event.target.value,
+                        }))
+                      }
+                      type={type}
+                      value={editDraft[field] ?? ""}
+                    />
+                  </label>
+                ))}
+                {userTextareaFields.map(([field, label]) => (
+                  <label className="admin-user-edit-wide" key={field}>
+                    <span>{label}</span>
+                    <textarea
+                      onChange={(event) =>
+                        setEditDraft((current) => ({
+                          ...current,
+                          [field]: event.target.value,
+                        }))
+                      }
+                      value={editDraft[field] ?? ""}
+                    />
+                  </label>
+                ))}
+                <label>
+                  <span>{isArabic ? "الصلاحية" : "Role"}</span>
+                  <DashboardSelect
+                    ariaLabel={isArabic ? "الصلاحية" : "Role"}
+                    menuClassName="admin-edit-select-menu"
+                    onValueChange={(role) =>
+                      setEditDraft((current) => ({ ...current, role }))
+                    }
+                    options={[
+                      ...(data.roles?.length
+                        ? data.roles.map((role) => ({
+                            value: String(role.slug),
+                            label: `${isArabic ? role.name_ar : role.name_en} · ${
+                              role.role_type === "admin"
+                                ? isArabic
+                                  ? "أدمن"
+                                  : "Admin"
+                                : isArabic
+                                  ? "مستخدم"
+                                  : "User"
+                            }`,
+                          }))
+                        : [
+                            { value: "admin", label: "Admin" },
+                            { value: "affiliate", label: "Affiliate" },
+                            { value: "sales", label: "Sales" },
+                            { value: "support", label: "Support" },
+                          ]),
+                    ]}
+                    portal
+                    value={editDraft.role ?? "affiliate"}
+                  />
+                </label>
+                <label>
+                  <span>{isArabic ? "اللغة المفضلة" : "Preferred Language"}</span>
+                  <DashboardSelect
+                    ariaLabel={isArabic ? "اللغة المفضلة" : "Preferred Language"}
+                    menuClassName="admin-edit-select-menu"
+                    onValueChange={(preferred_locale) =>
+                      setEditDraft((current) => ({
+                        ...current,
+                        preferred_locale,
+                      }))
+                    }
+                    options={[
+                      { value: "ar", label: isArabic ? "العربية" : "Arabic" },
+                      { value: "en", label: isArabic ? "الإنجليزية" : "English" },
+                    ]}
+                    portal
+                    value={editDraft.preferred_locale ?? "ar"}
+                  />
+                </label>
+                <label>
+                  <span>{isArabic ? "نوع الرخصة" : "License Type"}</span>
+                  <DashboardSelect
+                    ariaLabel={isArabic ? "نوع الرخصة" : "License Type"}
+                    menuClassName="admin-edit-select-menu"
+                    onValueChange={(license_type) =>
+                      setEditDraft((current) => ({
+                        ...current,
+                        license_type,
+                      }))
+                    }
+                    options={[
+                      { value: "none", label: isArabic ? "لا توجد" : "None" },
+                      { value: "verified", label: isArabic ? "موثق" : "Verified" },
+                      {
+                        value: "e_marketing",
+                        label: isArabic
+                          ? "تسويق إلكتروني"
+                          : "E-Marketing",
+                      },
+                      { value: "fal", label: isArabic ? "فال" : "FAL" },
+                    ]}
+                    portal
+                    value={editDraft.license_type ?? "none"}
+                  />
+                </label>
+                <label>
+                  <span>{isArabic ? "حالة الرخصة" : "License Status"}</span>
+                  <DashboardSelect
+                    ariaLabel={isArabic ? "حالة الرخصة" : "License Status"}
+                    menuClassName="admin-edit-select-menu"
+                    onValueChange={(license_status) =>
+                      setEditDraft((current) => ({
+                        ...current,
+                        license_status,
+                      }))
+                    }
+                    options={[
+                      { value: "pending", label: isArabic ? "قيد المراجعة" : "Pending" },
+                      { value: "verified", label: isArabic ? "موثقة" : "Verified" },
+                      { value: "rejected", label: isArabic ? "مرفوضة" : "Rejected" },
+                    ]}
+                    portal
+                    value={editDraft.license_status ?? "pending"}
+                  />
+                </label>
+                <label>
+                  <span>{isArabic ? "الحالة" : "Status"}</span>
+                  <DashboardSelect
+                    ariaLabel={isArabic ? "الحالة" : "Status"}
+                    menuClassName="admin-edit-select-menu"
+                    onValueChange={(status) =>
+                      setEditDraft((current) => ({ ...current, status }))
+                    }
+                    options={statusOptions.users}
+                    portal
+                    value={editDraft.status ?? statusOptions.users[0].value}
+                  />
+                </label>
+              </div>
+            ) : null}
+            {metric === "users" ? (
+              <div className="admin-user-readonly-grid">
+                <h4>{isArabic ? "معلومات النظام" : "System Information"}</h4>
+                {userReadonlyFields.map(([field, label]) => {
+                  const value = editingRow[field];
+                  const display =
+                    field === "is_active"
+                      ? Number(value) === 1
+                        ? isArabic
+                          ? "نعم"
+                          : "Yes"
+                        : isArabic
+                          ? "لا"
+                          : "No"
+                      : field.includes("_at")
+                        ? formatAdminDateTime(value, isArabic)
+                        : String(value ?? "—");
+                  return (
+                    <div key={field}>
+                      <span>{label}</span>
+                      <strong>{display}</strong>
+                    </div>
+                  );
+                })}
+              </div>
             ) : null}
             {metric === "clients" ? (
               <>
@@ -1261,41 +1468,7 @@ function AdminMetricList({
                 />
               </label>
             ) : null}
-            {metric === "users" ? (
-              <label>
-                <span>{isArabic ? "الصلاحية" : "Role"}</span>
-                <DashboardSelect
-                  ariaLabel={isArabic ? "الصلاحية" : "Role"}
-                  menuClassName="admin-edit-select-menu"
-                  onValueChange={(role) =>
-                    setEditDraft((current) => ({ ...current, role }))
-                  }
-                  options={[
-                    ...(data.roles?.length
-                      ? data.roles.map((role) => ({
-                          value: String(role.slug),
-                          label: `${isArabic ? role.name_ar : role.name_en} · ${
-                            role.role_type === "admin"
-                              ? isArabic
-                                ? "أدمن"
-                                : "Admin"
-                              : isArabic
-                                ? "مستخدم"
-                                : "User"
-                          }`,
-                        }))
-                      : [
-                          { value: "admin", label: "Admin" },
-                          { value: "affiliate", label: "Affiliate" },
-                          { value: "sales", label: "Sales" },
-                          { value: "support", label: "Support" },
-                        ]),
-                  ]}
-                  portal
-                  value={editDraft.role ?? "affiliate"}
-                />
-              </label>
-            ) : null}
+            {metric !== "users" ? (
             <label>
               <span>
                 {metric === "clients"
@@ -1323,6 +1496,7 @@ function AdminMetricList({
                 }
               />
             </label>
+            ) : null}
             {editMessage ? <p>{editMessage}</p> : null}
             <div className="admin-edit-actions">
               <button
@@ -1354,7 +1528,7 @@ function AdminMetricList({
                 <h3>{String(passwordRow.name ?? passwordRow.email ?? "")}</h3>
               </div>
               <button onClick={() => setPasswordRow(null)} type="button">
-                ?
+                X
               </button>
             </div>
             <label>
@@ -2515,6 +2689,7 @@ function AdminManagementSection({
         ["details", isArabic ? "تفاصيل التذكرة" : "Ticket Details"],
         ["notes", isArabic ? "الملاحظات" : "Notes"],
         ["status", isArabic ? "الحالة" : "Status"],
+        ["user_name", isArabic ? "المستخدم" : "User"],
         ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
       ],
     },
@@ -2586,6 +2761,21 @@ function AdminManagementSection({
           (row) => String(row.status ?? "open") === ticketStatusFilter,
         )
       : ticketAdvancedRows;
+  const usersById = new Map(
+    data.users.map((user) => [
+      Number(user.id),
+      String(user.name ?? user.email ?? "").trim(),
+    ]),
+  );
+
+  function getTicketUserName(row: AdminRow) {
+    const directName = String(row.user_name ?? row.affiliate_user_name ?? "").trim();
+    if (directName) return directName;
+    const userId = Number(row.user_id);
+    const userName = usersById.get(userId);
+    if (userName) return userName;
+    return userId ? `User #${userId}` : "—";
+  }
 
   function openTicketEditor(ticket: AdminRow) {
     setEditingTicket(ticket);
@@ -3008,6 +3198,8 @@ function AdminManagementSection({
                         String(row[key] ?? "—").slice(0, 10)
                       ) : key === "base_price" ? (
                         Number(row[key] ?? 0).toLocaleString(NUMBER_LOCALE)
+                      ) : section === "tickets" && key === "user_name" ? (
+                        getTicketUserName(row)
                       ) : (
                         String(row[key] ?? "—")
                       )}
@@ -3102,16 +3294,20 @@ function AdminManagementSection({
           }}
           role="presentation"
         >
-          <section className="admin-edit-modal" aria-modal="true" role="dialog">
+          <section
+            className="admin-edit-modal admin-ticket-edit-modal"
+            aria-modal="true"
+            role="dialog"
+          >
             <div className="admin-edit-head">
               <div>
                 <span>
                   {isArabic ? "تعديل تذكرة الخدمة" : "Edit Service Ticket"}
                 </span>
-                <h3>{String(editingTicket.ticket_number ?? "—")}</h3>
+                <h3>{String(editingTicket.ticket_number ?? "-")}</h3>
               </div>
               <button onClick={() => setEditingTicket(null)} type="button">
-                ?
+                X
               </button>
             </div>
             <label>
@@ -3188,14 +3384,14 @@ function AdminManagementSection({
             <div className="admin-edit-head">
               <div>
                 <span>{isArabic ? "خط زمن التذكرة" : "Ticket Timeline"}</span>
-                <h3>{String(timelineTicket.ticket_number ?? "—")}</h3>
+                <h3>{String(timelineTicket.ticket_number ?? "-")}</h3>
               </div>
               <button onClick={() => setTimelineTicket(null)} type="button">
-                ?
+                X
               </button>
             </div>
             <div className="admin-ticket-timeline-summary">
-              <strong>{String(timelineTicket.subject ?? "—")}</strong>
+              <strong>{String(timelineTicket.subject ?? "-")}</strong>
               <span>
                 {isArabic ? "الحالة الحالية:" : "Current status:"}{" "}
                 {displayAdminValue(timelineTicket.status, isArabic)}
@@ -3216,10 +3412,10 @@ function AdminManagementSection({
                       <div>
                         <strong>{ticketEventTitle(event)}</strong>
                         <small>
-                          {description ? `${description} · ` : ""}
+                          {description ? `${description} - ` : ""}
                           {formatAdminDateTime(event.created_at, isArabic)}
                           {"actor_name" in event && event.actor_name
-                            ? ` · ${String(event.actor_name)}`
+                            ? ` - ${String(event.actor_name)}`
                             : ""}
                         </small>
                       </div>
@@ -3890,7 +4086,7 @@ function AdminAccountQuotes({
                 </h3>
               </div>
               <button onClick={() => setInvoiceQuote(null)} type="button">
-                ?
+                X
               </button>
             </div>
             <div className="admin-invoice-details">
@@ -4128,7 +4324,7 @@ function AdminSalesList({
                 </h3>
               </div>
               <button onClick={() => setCommissionSale(null)} type="button">
-                ?
+                X
               </button>
             </div>
             <div className="admin-invoice-details">
@@ -4393,7 +4589,7 @@ function AdminCommissionList({
                 <h3>{isArabic ? "ربط الدفع" : "Link Payment"}</h3>
               </div>
               <button onClick={() => setPaymentCommission(null)} type="button">
-                ?
+                X
               </button>
             </div>
             <p className="admin-payment-link-copy">

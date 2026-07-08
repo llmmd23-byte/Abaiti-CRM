@@ -102,6 +102,76 @@ async function ensureSupportTicketEventsTable() {
   );
 }
 
+async function ensureSupportTicketsUserRelation() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS support_tickets (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      ticket_number VARCHAR(80) NOT NULL,
+      user_id BIGINT UNSIGNED NULL,
+      category VARCHAR(120) NOT NULL,
+      subject VARCHAR(180) NOT NULL,
+      details TEXT NOT NULL,
+      notes TEXT NULL,
+      status ENUM('open', 'in_progress', 'resolved', 'closed') NOT NULL DEFAULT 'open',
+      priority ENUM('low', 'normal', 'high', 'urgent') NOT NULL DEFAULT 'normal',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_support_tickets_number (ticket_number),
+      KEY idx_support_tickets_status_priority (status, priority),
+      KEY idx_support_tickets_user (user_id),
+      CONSTRAINT fk_support_tickets_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+  await addColumnIfMissing(
+    "support_tickets",
+    "user_id",
+    "ALTER TABLE support_tickets ADD COLUMN user_id BIGINT UNSIGNED NULL AFTER ticket_number",
+  );
+  await db.execute(
+    `UPDATE support_tickets t
+      LEFT JOIN users u ON u.id = t.user_id
+       SET t.user_id = NULL
+     WHERE t.user_id IS NOT NULL AND u.id IS NULL`,
+  );
+
+  const [indexes] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'support_tickets'
+        AND INDEX_NAME = 'idx_support_tickets_user'
+      LIMIT 1`,
+  );
+  if (!indexes.length) {
+    await db.execute(
+      "ALTER TABLE support_tickets ADD INDEX idx_support_tickets_user (user_id)",
+    );
+  }
+
+  const [foreignKeys] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.KEY_COLUMN_USAGE
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'support_tickets'
+        AND COLUMN_NAME = 'user_id'
+        AND REFERENCED_TABLE_NAME = 'users'
+        AND REFERENCED_COLUMN_NAME = 'id'
+      LIMIT 1`,
+  );
+  if (!foreignKeys.length) {
+    await db.execute("ALTER TABLE support_tickets MODIFY user_id BIGINT UNSIGNED NULL");
+    await db.execute(
+      `ALTER TABLE support_tickets
+         ADD CONSTRAINT fk_support_tickets_user
+         FOREIGN KEY (user_id) REFERENCES users(id)
+         ON DELETE SET NULL ON UPDATE CASCADE`,
+    );
+  }
+}
+
 async function ensureTagTables() {
   await db.execute(
     `CREATE TABLE IF NOT EXISTS tag_types (
@@ -284,9 +354,15 @@ async function ensureAdminManagementSchema() {
     );
     await addColumnIfMissing(
       "users",
+      "username",
+      "ALTER TABLE users ADD COLUMN username VARCHAR(100) NULL AFTER email",
+    );
+    await addColumnIfMissing(
+      "users",
       "comission_percentage",
       "ALTER TABLE users ADD COLUMN comission_percentage DECIMAL(5,2) NOT NULL DEFAULT 20.00 AFTER level",
     );
+    await ensureSupportTicketsUserRelation();
     await ensureSupportTicketEventsTable();
     await ensureTagTables();
   })();
@@ -331,9 +407,14 @@ export async function GET() {
       : [adminUserId];
 
   const [users] = await db.execute<RowDataPacket[]>(
-    `SELECT u.id,u.name,u.email,u.phone,u.role_id,COALESCE(r.slug,'affiliate') role,COALESCE(r.role_type,'user') role_type,u.status,u.is_active,u.CompanyID AS company_id,u.created_at,u.last_login_at
+    `SELECT u.id,u.name,u.email,u.username,u.phone,u.role_id,COALESCE(r.slug,'affiliate') role,COALESCE(r.role_type,'user') role_type,
+            u.status,u.is_active,u.preferred_locale,u.city,u.district,u.referral_code,u.landing_slug,
+            u.CompanyID AS company_id,u.manager_id,manager.name manager_name,u.level,u.comission_percentage,
+            u.license_type,u.license_status,u.license_file_url,u.skills_experience,u.skills_courses,u.skills_proof_files,
+            u.joined_at,u.created_at,u.updated_at,u.last_login_at
         FROM users u
          LEFT JOIN roles r ON r.id = u.role_id
+         LEFT JOIN users manager ON manager.id = u.manager_id
         WHERE ${userScopeClause("u")}
         ORDER BY u.created_at DESC`,
     userScopeParams,
@@ -342,7 +423,9 @@ export async function GET() {
     "SELECT id,slug,name_ar,name_en,role_type,is_system,is_active FROM roles WHERE is_active = 1 ORDER BY role_type ASC,id ASC",
   );
   const [tickets] = await db.execute<RowDataPacket[]>(
-    `SELECT t.id,t.ticket_number,t.category,t.subject,t.details,t.notes,t.status,t.user_id,t.created_at
+    `SELECT t.id,t.ticket_number,t.category,t.subject,t.details,t.notes,t.status,t.user_id,
+            COALESCE(NULLIF(u.name, ''), NULLIF(u.email, ''), CONCAT('User #', u.id)) user_name,
+            t.created_at
        FROM support_tickets t
        JOIN users u ON u.id = t.user_id
       WHERE ${userScopeClause("u")}

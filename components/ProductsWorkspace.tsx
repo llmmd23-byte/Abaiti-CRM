@@ -52,7 +52,7 @@ const catalogCopy = {
 
 const industryLinks = {
   HOME_SERVICES: "https://www.middar.com/ar/home-services",
-  MIDDAR_CHALETS: "https://www.middar.com/ar/chalets",
+  MIDDAR_CHALETS: "/ar/chalets",
   CAR_WASH: "https://www.middar.com/ar/car-wash",
   MIDDAR_SALON: "https://www.middar.com/ar/salons",
   VET_CLINICS: "https://www.middar.com/ar/vet-clinics",
@@ -425,12 +425,19 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
   const displayedIndustries: Industry[] = industriesData.map((industry) => {
     const live = liveIndustries?.find((row) => row.slug === industry.id);
+    const localIndustry =
+      industry.id === "chalets-resorts"
+        ? {...industry, url: `/${locale}/chalets`}
+        : industry;
     return live ? {
-      ...industry,
-      title: String(live.name ?? industry.title),
-      subtitle: String(live.description ?? industry.subtitle),
-      url: String(live.landing_url ?? industry.url)
-    } : industry;
+      ...localIndustry,
+      title: String(live.name ?? localIndustry.title),
+      subtitle: String(live.description ?? localIndustry.subtitle),
+      url:
+        industry.id === "chalets-resorts"
+          ? localIndustry.url
+          : String(live.landing_url ?? localIndustry.url)
+    } : localIndustry;
   });
 
   async function handleCopyLink(url: string, sectorId: string) {
