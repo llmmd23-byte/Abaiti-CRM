@@ -186,10 +186,45 @@ async function ensureTagTables() {
       KEY idx_tag_types_company_id (company_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS tags (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      tag_type_id BIGINT UNSIGNED NULL,
+      tag_name VARCHAR(120) NOT NULL,
+      tag_color VARCHAR(24) NOT NULL DEFAULT '#00b4d8',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      INDEX idx_tags_tag_type_id (tag_type_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS lead_tag_assignments (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      lead_id BIGINT UNSIGNED NOT NULL,
+      tag_id BIGINT UNSIGNED NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      INDEX idx_lead_tag_assignments_lead_id (lead_id),
+      INDEX idx_lead_tag_assignments_tag_id (tag_id),
+      UNIQUE KEY uq_lead_tag_assignments (lead_id, tag_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
   await addColumnIfMissing(
     "tag_types",
     "company_id",
     "ALTER TABLE tag_types ADD COLUMN company_id BIGINT UNSIGNED NULL AFTER id",
+  );
+  await addColumnIfMissing(
+    "tags",
+    "tag_type_id",
+    "ALTER TABLE tags ADD COLUMN tag_type_id BIGINT UNSIGNED NULL AFTER id",
+  );
+  await addColumnIfMissing(
+    "lead_tag_assignments",
+    "tag_id",
+    "ALTER TABLE lead_tag_assignments ADD COLUMN tag_id BIGINT UNSIGNED NULL AFTER lead_id",
   );
   await db.execute(
     `UPDATE tag_types tt
@@ -202,35 +237,15 @@ async function ensureTagTables() {
   await db.execute("UPDATE tag_types SET company_id = 0 WHERE company_id IS NULL");
   await db.execute("ALTER TABLE tag_types MODIFY company_id BIGINT UNSIGNED NOT NULL");
 
-  const [tagTables] = await db.execute<RowDataPacket[]>(
-    `SELECT TABLE_NAME
-       FROM information_schema.TABLES
-      WHERE TABLE_SCHEMA = DATABASE()
-        AND TABLE_NAME IN ('tags', 'lead_tag_assignments')`,
+  await db.execute(
+    `UPDATE tags t
+      JOIN tag_types duplicate_type ON duplicate_type.id = t.tag_type_id
+      JOIN tag_types canonical_type
+        ON canonical_type.company_id = duplicate_type.company_id
+       AND canonical_type.type_name = duplicate_type.type_name
+       AND canonical_type.id < duplicate_type.id
+       SET t.tag_type_id = canonical_type.id`,
   );
-  const existingTagTables = new Set(tagTables.map((row) => String(row.TABLE_NAME)));
-  if (existingTagTables.has("tags")) {
-    await db.execute(
-      `UPDATE tags t
-        JOIN tag_types duplicate_type ON duplicate_type.id = t.tag_type_id
-        JOIN tag_types canonical_type
-          ON canonical_type.company_id = duplicate_type.company_id
-         AND canonical_type.type_name = duplicate_type.type_name
-         AND canonical_type.id < duplicate_type.id
-         SET t.tag_type_id = canonical_type.id`,
-    );
-  }
-  if (existingTagTables.has("lead_tag_assignments")) {
-    await db.execute(
-      `UPDATE lead_tag_assignments lta
-        JOIN tag_types duplicate_type ON duplicate_type.id = lta.tag_type_id
-        JOIN tag_types canonical_type
-          ON canonical_type.company_id = duplicate_type.company_id
-         AND canonical_type.type_name = duplicate_type.type_name
-         AND canonical_type.id < duplicate_type.id
-         SET lta.tag_type_id = canonical_type.id`,
-    );
-  }
   await db.execute(
     `DELETE duplicate_type
        FROM tag_types duplicate_type
@@ -303,11 +318,44 @@ async function ensureTagTables() {
   if (affiliateColumns.length) {
     await db.execute("ALTER TABLE tag_types DROP COLUMN affiliate_user_id");
   }
-  await addColumnIfMissing(
-    "tags",
-    "tag_type_id",
-    "ALTER TABLE tags ADD COLUMN tag_type_id BIGINT UNSIGNED NULL AFTER id",
+
+  const [assignmentTagTypeColumns] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'lead_tag_assignments'
+        AND COLUMN_NAME = 'tag_type_id'
+      LIMIT 1`,
   );
+  if (assignmentTagTypeColumns.length) {
+    const [assignmentTagTypeForeignKeys] = await db.execute<RowDataPacket[]>(
+      `SELECT CONSTRAINT_NAME
+         FROM information_schema.KEY_COLUMN_USAGE
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'lead_tag_assignments'
+          AND COLUMN_NAME = 'tag_type_id'
+          AND REFERENCED_TABLE_NAME IS NOT NULL`,
+    );
+    for (const row of assignmentTagTypeForeignKeys) {
+      await db.execute(
+        `ALTER TABLE lead_tag_assignments DROP FOREIGN KEY \`${row.CONSTRAINT_NAME}\``,
+      );
+    }
+    const [assignmentTagTypeIndexes] = await db.execute<RowDataPacket[]>(
+      `SELECT DISTINCT INDEX_NAME
+         FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'lead_tag_assignments'
+          AND COLUMN_NAME = 'tag_type_id'
+          AND INDEX_NAME <> 'PRIMARY'`,
+    );
+    for (const row of assignmentTagTypeIndexes) {
+      await db.execute(
+        `ALTER TABLE lead_tag_assignments DROP INDEX \`${row.INDEX_NAME}\``,
+      );
+    }
+    await db.execute("ALTER TABLE lead_tag_assignments DROP COLUMN tag_type_id");
+  }
 }
 
 async function ensureAdminManagementSchema() {
@@ -365,7 +413,10 @@ async function ensureAdminManagementSchema() {
     await ensureSupportTicketsUserRelation();
     await ensureSupportTicketEventsTable();
     await ensureTagTables();
-  })();
+  })().catch((error) => {
+    globalForAdminManagement.adminManagementSchemaReady = undefined;
+    throw error;
+  });
 
   return globalForAdminManagement.adminManagementSchemaReady;
 }
