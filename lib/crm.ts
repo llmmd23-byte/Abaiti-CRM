@@ -12,6 +12,7 @@ export type AffiliateLead = {
 };
 
 export async function pushAffiliateLeadToCrm(lead: AffiliateLead) {
+  const {db} = await import("@/lib/db");
   const [users] = await db.execute<RowDataPacket[]>(
     "SELECT id FROM users WHERE landing_slug = ? LIMIT 1",
     [lead.affiliateUsername]
@@ -35,5 +36,3 @@ export async function pushAffiliateLeadToCrm(lead: AffiliateLead) {
 import "server-only";
 
 import type {ResultSetHeader, RowDataPacket} from "mysql2";
-
-import {db} from "@/lib/db";

@@ -16,6 +16,10 @@ type DashboardSection =
   | "productInfo"
   | "products"
   | "quotes"
+  | "participationContracts"
+  | "sponsorshipContracts"
+  | "salesOrders"
+  | "rentalContracts"
   | "commissions"
   | "education"
   | "support"
@@ -31,6 +35,10 @@ type DashboardHref =
   | "/educational-hub"
   | "/dashboard/products"
   | "/dashboard/quotes"
+  | "/dashboard/participation-contracts"
+  | "/dashboard/sponsorship-contracts"
+  | "/dashboard/sales-orders"
+  | "/dashboard/rental-contracts"
   | "/dashboard/commissions"
   | "/dashboard/educational-hub"
   | "/dashboard/support"
@@ -62,6 +70,10 @@ const sectionPermissionKeys: Partial<Record<DashboardSection, string>> = {
   customers: "page.user.customers",
   stores: "page.user.stores",
   quotes: "page.user.quotes",
+  participationContracts: "page.user.participation_contracts",
+  sponsorshipContracts: "page.user.sponsorship_contracts",
+  salesOrders: "page.user.sales_orders",
+  rentalContracts: "page.user.rental_contracts",
   commissions: "page.user.sales",
   productInfo: "page.user.activation",
   education: "page.user.education",
@@ -92,6 +104,30 @@ const coreGrowthItems: NavItem[] = [
     icon: "stores"
   },
   {key: "quotes", href: "/dashboard/quotes", label: "portal.salesTools", icon: "quotes"},
+  {
+    key: "participationContracts",
+    href: "/dashboard/participation-contracts",
+    label: "portal.participationContracts",
+    icon: "quotes"
+  },
+  {
+    key: "sponsorshipContracts",
+    href: "/dashboard/sponsorship-contracts",
+    label: "portal.sponsorshipContracts",
+    icon: "quotes"
+  },
+  {
+    key: "salesOrders",
+    href: "/dashboard/sales-orders",
+    label: "portal.salesOrders",
+    icon: "quotes"
+  },
+  {
+    key: "rentalContracts",
+    href: "/dashboard/rental-contracts",
+    label: "portal.rentalContracts",
+    icon: "quotes"
+  },
   {
     key: "commissions",
     href: "/dashboard/commissions",

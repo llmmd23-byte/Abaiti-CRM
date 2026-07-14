@@ -33,4 +33,4 @@ COPY --from=builder /app/next.config.mjs ./next.config.mjs
 
 EXPOSE 5173
 
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx next start -H 0.0.0.0 -p ${PORT:-5173}"]

@@ -30,10 +30,11 @@ type IconShape =
 type Industry = {
   id: string;
   icon: IconShape;
-  title: string;
-  subtitle: string;
+  title: {ar: string; en: string};
+  subtitle: {ar: string; en: string};
   url: string;
 };
+type BackendRow = Record<string, unknown> & {id: number};
 
 const catalogCopy = {
   ar: {
@@ -51,162 +52,69 @@ const catalogCopy = {
 };
 
 const industryLinks = {
-  HOME_SERVICES: "https://www.middar.com/ar/home-services",
-  MIDDAR_CHALETS: "/ar/chalets",
-  CAR_WASH: "https://www.middar.com/ar/car-wash",
-  MIDDAR_SALON: "https://www.middar.com/ar/salons",
-  VET_CLINICS: "https://www.middar.com/ar/vet-clinics",
-  HEALTH_CARE: "https://www.middar.com/ar/healthcare",
-  RESTAURANTS: "https://www.middar.com/ar/restaurants",
-  MIDDAR_GYMS: "https://www.middar.com/ar/gyms",
-  EDUCATION: "https://www.middar.com/ar/education",
-  TOURISM: "https://www.middar.com/ar/tourism",
-  STUDIOS: "https://www.middar.com/ar/studios",
-  TECHNICAL_INSTALLATIONS: "https://www.middar.com/ar/technical-installations",
-  CONSULTING: "https://www.middar.com/ar/consulting",
-  ENTERTAINMENT: "https://www.middar.com/ar/entertainment",
-  MAINTENANCE_CLEANING: "https://www.middar.com/ar/maintenance",
-  RETAIL: "https://www.middar.com/ar/retail"
+  EVENTS_EXHIBITIONS: "https://ree-expo.com/"
 } as const;
 
 const industriesData: Industry[] = [
   {
-    id: "home-services",
-    icon: "home",
-    url: industryLinks.HOME_SERVICES,
-    title: "\u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u0632\u0644\u064a\u0629",
-    subtitle: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0645\u0632\u0648\u062f\u064a \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u0632\u0644\u064a\u0629"
-  },
-  {
-    id: "chalets-resorts",
-    icon: "resort",
-    url: industryLinks.MIDDAR_CHALETS,
-    title: "\u0627\u0644\u0634\u0627\u0644\u064a\u0647\u0627\u062a \u0648\u0627\u0644\u0645\u0646\u062a\u062c\u0639\u0627\u062a",
-    subtitle: "\u0646\u0638\u0627\u0645 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0634\u0627\u0644\u064a\u0647\u0627\u062a \u0648\u0627\u0644\u0645\u0646\u062a\u062c\u0639\u0627\u062a"
-  },
-  {
-    id: "car-wash",
-    icon: "car",
-    url: industryLinks.CAR_WASH,
-    title: "\u0645\u063a\u0627\u0633\u0644 \u0627\u0644\u0633\u064a\u0627\u0631\u0627\u062a",
-    subtitle: "\u0646\u0638\u0627\u0645 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0645\u063a\u0627\u0633\u0644 \u0627\u0644\u0633\u064a\u0627\u0631\u0627\u062a"
-  },
-  {
-    id: "salon-spa",
-    icon: "spa",
-    url: industryLinks.MIDDAR_SALON,
-    title: "\u0635\u0627\u0644\u0648\u0646\u0627\u062a \u0648\u0633\u0628\u0627",
-    subtitle: "\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0635\u0627\u0644\u0648\u0646\u0627\u062a \u0648\u0645\u0631\u0627\u0643\u0632 \u0627\u0644\u062a\u062c\u0645\u064a\u0644"
-  },
-  {
-    id: "veterinary",
-    icon: "vet",
-    url: industryLinks.VET_CLINICS,
-    title: "\u0627\u0644\u0639\u064a\u0627\u062f\u0627\u062a \u0627\u0644\u0628\u064a\u0637\u0631\u064a\u0629",
-    subtitle: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0644\u0639\u064a\u0627\u062f\u0627\u062a \u0627\u0644\u0628\u064a\u0637\u0631\u064a\u0629"
-  },
-  {
-    id: "healthcare",
-    icon: "health",
-    url: industryLinks.HEALTH_CARE,
-    title: "\u0627\u0644\u0631\u0639\u0627\u064a\u0629 \u0627\u0644\u0635\u062d\u064a\u0629",
-    subtitle: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0644\u0639\u064a\u0627\u062f\u0627\u062a \u0648\u0645\u0631\u0627\u0643\u0632 \u0627\u0644\u0631\u0639\u0627\u064a\u0629"
-  },
-  {
-    id: "restaurants-cafes",
-    icon: "restaurant",
-    url: industryLinks.RESTAURANTS,
-    title: "\u0627\u0644\u0645\u0637\u0627\u0639\u0645 \u0648\u0627\u0644\u0643\u0627\u0641\u064a\u0647\u0627\u062a",
-    subtitle: "\u0646\u0638\u0627\u0645 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0644\u0645\u0637\u0627\u0639\u0645 \u0648\u0627\u0644\u0643\u0627\u0641\u064a\u0647\u0627\u062a"
-  },
-  {
-    id: "sports-clubs",
-    icon: "fitness",
-    url: industryLinks.MIDDAR_GYMS,
-    title: "\u0627\u0644\u0623\u0646\u062f\u064a\u0629 \u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0629",
-    subtitle: "\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0623\u0646\u062f\u064a\u0629 \u0648\u0627\u0644\u0635\u0627\u0644\u0627\u062a \u0627\u0644\u0631\u064a\u0627\u0636\u064a\u0629"
-  },
-  {
-    id: "training-education",
-    icon: "education",
-    url: industryLinks.EDUCATION,
-    title: "\u0627\u0644\u062a\u062f\u0631\u064a\u0628 \u0648\u0627\u0644\u062a\u0639\u0644\u064a\u0645",
-    subtitle: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0645\u0631\u0627\u0643\u0632 \u0627\u0644\u062a\u062f\u0631\u064a\u0628"
-  },
-  {
-    id: "tourism-trips",
-    icon: "tourism",
-    url: industryLinks.TOURISM,
-    title: "\u0627\u0644\u0633\u064a\u0627\u062d\u0629 \u0648\u0627\u0644\u0631\u062d\u0644\u0627\u062a",
-    subtitle: "\u0646\u0638\u0627\u0645 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0645\u0646\u0638\u0645\u064a \u0627\u0644\u0631\u062d\u0644\u0627\u062a"
-  },
-  {
-    id: "studios",
-    icon: "studio",
-    url: industryLinks.STUDIOS,
-    title: "\u0627\u0644\u0627\u0633\u062a\u0648\u062f\u064a\u0648\u0647\u0627\u062a",
-    subtitle: "\u0625\u062f\u0627\u0631\u0629 \u0627\u0633\u062a\u0648\u062f\u064a\u0648\u0647\u0627\u062a \u0627\u0644\u062a\u0635\u0648\u064a\u0631 \u0648\u0627\u0644\u0625\u0646\u062a\u0627\u062c"
-  },
-  {
-    id: "technical-installations",
-    icon: "install",
-    url: industryLinks.TECHNICAL_INSTALLATIONS,
-    title: "\u0627\u0644\u062a\u0631\u0643\u064a\u0628\u0627\u062a \u0627\u0644\u0641\u0646\u064a\u0629",
-    subtitle: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0634\u0631\u0643\u0627\u062a \u0627\u0644\u062a\u0631\u0643\u064a\u0628\u0627\u062a"
-  },
-  {
-    id: "consulting",
-    icon: "consulting",
-    url: industryLinks.CONSULTING,
-    title: "\u0627\u0644\u0627\u0633\u062a\u0634\u0627\u0631\u0627\u062a",
-    subtitle: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0645\u0643\u0627\u062a\u0628 \u0627\u0644\u0627\u0633\u062a\u0634\u0627\u0631\u0627\u062a"
-  },
-  {
-    id: "entertainment-events",
+    id: "events-exhibitions",
     icon: "events",
-    url: industryLinks.ENTERTAINMENT,
-    title: "\u0627\u0644\u062a\u0631\u0641\u064a\u0647 \u0648\u0627\u0644\u0641\u0639\u0627\u0644\u064a\u0627\u062a",
-    subtitle: "\u0646\u0638\u0627\u0645 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0645\u0646\u0638\u0645\u064a \u0627\u0644\u0641\u0639\u0627\u0644\u064a\u0627\u062a"
-  },
-  {
-    id: "maintenance-cleaning",
-    icon: "maintenance",
-    url: industryLinks.MAINTENANCE_CLEANING,
-    title: "\u0627\u0644\u0635\u064a\u0627\u0646\u0629 \u0648\u0627\u0644\u062a\u0646\u0638\u064a\u0641",
-    subtitle: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0634\u0631\u0643\u0627\u062a \u0627\u0644\u0635\u064a\u0627\u0646\u0629 \u0648\u0627\u0644\u062a\u0646\u0638\u064a\u0641"
-  },
-  {
-    id: "retail",
-    icon: "retail",
-    url: industryLinks.RETAIL,
-    title: "\u062a\u062c\u0627\u0631\u0629 \u0627\u0644\u062a\u062c\u0632\u0626\u0629",
-    subtitle: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0645\u062a\u0627\u062c\u0631 \u0627\u0644\u062a\u062c\u0632\u0626\u0629"
+    url: industryLinks.EVENTS_EXHIBITIONS,
+    title: {
+      ar: "\u0623\u0646\u0638\u0645\u0629 \u0627\u0644\u0645\u0639\u0627\u0631\u0636 \u0648\u0627\u0644\u0641\u0639\u0627\u0644\u064a\u0627\u062a",
+      en: "Exhibitions and Events Systems",
+    },
+    subtitle: {
+      ar: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0625\u062f\u0627\u0631\u0629 \u0648\u062a\u0646\u0638\u064a\u0645 \u0627\u0644\u0645\u0639\u0627\u0631\u0636 \u0648\u0627\u0644\u0645\u0624\u062a\u0645\u0631\u0627\u062a \u0648\u062d\u062c\u0632 \u0627\u0644\u0623\u062c\u0646\u062d\u0629 \u0648\u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0644\u0648\u062c\u0633\u062a\u064a\u0629 \u0631\u0642\u0645\u064a\u0627\u064b \u0628\u0627\u0644\u0643\u0627\u0645\u0644.",
+      en: "An integrated solution for managing exhibitions and conferences, booth booking, and logistics digitally end to end.",
+    },
   }
 ];
 
-const marketingTabs: Array<{id: MarketingTab; label: string; hint: string}> = [
+const marketingCopy = {
+  ar: {
+    eyebrow: "\u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642",
+    heading: "\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u062d\u0645\u0644\u0627\u062a \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629",
+    subheading: "\u0645\u0633\u0627\u062d\u0629 \u0645\u0648\u062d\u062f\u0629 \u0644\u0631\u0648\u0627\u0628\u0637 \u0627\u0644\u0642\u0637\u0627\u0639\u0627\u062a\u060c \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627\u060c \u0648\u0627\u0644\u0623\u0635\u0648\u0644 \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629 \u0627\u0644\u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0633\u0648\u0642\u064a\u0646.",
+    tabLabel: "\u062a\u0628\u0648\u064a\u0628\u0627\u062a \u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642",
+    copied: "\u062a\u0645 \u0627\u0644\u0646\u0633\u062e! \u2713",
+    copyLink: "\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637",
+    prepareCampaign: "\u062a\u062c\u0647\u064a\u0632 \u062d\u0645\u0644\u0629",
+  },
+  en: {
+    eyebrow: "Marketing Center",
+    heading: "Marketing Campaign Management",
+    subheading: "A unified workspace for sector landing links, social media channels, and ready-to-use marketing assets.",
+    tabLabel: "Marketing center tabs",
+    copied: "Copied! \u2713",
+    copyLink: "Copy link",
+    prepareCampaign: "Prepare campaign",
+  },
+};
+
+const marketingTabs: Array<{id: MarketingTab; label: {ar: string; en: string}; hint: {ar: string; en: string}}> = [
   {
     id: "sectors",
-    label: "\u0635\u0641\u062d\u0627\u062a \u0627\u0644\u0647\u0628\u0648\u0637 \u0648\u0627\u0644\u0642\u0637\u0627\u0639\u0627\u062a",
-    hint: "\u0631\u0648\u0627\u0628\u0637 \u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0646\u0633\u062e \u0648\u0627\u0644\u0645\u0634\u0627\u0631\u0643\u0629"
+    label: {ar: "\u0635\u0641\u062d\u0627\u062a \u0627\u0644\u0647\u0628\u0648\u0637 \u0648\u0627\u0644\u0642\u0637\u0627\u0639\u0627\u062a", en: "Landing Pages and Sectors"},
+    hint: {ar: "\u0631\u0648\u0627\u0628\u0637 \u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0646\u0633\u062e \u0648\u0627\u0644\u0645\u0634\u0627\u0631\u0643\u0629", en: "Ready links for copying and sharing"},
   },
   {
     id: "social",
-    label: "\u0645\u0646\u0635\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627",
-    hint: "\u0642\u0646\u0648\u0627\u062a \u0646\u0634\u0631 \u0648\u0645\u0624\u0634\u0631\u0627\u062a \u0623\u062f\u0627\u0621"
+    label: {ar: "\u0645\u0646\u0635\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627", en: "Social Media Platforms"},
+    hint: {ar: "\u0642\u0646\u0648\u0627\u062a \u0646\u0634\u0631 \u0648\u0645\u0624\u0634\u0631\u0627\u062a \u0623\u062f\u0627\u0621", en: "Publishing channels and performance metrics"},
   },
   {
     id: "library",
-    label: "\u0627\u0644\u0645\u0643\u062a\u0628\u0629 \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629",
-    hint: "\u0635\u0648\u0631 \u0648\u0641\u064a\u062f\u064a\u0648\u0647\u0627\u062a \u062c\u0627\u0647\u0632\u0629"
+    label: {ar: "\u0627\u0644\u0645\u0643\u062a\u0628\u0629 \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629", en: "Marketing Library"},
+    hint: {ar: "\u0635\u0648\u0631 \u0648\u0641\u064a\u062f\u064a\u0648\u0647\u0627\u062a \u062c\u0627\u0647\u0632\u0629", en: "Ready images and videos"},
   }
 ];
 
 const socialPlatforms = [
-  {name: "\u062a\u064a\u0643 \u062a\u0648\u0643", handle: "middar@", reach: "62.4K", engagement: "9.4%", accent: "#00F2EA", logo: "tiktok" as SocialLogo},
-  {name: "\u0633\u0646\u0627\u0628 \u0634\u0627\u062a", handle: "Middar Official", reach: "31.6K", engagement: "6.1%", accent: "#FFFC00", logo: "snapchat" as SocialLogo},
-  {name: "\u0625\u0646\u0633\u062a\u063a\u0631\u0627\u0645", handle: "middar.sa@", reach: "48.2K", engagement: "7.8%", accent: "#E1306C", logo: "instagram" as SocialLogo},
-  {name: "\u0645\u0646\u0635\u0629 X", handle: "@MiddarHQ", reach: "18.9K", engagement: "4.6%", accent: "#0F172A", logo: "x" as SocialLogo}
+  {name: {ar: "\u062a\u064a\u0643 \u062a\u0648\u0643", en: "TikTok"}, handle: "middar@", reach: "62.4K", engagement: "9.4%", accent: "#00F2EA", logo: "tiktok" as SocialLogo},
+  {name: {ar: "\u0633\u0646\u0627\u0628 \u0634\u0627\u062a", en: "Snapchat"}, handle: "Middar Official", reach: "31.6K", engagement: "6.1%", accent: "#FFFC00", logo: "snapchat" as SocialLogo},
+  {name: {ar: "\u0625\u0646\u0633\u062a\u063a\u0631\u0627\u0645", en: "Instagram"}, handle: "middar.sa@", reach: "48.2K", engagement: "7.8%", accent: "#E1306C", logo: "instagram" as SocialLogo},
+  {name: {ar: "\u0645\u0646\u0635\u0629 X", en: "X Platform"}, handle: "@MiddarHQ", reach: "18.9K", engagement: "4.6%", accent: "#0F172A", logo: "x" as SocialLogo}
 ];
 
 function SocialLogoIcon({logo}: {logo: SocialLogo}) {
@@ -419,31 +327,59 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const locale = useLocale();
   const isArabic = locale === "ar";
   const copy = isArabic ? catalogCopy.ar : catalogCopy.en;
+  const marketing = isArabic ? marketingCopy.ar : marketingCopy.en;
   const [copiedSectorId, setCopiedSectorId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<MarketingTab>("sectors");
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
+  const marketingAssets = useBackend<BackendRow[]>("/api/v1/data/marketing-assets");
   const displayedIndustries: Industry[] = industriesData.map((industry) => {
     const live = liveIndustries?.find((row) => row.slug === industry.id);
-    const localIndustry =
-      industry.id === "chalets-resorts"
-        ? {...industry, url: `/${locale}/chalets`}
-        : industry;
     return live ? {
-      ...localIndustry,
-      title: String(live.name ?? localIndustry.title),
-      subtitle: String(live.description ?? localIndustry.subtitle),
-      url:
-        industry.id === "chalets-resorts"
-          ? localIndustry.url
-          : String(live.landing_url ?? localIndustry.url)
-    } : localIndustry;
+      ...industry,
+      title: {
+        ...industry.title,
+        ar: String(live.name ?? industry.title.ar),
+      },
+      subtitle: {
+        ...industry.subtitle,
+        ar: String(live.description ?? industry.subtitle.ar),
+      },
+      url: String(live.landing_url ?? industry.url)
+    } : industry;
   });
+  const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
 
   async function handleCopyLink(url: string, sectorId: string) {
     await navigator.clipboard.writeText(url);
     setCopiedSectorId(sectorId);
     window.setTimeout(() => setCopiedSectorId(null), 2000);
+  }
+
+  function formatFileSize(value: unknown) {
+    const size = Number(value ?? 0);
+    if (!Number.isFinite(size) || size <= 0) return "\u2014";
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function cleanAssetDate(value: unknown) {
+    return String(value ?? "").slice(0, 10) || "\u2014";
+  }
+
+  function assetTypeLabel(value: unknown) {
+    const key = String(value ?? "other");
+    const labels: Record<string, {ar: string; en: string}> = {
+      image: {ar: "\u0635\u0648\u0631\u0629", en: "Image"},
+      video: {ar: "\u0641\u064a\u062f\u064a\u0648", en: "Video"},
+      document: {ar: "\u0645\u0644\u0641", en: "Document"},
+      other: {ar: "\u0645\u0644\u0641 \u0622\u062e\u0631", en: "Other"},
+    };
+    return labels[key]?.[isArabic ? "ar" : "en"] ?? key;
+  }
+
+  function marketingAssetUrl(asset: BackendRow, action: "view" | "download") {
+    return `/api/v1/marketing-assets/${action}/${encodeURIComponent(String(asset.id))}`;
   }
 
   if (initialView === "form") {
@@ -452,18 +388,20 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
 
   return (
     <section className="products-workspace" dir={isArabic ? "rtl" : "ltr"}>
+      {activeTab !== "sectors" ? (
       <div className="marketing-hub-hero bg-white border border-slate-100 shadow-sm rounded-2xl p-6 mb-6 w-full flex items-center justify-between">
         <div className="marketing-hub-copy flex flex-col gap-1 text-right">
-          <p className="eyebrow text-[#00b4d8] text-xs font-semibold mb-1">{"\u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}</p>
-          <h2 className="text-[#0f2942] text-xl font-bold md:text-2xl">{"\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u062d\u0645\u0644\u0627\u062a \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629"}</h2>
-          <p className="marketing-hub-subtitle text-slate-500 text-sm">{"\u0645\u0633\u0627\u062d\u0629 \u0645\u0648\u062d\u062f\u0629 \u0644\u0631\u0648\u0627\u0628\u0637 \u0627\u0644\u0642\u0637\u0627\u0639\u0627\u062a\u060c \u0642\u0646\u0648\u0627\u062a \u0627\u0644\u0633\u0648\u0634\u0644 \u0645\u064a\u062f\u064a\u0627\u060c \u0648\u0627\u0644\u0623\u0635\u0648\u0644 \u0627\u0644\u062a\u0633\u0648\u064a\u0642\u064a\u0629 \u0627\u0644\u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0633\u0648\u0642\u064a\u0646."}</p>
+          <p className="eyebrow text-[#00b4d8] text-xs font-semibold mb-1">{marketing.eyebrow}</p>
+          <h2 className="text-[#0f2942] text-xl font-bold md:text-2xl">{marketing.heading}</h2>
+          <p className="marketing-hub-subtitle text-slate-500 text-sm">{marketing.subheading}</p>
         </div>
         <span className="growth-hub-chip bg-cyan-50/60 text-[#00b4d8] border border-cyan-100/50 px-4 py-1.5 rounded-full text-xs font-medium tracking-wide">
-          {isArabic ? "\u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642" : "Marketing Hub"}
+          {marketing.eyebrow}
         </span>
       </div>
+      ) : null}
 
-      <div className="marketing-tabs" role="tablist" aria-label={"\u062a\u0628\u0648\u064a\u0628\u0627\u062a \u0645\u0631\u0643\u0632 \u0627\u0644\u062a\u0633\u0648\u064a\u0642"}>
+      <div className="marketing-tabs" role="tablist" aria-label={marketing.tabLabel}>
         {marketingTabs.map((tab) => (
           <button
             className={activeTab === tab.id ? "active" : ""}
@@ -472,76 +410,68 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
             role="tab"
             type="button"
           >
-            <strong>{tab.label}</strong>
-            <span>{tab.hint}</span>
+            <strong>{tab.label[isArabic ? "ar" : "en"]}</strong>
+            <span>{tab.hint[isArabic ? "ar" : "en"]}</span>
           </button>
         ))}
       </div>
 
       <div className="marketing-tab-panel">
         {activeTab === "sectors" ? (
-          <>
-            <div className="products-workspace-head compact">
-              <p className="eyebrow">{copy.eyebrow}</p>
-              <h2>{copy.heading}</h2>
-              <p>{copy.subheading}</p>
+          <div className="landing-sector-card">
+            <div className="landing-sector-heading">
+              <div className="landing-sector-actions">
+                <a
+                  className="landing-sector-control"
+                  href={primaryIndustry.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span>{isArabic ? "\u0641\u062a\u062d \u0627\u0644\u0645\u0648\u0642\u0639" : "Open site"}</span>
+                </a>
+                <button
+                  className="landing-sector-control"
+                  onClick={() =>
+                    void handleCopyLink(
+                      primaryIndustry.url,
+                      primaryIndustry.id,
+                    )
+                  }
+                  type="button"
+                >
+                  <span>
+                    {copiedSectorId === primaryIndustry.id
+                      ? isArabic
+                        ? "\u062a\u0645 \u0627\u0644\u0646\u0633\u062e"
+                        : "Copied"
+                      : isArabic
+                        ? "\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637"
+                        : "Copy link"}
+                  </span>
+                </button>
+              </div>
+              <div className="landing-sector-copy">
+                <h2>{primaryIndustry.title[isArabic ? "ar" : "en"]}</h2>
+                <p>
+                  {primaryIndustry.subtitle[isArabic ? "ar" : "en"]}
+                </p>
+              </div>
             </div>
 
-            <div className="industry-sector-grid">
-              {displayedIndustries.map((industry) => (
-                <article
-                  className="industry-sector-card"
-                  key={industry.id}
-                  onClick={() => {
-                    window.open(industry.url, "_blank", "noopener,noreferrer");
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      window.open(industry.url, "_blank", "noopener,noreferrer");
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className="industry-sector-card-top">
-                    <IndustryIcon className="industry-sector-icon" shape={industry.icon} />
-                    <button
-                      className={`industry-copy-link ${copiedSectorId === industry.id ? "copied" : ""}`}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void handleCopyLink(industry.url, industry.id);
-                      }}
-                      type="button"
-                    >
-                      {copiedSectorId === industry.id
-                        ? "\u062a\u0645 \u0627\u0644\u0646\u0633\u062e! \u2713"
-                        : "\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637"}
-                    </button>
-                  </div>
-                  <div className="industry-sector-card-body">
-                    <div>
-                      <h3>{industry.title}</h3>
-                      <p>{industry.subtitle}</p>
-                    </div>
-                    <strong className="industry-explore-action hover:text-[#00b4d8] focus:text-[#00b4d8] active:text-[#00b4d8]/90 transition-colors duration-200 ease-in-out">
-                      {copy.explore}
-                    </strong>
-                  </div>
-                </article>
-              ))}
+            <div className="landing-sector-frame">
+              <iframe src={primaryIndustry.url} title={primaryIndustry.title[isArabic ? "ar" : "en"]} />
             </div>
-          </>
+          </div>
         ) : null}
 
         {activeTab === "social" ? (
           <div className="social-platform-grid">
             {socialPlatforms.map((platform) => (
-              <article className="social-platform-card" key={platform.name} style={{"--platform-accent": platform.accent} as CSSProperties}>
+              <article className="social-platform-card" key={platform.logo} style={{"--platform-accent": platform.accent} as CSSProperties}>
                 <div className="social-platform-head">
                   <SocialLogoIcon logo={platform.logo} />
                   <div>
-                    <h3>{platform.name}</h3>
+                    <h3>{platform.name[isArabic ? "ar" : "en"]}</h3>
                     <p>{platform.handle}</p>
                   </div>
                 </div>
@@ -555,7 +485,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                     <strong>{platform.engagement}</strong>
                   </div>
                 </div>
-                <button type="button">{"\u062a\u062c\u0647\u064a\u0632 \u062d\u0645\u0644\u0629"}</button>
+                <button type="button">{marketing.prepareCampaign}</button>
               </article>
             ))}
           </div>
@@ -576,23 +506,67 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                 </button>
               ))}
             </div>
-            <div className="asset-library-grid">
-              {activeAssetFilter !== "videos" ? imageAssets.map((asset, index) => (
-                <article className="asset-card image-asset" key={asset}>
-                  <span>{`0${index + 1}`}</span>
-                  <h3>{asset}</h3>
-                  <p>{"\u0635\u0648\u0631 \u062a\u0631\u0648\u064a\u062c\u064a\u0629 \u0639\u0627\u0644\u064a\u0629 \u0627\u0644\u062f\u0642\u0629 \u062c\u0627\u0647\u0632\u0629 \u0644\u0644\u0645\u0634\u0627\u0631\u0643\u0629."}</p>
-                  <button type="button">{"\u062a\u0646\u0632\u064a\u0644"}</button>
-                </article>
-              )) : null}
-              {activeAssetFilter !== "images" ? videoAssets.map((asset, index) => (
-                <article className="asset-card video-asset" key={asset}>
-                  <span>{`0${index + 1}`}</span>
-                  <h3>{asset}</h3>
-                  <p>{"\u0645\u0639\u0627\u064a\u0646\u0629 \u0633\u064a\u0646\u0645\u0627\u0626\u064a\u0629 \u0645\u062e\u062a\u0635\u0631\u0629 \u0644\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062a \u0648\u0627\u0644\u0631\u064a\u0644\u0632."}</p>
-                  <button type="button">{"\u0645\u0634\u0627\u0631\u0643\u0629"}</button>
-                </article>
-              )) : null}
+
+            <div className="marketing-assets-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>{isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u0645\u0644\u0641" : "File name"}</th>
+                    <th>{isArabic ? "\u0627\u0644\u0646\u0648\u0639" : "Type"}</th>
+                    <th>{isArabic ? "\u0627\u0644\u062d\u062c\u0645" : "Size"}</th>
+                    <th>{isArabic ? "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0631\u0641\u0639" : "Uploaded at"}</th>
+                    <th>{isArabic ? "\u0627\u0644\u0625\u062c\u0631\u0627\u0621\u0627\u062a" : "Actions"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(marketingAssets.data ?? [])
+                    .filter((asset) => {
+                      if (activeAssetFilter === "all") return true;
+                      if (activeAssetFilter === "images") return String(asset.asset_type) === "image";
+                      return String(asset.asset_type) === "video";
+                    })
+                    .map((asset) => (
+                      <tr key={asset.id}>
+                        <td>
+                          <strong>{String(asset.title ?? asset.original_name ?? "\u2014")}</strong>
+                          <span>{String(asset.description ?? asset.original_name ?? "")}</span>
+                        </td>
+                        <td>{assetTypeLabel(asset.asset_type)}</td>
+                        <td>{formatFileSize(asset.file_size)}</td>
+                        <td>{cleanAssetDate(asset.created_at)}</td>
+                        <td>
+                          <div className="actions-wrapper marketing-asset-actions">
+                            <a
+                              className="action-btn btn-view"
+                              href={marketingAssetUrl(asset, "view")}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {isArabic ? "\u0627\u0644\u0639\u0631\u0636" : "View"}
+                            </a>
+                            <a
+                              className="action-btn btn-download"
+                              download
+                              href={marketingAssetUrl(asset, "download")}
+                            >
+                              {isArabic ? "\u062a\u0646\u0632\u064a\u0644" : "Download"}
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  {!marketingAssets.loading && !(marketingAssets.data ?? []).length ? (
+                    <tr>
+                      <td colSpan={5}>{isArabic ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0644\u0641\u0627\u062a \u0641\u064a \u0627\u0644\u0645\u0643\u062a\u0628\u0629 \u062d\u062a\u0649 \u0627\u0644\u0622\u0646" : "No files in the library yet"}</td>
+                    </tr>
+                  ) : null}
+                  {marketingAssets.loading ? (
+                    <tr>
+                      <td colSpan={5}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
             </div>
           </div>
         ) : null}
@@ -618,7 +592,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                       onValueChange={(value) => setLeadRequest((current) => ({...current, industryId: value}))}
                       options={(liveIndustries ?? [])
                         .filter((industry) => String(industry.status ?? "active") === "active")
-                        .map((industry) => ({label: String(industry.name ?? "—"), value: String(industry.id)}))}
+                        .map((industry) => ({label: String(industry.name ?? "\u2014"), value: String(industry.id)}))}
                       placeholder={"\u0627\u062e\u062a\u0631 \u0646\u0648\u0639 \u0627\u0644\u0646\u0634\u0627\u0637"}
                       value={leadRequest.industryId}
                     />

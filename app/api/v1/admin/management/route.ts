@@ -102,6 +102,39 @@ async function ensureSupportTicketEventsTable() {
   );
 }
 
+async function ensureSupportTicketTypesTable(companyId: number) {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS support_ticket_types (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      company_id BIGINT UNSIGNED NOT NULL,
+      name_ar VARCHAR(120) NOT NULL,
+      name_en VARCHAR(120) NOT NULL,
+      description TEXT NULL,
+      status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_support_ticket_types_company_name_ar (company_id, name_ar),
+      INDEX idx_support_ticket_types_company_status (company_id, status, sort_order)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+
+  const defaults = [
+    ["مشكلة عمولة", "Commission Issue", "استفسارات ومشاكل العمولات", 10],
+    ["دعم الحساب", "Account Support", "طلبات الحساب والصلاحيات", 20],
+    ["مشكلة تقنية", "Technical Issue", "المشاكل التقنية في النظام", 30],
+  ] as const;
+  for (const [nameAr, nameEn, description, sortOrder] of defaults) {
+    await db.execute(
+      `INSERT IGNORE INTO support_ticket_types
+        (company_id, name_ar, name_en, description, status, sort_order)
+       VALUES (?, ?, ?, ?, 'active', ?)`,
+      [companyId, nameAr, nameEn, description, sortOrder],
+    );
+  }
+}
+
 async function ensureSupportTicketsUserRelation() {
   await db.execute(
     `CREATE TABLE IF NOT EXISTS support_tickets (
@@ -456,6 +489,7 @@ export async function GET() {
     adminCompanyId !== null && adminCompanyId !== undefined
       ? [adminCompanyId, adminUserId]
       : [adminUserId];
+  await ensureSupportTicketTypesTable(Number(adminCompanyId ?? adminUserId));
 
   const [users] = await db.execute<RowDataPacket[]>(
     `SELECT u.id,u.name,u.email,u.username,u.phone,u.role_id,COALESCE(r.slug,'affiliate') role,COALESCE(r.role_type,'user') role_type,
@@ -483,14 +517,23 @@ export async function GET() {
       ORDER BY t.created_at DESC LIMIT 250`,
     userScopeParams,
   );
+  const [ticketTypes] = await db.execute<RowDataPacket[]>(
+    `SELECT id,company_id,name_ar,name_en,description,status,sort_order,created_at,updated_at
+       FROM support_ticket_types
+      WHERE company_id = ?
+      ORDER BY sort_order ASC, created_at ASC LIMIT 250`,
+    [Number(adminCompanyId ?? adminUserId)],
+  );
   const [products] = await db.execute<RowDataPacket[]>(
     "SELECT id,name,name_en,slug,base_price,currency,status,created_at FROM products ORDER BY created_at DESC LIMIT 250",
   );
   const [content] = await db.execute<RowDataPacket[]>(
-    "SELECT id,title,asset_type,status,url,created_at FROM educational_assets ORDER BY created_at DESC LIMIT 250",
+    `SELECT id,title,asset_type,original_name,mime_type,file_size,file_path,status,created_at
+       FROM marketing_assets
+      ORDER BY created_at DESC LIMIT 250`,
   );
   const [industries] = await db.execute<RowDataPacket[]>(
-    "SELECT id,name,slug,description,status,created_at FROM industries ORDER BY created_at DESC LIMIT 250",
+    "SELECT id,name,name_en,slug,description,status,created_at FROM industries ORDER BY created_at DESC LIMIT 250",
   );
   const [clients] = await db.execute<RowDataPacket[]>(
     `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.stage,l.industry_id,l.address,l.requirements,l.created_at,
@@ -591,6 +634,7 @@ export async function GET() {
       users,
       roles,
       tickets,
+      ticketTypes,
       products,
       content,
       industries,

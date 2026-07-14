@@ -5,8 +5,6 @@ import bcrypt from "bcryptjs";
 import {redirect} from "next/navigation";
 import type {ResultSetHeader, RowDataPacket} from "mysql2";
 
-import {db} from "@/lib/db";
-
 export type LeadCaptureState = {success?: boolean; error?: string};
 
 export async function captureAffiliateLead(_state: LeadCaptureState, formData: FormData): Promise<LeadCaptureState> {
@@ -51,6 +49,7 @@ export async function registerAffiliate(formData: FormData) {
   const locale = formData.get("locale") === "en" ? "en" : "ar";
   if (!name || !email || password.length < 6 || password !== confirmPassword) redirect(`/${locale}?registration=invalid`);
 
+  const {db} = await import("@/lib/db");
   const passwordHash = await bcrypt.hash(password, 12);
   const connection = await db.getConnection();
   let registrationError = "";

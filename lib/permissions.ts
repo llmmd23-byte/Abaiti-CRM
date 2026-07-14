@@ -71,6 +71,10 @@ export const pagePermissions = [
   "page.user.customers",
   "page.user.stores",
   "page.user.quotes",
+  "page.user.participation_contracts",
+  "page.user.sponsorship_contracts",
+  "page.user.sales_orders",
+  "page.user.rental_contracts",
   "page.user.sales",
   "page.user.activation",
   "page.user.education",
@@ -83,6 +87,7 @@ export const tablePermissions = [
   "table.users",
   "table.products",
   "table.industries",
+  "table.marketing_assets",
   "table.educational_assets",
   "table.leads",
   "table.lead_contacts",
@@ -97,6 +102,7 @@ export const tablePermissions = [
   "table.sales",
   "table.commissions",
   "table.support_tickets",
+  "table.support_ticket_types",
   "table.support_ticket_events",
   "table.team_members",
   "table.social_accounts",
@@ -120,11 +126,13 @@ export const adminPermissionKeys = allPermissionKeys.filter(
     key === "table.users" ||
     key === "table.products" ||
     key === "table.industries" ||
+    key === "table.marketing_assets" ||
     key === "table.tag_types" ||
     key === "table.tags" ||
     key === "table.lead_tag_assignments" ||
     key === "table.educational_assets" ||
     key === "table.support_tickets" ||
+    key === "table.support_ticket_types" ||
     key === "table.support_ticket_events" ||
     key === "commission.percentage",
 );
@@ -136,6 +144,7 @@ export const userPermissionKeys = allPermissionKeys.filter(
     [
       "table.products",
       "table.industries",
+      "table.marketing_assets",
       "table.educational_assets",
       "table.leads",
       "table.lead_contacts",
@@ -150,6 +159,7 @@ export const userPermissionKeys = allPermissionKeys.filter(
       "table.sales",
       "table.commissions",
       "table.support_tickets",
+      "table.support_ticket_types",
       "table.support_ticket_events",
       "table.team_members",
       "table.social_accounts",
@@ -189,6 +199,7 @@ const userWritableTables = new Set([
   "table.demo_requests",
   "table.quotes",
   "table.support_tickets",
+  "table.support_ticket_types",
   "table.team_members",
   "table.social_accounts",
   "table.payout_methods",
@@ -205,7 +216,9 @@ const affiliatePermissionSeeds: PermissionSeed[] = [
       userTableScopes.has(key) ||
       key === "table.products" ||
       key === "table.industries" ||
+      key === "table.marketing_assets" ||
       key === "table.educational_assets" ||
+      key === "table.support_ticket_types" ||
       key === "table.support_ticket_events",
     create: userWritableTables.has(key),
     edit: userWritableTables.has(key),
@@ -252,6 +265,13 @@ const roleSeeds: Record<string, PermissionSeed[]> = {
     { key: "page.user.support", view: true, dashboard: true, scope: "own" },
     {
       key: "table.support_tickets",
+      view: true,
+      create: true,
+      edit: true,
+      scope: "company",
+    },
+    {
+      key: "table.support_ticket_types",
       view: true,
       create: true,
       edit: true,
@@ -332,6 +352,7 @@ function defaultSeedForRoleType(roleType: RoleType, key: string): PermissionSeed
       userTableScopes.has(key) ||
       key === "table.products" ||
       key === "table.industries" ||
+      key === "table.marketing_assets" ||
       key === "table.educational_assets" ||
       key === "table.support_ticket_events",
     create: userWritableTables.has(key),
@@ -524,6 +545,18 @@ export async function ensurePermissionsTable() {
         WHERE p.subject_type = 'role'
           AND r.role_type = 'user'
           AND p.permission_key IN ('table.leads','table.lead_tag_assignments')`,
+    );
+    await db.execute(
+      `UPDATE permissions p
+         JOIN roles r ON r.id = p.role_id OR r.slug = p.subject_id
+          SET p.can_view = 1,
+              p.can_create = 0,
+              p.can_edit = 0,
+              p.can_delete = 0,
+              p.data_scope = 'all'
+        WHERE p.subject_type = 'role'
+          AND r.role_type = 'user'
+          AND p.permission_key = 'table.marketing_assets'`,
     );
     await prunePermissionsByRoleType();
   })();

@@ -47,7 +47,7 @@
   },
   "features": {
     "eyebrow": "مصممة لفرق البيع بالعمولة",
-    "title": "نظام إدارة المبيعات و العمولات",
+    "title": "نظام إداره الفعاليات والمعارض",
     "item1": {
       "title": "صفحات هبوط للمنتجات",
       "copy": "أنشئ صفحات فريدة ومحسنة لكل منتج مع تتبع المصدر والتقاط العملاء داخل CRM."
@@ -101,6 +101,10 @@
     "potentialCustomers": "العملاء المهتمين",
     "stores": "المعارض",
     "salesTools": "عروض الأسعار",
+    "participationContracts": "عقود المشاركة",
+    "sponsorshipContracts": "عقد الرعاية",
+    "salesOrders": "أمر بيع",
+    "rentalContracts": "عقود تأجيرية",
     "quotesPricing": "عروض الأسعار",
     "commissions": "العمولات",
     "sales": "المبيعات",

@@ -3,7 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import DashboardSelect from "@/components/DashboardSelect";
-import { createBackend, useBackend } from "@/lib/client-backend";
+import { createBackend, updateBackend, useBackend } from "@/lib/client-backend";
 
 type BackendRow = Record<string, unknown> & { id: number };
 const NUMBER_LOCALE = "en-US";
@@ -724,6 +724,2643 @@ export function QuoteSystem() {
   );
 }
 
+export function ParticipationContractsPanel({locale}: {locale: string}) {
+  const isArabic = locale === "ar";
+  const contracts = useBackend<BackendRow[]>("/api/v1/data/participation-contracts");
+  const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const [leadId, setLeadId] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState("");
+  const [phone, setPhone] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("Saudi Arabia");
+  const [standNumber, setStandNumber] = useState("");
+  const [locationCategory, setLocationCategory] = useState("standard");
+  const [packageType, setPackageType] = useState("space_shell_scheme");
+  const [spaceSqm, setSpaceSqm] = useState("");
+  const [pricePerSqm, setPricePerSqm] = useState("");
+  const [totalAmount, setTotalAmount] = useState("");
+  const [contractDate, setContractDate] = useState(() => dateAfterDays(0));
+  const [notes, setNotes] = useState("");
+  const [saveStatus, setSaveStatus] = useState("");
+  const [editingContractId, setEditingContractId] = useState<number | null>(null);
+  const [participationSearch, setParticipationSearch] = useState("");
+  const [locationFilter, setLocationFilter] = useState("all");
+  const [contractTypeFilter, setContractTypeFilter] = useState("all");
+
+  const text = isArabic
+    ? {
+        formTitle: "إضافة بيانات العقد",
+        formSubtitle: "بيانات العارض والمشاركة كما تظهر في عقد المشاركة",
+        listTitle: "قائمة العقود",
+        listSubtitle: "العقود التي تم إدخالها من حسابك",
+        customer: "العميل المهتم",
+        customerPlaceholder: "اختر العميل المهتم",
+        customerSearch: "ابحث باسم العميل أو الشركة",
+        companyName: "اسم الشركة",
+        brandName: "العلامة التجارية",
+        contactName: "الشخص المسؤول",
+        email: "البريد الإلكتروني",
+        website: "الموقع الإلكتروني",
+        phone: "الهاتف",
+        mobile: "الجوال",
+        address: "العنوان",
+        city: "المدينة",
+        country: "الدولة",
+        standNumber: "رقم الجناح",
+        locationCategory: "فئة الموقع",
+        packageType: "نوع المشاركة",
+        spaceSqm: "المساحة بالمتر",
+        pricePerSqm: "السعر للمتر",
+        totalAmount: "إجمالي العقد",
+        contractDate: "تاريخ العقد",
+        notes: "ملاحظات",
+        save: "حفظ العقد",
+        update: "تحديث العقد",
+        edit: "تعديل",
+        print: "طباعة",
+        actions: "الإجراءات",
+        saving: "جاري الحفظ...",
+        saved: "تم حفظ العقد",
+        updated: "تم تحديث العقد",
+        failed: "تعذر حفظ العقد",
+        validation: "أدخل اسم الشركة، الشخص المسؤول، ونوع المشاركة",
+        noCustomerData: "اختر عميلاً مهتماً لتعبئة بيانات الشركة تلقائياً",
+        noContracts: "لا توجد عقود مشاركة حتى الآن",
+        standard: "موقع عادي",
+        premium: "موقع مميز",
+        spaceOnly: "مساحة فقط",
+        shellScheme: "مساحة مع تجهيز",
+        draft: "مسودة",
+        sent: "مرسل",
+        signed: "موقع",
+        cancelled: "ملغي",
+      }
+    : {
+        formTitle: "Add contract details",
+        formSubtitle: "Exhibitor and participation details from the participation contract",
+        listTitle: "Contracts list",
+        listSubtitle: "Contracts entered from your account",
+        customer: "Interested customer",
+        customerPlaceholder: "Select interested customer",
+        customerSearch: "Search by customer or company",
+        companyName: "Company name",
+        brandName: "Brand name",
+        contactName: "Contact person",
+        email: "Email",
+        website: "Website",
+        phone: "Phone",
+        mobile: "Mobile",
+        address: "Address",
+        city: "City",
+        country: "Country",
+        standNumber: "Stand number",
+        locationCategory: "Location category",
+        packageType: "Package type",
+        spaceSqm: "Space sqm",
+        pricePerSqm: "Price per sqm",
+        totalAmount: "Contract total",
+        contractDate: "Contract date",
+        notes: "Notes",
+        save: "Save contract",
+        update: "Update contract",
+        edit: "Edit",
+        print: "Print",
+        actions: "Actions",
+        saving: "Saving...",
+        saved: "Contract saved",
+        updated: "Contract updated",
+        failed: "Unable to save contract",
+        validation: "Enter company name, contact person, and package type",
+        noCustomerData: "Select an interested customer to fill company details automatically",
+        noContracts: "No participation contracts yet",
+        standard: "Standard location",
+        premium: "Premium location",
+        spaceOnly: "Space only",
+        shellScheme: "Space & shell scheme",
+        draft: "Draft",
+        sent: "Sent",
+        signed: "Signed",
+        cancelled: "Cancelled",
+      };
+
+  const computedTotal = useMemo(() => {
+    const space = Number(spaceSqm);
+    const price = Number(pricePerSqm);
+    if (!Number.isFinite(space) || !Number.isFinite(price) || space <= 0 || price <= 0) return "";
+    return String(space * price);
+  }, [pricePerSqm, spaceSqm]);
+  const displayedTotal = totalAmount || computedTotal;
+  const statusLabels: Record<string, string> = {
+    draft: text.draft,
+    sent: text.sent,
+    signed: text.signed,
+    cancelled: text.cancelled,
+  };
+  const packageLabels: Record<string, string> = {
+    space_only: text.spaceOnly,
+    space_shell_scheme: text.shellScheme,
+  };
+  const selectedLead = (leads.data ?? []).find((lead) => String(lead.id) === leadId);
+  const filteredContracts = useMemo(() => {
+    const query = participationSearch.trim().toLocaleLowerCase();
+    return (contracts.data ?? []).filter((contract) => {
+      const matchesSearch =
+        !query ||
+        [
+          contract.contract_number,
+          contract.customer_name,
+          contract.company_name,
+          contract.contact_name,
+          contract.email,
+          contract.phone,
+          contract.mobile,
+          contract.location_category,
+          contract.package_type,
+        ].some((value) => String(value ?? "").toLocaleLowerCase().includes(query));
+      const matchesLocation = locationFilter === "all" || String(contract.location_category ?? "") === locationFilter;
+      const matchesContractType = contractTypeFilter === "all" || String(contract.package_type ?? "") === contractTypeFilter;
+      return matchesSearch && matchesLocation && matchesContractType;
+    });
+  }, [contractTypeFilter, contracts.data, locationFilter, participationSearch]);
+  const resetContractFilters = () => {
+    setParticipationSearch("");
+    setLocationFilter("all");
+    setContractTypeFilter("all");
+  };
+  const participationContractStats = useMemo(() => {
+    const rows = contracts.data ?? [];
+    return {
+      total: rows.length,
+      value: rows.reduce((sum, contract) => sum + Number(contract.total_amount ?? 0), 0),
+      pending: rows.filter((contract) =>
+        ["draft", "sent"].includes(String(contract.status ?? "draft")),
+      ).length,
+    };
+  }, [contracts.data]);
+
+  function applyLeadData(nextLeadId: string) {
+    setLeadId(nextLeadId);
+    const lead = (leads.data ?? []).find((item) => String(item.id) === nextLeadId);
+    if (!lead) return;
+    setCompanyName(String(lead.company_name ?? lead.name ?? ""));
+    setContactName(String(lead.name ?? ""));
+    setEmail(String(lead.email ?? ""));
+    setPhone(String(lead.phone ?? ""));
+    setMobile(String(lead.phone ?? ""));
+    setAddress(String(lead.address ?? ""));
+  }
+
+  function resetContractForm() {
+    setEditingContractId(null);
+    setLeadId("");
+    setCompanyName("");
+    setBrandName("");
+    setContactName("");
+    setEmail("");
+    setWebsite("");
+    setPhone("");
+    setMobile("");
+    setAddress("");
+    setCity("");
+    setCountry("Saudi Arabia");
+    setStandNumber("");
+    setLocationCategory("standard");
+    setPackageType("space_shell_scheme");
+    setSpaceSqm("");
+    setPricePerSqm("");
+    setTotalAmount("");
+    setContractDate(dateAfterDays(0));
+    setNotes("");
+  }
+
+  function editContract(contract: BackendRow) {
+    setEditingContractId(Number(contract.id));
+    setLeadId(contract.lead_id ? String(contract.lead_id) : "");
+    setCompanyName(String(contract.company_name ?? ""));
+    setBrandName(String(contract.brand_name ?? ""));
+    setContactName(String(contract.contact_name ?? ""));
+    setEmail(String(contract.email ?? ""));
+    setWebsite(String(contract.website ?? ""));
+    setPhone(String(contract.phone ?? ""));
+    setMobile(String(contract.mobile ?? ""));
+    setAddress(String(contract.address ?? ""));
+    setCity(String(contract.city ?? ""));
+    setCountry(String(contract.country ?? "Saudi Arabia"));
+    setStandNumber(String(contract.stand_number ?? ""));
+    setLocationCategory(String(contract.location_category ?? "standard"));
+    setPackageType(String(contract.package_type ?? "space_shell_scheme"));
+    setSpaceSqm(contract.space_sqm == null ? "" : String(contract.space_sqm));
+    setPricePerSqm(contract.price_per_sqm == null ? "" : String(contract.price_per_sqm));
+    setTotalAmount(contract.total_amount == null ? "" : String(contract.total_amount));
+    setContractDate(cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date));
+    setNotes(String(contract.notes ?? ""));
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  function escapePrintValue(value: unknown) {
+    return String(value ?? "—")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function printContract(contract: BackendRow) {
+    const printWindow = window.open("", "_blank", "width=900,height=1100");
+    if (!printWindow) return;
+    const printPackageValue = String(contract.package_type ?? "");
+    const printLocationValue = String(contract.location_category ?? "");
+    const printCurrency = String(contract.currency ?? "SAR");
+    const printSpace = String(contract.space_sqm ?? "");
+    const printPrice = contract.price_per_sqm == null ? "" : String(contract.price_per_sqm);
+    const printTotal = contract.total_amount == null ? "" : String(contract.total_amount);
+    const printVat = contract.total_amount == null ? "" : String(Number(contract.total_amount) * 0.15);
+    const printGrandTotal = contract.total_amount == null ? "" : String(Number(contract.total_amount) * 1.15);
+    const printInput = (value: unknown, style = "") =>
+      `<input type="text" class="input-field" readonly value="${escapePrintValue(value ?? "")}" style="${style}">`;
+    const printCheck = (checked: boolean) => (checked ? "checked" : "");
+    const shellSelected = printPackageValue === "space_shell_scheme";
+    const spaceOnlySelected = printPackageValue === "space_only";
+    const locationASelected = printLocationValue === "standard";
+    const locationBSelected = printLocationValue === "premium";
+
+    printWindow!.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>عقد مشاركة معرض رونق وأناقة 2026 - ${escapePrintValue(contract.contract_number)}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+    * { box-sizing: border-box; font-family: 'Cairo', Arial, sans-serif; margin: 0; padding: 0; }
+    @page { size: A4 portrait; margin: 0; }
+    html, body { width: 210mm; min-height: 297mm; }
+    body { background-color: #f5f5f5; color: #333; font-size: 10px; line-height: 1.35; }
+    .page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      padding: 10mm 11mm 9mm;
+      margin: 0 auto;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    .header-table td { border: none !important; padding: 5px; vertical-align: top; }
+    .logo-area { font-weight: bold; font-size: 18px; color: #1a365d; }
+    .expo-details { text-align: center; font-size: 10.5px; }
+    .expo-details h1 { font-size: 15px; color: #bc9c22; margin-bottom: 4px; }
+    .section-title { background-color: #1a365d; color: #fff; padding: 4px 8mm; text-align: center; font-weight: bold; font-size: 12px; margin: 10px 0 7px; display: flex; justify-content: space-between; }
+    table.form-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    table.form-table td { border: 1px solid #ccc; padding: 4px 5px; vertical-align: middle; }
+    .label-ar { float: right; font-weight: 600; }
+    .label-en { float: left; font-weight: 600; color: #555; font-size: 10px; direction: ltr; }
+    .input-field { width: 100%; border: none; border-bottom: 1px dashed #999; padding: 1px 2px; font-size: 10px; background: transparent; color: #111; }
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .checkbox-group { border: 1px solid #ccc; padding: 6px; margin-bottom: 8px; }
+    .checkbox-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; padding: 1px 0; }
+    .checkbox-item input, .pricing-table input[type="checkbox"] { margin: 0 5px; transform: scale(1.05); }
+    .pricing-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .pricing-table th, .pricing-table td { border: 1px solid #ccc; padding: 3px 4px; text-align: center; }
+    .pricing-table th { background-color: #f2f2f2; font-size: 10px; }
+    .terms-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: justify; font-size: 9px; line-height: 1.35; }
+    .terms-box { direction: rtl; }
+    .terms-box.en { direction: ltr; text-align: left; font-size: 8.5px; }
+    .article-title { font-weight: bold; margin-top: 8px; color: #1a365d; }
+    .signature-section { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .sig-box { border: 1px solid #aaa; padding: 10px; height: 110px; position: relative; }
+    .page-number { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #777; }
+    @media print {
+      body { background: none; width: 210mm; }
+      .page { margin: 0; box-shadow: none; page-break-after: always; break-after: page; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <table class="header-table">
+      <tr>
+        <td style="width: 30%;">
+          <div class="logo-area">REE</div>
+          <div style="font-size:9px; color:#555;">alsawsan<br>exhibitions & conferences</div>
+          <div style="font-size:9px; color:#555; margin-top:8px;">${escapePrintValue(contract.contract_number)}</div>
+        </td>
+        <td style="width: 40%; text-align: center;" class="expo-details">
+          <h1>RAWNAQ & ELEGANCE EXPO</h1>
+          <h2>معرض رونق وأناقة 2026</h2>
+          <p>22-25 December 2026</p>
+          <p>من 22 الى 25 ديسمبر 2026</p>
+          <p>Hilton Hotel, Grand Hilton Hall - Jeddah</p>
+          <p>فندق هيلتون، قاعة الهيلتون الكبرى - جدة</p>
+        </td>
+        <td style="width: 30%; text-align: left; font-size: 10px;">
+          <strong style="color:#bc9c22;">PARTICIPATION CONTRACT</strong><br>
+          <strong>عقد المشاركة</strong><br>
+          <span style="font-size:9px;">www.alsawsanexpo.com</span>
+        </td>
+      </tr>
+    </table>
+
+    <div class="section-title"><span class="label-en">EXHIBITOR INFO</span><span class="label-ar">بيانات العارض</span></div>
+    <table class="form-table">
+      <tr><td colspan="2"><span class="label-ar">اسم الشركة كما يظهر في السجل التجاري:</span><span class="label-en">Company Name (as in CR):</span>${printInput(contract.company_name)}</td></tr>
+      <tr>
+        <td><span class="label-ar">العلامة التجارية:</span><span class="label-en">Brand Name:</span>${printInput(contract.brand_name)}</td>
+        <td><span class="label-ar">رقم الجناح:</span><span class="label-en">Stand Number:</span>${printInput(contract.stand_number)}</td>
+      </tr>
+      <tr><td colspan="2"><span class="label-ar">العنوان:</span><span class="label-en">Address:</span>${printInput(contract.address)}</td></tr>
+      <tr>
+        <td><span class="label-ar">المدينة:</span><span class="label-en">City:</span>${printInput(contract.city)}</td>
+        <td><span class="label-ar">الدولة:</span><span class="label-en">Country:</span>${printInput(contract.country)}</td>
+      </tr>
+      <tr>
+        <td><span class="label-ar">الجوال:</span><span class="label-en">Mobile:</span>${printInput(contract.mobile)}</td>
+        <td><span class="label-ar">الهاتف / الفاكس:</span><span class="label-en">Tel / Fax:</span>${printInput(`${String(contract.phone ?? "")}${contract.fax ? ` / ${String(contract.fax)}` : ""}`)}</td>
+      </tr>
+      <tr>
+        <td><span class="label-ar">البريد الإلكتروني:</span><span class="label-en">E-mail:</span>${printInput(contract.email)}</td>
+        <td><span class="label-ar">الموقع الإلكتروني:</span><span class="label-en">Website:</span>${printInput(contract.website)}</td>
+      </tr>
+      <tr>
+        <td><span class="label-ar">الشخص المسؤول:</span><span class="label-en">Contact Person:</span>${printInput(contract.contact_name)}</td>
+        <td><span class="label-ar">المنصب:</span><span class="label-en">Position:</span>${printInput("")}</td>
+      </tr>
+    </table>
+
+    <div class="section-title"><span class="label-en">SPACE RATES & RESERVATION</span><span class="label-ar">حجز المساحات والأسعار</span></div>
+    <table class="pricing-table">
+      <thead>
+        <tr><th>الفئة / Location</th><th>نوع الحجز / Type</th><th>سعر المتر / Rate (SAR)</th><th>المساحة / Sqm</th><th>الإجمالي / Total</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="2"><strong>Location A</strong> (فئة أ) <input type="checkbox" ${printCheck(locationASelected)}></td>
+          <td>Space & Shell Scheme (موقع وجناح) <input type="checkbox" ${printCheck(locationASelected && shellSelected)}></td>
+          <td>2,075 SAR</td><td>${printInput(locationASelected && shellSelected ? printSpace : "", "width:50px; text-align:center;")}</td><td>${printInput(locationASelected && shellSelected ? printTotal : "", "width:80px;")}</td>
+        </tr>
+        <tr>
+          <td>Space Only (موقع فقط) <input type="checkbox" ${printCheck(locationASelected && spaceOnlySelected)}></td>
+          <td>1,600 SAR</td><td>${printInput(locationASelected && spaceOnlySelected ? printSpace : "", "width:50px; text-align:center;")}</td><td>${printInput(locationASelected && spaceOnlySelected ? printTotal : "", "width:80px;")}</td>
+        </tr>
+        <tr>
+          <td rowspan="2"><strong>Location B</strong> (فئة ب) <input type="checkbox" ${printCheck(locationBSelected)}></td>
+          <td>Space & Shell Scheme (موقع وجناح) <input type="checkbox" ${printCheck(locationBSelected && shellSelected)}></td>
+          <td>1,775 SAR</td><td>${printInput(locationBSelected && shellSelected ? printSpace : "", "width:50px; text-align:center;")}</td><td>${printInput(locationBSelected && shellSelected ? printTotal : "", "width:80px;")}</td>
+        </tr>
+        <tr>
+          <td>Space Only (موقع فقط) <input type="checkbox" ${printCheck(locationBSelected && spaceOnlySelected)}></td>
+          <td>1,300 SAR</td><td>${printInput(locationBSelected && spaceOnlySelected ? printSpace : "", "width:50px; text-align:center;")}</td><td>${printInput(locationBSelected && spaceOnlySelected ? printTotal : "", "width:80px;")}</td>
+        </tr>
+        <tr style="background:#f9f9f9;"><td colspan="2"><strong>رسوم التسجيل الإلزامية / Registration Fee</strong></td><td>1,500 SAR</td><td>شامل الخدمات</td><td>1,500 SAR</td></tr>
+        <tr><td colspan="4" style="text-align:left; font-weight:bold;">ضريبة القيمة المضافة 15% / VAT 15%:</td><td>${printInput(printVat, "width:80px;")}</td></tr>
+        <tr style="background:#f2f2f2; font-weight:bold;"><td colspan="4" style="text-align:left;">المجموع الكلي / TOTAL (${escapePrintValue(printCurrency)}):</td><td>${printInput(printGrandTotal, "width:80px;")}</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:9px; color:#555; margin-top:5px; text-align: justify;">
+      * <strong>Note:</strong> The stand package includes traditional built wooden shell scheme with table, chairs, shelves, country flag, and plastic waste bin.<br>
+      * <strong>ملاحظة:</strong> يشمل الجناح المتكامل ستاند مبني خشبي تقليدي، طاولة، كراسي، كاونتر، رفوف، علم الدولة، وسلة مهملات بلاستيكية.
+    </p>
+    <div class="section-title"><span class="label-en">PAYMENT & DECLARATION</span><span class="label-ar">شروط الدفع والإقرار</span></div>
+    <p style="font-size:9.5px; text-align:justify;">
+      <strong>طريقة الدفع (Payment Terms):</strong> الدفع عند التوقيع 100% عن طريق التحويل البنكي. لا يتحمل المرسل إليه أي رسوم تحويل.<br>
+      <strong>إقرار العارض (Exhibitor's Declaration):</strong> أقر أنا الموقع أدناه بأنني قرأت وفهمت شروط وأحكام معرض رونق وأناقة، وأوافق دون تحفظ على كل فقراته.
+    </p>
+    <div class="signature-section">
+      <div class="sig-box"><div class="label-ar">التوقيع والختم الخاص بالشركة العارضة (إلزامي)</div><div class="label-en" style="position:absolute; bottom:25px; left:10px;">Signature & Stamp of Exhibiting Company</div><div style="position:absolute; bottom:5px; right:10px; font-size:10px;">Name: ${escapePrintValue(contract.contact_name)} Date: ${escapePrintValue(cleanDate(contract.contract_date))}</div></div>
+      <div class="sig-box"><div class="label-ar">التوقيع والختم الخاص بالمنظم</div><div class="label-en" style="position:absolute; bottom:25px; left:10px;">Signature & Stamp of Organizer</div><div style="position:absolute; bottom:5px; right:10px; font-size:10px;">Name:........................... Date: / / </div></div>
+    </div>
+    <div class="page-number">1 (4)</div>
+  </div>
+
+  <div class="page">
+    <table class="header-table"><tr><td><div class="logo-area" style="font-size:14px;">REE 2026</div></td><td style="text-align:center; font-weight:bold;">نشاط العمل وقطاع المنتجات | BUSINESS ACTIVITIES & SECTORS</td><td style="text-align:left; font-size:9px;">www.alsawsanexpo.com</td></tr></table>
+    <div class="grid-container">
+      <div class="checkbox-group">
+        <div style="background:#f2f2f2; font-weight:bold; padding:3px; margin-bottom:5px; text-align:center;">نشاط العمل / Business Activities</div>
+        <div class="checkbox-item"><span><input type="checkbox"> مصنع / Manufacturer</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> موزع إقليمي / Regional Distributor</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> موزع محلي / National Distributor</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> الاستيراد والتصدير / Import & Export</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> البيع بالتجزئة / Retail</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> مزود خدمة / Service Provider</span><input type="checkbox"></div>
+      </div>
+      <div class="checkbox-group">
+        <div style="background:#f2f2f2; font-weight:bold; padding:3px; margin-bottom:5px; text-align:center;">قطاع المنتجات / Product Group</div>
+        <div class="checkbox-item"><span><input type="checkbox"> جناح وطني أو إقليمي / National Pavilion</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> العود والعطور والبخور / Perfumes & Oud</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> مستلزمات وإكسسوارات رجالية / Men's Accessories</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> أزياء الرجل العصرية / Men's Fashion</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> الأناقة النسائية / Women's Elegance</span><input type="checkbox"></div>
+        <div class="checkbox-item"><span><input type="checkbox"> مصممو ومصممات الأزياء / Fashion Designers</span><input type="checkbox"></div>
+      </div>
+    </div>
+    <div class="checkbox-group" style="margin-top:10px;">
+      <div style="background:#f2f2f2; font-weight:bold; padding:3px; margin-bottom:5px; text-align:center;">تفاصيل إضافية للقطاعات / Additional Sectors</div>
+      <div class="grid-container"><div><label><input type="checkbox"> المشالح والبشوت / Cloaks & Bishts</label><br><label><input type="checkbox"> الغترة والشماغ والعقل / Traditional Headwear</label><br><label><input type="checkbox"> سبح، خواتم، ساعات، أقلام / Luxury Accessories</label></div><div><label><input type="checkbox"> ملابس داخلية ومنزلية / Homewear</label><br><label><input type="checkbox"> خدمات نسائية مميزة / Premium Women Services</label><br><label><input type="checkbox"> أخرى / Other: ........................</label></div></div>
+    </div>
+    <div class="section-title"><span class="label-en">TARGET VISITORS</span><span class="label-ar">الفئات المستهدفة من الزوار</span></div>
+    <div class="checkbox-group"><div class="checkbox-item"><span><input type="checkbox"> تجار الجملة والمستوردون / Wholesalers & Importers</span><span><input type="checkbox"> المصممون ودور الأزياء / Designers</span></div><div class="checkbox-item"><span><input type="checkbox"> الموزعون والموردون / Distributors & Suppliers</span><span><input type="checkbox"> أصحاب المحلات والمتاجر / Store Owners</span></div><div class="checkbox-item"><span><input type="checkbox"> تجار التجزئة / Retailers</span><span><input type="checkbox"> المستثمرون / Investors</span></div></div>
+    <div style="margin-top:15px; border:1px solid #ccc; padding:10px;"><strong class="label-ar">أذكر اسم 3 شركات سعودية على الأقل تود دعوتهم للمعرض:</strong><strong class="label-en">Name at least 3 Saudi companies you would like us to invite:</strong>${printInput("", "margin-top:10px;")}${printInput("", "margin-top:10px;")}${printInput("", "margin-top:10px;")}</div>
+    <div class="page-number">2 (4)</div>
+  </div>
+
+  <div class="page">
+    <div style="text-align:center; font-weight:bold; font-size:14px; border-bottom:2px solid #1a365d; padding-bottom:5px; margin-bottom:10px;">الأحكام والشروط العامة للمعرض (تابع عقد المشاركة)</div>
+    <div class="terms-container" style="grid-template-columns: 1fr;"><div class="terms-box">
+      <div class="article-title">الفقرة الأولى - الأنظمة والقوانين العامة لإقامة المعارض</div><p>يتم تحديد الشروط والأنظمة العامة الخاصة بتنظيم المعرض من قبل المنظم، ويحق له تعديل المواعيد أو الموقع إذا اقتضت الحاجة.</p>
+      <div class="article-title">الفقرة الثانية - شروط المشاركة في المعرض</div><p>يلتزم العارض بعرض المنتجات أو الخدمات المصرح بها فقط وبالأنظمة المعمول بها في المملكة العربية السعودية.</p>
+      <div class="article-title">الفقرة الثالثة - الطلبات</div><p>يعتبر تقديم طلب المشاركة تعهداً ملزماً بدفع أجرة الجناح والتكاليف المرتبطة به.</p>
+      <div class="article-title">الفقرة الخامسة - نقل الملكية والتأجير من الباطن</div><p>لا يحق للعارض التنازل عن المساحة أو تأجيرها للغير إلا بموافقة خطية مسبقة من المنظم.</p>
+      <div class="article-title">الفقرة السادسة - الانسحاب</div><p>في حال انسحاب العارض أو عدم شغله للجناح، تصبح المبالغ المدفوعة أو المتبقية مستحقة بالكامل للمنظم.</p>
+      <div class="article-title">الفقرة الحادية عشرة - توزيع أجنحة المعرض</div><p>يقوم المنظم بتوزيع الأجنحة وتعديل المساحات حسب مصلحة المعرض.</p>
+      <div class="article-title">الفقرة التاسعة عشر - التأشيرات والجمارك</div><p>تقع على عاتق العارض مسؤولية إنهاء الإجراءات النظامية للتأشيرات والجمارك.</p>
+      <div class="article-title">الفقرة الثامنة والعشرون - القانون والاختصاص</div><p>تخضع هذه الاتفاقية لأنظمة المملكة العربية السعودية، والنص العربي هو المرجع الأساسي.</p>
+    </div></div>
+    <div class="page-number">3 (4)</div>
+  </div>
+
+  <div class="page">
+    <div style="text-align:center; font-weight:bold; font-size:14px; border-bottom:2px solid #1a365d; padding-bottom:5px; margin-bottom:10px;">GENERAL TERMS & CONDITIONS (PARTICIPANT CONTRACT)</div>
+    <div class="terms-container" style="grid-template-columns: 1fr;"><div class="terms-box en">
+      <div class="article-title">Article 1 - General Regulations for Exhibitions</div><p>General specifications concerning the organization of the Exhibition, its opening/closing dates, and location are decided and may be modified by the organizer.</p>
+      <div class="article-title">Article 2 - Conditions for Participation</div><p>An Exhibitor may present only products or services manufactured, designed, represented, or authorized by himself. All exhibits must comply with the regulations of Saudi Arabia.</p>
+      <div class="article-title">Article 3 - Applications</div><p>Submission of the participation application form constitutes a binding undertaking to pay the full price of the stand hire and all associated costs.</p>
+      <div class="article-title">Article 5 - Assignment / Sub-letting</div><p>Without prior written consent, an exhibitor shall not transfer, sublet, or share all or part of the allocated space.</p>
+      <div class="article-title">Article 6 - Withdrawal</div><p>In the event of withdrawal or non-occupation, all sums paid and/or remaining due shall be retained by the organizer.</p>
+      <div class="article-title">Article 11 - Allocation of Stands</div><p>The organizer establishes the layout and allocates sites at his free will and may modify the size and layout of the requested area.</p>
+      <div class="article-title">Article 19 - Visa & Customs</div><p>It is the sole responsibility of the exhibitor to complete visa formalities and customs clearances.</p>
+      <div class="article-title">Article 28 - Governing Law and Jurisdiction</div><p>This agreement shall be governed by the laws of the Kingdom of Saudi Arabia. The Arabic text remains the primary legal reference.</p>
+    </div></div>
+    <div class="page-number">4 (4)</div>
+  </div>
+  <script>window.onload = () => { window.print(); };</script>
+</body>
+</html>`);
+    printWindow!.document.close();
+    return;
+    const statusValue = String(contract.status ?? "draft");
+    const packageValue = String(contract.package_type ?? "");
+    const currency = String(contract.currency ?? "SAR");
+    const pricePerSqm = contract.price_per_sqm == null ? "—" : formatMoney(contract.price_per_sqm, currency);
+    const total = contract.total_amount == null ? "—" : formatMoney(contract.total_amount, currency);
+    const field = (label: string, value: unknown, wide = false) => `
+      <div class="field ${wide ? "wide" : ""}">
+        <span>${escapePrintValue(label)}</span>
+        <strong>${escapePrintValue(value)}</strong>
+      </div>`;
+    printWindow!.document.write(`<!doctype html>
+      <html lang="ar" dir="rtl">
+        <head>
+          <meta charset="utf-8" />
+          <title>Participation Contract - ${escapePrintValue(contract.contract_number)}</title>
+          <style>
+            @page { size: A4; margin: 10mm; }
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              color: #111827;
+              background: #eef2f7;
+              font-family: Arial, "Tahoma", sans-serif;
+            }
+            .sheet {
+              width: 210mm;
+              min-height: 297mm;
+              margin: 0 auto;
+              padding: 10mm;
+              background: #ffffff;
+              border: 1px solid #d7dde6;
+            }
+            .top {
+              display: grid;
+              grid-template-columns: 1fr 118px;
+              gap: 16px;
+              align-items: start;
+              direction: ltr;
+              border-bottom: 4px solid #111827;
+              padding-bottom: 10px;
+            }
+            .title h1 {
+              margin: 0;
+              color: #111827;
+              font-size: 38px;
+              line-height: 0.95;
+              font-weight: 900;
+              letter-spacing: 0;
+            }
+            .title h2 {
+              margin: 8px 0 0;
+              color: #0f766e;
+              font-size: 18px;
+              font-weight: 800;
+            }
+            .event {
+              margin-top: 10px;
+              color: #374151;
+              font-size: 13px;
+              line-height: 1.55;
+              direction: ltr;
+            }
+            .logo {
+              border: 2px solid #111827;
+              min-height: 92px;
+              display: grid;
+              place-items: center;
+              text-align: center;
+              font-weight: 900;
+              font-size: 13px;
+              line-height: 1.2;
+            }
+            .contract-number {
+              margin-top: 8px;
+              padding: 7px 10px;
+              border: 1px solid #111827;
+              text-align: center;
+              font-size: 12px;
+              font-weight: 800;
+            }
+            .section {
+              margin-top: 12px;
+              border: 2px solid #111827;
+            }
+            .section-title {
+              display: flex;
+              justify-content: space-between;
+              gap: 12px;
+              padding: 7px 10px;
+              color: #ffffff;
+              background: #111827;
+              font-size: 14px;
+              font-weight: 900;
+              letter-spacing: 0;
+            }
+            .fields {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 0;
+              border-top: 1px solid #111827;
+            }
+            .field {
+              min-height: 43px;
+              padding: 7px 9px;
+              border-inline-start: 1px solid #cbd5e1;
+              border-bottom: 1px solid #cbd5e1;
+              direction: ltr;
+            }
+            .field:nth-child(2n) { border-inline-start: 0; }
+            .field.wide { grid-column: 1 / -1; }
+            .field span {
+              display: block;
+              color: #475569;
+              font-size: 10px;
+              font-weight: 800;
+              text-transform: uppercase;
+            }
+            .field strong {
+              display: block;
+              margin-top: 5px;
+              min-height: 18px;
+              color: #111827;
+              border-bottom: 1px solid #111827;
+              font-size: 13px;
+              font-weight: 700;
+              overflow-wrap: anywhere;
+            }
+            .participation-grid {
+              display: grid;
+              grid-template-columns: 1.4fr 0.8fr 0.8fr 0.9fr;
+              border-top: 1px solid #111827;
+              direction: ltr;
+            }
+            .participation-grid div {
+              min-height: 58px;
+              padding: 8px;
+              border-inline-end: 1px solid #cbd5e1;
+              border-bottom: 1px solid #cbd5e1;
+            }
+            .participation-grid div:last-child { border-inline-end: 0; }
+            .participation-grid span {
+              display: block;
+              color: #475569;
+              font-size: 10px;
+              font-weight: 800;
+              text-transform: uppercase;
+            }
+            .participation-grid strong {
+              display: block;
+              margin-top: 7px;
+              font-size: 14px;
+              border-bottom: 1px solid #111827;
+            }
+            .terms {
+              padding: 10px 12px;
+              font-size: 11px;
+              line-height: 1.55;
+              direction: ltr;
+            }
+            .terms p { margin: 0 0 7px; }
+            .terms-ar {
+              direction: rtl;
+              text-align: right;
+              color: #374151;
+            }
+            .signatures {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 18px;
+              margin-top: 16px;
+              direction: ltr;
+            }
+            .signature {
+              min-height: 90px;
+              padding: 10px;
+              border: 1px solid #111827;
+            }
+            .signature b {
+              display: block;
+              margin-bottom: 16px;
+              font-size: 12px;
+            }
+            .line {
+              height: 26px;
+              border-bottom: 1px solid #111827;
+              margin-bottom: 8px;
+            }
+            .footer {
+              margin-top: 12px;
+              display: flex;
+              justify-content: space-between;
+              color: #475569;
+              font-size: 11px;
+              direction: ltr;
+            }
+            @media print {
+              body { background: #ffffff; }
+              .sheet { width: auto; min-height: auto; border: 0; padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <main class="sheet">
+            <header class="top">
+              <div class="title">
+                <h1>PARTICIPATION<br />CONTRACT 2026</h1>
+                <h2>عقد المشاركة 2026</h2>
+                <div class="event">
+                  22 - 25 December 2026<br />
+                  At the Hilton Hotel, the Grand Hilton Hall<br />
+                  Jeddah, Saudi Arabia<br />
+                  <span dir="rtl">من 22 الى 25 ديسمبر 2026 - جدة، المملكة العربية السعودية</span>
+                </div>
+              </div>
+              <div>
+                <div class="logo">RAWNAQ &<br />ELEGANCE<br />EXPO</div>
+                <div class="contract-number">${escapePrintValue(contract.contract_number)}</div>
+              </div>
+            </header>
+
+            <section class="section">
+              <div class="section-title"><span>EXHIBITOR</span><span>العارض</span></div>
+              <div class="fields">
+                ${field("Company name / اسم الشركة", contract.company_name)}
+                ${field("Brand name / العلامة التجارية", contract.brand_name)}
+                ${field("Contact person / الشخص المسؤول", contract.contact_name)}
+                ${field("E-mail / البريد الإلكتروني", contract.email)}
+                ${field("Tel / هاتف", contract.phone)}
+                ${field("Mobile / الجوال", contract.mobile)}
+                ${field("Website / الموقع الإلكتروني", contract.website)}
+                ${field("Fax / فاكس", contract.fax)}
+                ${field("Address / العنوان", contract.address, true)}
+                ${field("City / المدينة", contract.city)}
+                ${field("Country / الدولة", contract.country)}
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-title"><span>PARTICIPATION</span><span>المشاركة</span></div>
+              <div class="participation-grid">
+                <div><span>Stand Number / رقم الجناح</span><strong>${escapePrintValue(contract.stand_number)}</strong></div>
+                <div><span>Location / فئة الموقع</span><strong>${escapePrintValue(contract.location_category)}</strong></div>
+                <div><span>Space / المساحة</span><strong>${escapePrintValue(contract.space_sqm)} sqm</strong></div>
+                <div><span>Status / الحالة</span><strong>${escapePrintValue(statusLabels[statusValue] ?? statusValue)}</strong></div>
+                <div><span>Package / نوع المشاركة</span><strong>${escapePrintValue(packageLabels[packageValue] ?? packageValue)}</strong></div>
+                <div><span>Price / sqm</span><strong>${escapePrintValue(pricePerSqm)}</strong></div>
+                <div><span>Total / الإجمالي</span><strong>${escapePrintValue(total)}</strong></div>
+                <div><span>Date / التاريخ</span><strong>${escapePrintValue(cleanDate(contract.contract_date))}</strong></div>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-title"><span>PAYMENT METHOD</span><span>طريقة الدفع</span></div>
+              <div class="terms">
+                <p>• By bank transfer. Banking information will be mentioned in the invoice.</p>
+                <p>• Payment by transfer must state on the transfer order: “Settlement at no cost to the payee.”</p>
+                <p class="terms-ar">• يتم الدفع عن طريق التحويل البنكي وتذكر بيانات التحويل في الفاتورة.</p>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-title"><span>EXHIBITOR'S DECLARATION</span><span>إقرار العارض</span></div>
+              <div class="terms">
+                <p>For the avoidance of doubt, reference to Exhibitor within this declaration and within the Terms & Conditions shall include reference to all their Co-Exhibitors.</p>
+                <p>I, the undersigned, declare that I am aware of the Terms & Conditions, possess a copy thereof, and accept, without reservation, all its clauses.</p>
+                <p class="terms-ar">أقر أنا الموقع أدناه بعلمي بالشروط والأحكام وقبولي لها دون تحفظ.</p>
+                <p><b>Notes:</b> ${escapePrintValue(contract.notes)}</p>
+              </div>
+            </section>
+
+            <div class="signatures">
+              <div class="signature">
+                <b>Exhibitor / العارض</b>
+                <div class="line">${escapePrintValue(contract.contact_name)}</div>
+                <div class="line">Date / التاريخ</div>
+              </div>
+              <div class="signature">
+                <b>Organizer / المنظم</b>
+                <div class="line"></div>
+                <div class="line">Date / التاريخ</div>
+              </div>
+            </div>
+
+            <footer class="footer">
+              <span>www.alsawsanexpo.com</span>
+              <span>Participation Contract 2026</span>
+            </footer>
+          </main>
+          <script>window.onload = () => { window.print(); };</script>
+        </body>
+      </html>`);
+    printWindow!.document.close();
+  }
+
+  async function saveContract() {
+    if (!companyName.trim() || !contactName.trim() || !packageType) {
+      setSaveStatus(text.validation);
+      return;
+    }
+    setSaveStatus(text.saving);
+    const payload = {
+      lead_id: leadId ? Number(leadId) : null,
+      company_name: companyName.trim(),
+      brand_name: brandName.trim() || null,
+      contact_name: contactName.trim(),
+      email: email.trim() || null,
+      website: website.trim() || null,
+      phone: phone.trim() || null,
+      mobile: mobile.trim() || null,
+      address: address.trim() || null,
+      city: city.trim() || null,
+      country: country.trim() || null,
+      stand_number: standNumber.trim() || null,
+      location_category: locationCategory,
+      package_type: packageType,
+      space_sqm: spaceSqm ? Number(spaceSqm) : null,
+      price_per_sqm: pricePerSqm ? Number(pricePerSqm) : null,
+      total_amount: displayedTotal ? Number(displayedTotal) : null,
+      contract_date: contractDate || null,
+      notes: notes.trim() || null,
+    };
+    try {
+      if (editingContractId) {
+        await updateBackend("participation-contracts", editingContractId, payload);
+        setSaveStatus(text.updated);
+      } else {
+        await createBackend("participation-contracts", payload);
+        setSaveStatus(text.saved);
+      }
+      resetContractForm();
+      await contracts.reload();
+    } catch {
+      setSaveStatus(text.failed);
+    }
+    window.setTimeout(() => setSaveStatus(""), 2200);
+  }
+
+  return (
+    <div className="quotes-page-grid">
+      <article className="quote-card quote-form-card">
+        <div className="card-title">
+          <h3>{text.formTitle}</h3>
+          <span>{text.formSubtitle}</span>
+        </div>
+        <div className="form-grid">
+          <label className="quote-field quote-field-customer">
+            <span>{text.customer}</span>
+            <DashboardSelect
+              ariaLabel={text.customer}
+              onValueChange={applyLeadData}
+              options={(leads.data ?? []).map((lead) => ({
+                label: String(lead.company_name ?? lead.name ?? lead.id),
+                value: String(lead.id),
+              }))}
+              placeholder={text.customerPlaceholder}
+              searchable
+              searchPlaceholder={text.customerSearch}
+              value={leadId}
+            />
+            {!selectedLead ? <small className="quote-duration-hint">{text.noCustomerData}</small> : null}
+          </label>
+          <label className="quote-field">
+            <span>{text.companyName} <b className="required-mark">*</b></span>
+            <input onChange={(event) => setCompanyName(event.target.value)} value={companyName} />
+          </label>
+          <label className="quote-field">
+            <span>{text.brandName}</span>
+            <input onChange={(event) => setBrandName(event.target.value)} value={brandName} />
+          </label>
+          <label className="quote-field">
+            <span>{text.contactName} <b className="required-mark">*</b></span>
+            <input onChange={(event) => setContactName(event.target.value)} value={contactName} />
+          </label>
+          <label className="quote-field">
+            <span>{text.mobile}</span>
+            <input inputMode="tel" onChange={(event) => setMobile(event.target.value)} value={mobile} />
+          </label>
+          <label className="quote-field">
+            <span>{text.email}</span>
+            <input onChange={(event) => setEmail(event.target.value)} type="email" value={email} />
+          </label>
+          <label className="quote-field">
+            <span>{text.website}</span>
+            <input onChange={(event) => setWebsite(event.target.value)} value={website} />
+          </label>
+          <label className="quote-field">
+            <span>{text.phone}</span>
+            <input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} />
+          </label>
+          <label className="quote-field">
+            <span>{text.standNumber}</span>
+            <input onChange={(event) => setStandNumber(event.target.value)} value={standNumber} />
+          </label>
+          <label className="quote-field">
+            <span>{text.locationCategory}</span>
+            <DashboardSelect
+              ariaLabel={text.locationCategory}
+              onValueChange={setLocationCategory}
+              options={[
+                {label: text.standard, value: "standard"},
+                {label: text.premium, value: "premium"},
+              ]}
+              value={locationCategory}
+            />
+          </label>
+          <label className="quote-field">
+            <span>{text.packageType} <b className="required-mark">*</b></span>
+            <DashboardSelect
+              ariaLabel={text.packageType}
+              onValueChange={setPackageType}
+              options={[
+                {label: text.spaceOnly, value: "space_only"},
+                {label: text.shellScheme, value: "space_shell_scheme"},
+              ]}
+              value={packageType}
+            />
+          </label>
+          <label className="quote-field">
+            <span>{text.spaceSqm}</span>
+            <input inputMode="decimal" min="0" onChange={(event) => setSpaceSqm(event.target.value)} type="number" value={spaceSqm} />
+          </label>
+          <label className="quote-field">
+            <span>{text.pricePerSqm}</span>
+            <input inputMode="decimal" min="0" onChange={(event) => setPricePerSqm(event.target.value)} type="number" value={pricePerSqm} />
+          </label>
+          <label className="quote-field">
+            <span>{text.totalAmount}</span>
+            <input inputMode="decimal" min="0" onChange={(event) => setTotalAmount(event.target.value)} placeholder={computedTotal} type="number" value={totalAmount} />
+          </label>
+          <label className="quote-field">
+            <span>{text.contractDate}</span>
+            <input onChange={(event) => setContractDate(event.target.value)} type="date" value={contractDate} />
+          </label>
+          <label className="quote-field">
+            <span>{text.city}</span>
+            <input onChange={(event) => setCity(event.target.value)} value={city} />
+          </label>
+          <label className="quote-field">
+            <span>{text.country}</span>
+            <input onChange={(event) => setCountry(event.target.value)} value={country} />
+          </label>
+        </div>
+        <label className="quote-details-field">
+          <span>{text.address}</span>
+          <textarea onChange={(event) => setAddress(event.target.value)} value={address} />
+        </label>
+        <label className="quote-details-field">
+          <span>{text.notes}</span>
+          <textarea onChange={(event) => setNotes(event.target.value)} value={notes} />
+        </label>
+        <div className="quote-action-row">
+          <button className="button button-primary" onClick={() => void saveContract()} type="button">
+            {editingContractId ? text.update : text.save}
+          </button>
+          {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
+        </div>
+      </article>
+
+      <article className="quote-card quote-history-card">
+        <div className="card-title">
+          <div>
+            <h3>{text.listTitle}</h3>
+            <span>{text.listSubtitle}</span>
+          </div>
+        </div>
+        <div className="contract-summary-grid">
+          <div className="contract-summary-card">
+            <span className="contract-summary-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /></svg>
+            </span>
+            <div>
+              <span>{isArabic ? "إجمالي عقود المشاركة" : "Total participation contracts"}</span>
+              <strong>{participationContractStats.total.toLocaleString(NUMBER_LOCALE)}</strong>
+            </div>
+          </div>
+          <div className="contract-summary-card">
+            <span className="contract-summary-icon success">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M12 9v6" /><path d="M8 12h8" /></svg>
+            </span>
+            <div>
+              <span>{isArabic ? "القيمة الإجمالية" : "Total value"}</span>
+              <strong>{formatMoney(participationContractStats.value, "SAR")}</strong>
+            </div>
+          </div>
+          <div className="contract-summary-card">
+            <span className="contract-summary-icon warning">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5" /><path d="M12 16h.01" /></svg>
+            </span>
+            <div>
+              <span>{isArabic ? "بانتظار الاعتماد والتوقيع" : "Pending approval and signature"}</span>
+              <strong>{participationContractStats.pending.toLocaleString(NUMBER_LOCALE)}</strong>
+            </div>
+          </div>
+        </div>
+        <div className="contract-smart-filter-row" aria-label={isArabic ? "فلاتر قائمة العقود" : "Contract list filters"}>
+          <div className="contract-smart-search">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="10.8" cy="10.8" r="6.2" />
+              <path d="m15.5 15.5 4 4" />
+            </svg>
+            <input
+              onChange={(event) => setParticipationSearch(event.target.value)}
+              placeholder={isArabic ? "ابحث بالاسم، الشركة، الجوال..." : "Search by name, company, mobile..."}
+              type="search"
+              value={participationSearch}
+            />
+            <strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong>
+          </div>
+          <div className="contract-smart-select">
+            <DashboardSelect
+              ariaLabel={text.locationCategory}
+              onValueChange={setLocationFilter}
+              options={[
+                {label: isArabic ? "كل فئات الموقع" : "All locations", value: "all"},
+                {label: text.standard, value: "standard"},
+                {label: text.premium, value: "premium"},
+              ]}
+              value={locationFilter}
+            />
+          </div>
+          <div className="contract-smart-select">
+            <DashboardSelect
+              ariaLabel={text.packageType}
+              onValueChange={setContractTypeFilter}
+              options={[
+                {label: isArabic ? "كل أنواع العقد" : "All contract types", value: "all"},
+                {label: text.spaceOnly, value: "space_only"},
+                {label: text.shellScheme, value: "space_shell_scheme"},
+              ]}
+              value={contractTypeFilter}
+            />
+          </div>
+          <button className="contract-smart-reset" onClick={resetContractFilters} type="button">
+            {isArabic ? "إعادة تعيين" : "Reset"}
+          </button>
+        </div>
+        <div className="quote-history-table">
+          <table>
+            <thead>
+              <tr>
+                <th>{isArabic ? "رقم العقد" : "Contract #"}</th>
+                <th>{text.customer}</th>
+                <th>{text.companyName}</th>
+                <th>{text.packageType}</th>
+                <th>{text.spaceSqm}</th>
+                <th>{text.totalAmount}</th>
+                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th>{text.contractDate}</th>
+                <th>{text.actions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredContracts.map((contract) => {
+                const packageValue = String(contract.package_type ?? "");
+                const statusValue = String(contract.status ?? "draft");
+                return (
+                  <tr key={contract.id}>
+                    <td>{String(contract.contract_number ?? contract.id)}</td>
+                    <td>{String(contract.customer_name ?? "—")}</td>
+                    <td>{String(contract.company_name ?? "—")}</td>
+                    <td>{packageLabels[packageValue] ?? packageValue}</td>
+                    <td>{Number(contract.space_sqm ?? 0).toLocaleString(NUMBER_LOCALE)}</td>
+                    <td>{formatMoney(contract.total_amount, String(contract.currency ?? "SAR"))}</td>
+                    <td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td>
+                    <td>{cleanDate(contract.contract_date)}</td>
+                    <td>
+                      <div className="contract-table-actions">
+                        <button className="contract-table-action" onClick={() => editContract(contract)} type="button">
+                          {text.edit}
+                        </button>
+                        <button className="contract-table-action primary" onClick={() => printContract(contract)} type="button">
+                          {text.print}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {!contracts.loading && !filteredContracts.length ? (
+                <tr>
+                  <td className="quote-history-empty" colSpan={9}>{text.noContracts}</td>
+                </tr>
+              ) : null}
+              {contracts.loading ? (
+                <tr>
+                  <td className="quote-history-empty" colSpan={9}>{isArabic ? "جاري التحميل..." : "Loading..."}</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+export function SponsorshipContractsPanel({locale}: {locale: string}) {
+  const isArabic = locale === "ar";
+  const contracts = useBackend<BackendRow[]>("/api/v1/data/sponsorship-contracts");
+  const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const [leadId, setLeadId] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState("");
+  const [phone, setPhone] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("Saudi Arabia");
+  const [standNumber, setStandNumber] = useState("");
+  const [sponsorshipCategory, setSponsorshipCategory] = useState("gold");
+  const [packageType, setPackageType] = useState("sponsorship_participation");
+  const [spaceSqm, setSpaceSqm] = useState("");
+  const [pricePerSqm, setPricePerSqm] = useState("");
+  const [sponsorshipAmount, setSponsorshipAmount] = useState("");
+  const [registrationFee, setRegistrationFee] = useState("500");
+  const [otherServicesAmount, setOtherServicesAmount] = useState("");
+  const [contractDate, setContractDate] = useState(() => dateAfterDays(0));
+  const [notes, setNotes] = useState("");
+  const [saveStatus, setSaveStatus] = useState("");
+  const [editingContractId, setEditingContractId] = useState<number | null>(null);
+  const [sponsorshipSearch, setSponsorshipSearch] = useState("");
+  const [sponsorshipCategoryFilter, setSponsorshipCategoryFilter] = useState("all");
+  const [sponsorshipContractTypeFilter, setSponsorshipContractTypeFilter] = useState("all");
+
+  const text = isArabic
+    ? {
+        formTitle: "إضافة بيانات العقد",
+        formSubtitle: "بيانات عقد الرعاية مرتبطة مباشرة بالعملاء المهتمين",
+        listTitle: "قائمة العقود",
+        listSubtitle: "عقود الرعاية التي تم إدخالها من حسابك",
+        customer: "العميل المهتم",
+        customerPlaceholder: "اختر العميل المهتم",
+        customerSearch: "ابحث باسم العميل أو الشركة",
+        companyName: "اسم الشركة",
+        brandName: "العلامة التجارية",
+        contactName: "الشخص المسؤول",
+        email: "البريد الإلكتروني",
+        website: "الموقع الإلكتروني",
+        phone: "الهاتف",
+        mobile: "الجوال",
+        address: "العنوان",
+        city: "المدينة",
+        country: "الدولة",
+        standNumber: "رقم الجناح",
+        sponsorshipCategory: "فئة الرعاية",
+        packageType: "نوع العقد",
+        spaceSqm: "المساحة بالمتر",
+        pricePerSqm: "السعر للمتر",
+        sponsorshipAmount: "مبلغ الرعاية",
+        registrationFee: "رسوم التسجيل",
+        otherServicesAmount: "خدمات أخرى",
+        vatAmount: "ضريبة القيمة المضافة",
+        grandTotal: "الإجمالي النهائي",
+        contractDate: "تاريخ العقد",
+        notes: "ملاحظات",
+        save: "حفظ العقد",
+        update: "تحديث العقد",
+        edit: "تعديل",
+        print: "طباعة",
+        actions: "الإجراءات",
+        saving: "جاري الحفظ...",
+        saved: "تم حفظ العقد",
+        updated: "تم تحديث العقد",
+        failed: "تعذر حفظ العقد",
+        validation: "أدخل اسم الشركة، الشخص المسؤول، وفئة الرعاية",
+        noCustomerData: "اختر عميلاً مهتماً لتعبئة بيانات الشركة تلقائياً",
+        noContracts: "لا توجد عقود رعاية حتى الآن",
+        sponsorshipParticipation: "رعاية ومشاركة",
+        sponsorshipOnly: "رعاية فقط",
+        platinum: "راعي بلاتيني",
+        gold: "راعي ذهبي",
+        silver: "راعي فضي",
+        partner: "شريك استراتيجي",
+        draft: "مسودة",
+        sent: "مرسل",
+        signed: "موقع",
+        cancelled: "ملغي",
+      }
+    : {
+        formTitle: "Add contract details",
+        formSubtitle: "Sponsorship contract details linked to interested customers",
+        listTitle: "Contracts list",
+        listSubtitle: "Sponsorship contracts entered from your account",
+        customer: "Interested customer",
+        customerPlaceholder: "Select interested customer",
+        customerSearch: "Search by customer or company",
+        companyName: "Company name",
+        brandName: "Brand name",
+        contactName: "Contact person",
+        email: "Email",
+        website: "Website",
+        phone: "Phone",
+        mobile: "Mobile",
+        address: "Address",
+        city: "City",
+        country: "Country",
+        standNumber: "Stand number",
+        sponsorshipCategory: "Sponsorship category",
+        packageType: "Contract type",
+        spaceSqm: "Space sqm",
+        pricePerSqm: "Price per sqm",
+        sponsorshipAmount: "Sponsorship amount",
+        registrationFee: "Registration fee",
+        otherServicesAmount: "Other services",
+        vatAmount: "VAT",
+        grandTotal: "Grand total",
+        contractDate: "Contract date",
+        notes: "Notes",
+        save: "Save contract",
+        update: "Update contract",
+        edit: "Edit",
+        print: "Print",
+        actions: "Actions",
+        saving: "Saving...",
+        saved: "Contract saved",
+        updated: "Contract updated",
+        failed: "Unable to save contract",
+        validation: "Enter company name, contact person, and sponsorship category",
+        noCustomerData: "Select an interested customer to fill company details automatically",
+        noContracts: "No sponsorship contracts yet",
+        sponsorshipParticipation: "Sponsorship & participation",
+        sponsorshipOnly: "Sponsorship only",
+        platinum: "Platinum sponsor",
+        gold: "Gold sponsor",
+        silver: "Silver sponsor",
+        partner: "Strategic partner",
+        draft: "Draft",
+        sent: "Sent",
+        signed: "Signed",
+        cancelled: "Cancelled",
+      };
+
+  const amounts = useMemo(() => {
+    const includesParticipation = packageType === "sponsorship_participation";
+    const boothAmount = includesParticipation
+      ? Number(spaceSqm || 0) * Number(pricePerSqm || 0)
+      : 0;
+    const sponsorship = Number(sponsorshipAmount || 0);
+    const registration = Number(registrationFee || 0);
+    const other = Number(otherServicesAmount || 0);
+    const subtotal = boothAmount + sponsorship + registration + other;
+    const vat = subtotal * 0.15;
+    return {boothAmount, subtotal, vat, grandTotal: subtotal + vat};
+  }, [otherServicesAmount, packageType, pricePerSqm, registrationFee, spaceSqm, sponsorshipAmount]);
+  const showParticipationFields = packageType === "sponsorship_participation";
+
+  useEffect(() => {
+    if (packageType !== "sponsorship_only") return;
+    setSpaceSqm("");
+    setPricePerSqm("");
+  }, [packageType]);
+  const selectedLead = (leads.data ?? []).find((lead) => String(lead.id) === leadId);
+  const statusLabels: Record<string, string> = {
+    draft: text.draft,
+    sent: text.sent,
+    signed: text.signed,
+    cancelled: text.cancelled,
+  };
+  const categoryLabels: Record<string, string> = {
+    platinum: text.platinum,
+    gold: text.gold,
+    silver: text.silver,
+    partner: text.partner,
+  };
+  const packageLabels: Record<string, string> = {
+    sponsorship_participation: text.sponsorshipParticipation,
+    sponsorship_only: text.sponsorshipOnly,
+  };
+  const filteredSponsorshipContracts = useMemo(() => {
+    const query = sponsorshipSearch.trim().toLocaleLowerCase();
+    return (contracts.data ?? []).filter((contract) => {
+      const matchesSearch =
+        !query ||
+        [
+          contract.contract_number,
+          contract.customer_name,
+          contract.company_name,
+          contract.contact_name,
+          contract.email,
+          contract.phone,
+          contract.mobile,
+          contract.sponsorship_category,
+          contract.package_type,
+        ].some((value) => String(value ?? "").toLocaleLowerCase().includes(query));
+      const matchesCategory =
+        sponsorshipCategoryFilter === "all" ||
+        String(contract.sponsorship_category ?? "") === sponsorshipCategoryFilter;
+      const matchesContractType =
+        sponsorshipContractTypeFilter === "all" ||
+        String(contract.package_type ?? "") === sponsorshipContractTypeFilter;
+      return matchesSearch && matchesCategory && matchesContractType;
+    });
+  }, [contracts.data, sponsorshipCategoryFilter, sponsorshipContractTypeFilter, sponsorshipSearch]);
+  const resetSponsorshipFilters = () => {
+    setSponsorshipSearch("");
+    setSponsorshipCategoryFilter("all");
+    setSponsorshipContractTypeFilter("all");
+  };
+  const sponsorshipContractStats = useMemo(() => {
+    const rows = contracts.data ?? [];
+    return {
+      total: rows.length,
+      value: rows.reduce((sum, contract) => sum + Number(contract.grand_total ?? 0), 0),
+      pending: rows.filter((contract) =>
+        ["draft", "sent"].includes(String(contract.status ?? "draft")),
+      ).length,
+    };
+  }, [contracts.data]);
+
+  function applyLeadData(nextLeadId: string) {
+    setLeadId(nextLeadId);
+    const lead = (leads.data ?? []).find((item) => String(item.id) === nextLeadId);
+    if (!lead) return;
+    setCompanyName(String(lead.company_name ?? lead.name ?? ""));
+    setContactName(String(lead.name ?? ""));
+    setEmail(String(lead.email ?? ""));
+    setPhone(String(lead.phone ?? ""));
+    setMobile(String(lead.phone ?? ""));
+    setAddress(String(lead.address ?? ""));
+  }
+
+  function resetContractForm() {
+    setEditingContractId(null);
+    setLeadId("");
+    setCompanyName("");
+    setBrandName("");
+    setContactName("");
+    setEmail("");
+    setWebsite("");
+    setPhone("");
+    setMobile("");
+    setAddress("");
+    setCity("");
+    setCountry("Saudi Arabia");
+    setStandNumber("");
+    setSponsorshipCategory("gold");
+    setPackageType("sponsorship_participation");
+    setSpaceSqm("");
+    setPricePerSqm("");
+    setSponsorshipAmount("");
+    setRegistrationFee("500");
+    setOtherServicesAmount("");
+    setContractDate(dateAfterDays(0));
+    setNotes("");
+  }
+
+  function editContract(contract: BackendRow) {
+    setEditingContractId(Number(contract.id));
+    setLeadId(contract.lead_id ? String(contract.lead_id) : "");
+    setCompanyName(String(contract.company_name ?? ""));
+    setBrandName(String(contract.brand_name ?? ""));
+    setContactName(String(contract.contact_name ?? ""));
+    setEmail(String(contract.email ?? ""));
+    setWebsite(String(contract.website ?? ""));
+    setPhone(String(contract.phone ?? ""));
+    setMobile(String(contract.mobile ?? ""));
+    setAddress(String(contract.address ?? ""));
+    setCity(String(contract.city ?? ""));
+    setCountry(String(contract.country ?? "Saudi Arabia"));
+    setStandNumber(String(contract.stand_number ?? ""));
+    setSponsorshipCategory(String(contract.sponsorship_category ?? "gold"));
+    setPackageType(String(contract.package_type ?? "sponsorship_participation"));
+    setSpaceSqm(contract.space_sqm == null ? "" : String(contract.space_sqm));
+    setPricePerSqm(contract.price_per_sqm == null ? "" : String(contract.price_per_sqm));
+    setSponsorshipAmount(contract.sponsorship_amount == null ? "" : String(contract.sponsorship_amount));
+    setRegistrationFee(contract.registration_fee == null ? "" : String(contract.registration_fee));
+    setOtherServicesAmount(contract.other_services_amount == null ? "" : String(contract.other_services_amount));
+    setContractDate(cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date));
+    setNotes(String(contract.notes ?? ""));
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  function escapePrintValue(value: unknown) {
+    return String(value ?? "—")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function printContract(contract: BackendRow) {
+    const printWindow = window.open("", "_blank", "width=900,height=1100");
+    if (!printWindow) return;
+    const currency = String(contract.currency ?? "SAR");
+    const printIncludesParticipation = String(contract.package_type ?? "sponsorship_participation") === "sponsorship_participation";
+    const contractTitleEn = printIncludesParticipation ? "SPONSORSHIP & PARTICIPATION CONTRACT" : "SPONSORSHIP CONTRACT";
+    const contractTitleAr = printIncludesParticipation ? "عقد الرعاية والمشاركة" : "عقد الرعاية";
+    const declarationAr = printIncludesParticipation
+      ? "أقر أنا الموقع أدناه بصحة البيانات وقبولي شروط عقد الرعاية والمشاركة."
+      : "أقر أنا الموقع أدناه بصحة البيانات وقبولي شروط عقد الرعاية.";
+    const declarationEn = printIncludesParticipation
+      ? "I hereby confirm the accuracy of the information and accept the terms of this sponsorship and participation contract."
+      : "I hereby confirm the accuracy of the information and accept the terms of this sponsorship contract.";
+    const printSpaceSqm = Number(contract.space_sqm ?? 0);
+    const printPricePerSqm = Number(contract.price_per_sqm ?? 0);
+    const boothAmount = printIncludesParticipation
+      ? printSpaceSqm * printPricePerSqm
+      : 0;
+    const sponsorship = Number(contract.sponsorship_amount ?? 0);
+    const registration = Number(contract.registration_fee ?? 0);
+    const other = Number(contract.other_services_amount ?? 0);
+    const subtotal = boothAmount + sponsorship + registration + other;
+    const vat = Number(contract.vat_amount ?? subtotal * 0.15);
+    const grandTotal = Number(contract.grand_total ?? subtotal + vat);
+    const field = (labelAr: string, labelEn: string, value: unknown) => `
+      <td class="label-cell">${escapePrintValue(labelAr)}<br><span>${escapePrintValue(labelEn)}</span></td>
+      <td class="input-cell">${escapePrintValue(value)}</td>`;
+    const checked = (value: string) =>
+      String(contract.sponsorship_category ?? "") === value ? "checked" : "";
+    const companyAddressRow = printIncludesParticipation
+      ? `<tr>${field("العنوان", "Address", contract.address)}${field("رقم الجناح", "Stand No.", contract.stand_number)}</tr>`
+      : `<tr>${field("العنوان", "Address", contract.address)}${field("رقم العقد", "Contract No.", contract.contract_number)}</tr>`;
+    const participationFeeRows = printIncludesParticipation
+      ? `
+        <tr><td>المساحة بالمتر</td><td class="en-text">Space SQM</td><td>${printSpaceSqm.toLocaleString(NUMBER_LOCALE)}</td><td>متر مربع</td></tr>
+        <tr><td>السعر للمتر</td><td class="en-text">Price Per SQM</td><td>${printPricePerSqm.toLocaleString(NUMBER_LOCALE)}</td><td>${escapePrintValue(currency)}</td></tr>
+        <tr><td>قيمة المساحة</td><td class="en-text">Space Amount</td><td>${boothAmount.toLocaleString(NUMBER_LOCALE)}</td><td>${escapePrintValue(currency)}</td></tr>`
+      : "";
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>${escapePrintValue(contractTitleAr)} - ${escapePrintValue(contract.contract_number)}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Montserrat:wght@300;400;600;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    @page { size: A4 portrait; margin: 0; }
+    body { font-family: 'Cairo', Arial, sans-serif; font-size: 10.5px; color: #333; line-height: 1.35; background: #f4f6f9; }
+    .en-text { font-family: 'Montserrat', Arial, sans-serif; direction: ltr; text-align: left; }
+    .page { width: 210mm; height: 297mm; padding: 11mm; margin: 0 auto; background: #fff; position: relative; overflow: hidden; }
+    .header-table, .form-table, .pricing-table { width: 100%; border-collapse: collapse; }
+    .header-table { margin-bottom: 12px; }
+    .header-table td { border: none; padding: 5px; vertical-align: middle; }
+    .logo-area { text-align: center; font-size: 24px; font-weight: bold; color: #a88734; border: 2px solid #a88734; padding: 10px; border-radius: 5px; }
+    .main-title { text-align: center; color: #1a2a3a; }
+    .main-title h1 { font-size: 17px; color: #a88734; letter-spacing: 1px; }
+    .main-title h2 { font-size: 15px; margin: 3px 0; }
+    .main-title p { font-size: 10px; color: #666; }
+    .section-title { background: #1a2a3a; color: #fff; padding: 6px 10px; font-size: 12px; font-weight: bold; margin: 12px 0 8px; border-radius: 3px; display: flex; justify-content: space-between; }
+    .form-table td, .pricing-table th, .pricing-table td { border: 1px solid #d8d8d8; padding: 5px; vertical-align: middle; }
+    .label-cell { background: #f9f9f9; font-weight: 700; width: 22%; }
+    .label-cell span { color: #777; font-size: 8.5px; direction: ltr; }
+    .input-cell { width: 28%; min-height: 22px; color: #111; font-weight: 600; }
+    .pricing-table th { background: #f1f1f1; color: #1a2a3a; }
+    .checkbox-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 6px; }
+    .checkbox-item { border: 1px solid #d8d8d8; padding: 6px; min-height: 34px; display: flex; align-items: center; justify-content: space-between; }
+    .signature-section { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 14px; }
+    .sig-box { border: 1px solid #aaa; padding: 10px; height: 88px; }
+    .sig-line { border-bottom: 1px solid #777; height: 26px; margin-top: 12px; }
+    .two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .activity-box { border: 1px solid #ddd; padding: 8px; min-height: 88px; }
+    .activity-box h3 { color: #1a2a3a; font-size: 12px; margin-bottom: 6px; }
+    .terms-container { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; text-align: justify; font-size: 8.5px; line-height: 1.45; }
+    .terms-box.en { direction: ltr; text-align: left; font-family: 'Montserrat', Arial, sans-serif; }
+    .article-title { font-weight: 700; margin-top: 7px; color: #1a2a3a; }
+    .page-number { position: absolute; bottom: 7mm; left: 50%; transform: translateX(-50%); color: #777; font-size: 9px; }
+    @media print {
+      body { background: #fff; }
+      .page { margin: 0; page-break-after: always; break-after: page; }
+    }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <table class="header-table">
+      <tr>
+        <td style="width:25%"><div class="logo-area">REE</div></td>
+        <td class="main-title" style="width:50%">
+          <h1>${escapePrintValue(contractTitleEn)}</h1>
+          <h2>${escapePrintValue(contractTitleAr)}</h2>
+          <p>Rawnaq & Elegance Expo 2026 - Jeddah Hilton</p>
+        </td>
+        <td class="en-text" style="width:25%; font-size:10px">
+          Contract No.<br><b>${escapePrintValue(contract.contract_number)}</b><br>
+          Date<br><b>${escapePrintValue(cleanDate(contract.contract_date))}</b>
+        </td>
+      </tr>
+    </table>
+    <div class="section-title"><span>بيانات الشركة</span><span class="en-text">COMPANY DETAILS</span></div>
+    <table class="form-table">
+      <tr>${field("اسم الشركة", "Company Name", contract.company_name)}${field("العلامة التجارية", "Brand", contract.brand_name)}</tr>
+      <tr>${field("الشخص المسؤول", "Contact Person", contract.contact_name)}${field("البريد الإلكتروني", "Email", contract.email)}</tr>
+      <tr>${field("الجوال", "Mobile", contract.mobile)}${field("الهاتف", "Phone", contract.phone)}</tr>
+      <tr>${field("الموقع الإلكتروني", "Website", contract.website)}${field("المدينة / الدولة", "City / Country", `${String(contract.city ?? "")} / ${String(contract.country ?? "")}`)}</tr>
+      ${companyAddressRow}
+    </table>
+    <div class="section-title"><span>فئة الرعاية</span><span class="en-text">SPONSORSHIP CATEGORY</span></div>
+    <div class="checkbox-row">
+      <label class="checkbox-item">راعي بلاتيني <input type="checkbox" ${checked("platinum")}></label>
+      <label class="checkbox-item">راعي ذهبي <input type="checkbox" ${checked("gold")}></label>
+      <label class="checkbox-item">راعي فضي <input type="checkbox" ${checked("silver")}></label>
+      <label class="checkbox-item">شريك استراتيجي <input type="checkbox" ${checked("partner")}></label>
+    </div>
+    <div class="section-title"><span>الرسوم</span><span class="en-text">FEES</span></div>
+    <table class="pricing-table">
+      <thead><tr><th>البند</th><th class="en-text">Item</th><th>المبلغ</th><th>العملة</th></tr></thead>
+      <tbody>
+        ${participationFeeRows}
+        <tr><td>مبلغ الرعاية</td><td class="en-text">Sponsorship Amount</td><td>${sponsorship.toLocaleString(NUMBER_LOCALE)}</td><td>${escapePrintValue(currency)}</td></tr>
+        <tr><td>رسوم التسجيل</td><td class="en-text">Registration Fee</td><td>${registration.toLocaleString(NUMBER_LOCALE)}</td><td>${escapePrintValue(currency)}</td></tr>
+        <tr><td>خدمات أخرى</td><td class="en-text">Other Services</td><td>${other.toLocaleString(NUMBER_LOCALE)}</td><td>${escapePrintValue(currency)}</td></tr>
+        <tr><td>ضريبة القيمة المضافة 15%</td><td class="en-text">VAT 15%</td><td>${vat.toLocaleString(NUMBER_LOCALE)}</td><td>${escapePrintValue(currency)}</td></tr>
+        <tr><td><b>الإجمالي النهائي</b></td><td class="en-text"><b>Grand Total</b></td><td><b>${grandTotal.toLocaleString(NUMBER_LOCALE)}</b></td><td>${escapePrintValue(currency)}</td></tr>
+      </tbody>
+    </table>
+    <div class="signature-section">
+      <div class="sig-box"><b>الراعي / Sponsor</b><div class="sig-line">${escapePrintValue(contract.contact_name)}</div></div>
+      <div class="sig-box"><b>المنظم / Organizer</b><div class="sig-line"></div></div>
+    </div>
+    <div class="page-number">1 / 3</div>
+  </section>
+  <section class="page">
+    <div class="section-title"><span>بيانات النشاط</span><span class="en-text">BUSINESS ACTIVITIES</span></div>
+    <div class="two-columns">
+      <div class="activity-box"><h3>المنتجات والخدمات</h3><p>${escapePrintValue(contract.notes || "تفاصيل المنتجات أو الخدمات التي سيتم عرضها ضمن الرعاية.")}</p></div>
+      <div class="activity-box en-text"><h3>Products & Services</h3><p>${escapePrintValue(contract.notes || "Products or services to be promoted during the sponsorship.")}</p></div>
+      <div class="activity-box"><h3>الفئة المستهدفة</h3><p>زوار المعرض، العملاء المهتمون، الشركاء التجاريون، وصناع القرار.</p></div>
+      <div class="activity-box en-text"><h3>Target Visitors</h3><p>Expo visitors, interested customers, business partners, and decision makers.</p></div>
+    </div>
+    <div class="section-title"><span>إقرار الراعي</span><span class="en-text">SPONSOR DECLARATION</span></div>
+    <table class="form-table">
+      <tr><td>${escapePrintValue(declarationAr)}</td></tr>
+      <tr><td class="en-text">${escapePrintValue(declarationEn)}</td></tr>
+    </table>
+    <div class="signature-section">
+      <div class="sig-box"><b>الاسم / Name</b><div class="sig-line">${escapePrintValue(contract.contact_name)}</div></div>
+      <div class="sig-box"><b>الختم / Stamp</b><div class="sig-line"></div></div>
+    </div>
+    <div class="page-number">2 / 3</div>
+  </section>
+  <section class="page">
+    <div class="section-title"><span>الشروط والأحكام</span><span class="en-text">TERMS & CONDITIONS</span></div>
+    <div class="terms-container">
+      <div class="terms-box">
+        <div class="article-title">المادة 1 - الالتزام</div><p>يعد توقيع هذا العقد التزامًا بسداد كامل قيمة الرعاية والخدمات المتفق عليها.</p>
+        <div class="article-title">المادة 2 - السداد</div><p>يتم السداد حسب الفاتورة الصادرة من المنظم، ولا يعد الحجز مؤكدًا إلا بعد اعتماد الدفعة المطلوبة.</p>
+        <div class="article-title">المادة 3 - التنازل</div><p>لا يحق للراعي التنازل عن حقوق الرعاية أو مشاركتها مع طرف آخر دون موافقة خطية من المنظم.</p>
+        <div class="article-title">المادة 4 - الإلغاء</div><p>في حال الإلغاء أو عدم الحضور، يحق للمنظم الاحتفاظ بالمبالغ المدفوعة والمستحقة وفق سياسة المعرض.</p>
+        <div class="article-title">المادة 5 - النظام العام</div><p>يلتزم الراعي بتعليمات إدارة المعرض والجهات الرسمية طوال فترة التجهيز والتشغيل.</p>
+      </div>
+      <div class="terms-box en">
+        <div class="article-title">Article 1 - Commitment</div><p>Signing this contract is a binding commitment to pay the full sponsorship and related service fees.</p>
+        <div class="article-title">Article 2 - Payment</div><p>Payment shall be made according to the organizer's invoice. Booking is confirmed only after the required payment is approved.</p>
+        <div class="article-title">Article 3 - Assignment</div><p>The sponsor may not assign or share sponsorship rights with another party without written organizer approval.</p>
+        <div class="article-title">Article 4 - Cancellation</div><p>In case of cancellation or non-attendance, the organizer may retain paid and due amounts according to expo policy.</p>
+        <div class="article-title">Article 5 - Compliance</div><p>The sponsor shall comply with expo management and official authority instructions during setup and operation.</p>
+      </div>
+    </div>
+    <div class="page-number">3 / 3</div>
+  </section>
+  <script>window.onload = () => { window.print(); };</script>
+</body>
+</html>`);
+    printWindow.document.close();
+  }
+
+  async function saveContract() {
+    if (!companyName.trim() || !contactName.trim() || !sponsorshipCategory) {
+      setSaveStatus(text.validation);
+      return;
+    }
+    setSaveStatus(text.saving);
+    const payload = {
+      lead_id: leadId ? Number(leadId) : null,
+      company_name: companyName.trim(),
+      brand_name: brandName.trim() || null,
+      contact_name: contactName.trim(),
+      email: email.trim() || null,
+      website: website.trim() || null,
+      phone: phone.trim() || null,
+      mobile: mobile.trim() || null,
+      address: address.trim() || null,
+      city: city.trim() || null,
+      country: country.trim() || null,
+      stand_number: standNumber.trim() || null,
+      sponsorship_category: sponsorshipCategory,
+      package_type: packageType,
+      space_sqm: showParticipationFields && spaceSqm ? Number(spaceSqm) : 0,
+      price_per_sqm: showParticipationFields && pricePerSqm ? Number(pricePerSqm) : 0,
+      sponsorship_amount: sponsorshipAmount ? Number(sponsorshipAmount) : 0,
+      registration_fee: registrationFee ? Number(registrationFee) : 0,
+      other_services_amount: otherServicesAmount ? Number(otherServicesAmount) : 0,
+      vat_amount: amounts.vat,
+      grand_total: amounts.grandTotal,
+      contract_date: contractDate || null,
+      notes: notes.trim() || null,
+    };
+    try {
+      if (editingContractId) {
+        await updateBackend("sponsorship-contracts", editingContractId, payload);
+        setSaveStatus(text.updated);
+      } else {
+        await createBackend("sponsorship-contracts", payload);
+        setSaveStatus(text.saved);
+      }
+      resetContractForm();
+      await contracts.reload();
+    } catch {
+      setSaveStatus(text.failed);
+    }
+    window.setTimeout(() => setSaveStatus(""), 2200);
+  }
+
+  return (
+    <div className="quotes-page-grid">
+      <article className="quote-card quote-form-card">
+        <div className="card-title">
+          <h3>{text.formTitle}</h3>
+          <span>{text.formSubtitle}</span>
+        </div>
+        <div className="form-grid">
+          <label className="quote-field quote-field-customer">
+            <span>{text.customer}</span>
+            <DashboardSelect
+              ariaLabel={text.customer}
+              onValueChange={applyLeadData}
+              options={(leads.data ?? []).map((lead) => ({
+                label: String(lead.company_name ?? lead.name ?? lead.id),
+                value: String(lead.id),
+              }))}
+              placeholder={text.customerPlaceholder}
+              searchable
+              searchPlaceholder={text.customerSearch}
+              value={leadId}
+            />
+            {!selectedLead ? <small className="quote-duration-hint">{text.noCustomerData}</small> : null}
+          </label>
+          <label className="quote-field"><span>{text.companyName} <b className="required-mark">*</b></span><input onChange={(event) => setCompanyName(event.target.value)} value={companyName} /></label>
+          <label className="quote-field"><span>{text.brandName}</span><input onChange={(event) => setBrandName(event.target.value)} value={brandName} /></label>
+          <label className="quote-field"><span>{text.contactName} <b className="required-mark">*</b></span><input onChange={(event) => setContactName(event.target.value)} value={contactName} /></label>
+          <label className="quote-field"><span>{text.mobile}</span><input inputMode="tel" onChange={(event) => setMobile(event.target.value)} value={mobile} /></label>
+          <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>
+          <label className="quote-field"><span>{text.website}</span><input onChange={(event) => setWebsite(event.target.value)} value={website} /></label>
+          <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
+          <label className="quote-field"><span>{text.standNumber}</span><input onChange={(event) => setStandNumber(event.target.value)} value={standNumber} /></label>
+          <label className="quote-field">
+            <span>{text.sponsorshipCategory} <b className="required-mark">*</b></span>
+            <DashboardSelect
+              ariaLabel={text.sponsorshipCategory}
+              onValueChange={setSponsorshipCategory}
+              options={[
+                {label: text.platinum, value: "platinum"},
+                {label: text.gold, value: "gold"},
+                {label: text.silver, value: "silver"},
+                {label: text.partner, value: "partner"},
+              ]}
+              value={sponsorshipCategory}
+            />
+          </label>
+          <label className="quote-field">
+            <span>{text.packageType}</span>
+            <DashboardSelect
+              ariaLabel={text.packageType}
+              onValueChange={setPackageType}
+              options={[
+                {label: text.sponsorshipParticipation, value: "sponsorship_participation"},
+                {label: text.sponsorshipOnly, value: "sponsorship_only"},
+              ]}
+              value={packageType}
+            />
+          </label>
+          {showParticipationFields ? (
+            <>
+              <label className="quote-field"><span>{text.spaceSqm}</span><input inputMode="decimal" min="0" onChange={(event) => setSpaceSqm(event.target.value)} type="number" value={spaceSqm} /></label>
+              <label className="quote-field"><span>{text.pricePerSqm}</span><input inputMode="decimal" min="0" onChange={(event) => setPricePerSqm(event.target.value)} type="number" value={pricePerSqm} /></label>
+            </>
+          ) : null}
+          <label className="quote-field"><span>{text.sponsorshipAmount}</span><input inputMode="decimal" min="0" onChange={(event) => setSponsorshipAmount(event.target.value)} type="number" value={sponsorshipAmount} /></label>
+          <label className="quote-field"><span>{text.registrationFee}</span><input inputMode="decimal" min="0" onChange={(event) => setRegistrationFee(event.target.value)} type="number" value={registrationFee} /></label>
+          <label className="quote-field"><span>{text.otherServicesAmount}</span><input inputMode="decimal" min="0" onChange={(event) => setOtherServicesAmount(event.target.value)} type="number" value={otherServicesAmount} /></label>
+          <label className="quote-field"><span>{text.vatAmount}</span><input readOnly value={amounts.vat.toLocaleString(NUMBER_LOCALE)} /></label>
+          <label className="quote-field"><span>{text.grandTotal}</span><input readOnly value={amounts.grandTotal.toLocaleString(NUMBER_LOCALE)} /></label>
+          <label className="quote-field"><span>{text.contractDate}</span><input onChange={(event) => setContractDate(event.target.value)} type="date" value={contractDate} /></label>
+          <label className="quote-field"><span>{text.city}</span><input onChange={(event) => setCity(event.target.value)} value={city} /></label>
+          <label className="quote-field"><span>{text.country}</span><input onChange={(event) => setCountry(event.target.value)} value={country} /></label>
+        </div>
+        <label className="quote-details-field"><span>{text.address}</span><textarea onChange={(event) => setAddress(event.target.value)} value={address} /></label>
+        <label className="quote-details-field"><span>{text.notes}</span><textarea onChange={(event) => setNotes(event.target.value)} value={notes} /></label>
+        <div className="quote-action-row">
+          <button className="button button-primary" onClick={() => void saveContract()} type="button">
+            {editingContractId ? text.update : text.save}
+          </button>
+          {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
+        </div>
+      </article>
+
+      <article className="quote-card quote-history-card">
+        <div className="card-title">
+          <div>
+            <h3>{text.listTitle}</h3>
+            <span>{text.listSubtitle}</span>
+          </div>
+        </div>
+        <div className="contract-summary-grid">
+          <div className="contract-summary-card">
+            <span className="contract-summary-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /></svg>
+            </span>
+            <div>
+              <span>{isArabic ? "إجمالي عقود الرعاية" : "Total sponsorship contracts"}</span>
+              <strong>{sponsorshipContractStats.total.toLocaleString(NUMBER_LOCALE)}</strong>
+            </div>
+          </div>
+          <div className="contract-summary-card">
+            <span className="contract-summary-icon success">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M12 9v6" /><path d="M8 12h8" /></svg>
+            </span>
+            <div>
+              <span>{isArabic ? "القيمة الإجمالية" : "Total value"}</span>
+              <strong>{formatMoney(sponsorshipContractStats.value, "SAR")}</strong>
+            </div>
+          </div>
+          <div className="contract-summary-card">
+            <span className="contract-summary-icon warning">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5" /><path d="M12 16h.01" /></svg>
+            </span>
+            <div>
+              <span>{isArabic ? "بانتظار الاعتماد والتوقيع" : "Pending approval and signature"}</span>
+              <strong>{sponsorshipContractStats.pending.toLocaleString(NUMBER_LOCALE)}</strong>
+            </div>
+          </div>
+        </div>
+        <div className="contract-smart-filter-row">
+          <div className="contract-smart-search">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="10.8" cy="10.8" r="6.2" />
+              <path d="m15.5 15.5 4 4" />
+            </svg>
+            <input
+              onChange={(event) => setSponsorshipSearch(event.target.value)}
+              placeholder={isArabic ? "ابحث بالاسم، الشركة، الجوال..." : "Search by name, company, mobile..."}
+              type="search"
+              value={sponsorshipSearch}
+            />
+            <strong>{filteredSponsorshipContracts.length.toLocaleString(NUMBER_LOCALE)}</strong>
+          </div>
+          <div className="contract-smart-select">
+            <DashboardSelect
+              ariaLabel={text.sponsorshipCategory}
+              onValueChange={setSponsorshipCategoryFilter}
+              options={[
+                {label: isArabic ? "جميع أنواع الرعاية" : "All sponsorship types", value: "all"},
+                {label: text.platinum, value: "platinum"},
+                {label: text.gold, value: "gold"},
+                {label: text.silver, value: "silver"},
+                {label: text.partner, value: "partner"},
+              ]}
+              value={sponsorshipCategoryFilter}
+            />
+          </div>
+          <div className="contract-smart-select">
+            <DashboardSelect
+              ariaLabel={text.packageType}
+              onValueChange={setSponsorshipContractTypeFilter}
+              options={[
+                {label: isArabic ? "كل أنواع العقد" : "All contract types", value: "all"},
+                {label: text.sponsorshipParticipation, value: "sponsorship_participation"},
+                {label: text.sponsorshipOnly, value: "sponsorship_only"},
+              ]}
+              value={sponsorshipContractTypeFilter}
+            />
+          </div>
+          <button className="contract-smart-reset" onClick={resetSponsorshipFilters} type="button">
+            {isArabic ? "إعادة تعيين" : "Reset"}
+          </button>
+        </div>
+        <div className="quote-history-table">
+          <table>
+            <thead>
+              <tr>
+                <th>{isArabic ? "رقم العقد" : "Contract #"}</th>
+                <th>{text.customer}</th>
+                <th>{text.companyName}</th>
+                <th>{text.packageType}</th>
+                <th>{text.sponsorshipCategory}</th>
+                <th>{text.grandTotal}</th>
+                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th>{text.contractDate}</th>
+                <th>{text.actions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSponsorshipContracts.map((contract) => {
+                const categoryValue = String(contract.sponsorship_category ?? "");
+                const packageValue = String(contract.package_type ?? "sponsorship_participation");
+                const statusValue = String(contract.status ?? "draft");
+                return (
+                  <tr key={contract.id}>
+                    <td>{String(contract.contract_number ?? contract.id)}</td>
+                    <td>{String(contract.customer_name ?? "—")}</td>
+                    <td>{String(contract.company_name ?? "—")}</td>
+                    <td>{packageLabels[packageValue] ?? packageValue}</td>
+                    <td>{categoryLabels[categoryValue] ?? categoryValue}</td>
+                    <td>{formatMoney(contract.grand_total, String(contract.currency ?? "SAR"))}</td>
+                    <td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td>
+                    <td>{cleanDate(contract.contract_date)}</td>
+                    <td>
+                      <div className="contract-table-actions">
+                        <button className="contract-table-action" onClick={() => editContract(contract)} type="button">{text.edit}</button>
+                        <button className="contract-table-action primary" onClick={() => printContract(contract)} type="button">{text.print}</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {!contracts.loading && !filteredSponsorshipContracts.length ? (
+                <tr><td className="quote-history-empty" colSpan={9}>{text.noContracts}</td></tr>
+              ) : null}
+              {contracts.loading ? (
+                <tr><td className="quote-history-empty" colSpan={9}>{isArabic ? "جاري التحميل..." : "Loading..."}</td></tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+export function SalesOrdersPanel({locale}: {locale: string}) {
+  const isArabic = locale === "ar";
+  const orders = useBackend<BackendRow[]>("/api/v1/data/sales-orders");
+  const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const [leadId, setLeadId] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("Saudi Arabia");
+  const [exhibitionName, setExhibitionName] = useState("Rawnaq Elegance Expo - Dec 2026");
+  const [standNumber, setStandNumber] = useState("");
+  const [itemDescription, setItemDescription] = useState("Space Only");
+  const [uom, setUom] = useState("SQM");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [quantity, setQuantity] = useState("1");
+  const [orderDate, setOrderDate] = useState(() => dateAfterDays(0));
+  const [notes, setNotes] = useState("");
+  const [saveStatus, setSaveStatus] = useState("");
+  const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
+
+  const text = isArabic
+    ? {
+        formTitle: "إضافة بيانات أمر البيع",
+        formSubtitle: "بيانات أمر البيع مرتبطة بالعملاء المهتمين",
+        listTitle: "قائمة أوامر البيع",
+        listSubtitle: "أوامر البيع التي تم إدخالها من حسابك",
+        customer: "العميل المهتم",
+        customerPlaceholder: "اختر العميل المهتم",
+        customerSearch: "ابحث باسم العميل أو الشركة",
+        companyName: "اسم الشركة",
+        contactName: "الشخص المسؤول",
+        email: "البريد الإلكتروني",
+        phone: "الهاتف",
+        address: "العنوان",
+        city: "المدينة",
+        country: "الدولة",
+        exhibitionName: "المعرض",
+        standNumber: "رقم الجناح",
+        itemDescription: "الوصف",
+        uom: "الوحدة",
+        unitPrice: "سعر الوحدة",
+        quantity: "الكمية",
+        subtotal: "الإجمالي قبل الضريبة",
+        vatAmount: "ضريبة 15%",
+        grandTotal: "الإجمالي شامل الضريبة",
+        orderDate: "تاريخ الأمر",
+        notes: "ملاحظات",
+        save: "حفظ أمر البيع",
+        update: "تحديث أمر البيع",
+        edit: "تعديل",
+        print: "طباعة",
+        actions: "الإجراءات",
+        saving: "جاري الحفظ...",
+        saved: "تم حفظ أمر البيع",
+        updated: "تم تحديث أمر البيع",
+        failed: "تعذر حفظ أمر البيع",
+        validation: "أدخل اسم الشركة، الشخص المسؤول، والوصف",
+        noCustomerData: "اختر عميلاً مهتماً لتعبئة بيانات الشركة تلقائياً",
+        noOrders: "لا توجد أوامر بيع حتى الآن",
+        draft: "مسودة",
+        sent: "مرسل",
+        approved: "معتمد",
+        cancelled: "ملغي",
+      }
+    : {
+        formTitle: "Add sales order details",
+        formSubtitle: "Sales order details linked to interested customers",
+        listTitle: "Sales orders list",
+        listSubtitle: "Sales orders entered from your account",
+        customer: "Interested customer",
+        customerPlaceholder: "Select interested customer",
+        customerSearch: "Search by customer or company",
+        companyName: "Company name",
+        contactName: "Contact person",
+        email: "Email",
+        phone: "Phone",
+        address: "Address",
+        city: "City",
+        country: "Country",
+        exhibitionName: "Exhibition",
+        standNumber: "Stand number",
+        itemDescription: "Description",
+        uom: "UOM",
+        unitPrice: "Unit price",
+        quantity: "Quantity",
+        subtotal: "Total before VAT",
+        vatAmount: "VAT 15%",
+        grandTotal: "Grand total with VAT",
+        orderDate: "Order date",
+        notes: "Notes",
+        save: "Save sales order",
+        update: "Update sales order",
+        edit: "Edit",
+        print: "Print",
+        actions: "Actions",
+        saving: "Saving...",
+        saved: "Sales order saved",
+        updated: "Sales order updated",
+        failed: "Unable to save sales order",
+        validation: "Enter company name, contact person, and description",
+        noCustomerData: "Select an interested customer to fill company details automatically",
+        noOrders: "No sales orders yet",
+        draft: "Draft",
+        sent: "Sent",
+        approved: "Approved",
+        cancelled: "Cancelled",
+      };
+
+  const amounts = useMemo(() => {
+    const subtotal = Number(unitPrice || 0) * Number(quantity || 0);
+    const vat = subtotal * 0.15;
+    return {subtotal, vat, grandTotal: subtotal + vat};
+  }, [quantity, unitPrice]);
+  const selectedLead = (leads.data ?? []).find((lead) => String(lead.id) === leadId);
+  const statusLabels: Record<string, string> = {
+    draft: text.draft,
+    sent: text.sent,
+    approved: text.approved,
+    cancelled: text.cancelled,
+  };
+
+  function applyLeadData(nextLeadId: string) {
+    setLeadId(nextLeadId);
+    const lead = (leads.data ?? []).find((item) => String(item.id) === nextLeadId);
+    if (!lead) return;
+    setCompanyName(String(lead.company_name ?? lead.name ?? ""));
+    setContactName(String(lead.name ?? ""));
+    setEmail(String(lead.email ?? ""));
+    setPhone(String(lead.phone ?? ""));
+    setAddress(String(lead.address ?? ""));
+  }
+
+  function resetOrderForm() {
+    setEditingOrderId(null);
+    setLeadId("");
+    setCompanyName("");
+    setContactName("");
+    setEmail("");
+    setPhone("");
+    setAddress("");
+    setCity("");
+    setCountry("Saudi Arabia");
+    setExhibitionName("Rawnaq Elegance Expo - Dec 2026");
+    setStandNumber("");
+    setItemDescription("Space Only");
+    setUom("SQM");
+    setUnitPrice("");
+    setQuantity("1");
+    setOrderDate(dateAfterDays(0));
+    setNotes("");
+  }
+
+  function editOrder(order: BackendRow) {
+    setEditingOrderId(Number(order.id));
+    setLeadId(order.lead_id ? String(order.lead_id) : "");
+    setCompanyName(String(order.company_name ?? ""));
+    setContactName(String(order.contact_name ?? ""));
+    setEmail(String(order.email ?? ""));
+    setPhone(String(order.phone ?? ""));
+    setAddress(String(order.address ?? ""));
+    setCity(String(order.city ?? ""));
+    setCountry(String(order.country ?? "Saudi Arabia"));
+    setExhibitionName(String(order.exhibition_name ?? "Rawnaq Elegance Expo - Dec 2026"));
+    setStandNumber(String(order.stand_number ?? ""));
+    setItemDescription(String(order.item_description ?? "Space Only"));
+    setUom(String(order.uom ?? "SQM"));
+    setUnitPrice(order.unit_price == null ? "" : String(order.unit_price));
+    setQuantity(order.quantity == null ? "1" : String(order.quantity));
+    setOrderDate(cleanDate(order.order_date) === "—" ? dateAfterDays(0) : cleanDate(order.order_date));
+    setNotes(String(order.notes ?? ""));
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  function escapePrintValue(value: unknown) {
+    return String(value ?? "—")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function printOrder(order: BackendRow) {
+    const printWindow = window.open("", "_blank", "width=900,height=1100");
+    if (!printWindow) return;
+    const currency = String(order.currency ?? "SAR");
+    const unit = Number(order.unit_price ?? 0);
+    const qty = Number(order.quantity ?? 0);
+    const subtotal = Number(order.subtotal ?? unit * qty);
+    const vat = Number(order.vat_amount ?? subtotal * 0.15);
+    const grandTotal = Number(order.grand_total ?? subtotal + vat);
+    const money = (value: number) => `${value.toLocaleString(NUMBER_LOCALE)} ${currency}`;
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>أمر بيع - ${escapePrintValue(order.order_number)}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap');
+    * { box-sizing: border-box; }
+    @page { size: A4 portrait; margin: 0; }
+    body { font-family: 'Cairo', Arial, sans-serif; font-size: 11px; color: #2b2b2b; line-height: 1.5; background: #f5f7fa; margin: 0; }
+    .en-text { font-family: 'Montserrat', Arial, sans-serif; direction: ltr; text-align: left; }
+    .invoice-card { width: 210mm; height: 297mm; padding: 18mm 14mm; margin: 0 auto; background: #fff; position: relative; overflow: hidden; }
+    .header-container { display: table; width: 100%; margin-bottom: 22px; border-bottom: 2px solid #a88734; padding-bottom: 14px; }
+    .header-row { display: table-row; }
+    .header-cell { display: table-cell; vertical-align: top; }
+    .logo-area { width: 35%; }
+    .logo-title-ar { font-size: 16px; font-weight: 700; color: #1a2a3a; margin-bottom: 2px; }
+    .logo-title-en { font-family: 'Montserrat', Arial, sans-serif; font-size: 12px; font-weight: 600; color: #7f8c8d; text-transform: uppercase; }
+    .header-meta { width: 30%; text-align: center; vertical-align: middle; }
+    .order-badge { background: #1a2a3a; color: #fff; padding: 8px 16px; font-size: 14px; font-weight: 700; border-radius: 4px; display: inline-block; }
+    .header-info-right { width: 35%; text-align: left; font-size: 10px; color: #555; }
+    .info-grid { display: table; width: 100%; margin-bottom: 20px; border: 1px solid #e2e8f0; background: #fcfdfd; }
+    .info-row { display: table-row; }
+    .info-cell { display: table-cell; padding: 8px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+    .info-row:last-child .info-cell { border-bottom: none; }
+    .info-cell.label, .info-cell.label-left { background: #f8fafc; font-weight: 600; color: #4a5568; width: 18%; }
+    .info-cell.label { border-left: 1px solid #e2e8f0; }
+    .info-cell.label-left { border-right: 1px solid #e2e8f0; border-left: 1px solid #e2e8f0; }
+    .items-table { width: 100%; border-collapse: collapse; margin: 15px 0 20px; }
+    .items-table th { background: #1a2a3a; color: #fff; font-size: 10px; font-weight: 600; padding: 8px; border: 1px solid #1a2a3a; text-align: center; }
+    .items-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; font-size: 10.5px; }
+    .items-table td.desc { text-align: right; font-weight: 600; }
+    .totals-table { width: 45%; float: left; border-collapse: collapse; margin-bottom: 22px; }
+    .totals-table td { border: 1px solid #e2e8f0; padding: 6px 10px; font-size: 10.5px; }
+    .totals-table td.label { background: #f8fafc; font-weight: 600; text-align: right; width: 60%; }
+    .totals-table tr.grand-total { font-weight: 700; background: #f0fdf4; color: #15803d; border: 2px solid #15803d; }
+    .clear { clear: both; }
+    .payment-instruction { border: 1px solid #cbd5e1; border-radius: 4px; background: #fafbfc; padding: 12px; margin-bottom: 18px; }
+    .payment-title { font-weight: 700; color: #a88734; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; font-size: 11.5px; }
+    .bank-details-table { width: 100%; border-collapse: collapse; margin-top: 8px; background: #fff; }
+    .bank-details-table td { border: 1px solid #e2e8f0; padding: 6px 10px; font-size: 10px; }
+    .bank-details-table td.label { background: #f1f5f9; font-weight: 600; width: 22%; }
+    .note-box { font-size: 9px; color: #ef4444; background: #fef2f2; border: 1px dashed #fca5a5; padding: 8px; border-radius: 4px; margin-top: 8px; line-height: 1.4; }
+    .footer { position: absolute; right: 14mm; left: 14mm; bottom: 13mm; border-top: 1px solid #cbd5e1; padding-top: 10px; text-align: center; font-size: 8.5px; color: #64748b; line-height: 1.6; }
+    @media print { body { background: #fff; } .invoice-card { margin: 0; } }
+  </style>
+</head>
+<body>
+  <div class="invoice-card">
+    <div class="header-container">
+      <div class="header-row">
+        <div class="header-cell logo-area">
+          <div class="logo-title-ar">السوسن للمعارض والمؤتمرات</div>
+          <div class="logo-title-en">alsawsan exhibitions & conferences</div>
+          <div style="margin-top:5px; font-size:9.5px; color:#64748b;">س ت: 7053346115<br>الرقم الضريبي: 314557638500003</div>
+        </div>
+        <div class="header-cell header-meta"><div class="order-badge">أمر بيع / Sales Order</div></div>
+        <div class="header-cell header-info-right en-text">
+          <strong>CR:</strong> 7053346115<br>
+          <strong>VAT No.:</strong> 314557638500003<br>
+          <strong>Email:</strong> salma.alhunaiti@ree-expo.com<br>
+          <strong>Web:</strong> www.ree-expo.com
+        </div>
+      </div>
+    </div>
+    <div class="info-grid">
+      <div class="info-row"><div class="info-cell label">العميل<br><span class="en-text">Customer</span></div><div class="info-cell" style="font-weight:600; font-size:12px;" colspan="3">${escapePrintValue(order.company_name)}</div></div>
+      <div class="info-row">
+        <div class="info-cell label">المعرض<br><span class="en-text">Exhibition</span></div><div class="info-cell" style="font-weight:600;">${escapePrintValue(order.exhibition_name)}</div>
+        <div class="info-cell label-left">تاريخ الأمر<br><span class="en-text">Order Date</span></div><div class="info-cell">${escapePrintValue(cleanDate(order.order_date))}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-cell label">رقم الأمر<br><span class="en-text">Order No.</span></div><div class="info-cell">${escapePrintValue(order.order_number)}</div>
+        <div class="info-cell label-left">رقم الجناح<br><span class="en-text">Stand Number</span></div><div class="info-cell">${escapePrintValue(order.stand_number)}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-cell label">التواصل<br><span class="en-text">Contact</span></div><div class="info-cell">${escapePrintValue(order.contact_name)} - ${escapePrintValue(order.phone)}</div>
+        <div class="info-cell label-left">البريد<br><span class="en-text">Email</span></div><div class="info-cell">${escapePrintValue(order.email)}</div>
+      </div>
+    </div>
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th style="width:35%;">الوصف<br><span class="en-text">Desc.</span></th>
+          <th style="width:10%;">الوحدة<br><span class="en-text">UOM</span></th>
+          <th style="width:15%;">سعر الوحدة<br><span class="en-text">Unit Price</span></th>
+          <th style="width:10%;">الكمية<br><span class="en-text">QTY</span></th>
+          <th style="width:15%;">الإجمالي الفرعي<br><span class="en-text">Sub-Total</span></th>
+          <th style="width:15%;">الضرائب 15%<br><span class="en-text">Taxes</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="desc">${escapePrintValue(order.item_description)}</td>
+          <td>${escapePrintValue(order.uom)}</td>
+          <td>${money(unit)}</td>
+          <td>${qty.toLocaleString(NUMBER_LOCALE)}</td>
+          <td>${money(subtotal)}</td>
+          <td class="en-text" style="color:#7f8c8d;">VAT 15%</td>
+        </tr>
+        <tr><td class="desc" style="color:#ccc;">&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td class="desc" style="color:#ccc;">&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <table class="totals-table">
+      <tr><td class="label">الإجمالي الخاضع للضريبة<br><span class="en-text">Total Before VAT 15%</span></td><td style="text-align:center; font-weight:600;">${money(subtotal)}</td></tr>
+      <tr><td class="label">ضريبة القيمة المضافة 15%<br><span class="en-text">VAT 15%</span></td><td style="text-align:center; font-weight:600;">${money(vat)}</td></tr>
+      <tr class="grand-total"><td class="label" style="background:transparent; color:#15803d;">الإجمالي شامل القيمة المضافة<br><span class="en-text">Grand Total with VAT 15%</span></td><td style="text-align:center; font-size:12px;">${money(grandTotal)}</td></tr>
+    </table>
+    <div class="clear"></div>
+    <div class="payment-instruction">
+      <div class="payment-title">طريقة وتعليمات الدفع / METHOD OF PAYMENT & INSTRUCTION</div>
+      <p>• <strong>الدفعة الأولى عند التوقيع:</strong> 50% من إجمالي المبلغ شامل الضريبة.<br><span class="en-text" style="display:block; font-size:9.5px; color:#555;">First installment upon signature: 50% of the total amount.</span></p>
+      <p>• <strong>الدفعة النهائية:</strong> 50% المتبقية حسب تاريخ الفاتورة.<br><span class="en-text" style="display:block; font-size:9.5px; color:#555;">Final installment: remaining 50% as per invoice due date.</span></p>
+      <div class="payment-title" style="margin-top:12px;">تفاصيل الحساب البنكي / Bank Details</div>
+      <table class="bank-details-table">
+        <tr><td class="label">اسم المستفيد<br><span class="en-text">Beneficiary Name</span></td><td>Alsawsan Exhibitions & Conferences</td></tr>
+        <tr><td class="label">ملاحظات<br><span class="en-text">Notes</span></td><td>${escapePrintValue(order.notes)}</td></tr>
+      </table>
+      <div class="note-box">يرجى ذكر رقم أمر البيع عند التحويل. Please mention the sales order number when making payment.</div>
+    </div>
+    <div class="footer">Alsawsan Exhibitions & Conferences - Sales Order ${escapePrintValue(order.order_number)}</div>
+  </div>
+  <script>window.onload = () => { window.print(); };</script>
+</body>
+</html>`);
+    printWindow.document.close();
+  }
+
+  async function saveOrder() {
+    if (!companyName.trim() || !contactName.trim() || !itemDescription.trim()) {
+      setSaveStatus(text.validation);
+      return;
+    }
+    setSaveStatus(text.saving);
+    const payload = {
+      lead_id: leadId ? Number(leadId) : null,
+      company_name: companyName.trim(),
+      contact_name: contactName.trim(),
+      email: email.trim() || null,
+      phone: phone.trim() || null,
+      address: address.trim() || null,
+      city: city.trim() || null,
+      country: country.trim() || null,
+      exhibition_name: exhibitionName.trim() || "Rawnaq Elegance Expo - Dec 2026",
+      stand_number: standNumber.trim() || null,
+      item_description: itemDescription.trim(),
+      uom: uom.trim() || "SQM",
+      unit_price: unitPrice ? Number(unitPrice) : 0,
+      quantity: quantity ? Number(quantity) : 1,
+      subtotal: amounts.subtotal,
+      vat_amount: amounts.vat,
+      grand_total: amounts.grandTotal,
+      order_date: orderDate || null,
+      notes: notes.trim() || null,
+    };
+    try {
+      if (editingOrderId) {
+        await updateBackend("sales-orders", editingOrderId, payload);
+        setSaveStatus(text.updated);
+      } else {
+        await createBackend("sales-orders", payload);
+        setSaveStatus(text.saved);
+      }
+      resetOrderForm();
+      await orders.reload();
+    } catch {
+      setSaveStatus(text.failed);
+    }
+    window.setTimeout(() => setSaveStatus(""), 2200);
+  }
+
+  return (
+    <div className="quotes-page-grid">
+      <article className="quote-card quote-form-card">
+        <div className="card-title">
+          <h3>{text.formTitle}</h3>
+          <span>{text.formSubtitle}</span>
+        </div>
+        <div className="form-grid">
+          <label className="quote-field quote-field-customer">
+            <span>{text.customer}</span>
+            <DashboardSelect
+              ariaLabel={text.customer}
+              onValueChange={applyLeadData}
+              options={(leads.data ?? []).map((lead) => ({
+                label: String(lead.company_name ?? lead.name ?? lead.id),
+                value: String(lead.id),
+              }))}
+              placeholder={text.customerPlaceholder}
+              searchable
+              searchPlaceholder={text.customerSearch}
+              value={leadId}
+            />
+            {!selectedLead ? <small className="quote-duration-hint">{text.noCustomerData}</small> : null}
+          </label>
+          <label className="quote-field"><span>{text.companyName} <b className="required-mark">*</b></span><input onChange={(event) => setCompanyName(event.target.value)} value={companyName} /></label>
+          <label className="quote-field"><span>{text.contactName} <b className="required-mark">*</b></span><input onChange={(event) => setContactName(event.target.value)} value={contactName} /></label>
+          <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>
+          <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
+          <label className="quote-field"><span>{text.exhibitionName}</span><input onChange={(event) => setExhibitionName(event.target.value)} value={exhibitionName} /></label>
+          <label className="quote-field"><span>{text.standNumber}</span><input onChange={(event) => setStandNumber(event.target.value)} value={standNumber} /></label>
+          <label className="quote-field"><span>{text.itemDescription} <b className="required-mark">*</b></span><input onChange={(event) => setItemDescription(event.target.value)} value={itemDescription} /></label>
+          <label className="quote-field"><span>{text.uom}</span><input onChange={(event) => setUom(event.target.value)} value={uom} /></label>
+          <label className="quote-field"><span>{text.unitPrice}</span><input inputMode="decimal" min="0" onChange={(event) => setUnitPrice(event.target.value)} type="number" value={unitPrice} /></label>
+          <label className="quote-field"><span>{text.quantity}</span><input inputMode="decimal" min="0" onChange={(event) => setQuantity(event.target.value)} type="number" value={quantity} /></label>
+          <label className="quote-field"><span>{text.subtotal}</span><input readOnly value={amounts.subtotal.toLocaleString(NUMBER_LOCALE)} /></label>
+          <label className="quote-field"><span>{text.vatAmount}</span><input readOnly value={amounts.vat.toLocaleString(NUMBER_LOCALE)} /></label>
+          <label className="quote-field"><span>{text.grandTotal}</span><input readOnly value={amounts.grandTotal.toLocaleString(NUMBER_LOCALE)} /></label>
+          <label className="quote-field"><span>{text.orderDate}</span><input onChange={(event) => setOrderDate(event.target.value)} type="date" value={orderDate} /></label>
+          <label className="quote-field"><span>{text.city}</span><input onChange={(event) => setCity(event.target.value)} value={city} /></label>
+          <label className="quote-field"><span>{text.country}</span><input onChange={(event) => setCountry(event.target.value)} value={country} /></label>
+        </div>
+        <label className="quote-details-field"><span>{text.address}</span><textarea onChange={(event) => setAddress(event.target.value)} value={address} /></label>
+        <label className="quote-details-field"><span>{text.notes}</span><textarea onChange={(event) => setNotes(event.target.value)} value={notes} /></label>
+        <div className="quote-action-row">
+          <button className="button button-primary" onClick={() => void saveOrder()} type="button">
+            {editingOrderId ? text.update : text.save}
+          </button>
+          {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
+        </div>
+      </article>
+
+      <article className="quote-card quote-history-card">
+        <div className="card-title">
+          <div>
+            <h3>{text.listTitle}</h3>
+            <span>{text.listSubtitle}</span>
+          </div>
+        </div>
+        <div className="quote-history-table">
+          <table>
+            <thead>
+              <tr>
+                <th>{isArabic ? "رقم الأمر" : "Order #"}</th>
+                <th>{text.customer}</th>
+                <th>{text.companyName}</th>
+                <th>{text.itemDescription}</th>
+                <th>{text.grandTotal}</th>
+                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th>{text.orderDate}</th>
+                <th>{text.actions}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(orders.data ?? []).map((order) => {
+                const statusValue = String(order.status ?? "draft");
+                return (
+                  <tr key={order.id}>
+                    <td>{String(order.order_number ?? order.id)}</td>
+                    <td>{String(order.customer_name ?? "—")}</td>
+                    <td>{String(order.company_name ?? "—")}</td>
+                    <td>{String(order.item_description ?? "—")}</td>
+                    <td>{formatMoney(order.grand_total, String(order.currency ?? "SAR"))}</td>
+                    <td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td>
+                    <td>{cleanDate(order.order_date)}</td>
+                    <td>
+                      <div className="contract-table-actions">
+                        <button className="contract-table-action" onClick={() => editOrder(order)} type="button">{text.edit}</button>
+                        <button className="contract-table-action primary" onClick={() => printOrder(order)} type="button">{text.print}</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {!orders.loading && !(orders.data ?? []).length ? (
+                <tr><td className="quote-history-empty" colSpan={8}>{text.noOrders}</td></tr>
+              ) : null}
+              {orders.loading ? (
+                <tr><td className="quote-history-empty" colSpan={8}>{isArabic ? "جاري التحميل..." : "Loading..."}</td></tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+export function RentalContractsPanel({locale}: {locale: string}) {
+  const isArabic = locale === "ar";
+  const contracts = useBackend<BackendRow[]>("/api/v1/data/rental-contracts");
+  const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const [leadId, setLeadId] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("Saudi Arabia");
+  const [lessorName, setLessorName] = useState("Alsawsan Exhibitions & Conferences");
+  const [tenantName, setTenantName] = useState("");
+  const [rentalItem, setRentalItem] = useState(isArabic ? "مساحة / جناح تأجيري" : "Rental space / booth");
+  const [rentalLocation, setRentalLocation] = useState("");
+  const [leaseStartDate, setLeaseStartDate] = useState(() => dateAfterDays(0));
+  const [leaseEndDate, setLeaseEndDate] = useState(() => dateAfterDays(3));
+  const [unitPrice, setUnitPrice] = useState("");
+  const [quantity, setQuantity] = useState("1");
+  const [contractDate, setContractDate] = useState(() => dateAfterDays(0));
+  const [notes, setNotes] = useState("");
+  const [search, setSearch] = useState("");
+  const [saveStatus, setSaveStatus] = useState("");
+  const [editingContractId, setEditingContractId] = useState<number | null>(null);
+
+  const text = isArabic
+    ? {
+        formTitle: "إضافة بيانات العقد التأجيري",
+        formSubtitle: "بيانات العقد مرتبطة بالعملاء المهتمين",
+        listTitle: "قائمة العقود التأجيرية",
+        listSubtitle: "العقود التأجيرية التي تم إدخالها من حسابك",
+        customer: "العميل المهتم",
+        customerPlaceholder: "اختر العميل المهتم",
+        customerSearch: "ابحث باسم العميل أو الشركة",
+        lessorName: "المؤجر",
+        tenantName: "المستأجر",
+        companyName: "اسم الشركة",
+        contactName: "الشخص المسؤول",
+        email: "البريد الإلكتروني",
+        phone: "الهاتف",
+        address: "العنوان",
+        city: "المدينة",
+        country: "الدولة",
+        rentalItem: "العين المؤجرة / الوصف",
+        rentalLocation: "موقع التأجير",
+        leaseStartDate: "بداية مدة الإيجار",
+        leaseEndDate: "نهاية مدة الإيجار",
+        unitPrice: "قيمة الإيجار",
+        quantity: "الكمية / المدة",
+        subtotal: "الإجمالي قبل الضريبة",
+        vatAmount: "ضريبة 15%",
+        grandTotal: "الإجمالي شامل الضريبة",
+        contractDate: "تاريخ العقد",
+        notes: "ملاحظات وشروط",
+        save: "حفظ العقد",
+        update: "تحديث العقد",
+        edit: "تعديل",
+        print: "طباعة",
+        actions: "الإجراءات",
+        saving: "جاري الحفظ...",
+        saved: "تم حفظ العقد",
+        updated: "تم تحديث العقد",
+        failed: "تعذر حفظ العقد",
+        validation: "أدخل اسم الشركة، الشخص المسؤول، ووصف العين المؤجرة",
+        noCustomerData: "اختر عميلاً مهتماً لتعبئة بيانات الشركة تلقائياً",
+        noContracts: "لا توجد عقود تأجيرية حتى الآن",
+        draft: "مسودة",
+        sent: "مرسل",
+        signed: "موقع",
+        cancelled: "ملغي",
+      }
+    : {
+        formTitle: "Add rental contract details",
+        formSubtitle: "Rental contract details linked to interested customers",
+        listTitle: "Rental contracts list",
+        listSubtitle: "Rental contracts entered from your account",
+        customer: "Interested customer",
+        customerPlaceholder: "Select interested customer",
+        customerSearch: "Search by customer or company",
+        lessorName: "Lessor",
+        tenantName: "Tenant",
+        companyName: "Company name",
+        contactName: "Contact person",
+        email: "Email",
+        phone: "Phone",
+        address: "Address",
+        city: "City",
+        country: "Country",
+        rentalItem: "Leased item / description",
+        rentalLocation: "Rental location",
+        leaseStartDate: "Lease start",
+        leaseEndDate: "Lease end",
+        unitPrice: "Rental value",
+        quantity: "Quantity / period",
+        subtotal: "Total before VAT",
+        vatAmount: "VAT 15%",
+        grandTotal: "Grand total with VAT",
+        contractDate: "Contract date",
+        notes: "Notes and terms",
+        save: "Save contract",
+        update: "Update contract",
+        edit: "Edit",
+        print: "Print",
+        actions: "Actions",
+        saving: "Saving...",
+        saved: "Contract saved",
+        updated: "Contract updated",
+        failed: "Unable to save contract",
+        validation: "Enter company name, contact person, and leased item",
+        noCustomerData: "Select an interested customer to fill company details automatically",
+        noContracts: "No rental contracts yet",
+        draft: "Draft",
+        sent: "Sent",
+        signed: "Signed",
+        cancelled: "Cancelled",
+      };
+
+  const amounts = useMemo(() => {
+    const subtotal = Number(unitPrice || 0) * Number(quantity || 0);
+    const vat = subtotal * 0.15;
+    return {subtotal, vat, grandTotal: subtotal + vat};
+  }, [quantity, unitPrice]);
+  const selectedLead = (leads.data ?? []).find((lead) => String(lead.id) === leadId);
+  const statusLabels: Record<string, string> = {
+    draft: text.draft,
+    sent: text.sent,
+    signed: text.signed,
+    cancelled: text.cancelled,
+  };
+  const filteredContracts = (contracts.data ?? []).filter((contract) => {
+    const query = search.trim().toLocaleLowerCase();
+    if (!query) return true;
+    return [
+      contract.contract_number,
+      contract.customer_name,
+      contract.company_name,
+      contract.contact_name,
+      contract.rental_item,
+      contract.phone,
+    ].some((value) => String(value ?? "").toLocaleLowerCase().includes(query));
+  });
+
+  function applyLeadData(nextLeadId: string) {
+    setLeadId(nextLeadId);
+    const lead = (leads.data ?? []).find((item) => String(item.id) === nextLeadId);
+    if (!lead) return;
+    const company = String(lead.company_name ?? lead.name ?? "");
+    setCompanyName(company);
+    setTenantName(company);
+    setContactName(String(lead.name ?? ""));
+    setEmail(String(lead.email ?? ""));
+    setPhone(String(lead.phone ?? ""));
+    setAddress(String(lead.address ?? ""));
+  }
+
+  function resetContractForm() {
+    setEditingContractId(null);
+    setLeadId("");
+    setCompanyName("");
+    setContactName("");
+    setEmail("");
+    setPhone("");
+    setAddress("");
+    setCity("");
+    setCountry("Saudi Arabia");
+    setLessorName("Alsawsan Exhibitions & Conferences");
+    setTenantName("");
+    setRentalItem(isArabic ? "مساحة / جناح تأجيري" : "Rental space / booth");
+    setRentalLocation("");
+    setLeaseStartDate(dateAfterDays(0));
+    setLeaseEndDate(dateAfterDays(3));
+    setUnitPrice("");
+    setQuantity("1");
+    setContractDate(dateAfterDays(0));
+    setNotes("");
+  }
+
+  function editContract(contract: BackendRow) {
+    setEditingContractId(Number(contract.id));
+    setLeadId(contract.lead_id ? String(contract.lead_id) : "");
+    setCompanyName(String(contract.company_name ?? ""));
+    setContactName(String(contract.contact_name ?? ""));
+    setEmail(String(contract.email ?? ""));
+    setPhone(String(contract.phone ?? ""));
+    setAddress(String(contract.address ?? ""));
+    setCity(String(contract.city ?? ""));
+    setCountry(String(contract.country ?? "Saudi Arabia"));
+    setLessorName(String(contract.lessor_name ?? "Alsawsan Exhibitions & Conferences"));
+    setTenantName(String(contract.tenant_name ?? contract.company_name ?? ""));
+    setRentalItem(String(contract.rental_item ?? ""));
+    setRentalLocation(String(contract.rental_location ?? ""));
+    setLeaseStartDate(cleanDate(contract.lease_start_date) === "—" ? dateAfterDays(0) : cleanDate(contract.lease_start_date));
+    setLeaseEndDate(cleanDate(contract.lease_end_date) === "—" ? dateAfterDays(3) : cleanDate(contract.lease_end_date));
+    setUnitPrice(contract.unit_price == null ? "" : String(contract.unit_price));
+    setQuantity(contract.quantity == null ? "1" : String(contract.quantity));
+    setContractDate(cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date));
+    setNotes(String(contract.notes ?? ""));
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  function escapePrintValue(value: unknown) {
+    return String(value ?? "—")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function printContract(contract: BackendRow) {
+    const printWindow = window.open("", "_blank", "width=900,height=1100");
+    if (!printWindow) return;
+    const currency = String(contract.currency ?? "SAR");
+    const subtotal = Number(contract.subtotal ?? 0);
+    const vat = Number(contract.vat_amount ?? subtotal * 0.15);
+    const grandTotal = Number(contract.grand_total ?? subtotal + vat);
+    const money = (value: number) => `${value.toLocaleString(NUMBER_LOCALE)} ${currency}`;
+    printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>عقد تأجيري - ${escapePrintValue(contract.contract_number)}</title><style>
+      @page { size: A4 portrait; margin: 12mm; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: Arial, sans-serif; color: #111827; background: #fff; font-size: 12px; line-height: 1.6; }
+      .sheet { width: 100%; min-height: 270mm; border: 1px solid #cbd5e1; padding: 14mm; }
+      .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; border-bottom: 3px solid #0f2942; padding-bottom: 14px; margin-bottom: 16px; }
+      .head h1 { margin: 0; color: #0f2942; font-size: 26px; }
+      .head h2 { margin: 3px 0 0; color: #00a3c3; font-size: 16px; direction: ltr; }
+      .number { border: 1px solid #0f2942; padding: 8px 12px; border-radius: 8px; font-weight: 700; direction: ltr; }
+      .section { margin-top: 14px; border: 1px solid #dbe4ee; border-radius: 8px; overflow: hidden; }
+      .section-title { background: #0f2942; color: #fff; padding: 8px 12px; font-weight: 700; display:flex; justify-content:space-between; }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .field { padding: 9px 12px; border-top: 1px solid #e2e8f0; min-height: 52px; }
+      .field:nth-child(odd) { border-left: 1px solid #e2e8f0; }
+      .field.wide { grid-column: 1 / -1; border-left: 0; }
+      .field span { display:block; color:#64748b; font-size:10px; font-weight:700; }
+      .field strong { display:block; margin-top:4px; font-size:13px; overflow-wrap:anywhere; }
+      table { width:100%; border-collapse:collapse; margin-top:14px; }
+      th { background:#f8fafc; color:#334155; }
+      th, td { border:1px solid #dbe4ee; padding:8px; text-align:center; }
+      .terms { padding: 10px 12px; font-size: 11px; }
+      .signatures { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px; }
+      .signature { min-height:95px; border:1px solid #94a3b8; padding:10px; }
+      .line { margin-top:28px; border-bottom:1px solid #111827; height:24px; }
+      @media print { .sheet { border:0; padding:0; } }
+    </style></head><body><main class="sheet">
+      <header class="head"><div><h1>عقد تأجيري</h1><h2>RENTAL CONTRACT</h2><p>متوافق مع نموذج عقد التأجير ومحاضر الاتفاق الخاصة بالمعارض والفعاليات.</p></div><div class="number">${escapePrintValue(contract.contract_number)}</div></header>
+      <section class="section"><div class="section-title"><span>أطراف العقد</span><span>Contract Parties</span></div><div class="grid">
+        <div class="field"><span>المؤجر / Lessor</span><strong>${escapePrintValue(contract.lessor_name)}</strong></div>
+        <div class="field"><span>المستأجر / Tenant</span><strong>${escapePrintValue(contract.tenant_name ?? contract.company_name)}</strong></div>
+        <div class="field"><span>اسم الشركة / Company</span><strong>${escapePrintValue(contract.company_name)}</strong></div>
+        <div class="field"><span>المسؤول / Contact</span><strong>${escapePrintValue(contract.contact_name)}</strong></div>
+        <div class="field"><span>الهاتف / Phone</span><strong>${escapePrintValue(contract.phone)}</strong></div>
+        <div class="field"><span>البريد / Email</span><strong>${escapePrintValue(contract.email)}</strong></div>
+        <div class="field wide"><span>العنوان / Address</span><strong>${escapePrintValue(contract.address)}</strong></div>
+      </div></section>
+      <section class="section"><div class="section-title"><span>بيانات التأجير</span><span>Rental Details</span></div><div class="grid">
+        <div class="field wide"><span>العين المؤجرة / Leased Item</span><strong>${escapePrintValue(contract.rental_item)}</strong></div>
+        <div class="field"><span>موقع التأجير / Location</span><strong>${escapePrintValue(contract.rental_location)}</strong></div>
+        <div class="field"><span>تاريخ العقد / Contract Date</span><strong>${escapePrintValue(cleanDate(contract.contract_date))}</strong></div>
+        <div class="field"><span>بداية الإيجار / Lease Start</span><strong>${escapePrintValue(cleanDate(contract.lease_start_date))}</strong></div>
+        <div class="field"><span>نهاية الإيجار / Lease End</span><strong>${escapePrintValue(cleanDate(contract.lease_end_date))}</strong></div>
+      </div></section>
+      <table><thead><tr><th>الوصف</th><th>القيمة</th><th>الكمية / المدة</th><th>قبل الضريبة</th><th>الضريبة</th><th>الإجمالي</th></tr></thead><tbody><tr><td>${escapePrintValue(contract.rental_item)}</td><td>${money(Number(contract.unit_price ?? 0))}</td><td>${Number(contract.quantity ?? 1).toLocaleString(NUMBER_LOCALE)}</td><td>${money(subtotal)}</td><td>${money(vat)}</td><td><strong>${money(grandTotal)}</strong></td></tr></tbody></table>
+      <section class="section"><div class="section-title"><span>الشروط والملاحظات</span><span>Terms</span></div><div class="terms"><p>يلتزم المستأجر باستخدام العين المؤجرة حسب الغرض المتفق عليه، والمحافظة عليها، وسداد كامل القيمة حسب المواعيد المتفق عليها.</p><p>${escapePrintValue(contract.notes)}</p></div></section>
+      <div class="signatures"><div class="signature"><strong>توقيع المؤجر</strong><div class="line"></div></div><div class="signature"><strong>توقيع المستأجر</strong><div class="line"></div></div></div>
+    </main><script>window.onload = () => window.print();</script></body></html>`);
+    printWindow.document.close();
+  }
+
+  async function saveContract() {
+    if (!companyName.trim() || !contactName.trim() || !rentalItem.trim()) {
+      setSaveStatus(text.validation);
+      return;
+    }
+    setSaveStatus(text.saving);
+    const payload = {
+      lead_id: leadId ? Number(leadId) : null,
+      lessor_name: lessorName.trim() || null,
+      tenant_name: tenantName.trim() || companyName.trim(),
+      company_name: companyName.trim(),
+      contact_name: contactName.trim(),
+      email: email.trim() || null,
+      phone: phone.trim() || null,
+      address: address.trim() || null,
+      city: city.trim() || null,
+      country: country.trim() || null,
+      rental_item: rentalItem.trim(),
+      rental_location: rentalLocation.trim() || null,
+      lease_start_date: leaseStartDate || null,
+      lease_end_date: leaseEndDate || null,
+      unit_price: unitPrice ? Number(unitPrice) : 0,
+      quantity: quantity ? Number(quantity) : 1,
+      subtotal: amounts.subtotal,
+      vat_amount: amounts.vat,
+      grand_total: amounts.grandTotal,
+      contract_date: contractDate || null,
+      notes: notes.trim() || null,
+    };
+    try {
+      if (editingContractId) {
+        await updateBackend("rental-contracts", editingContractId, payload);
+        setSaveStatus(text.updated);
+      } else {
+        await createBackend("rental-contracts", payload);
+        setSaveStatus(text.saved);
+      }
+      resetContractForm();
+      await contracts.reload();
+    } catch {
+      setSaveStatus(text.failed);
+    }
+    window.setTimeout(() => setSaveStatus(""), 2200);
+  }
+
+  return (
+    <div className="quotes-page-grid">
+      <article className="quote-card quote-form-card">
+        <div className="card-title"><h3>{text.formTitle}</h3><span>{text.formSubtitle}</span></div>
+        <div className="form-grid">
+          <label className="quote-field quote-field-customer"><span>{text.customer}</span><DashboardSelect ariaLabel={text.customer} onValueChange={applyLeadData} options={(leads.data ?? []).map((lead) => ({label: String(lead.company_name ?? lead.name ?? lead.id), value: String(lead.id)}))} placeholder={text.customerPlaceholder} searchable searchPlaceholder={text.customerSearch} value={leadId} />{!selectedLead ? <small className="quote-duration-hint">{text.noCustomerData}</small> : null}</label>
+          <label className="quote-field"><span>{text.lessorName}</span><input onChange={(event) => setLessorName(event.target.value)} value={lessorName} /></label>
+          <label className="quote-field"><span>{text.tenantName}</span><input onChange={(event) => setTenantName(event.target.value)} value={tenantName} /></label>
+          <label className="quote-field"><span>{text.companyName} <b className="required-mark">*</b></span><input onChange={(event) => setCompanyName(event.target.value)} value={companyName} /></label>
+          <label className="quote-field"><span>{text.contactName} <b className="required-mark">*</b></span><input onChange={(event) => setContactName(event.target.value)} value={contactName} /></label>
+          <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>
+          <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
+          <label className="quote-field"><span>{text.rentalItem} <b className="required-mark">*</b></span><input onChange={(event) => setRentalItem(event.target.value)} value={rentalItem} /></label>
+          <label className="quote-field"><span>{text.rentalLocation}</span><input onChange={(event) => setRentalLocation(event.target.value)} value={rentalLocation} /></label>
+          <label className="quote-field"><span>{text.leaseStartDate}</span><input onChange={(event) => setLeaseStartDate(event.target.value)} type="date" value={leaseStartDate} /></label>
+          <label className="quote-field"><span>{text.leaseEndDate}</span><input onChange={(event) => setLeaseEndDate(event.target.value)} type="date" value={leaseEndDate} /></label>
+          <label className="quote-field"><span>{text.unitPrice}</span><input inputMode="decimal" min="0" onChange={(event) => setUnitPrice(event.target.value)} type="number" value={unitPrice} /></label>
+          <label className="quote-field"><span>{text.quantity}</span><input inputMode="decimal" min="0" onChange={(event) => setQuantity(event.target.value)} type="number" value={quantity} /></label>
+          <label className="quote-field"><span>{text.subtotal}</span><input readOnly value={amounts.subtotal.toLocaleString(NUMBER_LOCALE)} /></label>
+          <label className="quote-field"><span>{text.vatAmount}</span><input readOnly value={amounts.vat.toLocaleString(NUMBER_LOCALE)} /></label>
+          <label className="quote-field"><span>{text.grandTotal}</span><input readOnly value={amounts.grandTotal.toLocaleString(NUMBER_LOCALE)} /></label>
+          <label className="quote-field"><span>{text.contractDate}</span><input onChange={(event) => setContractDate(event.target.value)} type="date" value={contractDate} /></label>
+          <label className="quote-field"><span>{text.city}</span><input onChange={(event) => setCity(event.target.value)} value={city} /></label>
+          <label className="quote-field"><span>{text.country}</span><input onChange={(event) => setCountry(event.target.value)} value={country} /></label>
+        </div>
+        <label className="quote-details-field"><span>{text.address}</span><textarea onChange={(event) => setAddress(event.target.value)} value={address} /></label>
+        <label className="quote-details-field"><span>{text.notes}</span><textarea onChange={(event) => setNotes(event.target.value)} value={notes} /></label>
+        <div className="quote-action-row"><button className="button button-primary" onClick={() => void saveContract()} type="button">{editingContractId ? text.update : text.save}</button>{saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}</div>
+      </article>
+
+      <article className="quote-card quote-history-card">
+        <div className="card-title"><div><h3>{text.listTitle}</h3><span>{text.listSubtitle}</span></div></div>
+        <div className="contract-smart-filter-row"><div className="contract-smart-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" /><path d="m15.5 15.5 4 4" /></svg><input onChange={(event) => setSearch(event.target.value)} placeholder={isArabic ? "ابحث بالاسم، الشركة، الجوال..." : "Search by name, company, mobile..."} type="search" value={search} /><strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong></div></div>
+        <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "رقم العقد" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.grandTotal}</th><th>{isArabic ? "الحالة" : "Status"}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
+          {filteredContracts.map((contract) => {
+            const statusValue = String(contract.status ?? "draft");
+            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "—")}</td><td>{String(contract.company_name ?? "—")}</td><td>{String(contract.rental_item ?? "—")}</td><td>{formatMoney(contract.grand_total, String(contract.currency ?? "SAR"))}</td><td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button className="contract-table-action" onClick={() => editContract(contract)} type="button">{text.edit}</button><button className="contract-table-action primary" onClick={() => printContract(contract)} type="button">{text.print}</button></div></td></tr>;
+          })}
+          {!contracts.loading && !filteredContracts.length ? <tr><td className="quote-history-empty" colSpan={8}>{text.noContracts}</td></tr> : null}
+          {contracts.loading ? <tr><td className="quote-history-empty" colSpan={8}>{isArabic ? "جاري التحميل..." : "Loading..."}</td></tr> : null}
+        </tbody></table></div>
+      </article>
+    </div>
+  );
+}
+
 export function CommissionTable({ expanded = false }: { expanded?: boolean }) {
   const t = useTranslations();
   const { data } = useBackend<BackendRow[]>("/api/v1/data/commissions");
@@ -849,6 +3486,7 @@ export function HelpDeskPanel({ expanded = false }: { expanded?: boolean }) {
   const isArabic = useLocale() === "ar";
   const tickets = useBackend<BackendRow[]>("/api/v1/data/support-tickets");
   const ticketEvents = useBackend<BackendRow[]>("/api/v1/data/support-ticket-events");
+  const ticketTypes = useBackend<BackendRow[]>("/api/v1/data/support-ticket-types");
   const [ticketFilter, setTicketFilter] = useState("all");
   const [advancedTicketFilter, setAdvancedTicketFilter] = useState(false);
   const [category, setCategory] = useState("Commission Issue");
@@ -869,15 +3507,32 @@ export function HelpDeskPanel({ expanded = false }: { expanded?: boolean }) {
         resolved: "Resolved",
         closed: "Closed",
       };
-  const categoryOptions = [
-    { value: "Commission Issue", label: isArabic ? "مشكلة عمولة" : "Commission Issue" },
-    { value: "Account Support", label: isArabic ? "دعم الحساب" : "Account Support" },
-    { value: "Technical Issue", label: isArabic ? "مشكلة تقنية" : "Technical Issue" },
+  const fallbackCategoryOptions = [
+    { value: "مشكلة عمولة", label: isArabic ? "مشكلة عمولة" : "Commission Issue" },
+    { value: "دعم الحساب", label: isArabic ? "دعم الحساب" : "Account Support" },
+    { value: "مشكلة تقنية", label: isArabic ? "مشكلة تقنية" : "Technical Issue" },
   ];
+  const categoryOptions =
+    (ticketTypes.data ?? [])
+      .filter((type) => String(type.status ?? "active") === "active")
+      .map((type) => ({
+        value: String(type.name_ar ?? type.name_en ?? ""),
+        label: isArabic
+          ? String(type.name_ar ?? type.name_en ?? "")
+          : String(type.name_en ?? type.name_ar ?? ""),
+      }))
+      .filter((option) => option.value.trim()) || [];
+  const availableCategoryOptions = categoryOptions.length ? categoryOptions : fallbackCategoryOptions;
   const categoryLabel = (value: unknown) => {
     const rawCategory = String(value ?? "");
-    return categoryOptions.find((option) => option.value === rawCategory)?.label || rawCategory || "—";
+    return availableCategoryOptions.find((option) => option.value === rawCategory)?.label || rawCategory || "—";
   };
+  useEffect(() => {
+    if (!availableCategoryOptions.length) return;
+    if (!availableCategoryOptions.some((option) => option.value === category)) {
+      setCategory(availableCategoryOptions[0].value);
+    }
+  }, [availableCategoryOptions, category]);
   const filteredTickets = (tickets.data ?? []).filter((ticket) => {
     const status = String(ticket.status ?? "open");
     if (advancedTicketFilter && !["open", "in_progress"].includes(status)) {
@@ -1076,7 +3731,7 @@ export function HelpDeskPanel({ expanded = false }: { expanded?: boolean }) {
           <DashboardSelect
             ariaLabel={isArabic ? "تصنيف التذكرة" : "Ticket category"}
             onValueChange={setCategory}
-            options={categoryOptions}
+            options={availableCategoryOptions}
             value={category}
           />
         </label>

@@ -101,6 +101,10 @@
     "potentialCustomers": "Interested Customers",
     "stores": "Stores",
     "salesTools": "Quotes & Pricing",
+    "participationContracts": "Participation Contracts",
+    "sponsorshipContracts": "Sponsorship Contracts",
+    "salesOrders": "Sales Order",
+    "rentalContracts": "Rental Contracts",
     "quotesPricing": "Quotes & Pricing",
     "commissions": "Commissions",
     "sales": "Sales",
@@ -268,19 +272,19 @@
       "ticketList": "Past tickets",
       "ticket1": {
         "title": "Commission approval delay",
-        "meta": "Ticket #1284 · 2 hours ago",
+        "meta": "Ticket #1284 آ· 2 hours ago",
         "status": "Open",
         "statusClass": "pending"
       },
       "ticket2": {
         "title": "Payment link confirmation",
-        "meta": "Ticket #1272 · Yesterday",
+        "meta": "Ticket #1272 آ· Yesterday",
         "status": "Resolved",
         "statusClass": "paid"
       },
       "ticket3": {
         "title": "Need updated sales material",
-        "meta": "Ticket #1265 · 3 days ago",
+        "meta": "Ticket #1265 آ· 3 days ago",
         "status": "Open",
         "statusClass": "pending"
       }

@@ -69,6 +69,7 @@ type ManagementData = {
     role_type?: "admin" | "user";
   }>;
   tickets: AdminRow[];
+  ticketTypes: AdminRow[];
   products: AdminRow[];
   content: AdminRow[];
   industries: AdminRow[];
@@ -306,6 +307,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadManagement();
   }, []);
+
+  useEffect(() => {
+    setActiveSection("dashboard");
+  }, [locale]);
 
   const series = summary?.series[activeMetric] ?? [];
   const maxValue = Math.max(1, ...series.map((item) => item.value));
@@ -602,6 +607,8 @@ function AdminMetricList({
         {isArabic ? "جاري تحميل القائمة..." : "Loading list..."}
       </section>
     );
+
+  const openTicketTypeEditor = (_ticketType?: AdminRow) => {};
 
   const configs: Record<
     MetricKey,
@@ -992,7 +999,46 @@ function AdminMetricList({
               value={search}
             />
           </div>
-          <div className="admin-user-status-filter">
+          {metric === "clients" ? (
+            <>
+              <strong>
+                {visibleRows.length.toLocaleString(NUMBER_LOCALE)}
+              </strong>
+              <div className="admin-user-status-filter admin-client-user-filter">
+                <DashboardSelect
+                  ariaLabel={isArabic ? "فلترة العملاء" : "Filter customers"}
+                  onValueChange={setStatusFilter}
+                  options={[
+                    {
+                      value: "all",
+                      label: isArabic ? "جميع العملاء" : "All customers",
+                    },
+                    ...statusOptions.clients,
+                  ]}
+                  value={statusFilter}
+                />
+              </div>
+              <div className="admin-user-status-filter admin-client-user-filter">
+                <DashboardSelect
+                  ariaLabel={isArabic ? "فلترة حسب نوع الوسم" : "Filter by tag type"}
+                  onValueChange={(value) => {
+                    setClientTagTypeFilter(value);
+                    setClientTagFilter("all");
+                  }}
+                  options={[
+                    {
+                      value: "all",
+                      label: isArabic ? "جميع أنواع الوسوم" : "All tag types",
+                    },
+                    ...tagTypeFilterOptions,
+                  ]}
+                  value={clientTagTypeFilter}
+                />
+              </div>
+            </>
+          ) : null}
+          {metric !== "clients" ? (
+            <div className="admin-user-status-filter">
             <DashboardSelect
               ariaLabel={isArabic ? "فلترة حسب الحالة" : "Filter by status"}
               onValueChange={setStatusFilter}
@@ -1005,8 +1051,9 @@ function AdminMetricList({
               ]}
               value={statusFilter}
             />
-          </div>
-          {hasUserFilter ? (
+            </div>
+          ) : null}
+          {hasUserFilter && metric !== "clients" ? (
             <div className="admin-user-status-filter admin-client-user-filter">
               <DashboardSelect
                 ariaLabel={isArabic ? "فلترة حسب المستخدم" : "Filter by user"}
@@ -1022,7 +1069,7 @@ function AdminMetricList({
               />
             </div>
           ) : null}
-          {metric === "clients" ? (
+          {false && metric === "clients" ? (
             <Fragment>
               <div className="admin-user-status-filter admin-client-user-filter">
                 <DashboardSelect
@@ -1051,11 +1098,57 @@ function AdminMetricList({
               </div>
             </Fragment>
           ) : null}
-          <strong>
-            {visibleRows.length.toLocaleString(NUMBER_LOCALE)}
-          </strong>
+          {metric !== "clients" ? (
+            <strong>
+              {visibleRows.length.toLocaleString(NUMBER_LOCALE)}
+            </strong>
+          ) : null}
         </div>
       </div>
+      {false ? (
+        <div className="admin-ticket-types-panel">
+          <div className="admin-ticket-types-head">
+            <div>
+              <span>{isArabic ? "أنواع التذاكر" : "Ticket Types"}</span>
+              <strong>
+                {(data?.ticketTypes ?? []).length.toLocaleString(NUMBER_LOCALE)}{" "}
+                {isArabic ? "نوع" : "types"}
+              </strong>
+            </div>
+            <button
+              className="admin-add-product"
+              onClick={() => openTicketTypeEditor()}
+              type="button"
+            >
+              {isArabic ? "إضافة نوع تذكرة" : "Add Ticket Type"}
+            </button>
+          </div>
+          <div className="admin-ticket-types-list">
+            {(data?.ticketTypes ?? []).map((ticketType) => (
+              <article className="admin-ticket-type-item" key={ticketType.id}>
+                <div>
+                  <strong>
+                    {isArabic
+                      ? String(ticketType.name_ar ?? "—")
+                      : String(ticketType.name_en ?? ticketType.name_ar ?? "—")}
+                  </strong>
+                  <small>{String(ticketType.description ?? "")}</small>
+                </div>
+                <span className={`admin-status admin-status-${String(ticketType.status ?? "active")}`}>
+                  {displayAdminValue(ticketType.status, isArabic)}
+                </span>
+                <button
+                  className="admin-row-edit"
+                  onClick={() => openTicketTypeEditor(ticketType)}
+                  type="button"
+                >
+                  {isArabic ? "تعديل" : "Edit"}
+                </button>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div className="admin-table-wrap">
         <table>
           <thead>
@@ -2166,6 +2259,10 @@ const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
   "page.user.customers": { ar: "صفحة المستخدم - العملاء", en: "User - Customers Page" },
   "page.user.stores": { ar: "صفحة المستخدم - المعارض", en: "User - Stores Page" },
   "page.user.quotes": { ar: "صفحة المستخدم - عروض الأسعار", en: "User - Quotes Page" },
+  "page.user.participation_contracts": { ar: "صفحة المستخدم - عقود المشاركة", en: "User - Participation Contracts Page" },
+  "page.user.sponsorship_contracts": { ar: "صفحة المستخدم - عقود الرعاية", en: "User - Sponsorship Contracts Page" },
+  "page.user.sales_orders": { ar: "صفحة المستخدم - أوامر البيع", en: "User - Sales Orders Page" },
+  "page.user.rental_contracts": { ar: "صفحة المستخدم - عقود تأجيرية", en: "User - Rental Contracts Page" },
   "page.user.sales": { ar: "صفحة المستخدم - المبيعات", en: "User - Sales Page" },
   "page.user.activation": { ar: "صفحة المستخدم - التفعيل", en: "User - Activation Page" },
   "page.user.education": { ar: "صفحة المستخدم - المحتوى التعليمي", en: "User - Education Page" },
@@ -2630,6 +2727,17 @@ function AdminManagementSection({
   const [timelineTicket, setTimelineTicket] = useState<AdminRow | null>(null);
   const [ticketDraft, setTicketDraft] = useState({ status: "open", notes: "" });
   const [ticketEditMessage, setTicketEditMessage] = useState("");
+  const [editingTicketType, setEditingTicketType] = useState<AdminRow | null>(null);
+  const [isTicketTypesMenuOpen, setIsTicketTypesMenuOpen] = useState(false);
+  const [isTicketTypeModalOpen, setIsTicketTypeModalOpen] = useState(false);
+  const [ticketTypeDraft, setTicketTypeDraft] = useState({
+    name_ar: "",
+    name_en: "",
+    description: "",
+    status: "active",
+    sort_order: "0",
+  });
+  const [ticketTypeMessage, setTicketTypeMessage] = useState("");
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<AdminRow | null>(null);
   const [editingIndustry, setEditingIndustry] = useState<AdminRow | null>(null);
@@ -2643,7 +2751,7 @@ function AdminManagementSection({
   });
   const [industryMessage, setIndustryMessage] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{
-    resource: "products" | "industries";
+    resource: "products" | "industries" | "marketing-assets";
     row: AdminRow;
   } | null>(null);
   const [productDraft, setProductDraft] = useState({
@@ -2656,6 +2764,10 @@ function AdminManagementSection({
     status: "active",
   });
   const [productMessage, setProductMessage] = useState("");
+  const [contentUploadTitle, setContentUploadTitle] = useState("");
+  const [contentUploadDescription, setContentUploadDescription] = useState("");
+  const [contentUploadMessage, setContentUploadMessage] = useState("");
+  const contentUploadFileRef = useRef<HTMLInputElement | null>(null);
 
   if (section === "permissions") {
     return <AdminPermissionsSection isArabic={isArabic} />;
@@ -2736,7 +2848,20 @@ function AdminManagementSection({
     Exclude<AdminSection, "dashboard" | "permissions" | "tags">,
     { rows: AdminRow[]; columns: string[][] }
   >;
-  const config = configs[section];
+  const config =
+    section === "content"
+      ? {
+          rows: data.content,
+          columns: [
+            ["title", isArabic ? "اسم الملف" : "File Name"],
+            ["original_name", isArabic ? "الملف الأصلي" : "Original File"],
+            ["asset_type", isArabic ? "النوع" : "Type"],
+            ["file_size", isArabic ? "الحجم" : "Size"],
+            ["status", isArabic ? "الحالة" : "Status"],
+            ["created_at", isArabic ? "تاريخ الرفع" : "Upload Date"],
+          ],
+        }
+      : configs[section];
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const visibleRows = normalizedQuery
     ? config.rows.filter((row) =>
@@ -2784,6 +2909,60 @@ function AdminManagementSection({
       notes: String(ticket.notes ?? ""),
     });
     setTicketEditMessage("");
+  }
+
+  function openTicketTypeEditor(ticketType?: AdminRow) {
+    setEditingTicketType(ticketType ?? null);
+    setIsTicketTypeModalOpen(true);
+    setTicketTypeDraft({
+      name_ar: String(ticketType?.name_ar ?? ""),
+      name_en: String(ticketType?.name_en ?? ""),
+      description: String(ticketType?.description ?? ""),
+      status: String(ticketType?.status ?? "active"),
+      sort_order: String(ticketType?.sort_order ?? "0"),
+    });
+    setTicketTypeMessage("");
+  }
+
+  async function saveTicketType() {
+    if (!ticketTypeDraft.name_ar.trim() || !ticketTypeDraft.name_en.trim()) {
+      setTicketTypeMessage(
+        isArabic ? "أدخل اسم النوع بالعربي والإنجليزي" : "Enter the Arabic and English type names",
+      );
+      return;
+    }
+    setTicketTypeMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const response = await fetch(
+        editingTicketType
+          ? `/api/v1/data/support-ticket-types/${editingTicketType.id}`
+          : "/api/v1/data/support-ticket-types",
+        {
+          method: editingTicketType ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({
+            ...ticketTypeDraft,
+            sort_order: Number(ticketTypeDraft.sort_order || 0),
+          }),
+        },
+      );
+      if (!response.ok) throw new Error("SAVE_FAILED");
+      setIsTicketTypeModalOpen(false);
+      setEditingTicketType(null);
+      setTicketTypeDraft({
+        name_ar: "",
+        name_en: "",
+        description: "",
+        status: "active",
+        sort_order: "0",
+      });
+      setTicketTypeMessage("");
+      onReload();
+    } catch {
+      setTicketTypeMessage(
+        isArabic ? "تعذر حفظ نوع التذكرة" : "Unable to save ticket type",
+      );
+    }
   }
 
   const savedTicketTimelineEvents = timelineTicket
@@ -2937,6 +3116,10 @@ function AdminManagementSection({
     setDeleteTarget({ resource: "industries", row: industry });
   }
 
+  function requestMarketingAssetDeletion(asset: AdminRow) {
+    setDeleteTarget({ resource: "marketing-assets", row: asset });
+  }
+
   async function confirmDeletion() {
     if (!deleteTarget) return;
     try {
@@ -2972,7 +3155,7 @@ function AdminManagementSection({
     setIndustryMessage("");
     setIndustryDraft({
       name: String(industry.name ?? ""),
-      name_en: String(industry.name_en ?? ""),
+      name_en: String(industry.name_en ?? industry.name ?? ""),
       slug: String(industry.slug ?? ""),
       description: String(industry.description ?? ""),
       status: String(industry.status ?? "active"),
@@ -2983,12 +3166,19 @@ function AdminManagementSection({
   async function saveIndustry() {
     if (
       !industryDraft.name.trim() ||
-      !industryDraft.name_en.trim() ||
       !industryDraft.slug.trim()
-    )
+    ) {
+      setIndustryMessage(
+        isArabic ? "أدخل اسم النشاط والرمز" : "Enter the industry name and code",
+      );
       return;
+    }
     setIndustryMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
+      const payload = {
+        ...industryDraft,
+        name_en: industryDraft.name_en.trim() || industryDraft.name.trim(),
+      };
       const response = await fetch(
         editingIndustry
           ? `/api/v1/data/industries/${editingIndustry.id}`
@@ -2996,7 +3186,7 @@ function AdminManagementSection({
         {
           method: editingIndustry ? "PUT" : "POST",
           headers: { "Content-Type": "application/json; charset=utf-8" },
-          body: JSON.stringify(industryDraft),
+          body: JSON.stringify(payload),
         },
       );
       if (!response.ok) throw new Error("SAVE_FAILED");
@@ -3008,6 +3198,35 @@ function AdminManagementSection({
         isArabic ? "تعذر حفظ النشاط" : "Unable to save the industry",
       );
     }
+  }
+
+  async function uploadMarketingContent() {
+    const file = contentUploadFileRef.current?.files?.[0];
+    if (!file) {
+      setContentUploadMessage(isArabic ? "اختر ملفًا أولًا" : "Choose a file first");
+      return;
+    }
+    setContentUploadMessage(isArabic ? "جاري الرفع..." : "Uploading...");
+    const body = new FormData();
+    body.append("file", file);
+    body.append("title", contentUploadTitle.trim() || file.name);
+    body.append("description", contentUploadDescription.trim());
+    try {
+      const response = await fetch("/api/v1/marketing-assets/upload", {
+        method: "POST",
+        body,
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "UPLOAD_FAILED"));
+      setContentUploadTitle("");
+      setContentUploadDescription("");
+      if (contentUploadFileRef.current) contentUploadFileRef.current.value = "";
+      onReload();
+      setContentUploadMessage(isArabic ? "تم رفع الملف" : "File uploaded");
+    } catch {
+      setContentUploadMessage(isArabic ? "تعذر رفع الملف" : "Unable to upload file");
+    }
+    window.setTimeout(() => setContentUploadMessage(""), 2400);
   }
 
   if (section === "accounts") {
@@ -3024,6 +3243,46 @@ function AdminManagementSection({
 
   return (
     <section className="admin-data-card">
+      {section === "content" ? (
+        <article className="admin-content-upload-card">
+          <div>
+            <h3>{isArabic ? "رفع ملف تسويقي جديد" : "Upload Marketing File"}</h3>
+            <p>
+              {isArabic
+                ? "أضف ملفات المكتبة التسويقية هنا لتظهر للمستخدمين للعرض والتنزيل فقط."
+                : "Add marketing library files here so users can view and download them only."}
+            </p>
+          </div>
+          <div className="admin-content-upload-grid">
+            <label>
+              <span>{isArabic ? "اسم الملف" : "File Title"}</span>
+              <input
+                onChange={(event) => setContentUploadTitle(event.target.value)}
+                placeholder={isArabic ? "مثال: بروشور المعرض" : "Example: Expo brochure"}
+                value={contentUploadTitle}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "ملاحظات" : "Notes"}</span>
+              <input
+                onChange={(event) => setContentUploadDescription(event.target.value)}
+                placeholder={isArabic ? "وصف مختصر للملف" : "Short file description"}
+                value={contentUploadDescription}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "اختيار الملف" : "Choose File"}</span>
+              <input ref={contentUploadFileRef} type="file" />
+            </label>
+          </div>
+          <div className="admin-content-upload-actions">
+            <button onClick={() => void uploadMarketingContent()} type="button">
+              {isArabic ? "رفع الملف" : "Upload File"}
+            </button>
+            {contentUploadMessage ? <p>{contentUploadMessage}</p> : null}
+          </div>
+        </article>
+      ) : null}
       <div
         className={`admin-data-head ${section === "tickets" ? "admin-ticket-data-head" : ""} ${section === "products" ? "admin-product-data-head" : ""} ${section === "activity" ? "admin-activity-data-head" : ""}`}
         style={
@@ -3164,8 +3423,114 @@ function AdminManagementSection({
               />
             </div>
           ) : null}
+          {section === "tickets" ? (
+            <div className="admin-ticket-types-dropdown-wrap">
+              <button
+                aria-expanded={isTicketTypesMenuOpen}
+                className={`admin-ticket-types-toggle${isTicketTypesMenuOpen ? " active" : ""}`}
+                onClick={() => setIsTicketTypesMenuOpen((current) => !current)}
+                type="button"
+              >
+                {isArabic ? "الأنواع" : "Types"}
+              </button>
+              {isTicketTypesMenuOpen ? (
+                <div className="admin-ticket-types-dropdown">
+                  <div className="admin-ticket-types-head">
+                    <div>
+                      <span>{isArabic ? "أنواع التذاكر" : "Ticket Types"}</span>
+                      <strong>
+                        {(data.ticketTypes ?? []).length.toLocaleString(NUMBER_LOCALE)}{" "}
+                        {isArabic ? "نوع" : "types"}
+                      </strong>
+                    </div>
+                    <button
+                      className="admin-add-product"
+                      onClick={() => {
+                        setIsTicketTypesMenuOpen(false);
+                        openTicketTypeEditor();
+                      }}
+                      type="button"
+                    >
+                      {isArabic ? "إضافة نوع تذكرة" : "Add Ticket Type"}
+                    </button>
+                  </div>
+                  <div className="admin-ticket-types-list">
+                    {(data.ticketTypes ?? []).map((ticketType) => (
+                      <article className="admin-ticket-type-item" key={ticketType.id}>
+                        <div>
+                          <strong>
+                            {isArabic
+                              ? String(ticketType.name_ar ?? "—")
+                              : String(ticketType.name_en ?? ticketType.name_ar ?? "—")}
+                          </strong>
+                          <small>{String(ticketType.description ?? "")}</small>
+                        </div>
+                        <span className={`admin-status admin-status-${String(ticketType.status ?? "active")}`}>
+                          {displayAdminValue(ticketType.status, isArabic)}
+                        </span>
+                        <button
+                          className="admin-row-edit"
+                          onClick={() => {
+                            setIsTicketTypesMenuOpen(false);
+                            openTicketTypeEditor(ticketType);
+                          }}
+                          type="button"
+                        >
+                          {isArabic ? "تعديل" : "Edit"}
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
+      {false ? (
+        <div className="admin-ticket-types-panel">
+          <div className="admin-ticket-types-head">
+            <div>
+              <span>{isArabic ? "أنواع التذاكر" : "Ticket Types"}</span>
+              <strong>
+                {(data?.ticketTypes ?? []).length.toLocaleString(NUMBER_LOCALE)}{" "}
+                {isArabic ? "نوع" : "types"}
+              </strong>
+            </div>
+            <button
+              className="admin-add-product"
+              onClick={() => openTicketTypeEditor()}
+              type="button"
+            >
+              {isArabic ? "إضافة نوع تذكرة" : "Add Ticket Type"}
+            </button>
+          </div>
+          <div className="admin-ticket-types-list">
+            {(data?.ticketTypes ?? []).map((ticketType) => (
+              <article className="admin-ticket-type-item" key={ticketType.id}>
+                <div>
+                  <strong>
+                    {isArabic
+                      ? String(ticketType.name_ar ?? "—")
+                      : String(ticketType.name_en ?? ticketType.name_ar ?? "—")}
+                  </strong>
+                  <small>{String(ticketType.description ?? "")}</small>
+                </div>
+                <span className={`admin-status admin-status-${String(ticketType.status ?? "active")}`}>
+                  {displayAdminValue(ticketType.status, isArabic)}
+                </span>
+                <button
+                  className="admin-row-edit"
+                  onClick={() => openTicketTypeEditor(ticketType)}
+                  type="button"
+                >
+                  {isArabic ? "تعديل" : "Edit"}
+                </button>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div className="admin-table-wrap">
         <table>
           <thead>
@@ -3175,7 +3540,8 @@ function AdminManagementSection({
               ))}
               {section === "tickets" ||
               section === "products" ||
-              section === "activity" ? (
+              section === "activity" ||
+              section === "content" ? (
                 <th>{isArabic ? "إجراء" : "Action"}</th>
               ) : null}
             </tr>
@@ -3198,6 +3564,10 @@ function AdminManagementSection({
                         String(row[key] ?? "—").slice(0, 10)
                       ) : key === "base_price" ? (
                         Number(row[key] ?? 0).toLocaleString(NUMBER_LOCALE)
+                      ) : key === "file_size" ? (
+                        `${(Number(row[key] ?? 0) / 1024 / 1024).toLocaleString(NUMBER_LOCALE, {
+                          maximumFractionDigits: 1,
+                        })} MB`
                       ) : section === "tickets" && key === "user_name" ? (
                         getTicketUserName(row)
                       ) : (
@@ -3262,6 +3632,18 @@ function AdminManagementSection({
                         </button>
                       </div>
                     </td>
+                  ) : section === "content" ? (
+                    <td>
+                      <div className="admin-row-actions">
+                        <button
+                          className="admin-row-delete"
+                          onClick={() => requestMarketingAssetDeletion(row)}
+                          type="button"
+                        >
+                          {isArabic ? "\u062d\u0630\u0641" : "Delete"}
+                        </button>
+                      </div>
+                    </td>
                   ) : null}
                 </tr>
               </Fragment>
@@ -3274,7 +3656,8 @@ function AdminManagementSection({
                     config.columns.length +
                     (section === "tickets" ||
                     section === "products" ||
-                    section === "activity"
+                    section === "activity" ||
+                    section === "content"
                       ? 1
                       : 0)
                   }
@@ -3286,6 +3669,103 @@ function AdminManagementSection({
           </tbody>
         </table>
       </div>
+      {isTicketTypeModalOpen ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsTicketTypeModalOpen(false);
+          }}
+          role="presentation"
+        >
+          <section className="admin-edit-modal" aria-modal="true" role="dialog">
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "أنواع التذاكر" : "Ticket Types"}</span>
+                <h3>
+                  {editingTicketType
+                    ? isArabic
+                      ? "تعديل نوع التذكرة"
+                      : "Edit Ticket Type"
+                    : isArabic
+                      ? "إضافة نوع تذكرة"
+                      : "Add Ticket Type"}
+                </h3>
+              </div>
+              <button onClick={() => setIsTicketTypeModalOpen(false)} type="button">
+                X
+              </button>
+            </div>
+            <label>
+              <span>{isArabic ? "الاسم بالعربي" : "Arabic Name"}</span>
+              <input
+                onChange={(event) =>
+                  setTicketTypeDraft((current) => ({ ...current, name_ar: event.target.value }))
+                }
+                value={ticketTypeDraft.name_ar}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "الاسم بالإنجليزي" : "English Name"}</span>
+              <input
+                onChange={(event) =>
+                  setTicketTypeDraft((current) => ({ ...current, name_en: event.target.value }))
+                }
+                value={ticketTypeDraft.name_en}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "الوصف" : "Description"}</span>
+              <textarea
+                className="admin-ticket-notes"
+                onChange={(event) =>
+                  setTicketTypeDraft((current) => ({ ...current, description: event.target.value }))
+                }
+                value={ticketTypeDraft.description}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "الحالة" : "Status"}</span>
+              <DashboardSelect
+                ariaLabel={isArabic ? "الحالة" : "Status"}
+                menuClassName="admin-edit-select-menu"
+                onValueChange={(status) =>
+                  setTicketTypeDraft((current) => ({ ...current, status }))
+                }
+                options={[
+                  { value: "active", label: isArabic ? "نشط" : "Active" },
+                  { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
+                ]}
+                portal
+                value={ticketTypeDraft.status}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "الترتيب" : "Order"}</span>
+              <input
+                min="0"
+                onChange={(event) =>
+                  setTicketTypeDraft((current) => ({ ...current, sort_order: event.target.value }))
+                }
+                type="number"
+                value={ticketTypeDraft.sort_order}
+              />
+            </label>
+            {ticketTypeMessage ? <p>{ticketTypeMessage}</p> : null}
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                onClick={() => void saveTicketType()}
+                type="button"
+              >
+                {isArabic ? "حفظ" : "Save"}
+              </button>
+              <button onClick={() => setIsTicketTypeModalOpen(false)} type="button">
+                {isArabic ? "إلغاء" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
       {editingTicket ? (
         <div
           className="admin-edit-overlay"
@@ -3465,7 +3945,7 @@ function AdminManagementSection({
                 onClick={() => setIsProductModalOpen(false)}
                 type="button"
               >
-                ?
+                X
               </button>
             </div>
             <label>
@@ -3593,7 +4073,7 @@ function AdminManagementSection({
                 }}
                 type="button"
               >
-                ?
+                X
               </button>
             </div>
             <label>

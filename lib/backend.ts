@@ -24,13 +24,19 @@ export type BackendResource =
   | "stock"
   | "demo-requests"
   | "quotes"
+  | "participation-contracts"
+  | "sponsorship-contracts"
+  | "rental-contracts"
+  | "sales-orders"
   | "sales"
   | "commissions"
   | "support-tickets"
+  | "support-ticket-types"
   | "support-ticket-events"
   | "team-members"
   | "social-accounts"
   | "payout-methods"
+  | "marketing-assets"
   | "educational-assets";
 
 type ResourceDefinition = {
@@ -175,6 +181,145 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     ],
     defaults: { status: "draft", currency: "SAR" },
   },
+  "participation-contracts": {
+    table: "participation_contracts",
+    ownerField: "affiliate_user_id",
+    permissionKey: "table.quotes",
+    writable: [
+      "contract_number",
+      "lead_id",
+      "company_name",
+      "brand_name",
+      "contact_name",
+      "email",
+      "website",
+      "phone",
+      "mobile",
+      "fax",
+      "address",
+      "city",
+      "country",
+      "stand_number",
+      "location_category",
+      "package_type",
+      "space_sqm",
+      "price_per_sqm",
+      "total_amount",
+      "currency",
+      "payment_method",
+      "contract_date",
+      "status",
+      "notes",
+    ],
+    defaults: { status: "draft", currency: "SAR", payment_method: "bank_transfer" },
+  },
+  "sponsorship-contracts": {
+    table: "sponsorship_contracts",
+    ownerField: "affiliate_user_id",
+    permissionKey: "table.quotes",
+    writable: [
+      "contract_number",
+      "lead_id",
+      "company_name",
+      "brand_name",
+      "contact_name",
+      "email",
+      "website",
+      "phone",
+      "mobile",
+      "fax",
+      "address",
+      "city",
+      "country",
+      "stand_number",
+      "sponsorship_category",
+      "package_type",
+      "space_sqm",
+      "price_per_sqm",
+      "sponsorship_amount",
+      "registration_fee",
+      "other_services_amount",
+      "vat_amount",
+      "grand_total",
+      "currency",
+      "payment_method",
+      "contract_date",
+      "status",
+      "notes",
+    ],
+    defaults: { status: "draft", currency: "SAR", payment_method: "bank_transfer" },
+  },
+  "rental-contracts": {
+    table: "rental_contracts",
+    ownerField: "affiliate_user_id",
+    permissionKey: "table.quotes",
+    writable: [
+      "contract_number",
+      "lead_id",
+      "lessor_name",
+      "tenant_name",
+      "company_name",
+      "contact_name",
+      "email",
+      "phone",
+      "address",
+      "city",
+      "country",
+      "rental_item",
+      "rental_location",
+      "lease_start_date",
+      "lease_end_date",
+      "unit_price",
+      "quantity",
+      "subtotal",
+      "vat_amount",
+      "grand_total",
+      "currency",
+      "payment_method",
+      "contract_date",
+      "status",
+      "notes",
+    ],
+    defaults: { status: "draft", currency: "SAR", payment_method: "bank_transfer" },
+  },
+  "sales-orders": {
+    table: "sales_orders",
+    ownerField: "affiliate_user_id",
+    permissionKey: "table.quotes",
+    writable: [
+      "order_number",
+      "lead_id",
+      "company_name",
+      "contact_name",
+      "email",
+      "phone",
+      "address",
+      "city",
+      "country",
+      "exhibition_name",
+      "stand_number",
+      "item_description",
+      "uom",
+      "unit_price",
+      "quantity",
+      "subtotal",
+      "vat_amount",
+      "grand_total",
+      "currency",
+      "payment_method",
+      "order_date",
+      "status",
+      "notes",
+    ],
+    defaults: {
+      status: "draft",
+      currency: "SAR",
+      payment_method: "bank_transfer",
+      exhibition_name: "Rawnaq Elegance Expo - Dec 2026",
+      uom: "SQM",
+      quantity: 1,
+    },
+  },
   sales: {
     table: "sales",
     ownerField: "affiliate_user_id",
@@ -211,6 +356,12 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     ],
     defaults: { status: "open", priority: "normal" },
   },
+  "support-ticket-types": {
+    table: "support_ticket_types",
+    permissionKey: "table.support_ticket_types",
+    writable: ["name_ar", "name_en", "description", "status", "sort_order"],
+    defaults: { status: "active", sort_order: 0 },
+  },
   "support-ticket-events": {
     table: "support_ticket_events",
     ownerField: "user_id",
@@ -243,6 +394,21 @@ const resources: Record<BackendResource, ResourceDefinition> = {
       "is_default",
     ],
     defaults: { minimum_payout_amount: 500, currency: "SAR", is_default: 1 },
+  },
+  "marketing-assets": {
+    table: "marketing_assets",
+    permissionKey: "table.marketing_assets",
+    writable: [
+      "title",
+      "asset_type",
+      "original_name",
+      "mime_type",
+      "file_size",
+      "file_path",
+      "description",
+      "status",
+    ],
+    defaults: { status: "active" },
   },
   "educational-assets": {
     table: "educational_assets",
@@ -476,6 +642,244 @@ async function ensureResourceTable(resource: string) {
   if (resource === "team-members") {
     await ensureTeamMembersTable();
   }
+  if (resource === "participation-contracts") {
+    await ensureParticipationContractsTable();
+  }
+  if (resource === "sponsorship-contracts") {
+    await ensureSponsorshipContractsTable();
+  }
+  if (resource === "rental-contracts") {
+    await ensureRentalContractsTable();
+  }
+  if (resource === "sales-orders") {
+    await ensureSalesOrdersTable();
+  }
+  if (resource === "marketing-assets") {
+    await ensureMarketingAssetsTable();
+  }
+}
+
+async function ensureParticipationContractsTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS participation_contracts (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      contract_number VARCHAR(80) NOT NULL,
+      lead_id BIGINT UNSIGNED NULL,
+      affiliate_user_id BIGINT UNSIGNED NULL,
+      company_name VARCHAR(190) NOT NULL,
+      brand_name VARCHAR(190) NULL,
+      contact_name VARCHAR(190) NOT NULL,
+      email VARCHAR(190) NULL,
+      website VARCHAR(190) NULL,
+      phone VARCHAR(80) NULL,
+      mobile VARCHAR(80) NULL,
+      fax VARCHAR(80) NULL,
+      address VARCHAR(255) NULL,
+      city VARCHAR(120) NULL,
+      country VARCHAR(120) NULL,
+      stand_number VARCHAR(80) NULL,
+      location_category VARCHAR(120) NULL,
+      package_type VARCHAR(120) NOT NULL,
+      space_sqm DECIMAL(12,2) NULL,
+      price_per_sqm DECIMAL(12,2) NULL,
+      total_amount DECIMAL(12,2) NULL,
+      currency CHAR(3) NOT NULL DEFAULT 'SAR',
+      payment_method VARCHAR(80) NOT NULL DEFAULT 'bank_transfer',
+      contract_date DATE NULL,
+      status ENUM('draft', 'sent', 'signed', 'cancelled') NOT NULL DEFAULT 'draft',
+      notes TEXT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_participation_contracts_number (contract_number),
+      KEY idx_participation_contracts_lead (lead_id),
+      KEY idx_participation_contracts_affiliate (affiliate_user_id),
+      KEY idx_participation_contracts_status (status),
+      KEY idx_participation_contracts_company (company_name),
+      CONSTRAINT fk_participation_contracts_affiliate_user
+        FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+  if (!(await columnExists("participation_contracts", "lead_id"))) {
+    await db.execute(
+      "ALTER TABLE participation_contracts ADD COLUMN lead_id BIGINT UNSIGNED NULL AFTER contract_number",
+    );
+  }
+  const [leadIndexes] = await db.execute<RowDataPacket[]>(
+    `SELECT 1
+       FROM information_schema.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'participation_contracts'
+        AND INDEX_NAME = 'idx_participation_contracts_lead'
+      LIMIT 1`,
+  );
+  if (!leadIndexes.length) {
+    await db.execute(
+      "ALTER TABLE participation_contracts ADD INDEX idx_participation_contracts_lead (lead_id)",
+    );
+  }
+}
+
+async function ensureSponsorshipContractsTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS sponsorship_contracts (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      contract_number VARCHAR(80) NOT NULL,
+      lead_id BIGINT UNSIGNED NULL,
+      affiliate_user_id BIGINT UNSIGNED NULL,
+      company_name VARCHAR(190) NOT NULL,
+      brand_name VARCHAR(190) NULL,
+      contact_name VARCHAR(190) NOT NULL,
+      email VARCHAR(190) NULL,
+      website VARCHAR(190) NULL,
+      phone VARCHAR(80) NULL,
+      mobile VARCHAR(80) NULL,
+      fax VARCHAR(80) NULL,
+      address VARCHAR(255) NULL,
+      city VARCHAR(120) NULL,
+      country VARCHAR(120) NULL,
+      stand_number VARCHAR(80) NULL,
+      sponsorship_category VARCHAR(120) NOT NULL,
+      package_type VARCHAR(120) NULL,
+      space_sqm DECIMAL(12,2) NULL,
+      price_per_sqm DECIMAL(12,2) NULL,
+      sponsorship_amount DECIMAL(12,2) NULL,
+      registration_fee DECIMAL(12,2) NULL,
+      other_services_amount DECIMAL(12,2) NULL,
+      vat_amount DECIMAL(12,2) NULL,
+      grand_total DECIMAL(12,2) NULL,
+      currency CHAR(3) NOT NULL DEFAULT 'SAR',
+      payment_method VARCHAR(80) NOT NULL DEFAULT 'bank_transfer',
+      contract_date DATE NULL,
+      status ENUM('draft', 'sent', 'signed', 'cancelled') NOT NULL DEFAULT 'draft',
+      notes TEXT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_sponsorship_contracts_number (contract_number),
+      KEY idx_sponsorship_contracts_lead (lead_id),
+      KEY idx_sponsorship_contracts_affiliate (affiliate_user_id),
+      KEY idx_sponsorship_contracts_status (status),
+      KEY idx_sponsorship_contracts_company (company_name),
+      CONSTRAINT fk_sponsorship_contracts_affiliate_user
+        FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
+async function ensureRentalContractsTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS rental_contracts (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      contract_number VARCHAR(80) NOT NULL,
+      lead_id BIGINT UNSIGNED NULL,
+      affiliate_user_id BIGINT UNSIGNED NULL,
+      lessor_name VARCHAR(190) NULL,
+      tenant_name VARCHAR(190) NULL,
+      company_name VARCHAR(190) NOT NULL,
+      contact_name VARCHAR(190) NOT NULL,
+      email VARCHAR(190) NULL,
+      phone VARCHAR(80) NULL,
+      address VARCHAR(255) NULL,
+      city VARCHAR(120) NULL,
+      country VARCHAR(120) NULL,
+      rental_item VARCHAR(255) NOT NULL,
+      rental_location VARCHAR(190) NULL,
+      lease_start_date DATE NULL,
+      lease_end_date DATE NULL,
+      unit_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+      quantity DECIMAL(12,2) NOT NULL DEFAULT 1,
+      subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
+      vat_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+      grand_total DECIMAL(12,2) NOT NULL DEFAULT 0,
+      currency CHAR(3) NOT NULL DEFAULT 'SAR',
+      payment_method VARCHAR(80) NOT NULL DEFAULT 'bank_transfer',
+      contract_date DATE NULL,
+      status ENUM('draft', 'sent', 'signed', 'cancelled') NOT NULL DEFAULT 'draft',
+      notes TEXT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_rental_contracts_number (contract_number),
+      KEY idx_rental_contracts_lead (lead_id),
+      KEY idx_rental_contracts_affiliate (affiliate_user_id),
+      KEY idx_rental_contracts_status (status),
+      KEY idx_rental_contracts_company (company_name),
+      CONSTRAINT fk_rental_contracts_affiliate_user
+        FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
+async function ensureSalesOrdersTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS sales_orders (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      order_number VARCHAR(80) NOT NULL,
+      lead_id BIGINT UNSIGNED NULL,
+      affiliate_user_id BIGINT UNSIGNED NULL,
+      company_name VARCHAR(190) NOT NULL,
+      contact_name VARCHAR(190) NOT NULL,
+      email VARCHAR(190) NULL,
+      phone VARCHAR(80) NULL,
+      address VARCHAR(255) NULL,
+      city VARCHAR(120) NULL,
+      country VARCHAR(120) NULL,
+      exhibition_name VARCHAR(190) NOT NULL DEFAULT 'Rawnaq Elegance Expo - Dec 2026',
+      stand_number VARCHAR(80) NULL,
+      item_description VARCHAR(255) NOT NULL,
+      uom VARCHAR(40) NOT NULL DEFAULT 'SQM',
+      unit_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+      quantity DECIMAL(12,2) NOT NULL DEFAULT 1,
+      subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
+      vat_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+      grand_total DECIMAL(12,2) NOT NULL DEFAULT 0,
+      currency CHAR(3) NOT NULL DEFAULT 'SAR',
+      payment_method VARCHAR(80) NOT NULL DEFAULT 'bank_transfer',
+      order_date DATE NULL,
+      status ENUM('draft', 'sent', 'approved', 'cancelled') NOT NULL DEFAULT 'draft',
+      notes TEXT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_sales_orders_number (order_number),
+      KEY idx_sales_orders_lead (lead_id),
+      KEY idx_sales_orders_affiliate (affiliate_user_id),
+      KEY idx_sales_orders_status (status),
+      KEY idx_sales_orders_company (company_name),
+      CONSTRAINT fk_sales_orders_affiliate_user
+        FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
+async function ensureMarketingAssetsTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS marketing_assets (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      user_id BIGINT UNSIGNED NULL,
+      title VARCHAR(200) NOT NULL,
+      asset_type ENUM('image','video','document','other') NOT NULL DEFAULT 'other',
+      original_name VARCHAR(255) NOT NULL,
+      mime_type VARCHAR(120) NULL,
+      file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+      file_path VARCHAR(500) NOT NULL,
+      description TEXT NULL,
+      status ENUM('active','inactive','draft') NOT NULL DEFAULT 'active',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      KEY idx_marketing_assets_user (user_id),
+      KEY idx_marketing_assets_type_status (asset_type, status),
+      CONSTRAINT fk_marketing_assets_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
 }
 
 async function ensureLeadTagsTable() {
@@ -911,6 +1315,41 @@ async function ensureSupportTicketEventsTable() {
   );
 }
 
+async function ensureSupportTicketTypesTable(session?: MiddarSession) {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS support_ticket_types (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      company_id BIGINT UNSIGNED NOT NULL,
+      name_ar VARCHAR(120) NOT NULL,
+      name_en VARCHAR(120) NOT NULL,
+      description TEXT NULL,
+      status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_support_ticket_types_company_name_ar (company_id, name_ar),
+      INDEX idx_support_ticket_types_company_status (company_id, status, sort_order)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+
+  if (!session) return;
+  const companyId = await companyIdForSession(session);
+  const defaults = [
+    ["مشكلة عمولة", "Commission Issue", "استفسارات ومشاكل العمولات", 10],
+    ["دعم الحساب", "Account Support", "طلبات الحساب والصلاحيات", 20],
+    ["مشكلة تقنية", "Technical Issue", "المشاكل التقنية في النظام", 30],
+  ] as const;
+  for (const [nameAr, nameEn, description, sortOrder] of defaults) {
+    await db.execute(
+      `INSERT IGNORE INTO support_ticket_types
+        (company_id, name_ar, name_en, description, status, sort_order)
+       VALUES (?, ?, ?, ?, 'active', ?)`,
+      [companyId, nameAr, nameEn, description, sortOrder],
+    );
+  }
+}
+
 async function ensureSupportTicketsUserRelation() {
   await db.execute(
     `CREATE TABLE IF NOT EXISTS support_tickets (
@@ -1076,6 +1515,16 @@ async function recordSupportTicketEvent({
 
 export async function listResource(resource: string, session: MiddarSession) {
   const definition = definitionFor(resource);
+  if (resource === "marketing-assets") {
+    await ensureResourceTable(resource);
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT *
+         FROM marketing_assets
+        ORDER BY created_at DESC
+        LIMIT 250`,
+    );
+    return rows;
+  }
   await assertResourcePermission(definition, session, "can_view");
   await ensureResourceTable(resource);
 
@@ -1097,6 +1546,9 @@ export async function listResource(resource: string, session: MiddarSession) {
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
   }
+  if (resource === "support-ticket-types") {
+    await ensureSupportTicketTypesTable(session);
+  }
   if (resource === "support-tickets") {
     await ensureSupportTicketsUserRelation();
   }
@@ -1109,7 +1561,7 @@ export async function listResource(resource: string, session: MiddarSession) {
   }
 
   const { clause: where, params } =
-    resource === "lead-tag-types"
+    resource === "lead-tag-types" || resource === "support-ticket-types"
       ? await tagTypeCompanyFilter(session)
       : await ownerFilter(definition, session);
 
@@ -1130,6 +1582,23 @@ export async function listResource(resource: string, session: MiddarSession) {
          LEFT JOIN quotes q ON q.id=s.quote_id
         ${scopedWhere}
         ORDER BY s.created_at DESC LIMIT 250`,
+      scopedParams,
+    );
+    return rows;
+  }
+
+  if (resource === "sales-orders") {
+    const { clause: scopedWhere, params: scopedParams } = await ownerFilter(
+      definition,
+      session,
+      "so.",
+    );
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT so.*, l.name customer_name, l.company_name lead_company_name
+         FROM sales_orders so
+         LEFT JOIN leads l ON l.id = so.lead_id
+        ${scopedWhere}
+        ORDER BY so.created_at DESC LIMIT 250`,
       scopedParams,
     );
     return rows;
@@ -1169,6 +1638,57 @@ export async function listResource(resource: string, session: MiddarSession) {
          LEFT JOIN products p ON p.id = st.product_id
         ${scopedWhere}
         ORDER BY st.created_at DESC LIMIT 250`,
+      scopedParams,
+    );
+    return rows;
+  }
+
+  if (resource === "participation-contracts") {
+    const { clause: scopedWhere, params: scopedParams } = await ownerFilter(
+      definition,
+      session,
+      "pc.",
+    );
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT pc.*, l.name customer_name, l.company_name lead_company_name
+         FROM participation_contracts pc
+         LEFT JOIN leads l ON l.id = pc.lead_id
+        ${scopedWhere}
+        ORDER BY pc.created_at DESC LIMIT 250`,
+      scopedParams,
+    );
+    return rows;
+  }
+
+  if (resource === "sponsorship-contracts") {
+    const { clause: scopedWhere, params: scopedParams } = await ownerFilter(
+      definition,
+      session,
+      "sc.",
+    );
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT sc.*, l.name customer_name, l.company_name lead_company_name
+         FROM sponsorship_contracts sc
+         LEFT JOIN leads l ON l.id = sc.lead_id
+        ${scopedWhere}
+        ORDER BY sc.created_at DESC LIMIT 250`,
+      scopedParams,
+    );
+    return rows;
+  }
+
+  if (resource === "rental-contracts") {
+    const { clause: scopedWhere, params: scopedParams } = await ownerFilter(
+      definition,
+      session,
+      "rc.",
+    );
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT rc.*, l.name customer_name, l.company_name lead_company_name
+         FROM rental_contracts rc
+         LEFT JOIN leads l ON l.id = rc.lead_id
+        ${scopedWhere}
+        ORDER BY rc.created_at DESC LIMIT 250`,
       scopedParams,
     );
     return rows;
@@ -1220,6 +1740,17 @@ export async function listResource(resource: string, session: MiddarSession) {
     return rows;
   }
 
+  if (resource === "support-ticket-types") {
+    const { clause: scopedWhere, params: scopedParams } =
+      await companyFilterForSession(session);
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT * FROM support_ticket_types${scopedWhere}
+        ORDER BY sort_order ASC, created_at ASC LIMIT 250`,
+      scopedParams,
+    );
+    return rows;
+  }
+
   const rowLimit = resource === "leads" ? "" : " LIMIT 250";
   const [rows] = await db.execute<RowDataPacket[]>(
     `SELECT * FROM ${definition.table}${where} ORDER BY created_at DESC${rowLimit}`,
@@ -1249,7 +1780,18 @@ function cleanPayload(
 }
 
 function generatedReference(resource: string) {
-  const prefix = resource === "quotes" ? "Q" : "TKT";
+  const prefix =
+    resource === "quotes"
+      ? "Q"
+      : resource === "participation-contracts"
+        ? "PC"
+      : resource === "sponsorship-contracts"
+        ? "SC"
+        : resource === "rental-contracts"
+          ? "RC"
+          : resource === "sales-orders"
+            ? "SO"
+        : "TKT";
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)
     .toString()
     .padStart(3, "0")}`;
@@ -1264,14 +1806,20 @@ const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   "lead-tag-types": ["type_name"],
   "lead-tags": ["tag_type_id", "tag_name"],
   "lead-tag-assignments": ["lead_id", "tag_id"],
+  "support-ticket-types": ["name_ar", "name_en"],
   stores: ["company_name"],
   stock: ["store_id", "item_name", "quantity"],
   "demo-requests": ["company_name", "contact_name"],
   quotes: ["lead_id", "product_id", "amount", "valid_until"],
+  "participation-contracts": ["company_name", "contact_name", "package_type"],
+  "sponsorship-contracts": ["company_name", "contact_name", "sponsorship_category"],
+  "rental-contracts": ["company_name", "contact_name", "rental_item"],
+  "sales-orders": ["company_name", "contact_name", "item_description"],
   "support-tickets": ["category", "subject", "details"],
   "team-members": ["name", "phone"],
   "social-accounts": ["platform"],
   "payout-methods": ["bank_name", "account_holder_name", "iban"],
+  "marketing-assets": ["title", "asset_type", "original_name", "file_path"],
   "educational-assets": ["title", "asset_type"],
 };
 
@@ -1300,6 +1848,9 @@ export async function createResource(
   }
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
+  }
+  if (resource === "support-ticket-types") {
+    await ensureSupportTicketTypesTable(session);
   }
   if (resource === "support-tickets") {
     await ensureSupportTicketsUserRelation();
@@ -1339,6 +1890,13 @@ export async function createResource(
     data.lead_id = Number(data.lead_id);
     data.tag_id = Number(data.tag_id);
   }
+  if (resource === "support-ticket-types") {
+    data.name_ar = String(data.name_ar ?? "").trim().slice(0, 120);
+    data.name_en = String(data.name_en ?? "").trim().slice(0, 120);
+    data.description = String(data.description ?? "").trim() || null;
+    data.sort_order = Number(data.sort_order ?? 0);
+    data.company_id = await companyIdForSession(session);
+  }
   if (resource === "team-members") {
     if (data.phone) data.phone = String(data.phone).replace(/[^\d+]/g, "");
     const assignedUserId = await assignedTeamMemberUserId(data);
@@ -1367,6 +1925,105 @@ export async function createResource(
       throw new Error("PRODUCT_PRICE_NOT_FOUND");
     data.amount = product.base_price;
     data.currency = product.currency ?? "SAR";
+  }
+  if (resource === "participation-contracts" || resource === "sponsorship-contracts") {
+    if (data.lead_id) {
+      data.lead_id = Number(data.lead_id);
+      const [leadRows] = await db.execute<RowDataPacket[]>(
+        "SELECT id FROM leads WHERE id = ? AND affiliate_user_id = ? LIMIT 1",
+        [Number(data.lead_id), Number(session.sub)],
+      );
+      if (!leadRows.length) throw new Error("LEAD_NOT_FOUND");
+    }
+    for (const phoneColumn of ["phone", "mobile", "fax"]) {
+      if (data[phoneColumn]) data[phoneColumn] = String(data[phoneColumn]).replace(/[^\d+]/g, "");
+    }
+    for (const numericColumn of [
+      "space_sqm",
+      "price_per_sqm",
+      "total_amount",
+      "sponsorship_amount",
+      "registration_fee",
+      "other_services_amount",
+      "vat_amount",
+      "grand_total",
+    ]) {
+      if (data[numericColumn] !== undefined && data[numericColumn] !== null)
+        data[numericColumn] = Number(data[numericColumn]);
+    }
+    if (
+      resource === "participation-contracts" &&
+      (data.total_amount === undefined || data.total_amount === null) &&
+      data.space_sqm !== undefined &&
+      data.price_per_sqm !== undefined
+    ) {
+      data.total_amount = Number(data.space_sqm) * Number(data.price_per_sqm);
+    }
+    if (resource === "sponsorship-contracts") {
+      const includesParticipation = String(data.package_type ?? "sponsorship_participation") === "sponsorship_participation";
+      if (!includesParticipation) {
+        data.space_sqm = 0;
+        data.price_per_sqm = 0;
+      }
+      const boothAmount = includesParticipation
+        ? Number(data.space_sqm ?? 0) * Number(data.price_per_sqm ?? 0)
+        : 0;
+      const sponsorshipAmount = Number(data.sponsorship_amount ?? 0);
+      const registrationFee = Number(data.registration_fee ?? 0);
+      const otherServicesAmount = Number(data.other_services_amount ?? 0);
+      const taxableTotal = boothAmount + sponsorshipAmount + registrationFee + otherServicesAmount;
+      if ((data.vat_amount === undefined || data.vat_amount === null) && taxableTotal > 0) {
+        data.vat_amount = taxableTotal * 0.15;
+      }
+      if ((data.grand_total === undefined || data.grand_total === null) && taxableTotal > 0) {
+        data.grand_total = taxableTotal + Number(data.vat_amount ?? 0);
+      }
+    }
+    if (!data.contract_number) data.contract_number = generatedReference(resource);
+  }
+  if (resource === "sales-orders") {
+    if (data.lead_id) {
+      data.lead_id = Number(data.lead_id);
+      const [leadRows] = await db.execute<RowDataPacket[]>(
+        "SELECT id FROM leads WHERE id = ? AND affiliate_user_id = ? LIMIT 1",
+        [Number(data.lead_id), Number(session.sub)],
+      );
+      if (!leadRows.length) throw new Error("LEAD_NOT_FOUND");
+    }
+    if (data.phone) data.phone = String(data.phone).replace(/[^\d+]/g, "");
+    for (const numericColumn of ["unit_price", "quantity", "subtotal", "vat_amount", "grand_total"]) {
+      if (data[numericColumn] !== undefined && data[numericColumn] !== null)
+        data[numericColumn] = Number(data[numericColumn]);
+    }
+    const subtotal = Number(data.subtotal ?? Number(data.unit_price ?? 0) * Number(data.quantity ?? 1));
+    data.subtotal = subtotal;
+    if (data.vat_amount === undefined || data.vat_amount === null) data.vat_amount = subtotal * 0.15;
+    if (data.grand_total === undefined || data.grand_total === null) {
+      data.grand_total = subtotal + Number(data.vat_amount ?? 0);
+    }
+    if (!data.order_number) data.order_number = generatedReference(resource);
+  }
+  if (resource === "rental-contracts") {
+    if (data.lead_id) {
+      data.lead_id = Number(data.lead_id);
+      const [leadRows] = await db.execute<RowDataPacket[]>(
+        "SELECT id FROM leads WHERE id = ? AND affiliate_user_id = ? LIMIT 1",
+        [Number(data.lead_id), Number(session.sub)],
+      );
+      if (!leadRows.length) throw new Error("LEAD_NOT_FOUND");
+    }
+    if (data.phone) data.phone = String(data.phone).replace(/[^\d+]/g, "");
+    for (const numericColumn of ["unit_price", "quantity", "subtotal", "vat_amount", "grand_total"]) {
+      if (data[numericColumn] !== undefined && data[numericColumn] !== null)
+        data[numericColumn] = Number(data[numericColumn]);
+    }
+    const subtotal = Number(data.subtotal ?? Number(data.unit_price ?? 0) * Number(data.quantity ?? 1));
+    data.subtotal = subtotal;
+    if (data.vat_amount === undefined || data.vat_amount === null) data.vat_amount = subtotal * 0.15;
+    if (data.grand_total === undefined || data.grand_total === null) {
+      data.grand_total = subtotal + Number(data.vat_amount ?? 0);
+    }
+    if (!data.contract_number) data.contract_number = generatedReference(resource);
   }
   if (definition.ownerField) data[definition.ownerField] = Number(session.sub);
   if (resource === "stock") {
@@ -1511,6 +2168,14 @@ export async function getResource(
   session: MiddarSession,
 ) {
   const definition = definitionFor(resource);
+  if (resource === "marketing-assets") {
+    await ensureResourceTable(resource);
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT * FROM marketing_assets WHERE id = ? LIMIT 1`,
+      [id],
+    );
+    return rows[0] ?? null;
+  }
   await assertResourcePermission(definition, session, "can_view");
   await ensureResourceTable(resource);
   if (resource === "lead-contacts") {
@@ -1531,6 +2196,9 @@ export async function getResource(
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
   }
+  if (resource === "support-ticket-types") {
+    await ensureSupportTicketTypesTable(session);
+  }
   if (resource === "support-tickets") {
     await ensureSupportTicketsUserRelation();
   }
@@ -1538,7 +2206,7 @@ export async function getResource(
     await closeExpiredQuotes();
   }
   const { clause: ownerCheck, params: ownerParams } =
-    resource === "lead-tag-types"
+    resource === "lead-tag-types" || resource === "support-ticket-types"
       ? await tagTypeCompanyGuard(session)
       : await ownerGuard(definition, session);
   if (resource === "lead-tags") {
@@ -1605,6 +2273,9 @@ export async function updateResource(
   if (resource === "support-ticket-events") {
     await ensureSupportTicketEventsTable();
   }
+  if (resource === "support-ticket-types") {
+    await ensureSupportTicketTypesTable(session);
+  }
   if (resource === "support-tickets") {
     await ensureSupportTicketsUserRelation();
   }
@@ -1658,6 +2329,12 @@ export async function updateResource(
     if (data.lead_id) data.lead_id = Number(data.lead_id);
     if (data.tag_id) data.tag_id = Number(data.tag_id);
   }
+  if (resource === "support-ticket-types") {
+    if (data.name_ar !== undefined) data.name_ar = String(data.name_ar ?? "").trim().slice(0, 120);
+    if (data.name_en !== undefined) data.name_en = String(data.name_en ?? "").trim().slice(0, 120);
+    if (data.description !== undefined) data.description = String(data.description ?? "").trim() || null;
+    if (data.sort_order !== undefined) data.sort_order = Number(data.sort_order ?? 0);
+  }
   if (resource === "team-members") {
     if (data.phone) data.phone = String(data.phone).replace(/[^\d+]/g, "");
     if (data.phone !== undefined || data.email !== undefined) {
@@ -1689,6 +2366,106 @@ export async function updateResource(
       data.reorder_level = Number(data.reorder_level);
     if (data.unit_price !== undefined && data.unit_price !== null)
       data.unit_price = Number(data.unit_price);
+  }
+  if (resource === "participation-contracts" || resource === "sponsorship-contracts") {
+    if (data.lead_id) {
+      data.lead_id = Number(data.lead_id);
+      const [leadRows] = await db.execute<RowDataPacket[]>(
+        "SELECT id FROM leads WHERE id = ? AND affiliate_user_id = ? LIMIT 1",
+        [Number(data.lead_id), Number(session.sub)],
+      );
+      if (!leadRows.length) throw new Error("LEAD_NOT_FOUND");
+    }
+    for (const phoneColumn of ["phone", "mobile", "fax"]) {
+      if (data[phoneColumn]) data[phoneColumn] = String(data[phoneColumn]).replace(/[^\d+]/g, "");
+    }
+    for (const numericColumn of [
+      "space_sqm",
+      "price_per_sqm",
+      "total_amount",
+      "sponsorship_amount",
+      "registration_fee",
+      "other_services_amount",
+      "vat_amount",
+      "grand_total",
+    ]) {
+      if (data[numericColumn] !== undefined && data[numericColumn] !== null)
+        data[numericColumn] = Number(data[numericColumn]);
+    }
+    if (
+      resource === "participation-contracts" &&
+      (data.total_amount === undefined || data.total_amount === null) &&
+      data.space_sqm !== undefined &&
+      data.price_per_sqm !== undefined
+    ) {
+      data.total_amount = Number(data.space_sqm) * Number(data.price_per_sqm);
+    }
+    if (resource === "sponsorship-contracts") {
+      const includesParticipation = String(data.package_type ?? existing.package_type ?? "sponsorship_participation") === "sponsorship_participation";
+      if (!includesParticipation) {
+        data.space_sqm = 0;
+        data.price_per_sqm = 0;
+      }
+      const boothAmount = includesParticipation
+        ? Number(data.space_sqm ?? existing.space_sqm ?? 0) * Number(data.price_per_sqm ?? existing.price_per_sqm ?? 0)
+        : 0;
+      const sponsorshipAmount = Number(data.sponsorship_amount ?? existing.sponsorship_amount ?? 0);
+      const registrationFee = Number(data.registration_fee ?? existing.registration_fee ?? 0);
+      const otherServicesAmount = Number(data.other_services_amount ?? existing.other_services_amount ?? 0);
+      const taxableTotal = boothAmount + sponsorshipAmount + registrationFee + otherServicesAmount;
+      if ((data.vat_amount === undefined || data.vat_amount === null) && taxableTotal > 0) {
+        data.vat_amount = taxableTotal * 0.15;
+      }
+      if ((data.grand_total === undefined || data.grand_total === null) && taxableTotal > 0) {
+        data.grand_total = taxableTotal + Number(data.vat_amount ?? existing.vat_amount ?? 0);
+      }
+    }
+  }
+  if (resource === "sales-orders") {
+    if (data.lead_id) {
+      data.lead_id = Number(data.lead_id);
+      const [leadRows] = await db.execute<RowDataPacket[]>(
+        "SELECT id FROM leads WHERE id = ? AND affiliate_user_id = ? LIMIT 1",
+        [Number(data.lead_id), Number(session.sub)],
+      );
+      if (!leadRows.length) throw new Error("LEAD_NOT_FOUND");
+    }
+    if (data.phone) data.phone = String(data.phone).replace(/[^\d+]/g, "");
+    for (const numericColumn of ["unit_price", "quantity", "subtotal", "vat_amount", "grand_total"]) {
+      if (data[numericColumn] !== undefined && data[numericColumn] !== null)
+        data[numericColumn] = Number(data[numericColumn]);
+    }
+    const unitPrice = Number(data.unit_price ?? existing.unit_price ?? 0);
+    const quantity = Number(data.quantity ?? existing.quantity ?? 1);
+    const subtotal = Number(data.subtotal ?? unitPrice * quantity);
+    data.subtotal = subtotal;
+    if (data.vat_amount === undefined || data.vat_amount === null) data.vat_amount = subtotal * 0.15;
+    if (data.grand_total === undefined || data.grand_total === null) {
+      data.grand_total = subtotal + Number(data.vat_amount ?? existing.vat_amount ?? 0);
+    }
+  }
+  if (resource === "rental-contracts") {
+    if (data.lead_id) {
+      data.lead_id = Number(data.lead_id);
+      const [leadRows] = await db.execute<RowDataPacket[]>(
+        "SELECT id FROM leads WHERE id = ? AND affiliate_user_id = ? LIMIT 1",
+        [Number(data.lead_id), Number(session.sub)],
+      );
+      if (!leadRows.length) throw new Error("LEAD_NOT_FOUND");
+    }
+    if (data.phone) data.phone = String(data.phone).replace(/[^\d+]/g, "");
+    for (const numericColumn of ["unit_price", "quantity", "subtotal", "vat_amount", "grand_total"]) {
+      if (data[numericColumn] !== undefined && data[numericColumn] !== null)
+        data[numericColumn] = Number(data[numericColumn]);
+    }
+    const unitPrice = Number(data.unit_price ?? existing.unit_price ?? 0);
+    const quantity = Number(data.quantity ?? existing.quantity ?? 1);
+    const subtotal = Number(data.subtotal ?? unitPrice * quantity);
+    data.subtotal = subtotal;
+    if (data.vat_amount === undefined || data.vat_amount === null) data.vat_amount = subtotal * 0.15;
+    if (data.grand_total === undefined || data.grand_total === null) {
+      data.grand_total = subtotal + Number(data.vat_amount ?? existing.vat_amount ?? 0);
+    }
   }
   if (resource === "lead-tag-assignments" && data.tag_id) {
     const nextLeadId = Number(data.lead_id ?? existing.lead_id);
@@ -1777,6 +2554,9 @@ export async function deleteResource(
   }
   if (resource === "lead-tag-assignments") {
     await ensureLeadTagAssignmentsTable();
+  }
+  if (resource === "support-ticket-types") {
+    await ensureSupportTicketTypesTable(session);
   }
   const existing = await getResource(resource, id, session);
   if (!existing) throw new Error("NOT_FOUND");

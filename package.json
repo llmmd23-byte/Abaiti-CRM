@@ -5,7 +5,7 @@
   "description": "A responsive UI concept for a marketing affiliate platform integrated with CRM.",
   "scripts": {
     "dev": "next dev -p 5173",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start -p 5173",
     "preview": "next start -p 5173"
   },

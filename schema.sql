@@ -22,6 +22,27 @@ CREATE TABLE IF NOT EXISTS educational_assets (
   KEY idx_educational_assets_type_status (asset_type, status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS marketing_assets (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL,
+  title VARCHAR(200) NOT NULL,
+  asset_type ENUM('image','video','document','other') NOT NULL DEFAULT 'other',
+  original_name VARCHAR(255) NOT NULL,
+  mime_type VARCHAR(120) NULL,
+  file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  file_path VARCHAR(500) NOT NULL,
+  description TEXT NULL,
+  status ENUM('active','inactive','draft') NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_marketing_assets_user (user_id),
+  KEY idx_marketing_assets_type_status (asset_type, status),
+  CONSTRAINT fk_marketing_assets_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(160) NOT NULL,
@@ -202,7 +223,7 @@ CREATE TABLE IF NOT EXISTS demo_requests (
     ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS quotes (
+  CREATE TABLE IF NOT EXISTS quotes (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   quote_number VARCHAR(80) NOT NULL,
   lead_id BIGINT UNSIGNED NULL,
@@ -232,9 +253,132 @@ CREATE TABLE IF NOT EXISTS quotes (
   CONSTRAINT fk_quotes_affiliate_user
     FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
     ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS sales (
+  CREATE TABLE IF NOT EXISTS participation_contracts (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    contract_number VARCHAR(80) NOT NULL,
+    lead_id BIGINT UNSIGNED NULL,
+    affiliate_user_id BIGINT UNSIGNED NULL,
+    company_name VARCHAR(190) NOT NULL,
+    brand_name VARCHAR(190) NULL,
+    contact_name VARCHAR(190) NOT NULL,
+    email VARCHAR(190) NULL,
+    website VARCHAR(190) NULL,
+    phone VARCHAR(80) NULL,
+    mobile VARCHAR(80) NULL,
+    fax VARCHAR(80) NULL,
+    address VARCHAR(255) NULL,
+    city VARCHAR(120) NULL,
+    country VARCHAR(120) NULL,
+    stand_number VARCHAR(80) NULL,
+    location_category VARCHAR(120) NULL,
+    package_type VARCHAR(120) NOT NULL,
+    space_sqm DECIMAL(12,2) NULL,
+    price_per_sqm DECIMAL(12,2) NULL,
+    total_amount DECIMAL(12,2) NULL,
+    currency CHAR(3) NOT NULL DEFAULT 'SAR',
+    payment_method VARCHAR(80) NOT NULL DEFAULT 'bank_transfer',
+    contract_date DATE NULL,
+    status ENUM('draft', 'sent', 'signed', 'cancelled') NOT NULL DEFAULT 'draft',
+    notes TEXT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_participation_contracts_number (contract_number),
+    KEY idx_participation_contracts_lead (lead_id),
+    KEY idx_participation_contracts_affiliate (affiliate_user_id),
+    KEY idx_participation_contracts_status (status),
+    KEY idx_participation_contracts_company (company_name),
+    CONSTRAINT fk_participation_contracts_affiliate_user
+      FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
+      ON DELETE SET NULL ON UPDATE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+  CREATE TABLE IF NOT EXISTS sponsorship_contracts (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    contract_number VARCHAR(80) NOT NULL,
+    lead_id BIGINT UNSIGNED NULL,
+    affiliate_user_id BIGINT UNSIGNED NULL,
+    company_name VARCHAR(190) NOT NULL,
+    brand_name VARCHAR(190) NULL,
+    contact_name VARCHAR(190) NOT NULL,
+    email VARCHAR(190) NULL,
+    website VARCHAR(190) NULL,
+    phone VARCHAR(80) NULL,
+    mobile VARCHAR(80) NULL,
+    fax VARCHAR(80) NULL,
+    address VARCHAR(255) NULL,
+    city VARCHAR(120) NULL,
+    country VARCHAR(120) NULL,
+    stand_number VARCHAR(80) NULL,
+    sponsorship_category VARCHAR(120) NOT NULL,
+    package_type VARCHAR(120) NULL,
+    space_sqm DECIMAL(12,2) NULL,
+    price_per_sqm DECIMAL(12,2) NULL,
+    sponsorship_amount DECIMAL(12,2) NULL,
+    registration_fee DECIMAL(12,2) NULL,
+    other_services_amount DECIMAL(12,2) NULL,
+    vat_amount DECIMAL(12,2) NULL,
+    grand_total DECIMAL(12,2) NULL,
+    currency CHAR(3) NOT NULL DEFAULT 'SAR',
+    payment_method VARCHAR(80) NOT NULL DEFAULT 'bank_transfer',
+    contract_date DATE NULL,
+    status ENUM('draft', 'sent', 'signed', 'cancelled') NOT NULL DEFAULT 'draft',
+    notes TEXT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sponsorship_contracts_number (contract_number),
+    KEY idx_sponsorship_contracts_lead (lead_id),
+    KEY idx_sponsorship_contracts_affiliate (affiliate_user_id),
+    KEY idx_sponsorship_contracts_status (status),
+    KEY idx_sponsorship_contracts_company (company_name),
+    CONSTRAINT fk_sponsorship_contracts_affiliate_user
+      FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
+      ON DELETE SET NULL ON UPDATE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+  CREATE TABLE IF NOT EXISTS sales_orders (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    order_number VARCHAR(80) NOT NULL,
+    lead_id BIGINT UNSIGNED NULL,
+    affiliate_user_id BIGINT UNSIGNED NULL,
+    company_name VARCHAR(190) NOT NULL,
+    contact_name VARCHAR(190) NOT NULL,
+    email VARCHAR(190) NULL,
+    phone VARCHAR(80) NULL,
+    address VARCHAR(255) NULL,
+    city VARCHAR(120) NULL,
+    country VARCHAR(120) NULL,
+    exhibition_name VARCHAR(190) NOT NULL DEFAULT 'Rawnaq Elegance Expo - Dec 2026',
+    stand_number VARCHAR(80) NULL,
+    item_description VARCHAR(255) NOT NULL,
+    uom VARCHAR(40) NOT NULL DEFAULT 'SQM',
+    unit_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+    quantity DECIMAL(12,2) NOT NULL DEFAULT 1,
+    subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
+    vat_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    grand_total DECIMAL(12,2) NOT NULL DEFAULT 0,
+    currency CHAR(3) NOT NULL DEFAULT 'SAR',
+    payment_method VARCHAR(80) NOT NULL DEFAULT 'bank_transfer',
+    order_date DATE NULL,
+    status ENUM('draft', 'sent', 'approved', 'cancelled') NOT NULL DEFAULT 'draft',
+    notes TEXT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_sales_orders_number (order_number),
+    KEY idx_sales_orders_lead (lead_id),
+    KEY idx_sales_orders_affiliate (affiliate_user_id),
+    KEY idx_sales_orders_status (status),
+    KEY idx_sales_orders_company (company_name),
+    CONSTRAINT fk_sales_orders_affiliate_user
+      FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
+      ON DELETE SET NULL ON UPDATE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  
+  CREATE TABLE IF NOT EXISTS sales (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   sales_invoice_number VARCHAR(80) NULL,
   quote_id BIGINT UNSIGNED NULL,
