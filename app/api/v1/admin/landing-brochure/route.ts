@@ -135,7 +135,7 @@ async function activeBrochureData() {
   return {
     isDefault: false,
     isActive: String(asset.status ?? "active") === "active",
-    url: landingUrl,
+    url: `/api/v1/marketing-assets/view/${Number(asset.id)}#toolbar=0&navpanes=0`,
     id: Number(asset.id),
     name: String(asset.original_name ?? asset.title ?? "landing-brochure.pdf"),
     size: Number(asset.file_size ?? 0),
@@ -199,6 +199,7 @@ export async function POST(request: Request) {
         mime_type: fileValue.type || "application/pdf",
         file_size: fileValue.size,
         file_path: path.relative(process.cwd(), filePath),
+        file_data: buffer,
         description: "landing-page-brochure",
       },
       session,
@@ -209,7 +210,7 @@ export async function POST(request: Request) {
     await ensureLandingIndustry();
     await db.execute(
       "UPDATE industries SET landing_url = ? WHERE slug = ?",
-      [`/marketing-library/${encodeURIComponent(storedName)}#toolbar=0&navpanes=0`, INDUSTRY_SLUG],
+      [`/api/v1/marketing-assets/view/${assetId}#toolbar=0&navpanes=0`, INDUSTRY_SLUG],
     );
 
     return NextResponse.json({data: await activeBrochureData()}, {status: 201});

@@ -334,6 +334,21 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
   const marketingAssets = useBackend<BackendRow[]>("/api/v1/data/marketing-assets");
+  const marketingAssetRows = marketingAssets.data ?? [];
+  function landingDocumentUrl(value: string) {
+    const directAssetMatch = value.match(/\/api\/v1\/marketing-assets\/view\/\d+/);
+    if (directAssetMatch) return value;
+
+    const publicAssetMatch = value.match(/\/marketing-library\/([^#?]+)/);
+    if (!publicAssetMatch) return value;
+
+    const fileName = decodeURIComponent(publicAssetMatch[1] ?? "");
+    const asset = marketingAssetRows.find((row) => {
+      const rawPath = String(row.file_path ?? "").replace(/\\/g, "/");
+      return rawPath.split("/").filter(Boolean).at(-1) === fileName;
+    });
+    return asset ? `/api/v1/marketing-assets/view/${encodeURIComponent(String(asset.id))}#toolbar=0&navpanes=0` : value;
+  }
   const displayedIndustries: Industry[] = industriesData.map((industry) => {
     const live = liveIndustries?.find((row) => row.slug === industry.id);
     const liveLandingUrl = live ? String(live.landing_url ?? "").trim() : "";
@@ -347,7 +362,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
         ...industry.subtitle,
         ar: String(live.description ?? industry.subtitle.ar),
       },
-      url: liveLandingUrl || industry.url,
+      url: liveLandingUrl ? landingDocumentUrl(liveLandingUrl) : industry.url,
       externalUrl: String(live.external_url ?? "").trim() || undefined,
     } : industry;
   });
@@ -386,26 +401,12 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
     return `/api/v1/marketing-assets/${action}/${encodeURIComponent(String(asset.id))}`;
   }
 
-  function publicMarketingAssetUrl(asset: BackendRow) {
-    const rawPath = String(asset.file_path ?? "").replace(/\\/g, "/").replace(/^\/+/, "");
-    if (!rawPath) return null;
-    const marker = "public/marketing-library/";
-    const fileName = rawPath.startsWith(marker)
-      ? rawPath.slice(marker.length)
-      : rawPath.split("/").filter(Boolean).at(-1);
-    if (!fileName) return null;
-    return `/marketing-library/${fileName
-      .split("/")
-      .map((part) => encodeURIComponent(part))
-      .join("/")}`;
-  }
-
   function marketingAssetFileName(asset: BackendRow) {
     return String(asset.original_name ?? asset.title ?? "marketing-file").replace(/[\r\n]/g, "");
   }
 
   async function handleMarketingAssetAction(asset: BackendRow, action: "view" | "download") {
-    const url = action === "view" ? publicMarketingAssetUrl(asset) ?? marketingAssetUrl(asset, action) : marketingAssetUrl(asset, action);
+    const url = marketingAssetUrl(asset, action);
     try {
       if (action === "view") {
         window.open(url, "_blank", "noopener,noreferrer");

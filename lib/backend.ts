@@ -415,6 +415,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
       "mime_type",
       "file_size",
       "file_path",
+      "file_data",
       "description",
       "status",
     ],
@@ -905,6 +906,7 @@ async function ensureMarketingAssetsTable() {
       mime_type VARCHAR(120) NULL,
       file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
       file_path VARCHAR(500) NOT NULL,
+      file_data LONGBLOB NULL,
       description TEXT NULL,
       status ENUM('active','inactive','draft') NOT NULL DEFAULT 'active',
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -917,6 +919,18 @@ async function ensureMarketingAssetsTable() {
         ON DELETE SET NULL ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+  const [columns] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'marketing_assets'
+        AND COLUMN_NAME = 'file_data'`,
+  );
+  if (!columns.length) {
+    await db.execute(
+      `ALTER TABLE marketing_assets ADD COLUMN file_data LONGBLOB NULL AFTER file_path`,
+    );
+  }
 }
 
 async function ensureLeadTagsTable() {
@@ -1555,7 +1569,7 @@ export async function listResource(resource: string, session: MiddarSession) {
   if (resource === "marketing-assets") {
     await ensureResourceTable(resource);
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT *
+      `SELECT id,user_id,title,asset_type,original_name,mime_type,file_size,file_path,description,status,created_at,updated_at
          FROM marketing_assets
         ORDER BY created_at DESC
         LIMIT 250`,

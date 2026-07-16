@@ -63,6 +63,7 @@ export async function POST(request: Request) {
         mime_type: fileValue.type || null,
         file_size: fileValue.size,
         file_path: path.relative(process.cwd(), filePath),
+        file_data: buffer,
         description: description || null,
       },
       session,

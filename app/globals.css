@@ -5973,7 +5973,7 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .customers-list-table table {
-  min-width: 1180px;
+  min-width: 1230px;
   table-layout: fixed;
 }
 
@@ -6022,7 +6022,9 @@ html[dir="ltr"] .dashboard-main {
 
 .customers-list-table th:nth-child(8),
 .customers-list-table td:nth-child(8) {
-  width: 155px;
+  width: 205px;
+  overflow: visible;
+  text-align: center;
 }
 
 .customers-list-table .customers-details-cell {
@@ -14817,7 +14819,7 @@ html[dir="rtl"]
 }
 
 .customer-row-actions {
-  display: inline-flex;
+  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;

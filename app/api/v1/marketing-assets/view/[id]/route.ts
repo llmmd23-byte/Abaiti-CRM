@@ -39,6 +39,10 @@ function marketingAssetPath(value: unknown) {
 }
 
 async function readMarketingAssetFile(asset: Record<string, unknown>) {
+  if (Buffer.isBuffer(asset.file_data) && asset.file_data.byteLength > 0) {
+    return asset.file_data;
+  }
+
   const candidates = [
     marketingAssetPath(asset.file_path),
     safePublicPath(
@@ -74,7 +78,7 @@ export async function GET(_request: Request, {params}: Context) {
     }
 
     const filePath = marketingAssetPath(asset.file_path);
-    if (!filePath) {
+    if (!filePath && !Buffer.isBuffer(asset.file_data)) {
       return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
     }
 
@@ -89,7 +93,7 @@ export async function GET(_request: Request, {params}: Context) {
       "Content-Disposition",
       `inline; filename="${contentDispositionName(asset.original_name)}"; filename*=UTF-8''${encodedContentDispositionName(asset.original_name)}`,
     );
-    return new NextResponse(buffer, {headers});
+    return new NextResponse(new Uint8Array(buffer), {headers});
   } catch (error) {
     return apiError(error);
   }
