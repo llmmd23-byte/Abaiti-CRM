@@ -3150,7 +3150,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
   const contracts = useBackend<BackendRow[]>("/api/v1/data/rental-contracts");
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const [contractNumber, setContractNumber] = useState("");
   const [leadId, setLeadId] = useState("");
+  const [eventName, setEventName] = useState(isArabic ? "المعرض الدولي لصناع القهوة والشوكولاتة" : "International Coffee and Chocolate Makers Exhibition");
+  const [eventDates, setEventDates] = useState(isArabic ? "8-10 أكتوبر 2026م (27-29 ربيع الآخر 1448هـ)" : "8-10 October 2026");
+  const [eventLocation, setEventLocation] = useState(isArabic ? "فندق جدة هيلتون - القاعة الكبرى" : "Jeddah Hilton Hotel - Grand Hall");
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
   const [email, setEmail] = useState("");
@@ -3158,13 +3162,20 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("Saudi Arabia");
-  const [lessorName, setLessorName] = useState("Alsawsan Exhibitions & Conferences");
+  const [lessorName, setLessorName] = useState(isArabic ? "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات" : "Netaq Al Aamal Exhibitions & Conferences");
+  const [firstPartyCr, setFirstPartyCr] = useState("4030216503");
+  const [firstPartyRepresentative, setFirstPartyRepresentative] = useState(isArabic ? "سهيل بن بكر الطيار - الرئيس التنفيذي" : "Suhail bin Bakr Al Tayyar - CEO");
   const [tenantName, setTenantName] = useState("");
+  const [secondPartyCr, setSecondPartyCr] = useState("7036368012");
+  const [secondPartyRepresentative, setSecondPartyRepresentative] = useState(isArabic ? "سلطان بن محمد المطيري - المدير" : "Sultan bin Mohammed Al Mutairi - Manager");
+  const [boothNumber, setBoothNumber] = useState("RL13");
+  const [participationCategory, setParticipationCategory] = useState(isArabic ? "كلاسيك (Classic)" : "Classic");
+  const [boothSize, setBoothSize] = useState(isArabic ? "3x3 متر" : "3x3 m");
   const [rentalItem, setRentalItem] = useState(isArabic ? "\u0645\u0633\u0627\u062d\u0629 / \u062c\u0646\u0627\u062d \u062a\u0623\u062c\u064a\u0631\u064a" : "Rental space / booth");
   const [rentalLocation, setRentalLocation] = useState("");
   const [leaseStartDate, setLeaseStartDate] = useState(() => dateAfterDays(0));
   const [leaseEndDate, setLeaseEndDate] = useState(() => dateAfterDays(3));
-  const [unitPrice, setUnitPrice] = useState("");
+  const [unitPrice, setUnitPrice] = useState("6500");
   const [quantity, setQuantity] = useState("1");
   const [contractDate, setContractDate] = useState(() => dateAfterDays(0));
   const [notes, setNotes] = useState("");
@@ -3213,6 +3224,17 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         validation: "\u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u0634\u062e\u0635 \u0627\u0644\u0645\u0633\u0624\u0648\u0644\u060c \u0648\u0648\u0635\u0641 \u0627\u0644\u0639\u064a\u0646 \u0627\u0644\u0645\u0624\u062c\u0631\u0629",
         noCustomerData: "\u0627\u062e\u062a\u0631 \u0639\u0645\u064a\u0644\u0627\u064b \u0645\u0647\u062a\u0645\u0627\u064b \u0644\u062a\u0639\u0628\u0626\u0629 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0634\u0631\u0643\u0629 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b",
         noContracts: "\u0644\u0627 \u062a\u0648\u062c\u062f \u0639\u0642\u0648\u062f \u062a\u0623\u062c\u064a\u0631\u064a\u0629 \u062d\u062a\u0649 \u0627\u0644\u0622\u0646",
+        contractNumber: "رقم العقد",
+        eventName: "اسم الفعالية",
+        eventDates: "تاريخ المعرض",
+        eventLocation: "مكان المعرض",
+        firstPartyCr: "السجل التجاري للطرف الأول",
+        firstPartyRepresentative: "ممثل الطرف الأول",
+        secondPartyCr: "السجل التجاري للطرف الثاني",
+        secondPartyRepresentative: "ممثل الطرف الثاني",
+        boothNumber: "رقم البوث",
+        participationCategory: "فئة المشاركة",
+        boothSize: "مساحة البوث",
         draft: "\u0645\u0633\u0648\u062f\u0629",
         sent: "\u0645\u0631\u0633\u0644",
         signed: "\u0645\u0648\u0642\u0639",
@@ -3257,6 +3279,17 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         validation: "Enter company name, contact person, and leased item",
         noCustomerData: "Select an interested customer to fill company details automatically",
         noContracts: "No rental contracts yet",
+        contractNumber: "Contract number",
+        eventName: "Event name",
+        eventDates: "Event date",
+        eventLocation: "Event location",
+        firstPartyCr: "First party CR",
+        firstPartyRepresentative: "First party representative",
+        secondPartyCr: "Second party CR",
+        secondPartyRepresentative: "Second party representative",
+        boothNumber: "Booth number",
+        participationCategory: "Participation category",
+        boothSize: "Booth size",
         draft: "Draft",
         sent: "Sent",
         signed: "Signed",
@@ -3296,6 +3329,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setCompanyName(company);
     setTenantName(company);
     setContactName(String(lead.name ?? ""));
+    setSecondPartyRepresentative(String(lead.name ?? ""));
     setEmail(String(lead.email ?? ""));
     setPhone(String(lead.phone ?? ""));
     setAddress(String(lead.address ?? ""));
@@ -3303,7 +3337,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
 
   function resetContractForm() {
     setEditingContractId(null);
+    setContractNumber("");
     setLeadId("");
+    setEventName(isArabic ? "المعرض الدولي لصناع القهوة والشوكولاتة" : "International Coffee and Chocolate Makers Exhibition");
+    setEventDates(isArabic ? "8-10 أكتوبر 2026م (27-29 ربيع الآخر 1448هـ)" : "8-10 October 2026");
+    setEventLocation(isArabic ? "فندق جدة هيلتون - القاعة الكبرى" : "Jeddah Hilton Hotel - Grand Hall");
     setCompanyName("");
     setContactName("");
     setEmail("");
@@ -3311,13 +3349,20 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setAddress("");
     setCity("");
     setCountry("Saudi Arabia");
-    setLessorName("Alsawsan Exhibitions & Conferences");
+    setLessorName(isArabic ? "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات" : "Netaq Al Aamal Exhibitions & Conferences");
+    setFirstPartyCr("4030216503");
+    setFirstPartyRepresentative(isArabic ? "سهيل بن بكر الطيار - الرئيس التنفيذي" : "Suhail bin Bakr Al Tayyar - CEO");
     setTenantName("");
+    setSecondPartyCr("7036368012");
+    setSecondPartyRepresentative(isArabic ? "سلطان بن محمد المطيري - المدير" : "Sultan bin Mohammed Al Mutairi - Manager");
+    setBoothNumber("RL13");
+    setParticipationCategory(isArabic ? "كلاسيك (Classic)" : "Classic");
+    setBoothSize(isArabic ? "3x3 متر" : "3x3 m");
     setRentalItem(isArabic ? "\u0645\u0633\u0627\u062d\u0629 / \u062c\u0646\u0627\u062d \u062a\u0623\u062c\u064a\u0631\u064a" : "Rental space / booth");
     setRentalLocation("");
     setLeaseStartDate(dateAfterDays(0));
     setLeaseEndDate(dateAfterDays(3));
-    setUnitPrice("");
+    setUnitPrice("6500");
     setQuantity("1");
     setContractDate(dateAfterDays(0));
     setNotes("");
@@ -3325,7 +3370,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
 
   function editContract(contract: BackendRow) {
     setEditingContractId(Number(contract.id));
+    setContractNumber(String(contract.contract_number ?? ""));
     setLeadId(contract.lead_id ? String(contract.lead_id) : "");
+    setEventName(String(contract.event_name ?? (isArabic ? "المعرض الدولي لصناع القهوة والشوكولاتة" : "International Coffee and Chocolate Makers Exhibition")));
+    setEventDates(String(contract.event_dates ?? (isArabic ? "8-10 أكتوبر 2026م (27-29 ربيع الآخر 1448هـ)" : "8-10 October 2026")));
+    setEventLocation(String(contract.event_location ?? (isArabic ? "فندق جدة هيلتون - القاعة الكبرى" : "Jeddah Hilton Hotel - Grand Hall")));
     setCompanyName(String(contract.company_name ?? ""));
     setContactName(String(contract.contact_name ?? ""));
     setEmail(String(contract.email ?? ""));
@@ -3333,8 +3382,15 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setAddress(String(contract.address ?? ""));
     setCity(String(contract.city ?? ""));
     setCountry(String(contract.country ?? "Saudi Arabia"));
-    setLessorName(String(contract.lessor_name ?? "Alsawsan Exhibitions & Conferences"));
+    setLessorName(String(contract.lessor_name ?? (isArabic ? "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات" : "Netaq Al Aamal Exhibitions & Conferences")));
+    setFirstPartyCr(String(contract.first_party_cr ?? "4030216503"));
+    setFirstPartyRepresentative(String(contract.first_party_representative ?? (isArabic ? "سهيل بن بكر الطيار - الرئيس التنفيذي" : "Suhail bin Bakr Al Tayyar - CEO")));
     setTenantName(String(contract.tenant_name ?? contract.company_name ?? ""));
+    setSecondPartyCr(String(contract.second_party_cr ?? "7036368012"));
+    setSecondPartyRepresentative(String(contract.second_party_representative ?? contract.contact_name ?? ""));
+    setBoothNumber(String(contract.booth_number ?? "RL13"));
+    setParticipationCategory(String(contract.participation_category ?? (isArabic ? "كلاسيك (Classic)" : "Classic")));
+    setBoothSize(String(contract.booth_size ?? (isArabic ? "3x3 متر" : "3x3 m")));
     setRentalItem(String(contract.rental_item ?? ""));
     setRentalLocation(String(contract.rental_location ?? ""));
     setLeaseStartDate(cleanDate(contract.lease_start_date) === "—" ? dateAfterDays(0) : cleanDate(contract.lease_start_date));
@@ -3476,9 +3532,17 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     }
     setSaveStatus(text.saving);
     const payload = {
+      contract_number: contractNumber.trim() || null,
       lead_id: leadId ? Number(leadId) : null,
+      event_name: eventName.trim() || null,
+      event_dates: eventDates.trim() || null,
+      event_location: eventLocation.trim() || null,
       lessor_name: lessorName.trim() || null,
+      first_party_cr: firstPartyCr.trim() || null,
+      first_party_representative: firstPartyRepresentative.trim() || null,
       tenant_name: tenantName.trim() || companyName.trim(),
+      second_party_cr: secondPartyCr.trim() || null,
+      second_party_representative: secondPartyRepresentative.trim() || contactName.trim() || null,
       company_name: companyName.trim(),
       contact_name: contactName.trim(),
       email: email.trim() || null,
@@ -3486,6 +3550,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       address: address.trim() || null,
       city: city.trim() || null,
       country: country.trim() || null,
+      booth_number: boothNumber.trim() || null,
+      participation_category: participationCategory.trim() || null,
+      booth_size: boothSize.trim() || null,
       rental_item: rentalItem.trim(),
       rental_location: rentalLocation.trim() || null,
       lease_start_date: leaseStartDate || null,
@@ -3519,13 +3586,24 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <article className="quote-card quote-form-card">
         <div className="card-title"><h3>{text.formTitle}</h3><span>{text.formSubtitle}</span></div>
         <div className="form-grid">
+          <label className="quote-field"><span>{text.contractNumber}</span><input onChange={(event) => setContractNumber(event.target.value)} placeholder={isArabic ? "يتم توليده تلقائياً عند تركه فارغاً" : "Auto-generated if left empty"} value={contractNumber} /></label>
+          <label className="quote-field"><span>{text.eventName}</span><input onChange={(event) => setEventName(event.target.value)} value={eventName} /></label>
+          <label className="quote-field"><span>{text.eventDates}</span><input onChange={(event) => setEventDates(event.target.value)} value={eventDates} /></label>
+          <label className="quote-field"><span>{text.eventLocation}</span><input onChange={(event) => setEventLocation(event.target.value)} value={eventLocation} /></label>
+          <label className="quote-field"><span>{text.firstPartyCr}</span><input inputMode="numeric" onChange={(event) => setFirstPartyCr(event.target.value)} value={firstPartyCr} /></label>
+          <label className="quote-field"><span>{text.firstPartyRepresentative}</span><input onChange={(event) => setFirstPartyRepresentative(event.target.value)} value={firstPartyRepresentative} /></label>
           <label className="quote-field quote-field-customer"><span>{text.customer}</span><DashboardSelect ariaLabel={text.customer} onValueChange={applyLeadData} options={(leads.data ?? []).map((lead) => ({label: String(lead.company_name ?? lead.name ?? lead.id), value: String(lead.id)}))} placeholder={text.customerPlaceholder} searchable searchPlaceholder={text.customerSearch} value={leadId} />{!selectedLead ? <small className="quote-duration-hint">{text.noCustomerData}</small> : null}</label>
           <label className="quote-field"><span>{text.lessorName}</span><input onChange={(event) => setLessorName(event.target.value)} value={lessorName} /></label>
           <label className="quote-field"><span>{text.tenantName}</span><input onChange={(event) => setTenantName(event.target.value)} value={tenantName} /></label>
+          <label className="quote-field"><span>{text.secondPartyCr}</span><input inputMode="numeric" onChange={(event) => setSecondPartyCr(event.target.value)} value={secondPartyCr} /></label>
+          <label className="quote-field"><span>{text.secondPartyRepresentative}</span><input onChange={(event) => setSecondPartyRepresentative(event.target.value)} value={secondPartyRepresentative} /></label>
           <label className="quote-field"><span>{text.companyName} <b className="required-mark">*</b></span><input onChange={(event) => setCompanyName(event.target.value)} value={companyName} /></label>
           <label className="quote-field"><span>{text.contactName} <b className="required-mark">*</b></span><input onChange={(event) => setContactName(event.target.value)} value={contactName} /></label>
           <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>
           <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
+          <label className="quote-field"><span>{text.boothNumber}</span><input onChange={(event) => setBoothNumber(event.target.value)} value={boothNumber} /></label>
+          <label className="quote-field"><span>{text.participationCategory}</span><input onChange={(event) => setParticipationCategory(event.target.value)} value={participationCategory} /></label>
+          <label className="quote-field"><span>{text.boothSize}</span><input onChange={(event) => setBoothSize(event.target.value)} value={boothSize} /></label>
           <label className="quote-field"><span>{text.rentalItem} <b className="required-mark">*</b></span><input onChange={(event) => setRentalItem(event.target.value)} value={rentalItem} /></label>
           <label className="quote-field"><span>{text.rentalLocation}</span><input onChange={(event) => setRentalLocation(event.target.value)} value={rentalLocation} /></label>
           <label className="quote-field"><span>{text.leaseStartDate}</span><input onChange={(event) => setLeaseStartDate(event.target.value)} type="date" value={leaseStartDate} /></label>

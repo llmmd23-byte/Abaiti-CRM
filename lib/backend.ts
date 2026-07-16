@@ -256,6 +256,16 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     writable: [
       "contract_number",
       "lead_id",
+      "event_name",
+      "event_dates",
+      "event_location",
+      "first_party_cr",
+      "first_party_representative",
+      "second_party_cr",
+      "second_party_representative",
+      "booth_number",
+      "participation_category",
+      "booth_size",
       "lessor_name",
       "tenant_name",
       "company_name",
@@ -776,6 +786,16 @@ async function ensureRentalContractsTable() {
       contract_number VARCHAR(80) NOT NULL,
       lead_id BIGINT UNSIGNED NULL,
       affiliate_user_id BIGINT UNSIGNED NULL,
+      event_name VARCHAR(190) NULL,
+      event_dates VARCHAR(190) NULL,
+      event_location VARCHAR(190) NULL,
+      first_party_cr VARCHAR(80) NULL,
+      first_party_representative VARCHAR(190) NULL,
+      second_party_cr VARCHAR(80) NULL,
+      second_party_representative VARCHAR(190) NULL,
+      booth_number VARCHAR(80) NULL,
+      participation_category VARCHAR(120) NULL,
+      booth_size VARCHAR(80) NULL,
       lessor_name VARCHAR(190) NULL,
       tenant_name VARCHAR(190) NULL,
       company_name VARCHAR(190) NOT NULL,
@@ -812,6 +832,23 @@ async function ensureRentalContractsTable() {
         ON DELETE SET NULL ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+  const rentalExtraColumns: Array<[string, string]> = [
+    ["event_name", "ALTER TABLE rental_contracts ADD COLUMN event_name VARCHAR(190) NULL AFTER affiliate_user_id"],
+    ["event_dates", "ALTER TABLE rental_contracts ADD COLUMN event_dates VARCHAR(190) NULL AFTER event_name"],
+    ["event_location", "ALTER TABLE rental_contracts ADD COLUMN event_location VARCHAR(190) NULL AFTER event_dates"],
+    ["first_party_cr", "ALTER TABLE rental_contracts ADD COLUMN first_party_cr VARCHAR(80) NULL AFTER event_location"],
+    ["first_party_representative", "ALTER TABLE rental_contracts ADD COLUMN first_party_representative VARCHAR(190) NULL AFTER first_party_cr"],
+    ["second_party_cr", "ALTER TABLE rental_contracts ADD COLUMN second_party_cr VARCHAR(80) NULL AFTER first_party_representative"],
+    ["second_party_representative", "ALTER TABLE rental_contracts ADD COLUMN second_party_representative VARCHAR(190) NULL AFTER second_party_cr"],
+    ["booth_number", "ALTER TABLE rental_contracts ADD COLUMN booth_number VARCHAR(80) NULL AFTER second_party_representative"],
+    ["participation_category", "ALTER TABLE rental_contracts ADD COLUMN participation_category VARCHAR(120) NULL AFTER booth_number"],
+    ["booth_size", "ALTER TABLE rental_contracts ADD COLUMN booth_size VARCHAR(80) NULL AFTER participation_category"],
+  ];
+  for (const [column, statement] of rentalExtraColumns) {
+    if (!(await columnExists("rental_contracts", column))) {
+      await db.execute(statement);
+    }
+  }
 }
 
 async function ensureSalesOrdersTable() {
