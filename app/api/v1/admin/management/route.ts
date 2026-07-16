@@ -443,6 +443,16 @@ async function ensureAdminManagementSchema() {
       "comission_percentage",
       "ALTER TABLE users ADD COLUMN comission_percentage DECIMAL(5,2) NOT NULL DEFAULT 20.00 AFTER level",
     );
+    await addColumnIfMissing(
+      "industries",
+      "landing_url",
+      "ALTER TABLE industries ADD COLUMN landing_url VARCHAR(500) NULL AFTER slug",
+    );
+    await addColumnIfMissing(
+      "industries",
+      "external_url",
+      "ALTER TABLE industries ADD COLUMN external_url VARCHAR(500) NULL AFTER landing_url",
+    );
     await ensureSupportTicketsUserRelation();
     await ensureSupportTicketEventsTable();
     await ensureTagTables();
@@ -533,7 +543,7 @@ export async function GET() {
       ORDER BY created_at DESC LIMIT 250`,
   );
   const [industries] = await db.execute<RowDataPacket[]>(
-    "SELECT id,name,name_en,slug,description,status,created_at FROM industries ORDER BY created_at DESC LIMIT 250",
+    "SELECT id,name,name_en,slug,landing_url,external_url,description,status,created_at FROM industries ORDER BY created_at DESC LIMIT 250",
   );
   const [clients] = await db.execute<RowDataPacket[]>(
     `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.stage,l.industry_id,l.address,l.requirements,l.created_at,

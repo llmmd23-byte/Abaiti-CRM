@@ -30,7 +30,7 @@ export default function LeadRequestForm({
         requirements: "\u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0625\u0636\u0627\u0641\u064a\u0629",
         requirementsPlaceholder: "\u0627\u0630\u0643\u0631 \u0623\u064a \u0645\u062a\u0637\u0644\u0628\u0627\u062a \u062e\u0627\u0635\u0629 \u0623\u0648 \u062a\u0641\u0627\u0635\u064a\u0644 \u0625\u0636\u0627\u0641\u064a\u0629...",
         submit: "\u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0639\u0645\u064a\u0644 \u0627\u0644\u0645\u0647\u062a\u0645",
-        required: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u0634\u0623\u0629 \u0648\u0627\u0644\u0646\u0634\u0627\u0637 \u0648\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0643\u0627\u0645\u0644 \u0648\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644 \u0645\u0637\u0644\u0648\u0628\u0629",
+        required: "\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u0634\u0623\u0629 \u0648\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a \u0648\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644 \u062d\u0642\u0648\u0644 \u0625\u062c\u0628\u0627\u0631\u064a\u0629",
         creating: "\u062c\u0627\u0631\u064a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0639\u0645\u064a\u0644...",
         created: "\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0639\u0645\u064a\u0644 \u0627\u0644\u0645\u0647\u062a\u0645 \u0628\u0646\u062c\u0627\u062d",
         failed: "\u062a\u0639\u0630\u0631 \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0639\u0645\u064a\u0644 \u0627\u0644\u0645\u0647\u062a\u0645",
@@ -50,7 +50,7 @@ export default function LeadRequestForm({
         requirements: "Additional Requirements",
         requirementsPlaceholder: "Mention any special requirements or additional details...",
         submit: "Add Interested Customer",
-        required: "Company name, industry, full name, and mobile number are required",
+        required: "Company name, email address, and mobile number are required",
         creating: "Adding customer...",
         created: "Interested customer added successfully",
         failed: "Unable to add the interested customer",
@@ -73,8 +73,7 @@ export default function LeadRequestForm({
     event.preventDefault();
     if (
       !leadRequest.companyName.trim() ||
-      !leadRequest.industryId ||
-      !leadRequest.fullName.trim() ||
+      !leadRequest.email.trim() ||
       !leadRequest.phone.trim()
     ) {
       setStatus(copy.required);
@@ -207,6 +206,7 @@ export default function LeadRequestForm({
                       }))
                     }
                     placeholder="name@company.com"
+                    required
                     type="email"
                     value={leadRequest.email}
                   />

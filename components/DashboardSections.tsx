@@ -8,6 +8,8 @@ import { createBackend, updateBackend, useBackend } from "@/lib/client-backend";
 type BackendRow = Record<string, unknown> & { id: number };
 const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
+type UserTrendPeriod = "week" | "month" | "year";
+type UserTrendGroup = "days" | "weeks" | "months" | "quarters";
 
 function dateAfterDays(days: number) {
   const date = new Date();
@@ -30,12 +32,82 @@ function daysUntilDate(value: string) {
   );
 }
 
+function toDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function toMonthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function formatUserTrendPeriodLabel(date: Date, period: UserTrendPeriod, isArabic: boolean) {
+  const locale = isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE;
+  if (period === "year") return String(date.getFullYear());
+  if (period === "month") return date.toLocaleDateString(locale, { month: "long", year: "numeric" });
+  const start = new Date(date);
+  start.setDate(start.getDate() - 6);
+  return `${start.toLocaleDateString(locale, { day: "2-digit", month: "short" })} - ${date.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" })}`;
+}
+
+function buildUserTrendSlots(period: UserTrendPeriod, group: UserTrendGroup, anchor: Date, isArabic: boolean) {
+  const locale = isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE;
+  if (period === "year") {
+    if (group === "quarters") {
+      return [1, 2, 3, 4].map((quarter) => ({
+        day: `${anchor.getFullYear()}-Q${quarter}`,
+        label: isArabic ? `\u0627\u0644\u0631\u0628\u0639 ${quarter}` : `Q${quarter}`,
+        amount: 0,
+        total: 0,
+      }));
+    }
+    return Array.from({ length: 12 }, (_, index) => {
+      const date = new Date(anchor.getFullYear(), index, 1);
+      return {
+        day: toMonthKey(date),
+        label: date.toLocaleDateString(locale, { month: "short" }),
+        amount: 0,
+        total: 0,
+      };
+    });
+  }
+  if (period === "month") {
+    if (group === "weeks") {
+      return [1, 2, 3, 4, 5].map((week) => ({
+        day: `week-${week}`,
+        label: isArabic ? `\u0627\u0644\u0623\u0633\u0628\u0648\u0639 ${week}` : `Week ${week}`,
+        amount: 0,
+        total: 0,
+      }));
+    }
+    const daysInMonth = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, index) => {
+      const date = new Date(anchor.getFullYear(), anchor.getMonth(), index + 1);
+      return {
+        day: toDateKey(date),
+        label: String(index + 1),
+        amount: 0,
+        total: 0,
+      };
+    });
+  }
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(anchor);
+    date.setDate(anchor.getDate() - (6 - index));
+    return {
+      day: toDateKey(date),
+      label: date.toLocaleDateString(locale, { weekday: "short" }),
+      amount: 0,
+      total: 0,
+    };
+  });
+}
+
 function formatMoney(value: unknown, currency = "SAR") {
   return `${Number(value ?? 0).toLocaleString(NUMBER_LOCALE)} ${currency}`;
 }
 
 function cleanDate(value: unknown) {
-  return String(value ?? "").slice(0, 10) || "—";
+  return String(value ?? "").slice(0, 10) || "-";
 }
 
 function parseDatabaseDate(value: unknown) {
@@ -48,7 +120,7 @@ function parseDatabaseDate(value: unknown) {
 
 function formatUserDateTime(value: unknown, isArabic: boolean) {
   const date = parseDatabaseDate(value);
-  if (!date) return "—";
+  if (!date) return "-";
   return new Intl.DateTimeFormat(isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE, {
     year: "numeric",
     month: "2-digit",
@@ -60,13 +132,33 @@ function formatUserDateTime(value: unknown, isArabic: boolean) {
   }).format(date);
 }
 
+function ContractActionIcon({type}: {type: "edit" | "print"}) {
+  if (type === "print") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M6 9V3h12v6" />
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+        <path d="M6 14h12v7H6z" />
+        <path d="M18 12h.01" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
 function remainingQuoteTimeLabel(row: BackendRow, isArabic: boolean) {
   const validUntilValue = String(row.valid_until ?? "").trim();
   let expiryDate = validUntilValue ? new Date(validUntilValue) : null;
 
   if (!expiryDate || Number.isNaN(expiryDate.getTime())) {
     const createdAt = new Date(String(row.created_at ?? ""));
-    if (Number.isNaN(createdAt.getTime())) return "—";
+    if (Number.isNaN(createdAt.getTime())) return "-";
     expiryDate = new Date(createdAt);
     expiryDate.setDate(expiryDate.getDate() + 14);
   }
@@ -76,14 +168,14 @@ function remainingQuoteTimeLabel(row: BackendRow, isArabic: boolean) {
     (expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
   );
 
-  if (remainingDays <= 0) return isArabic ? "منتهي" : "Expired";
+  if (remainingDays <= 0) return isArabic ? "ظ…ظ†طھظ‡ظٹ" : "Expired";
   return isArabic
-    ? `${remainingDays.toLocaleString(NUMBER_LOCALE)} يوم`
+    ? `${remainingDays.toLocaleString(NUMBER_LOCALE)} ظٹظˆظ…`
     : `${remainingDays.toLocaleString(NUMBER_LOCALE)} day${remainingDays === 1 ? "" : "s"}`;
 }
 
 function productName(product: BackendRow | undefined, isArabic: boolean) {
-  return String((isArabic ? product?.name : product?.name_en ?? product?.name) ?? "—");
+  return String((isArabic ? product?.name : product?.name_en ?? product?.name) ?? "-");
 }
 
 export function DashboardHeader({
@@ -121,23 +213,25 @@ export function MetricsGrid() {
       : null;
   const quoteConversion = quoteCount > 0 ? (salesCount / quoteCount) * 100 : 0;
 
+  const metricText = {
+    noPreviousSales: isArabic ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0628\u064a\u0639\u0627\u062a \u0641\u064a \u0627\u0644\u0634\u0647\u0631 \u0627\u0644\u0633\u0627\u0628\u0642" : "No sales in the previous month",
+    comparedPreviousMonth: isArabic ? "\u0645\u0642\u0627\u0631\u0646\u0629 \u0628\u0627\u0644\u0634\u0647\u0631 \u0627\u0644\u0633\u0627\u0628\u0642" : "vs previous month",
+    pendingPayout: isArabic ? "\u0642\u064a\u062f \u0627\u0644\u0635\u0631\u0641" : "pending payout",
+    quotesCreated: isArabic ? "\u0639\u0631\u0636 \u0633\u0639\u0631 \u0645\u0646\u0634\u0623" : "quotes created",
+    salesFromQuotes: isArabic ? "\u0645\u0628\u064a\u0639\u0627\u062a \u0645\u0646" : "sales from",
+    quoteLabel: isArabic ? "\u0639\u0631\u0636 \u0633\u0639\u0631" : "quotes",
+  };
+
   const notes = [
     salesGrowth === null
-      ? isArabic
-        ? "لا توجد مبيعات في الشهر السابق"
-        : "No sales in the previous month"
-      : `${salesGrowth >= 0 ? "+" : ""}${salesGrowth.toFixed(1)}% ${isArabic ? "مقارنة بالشهر السابق" : "vs previous month"}`,
+      ? metricText.noPreviousSales
+      : `${salesGrowth >= 0 ? "+" : ""}${salesGrowth.toFixed(1)}% ${metricText.comparedPreviousMonth}`,
+    `${approvedCommissionAmount.toLocaleString(NUMBER_LOCALE)} SAR ${metricText.pendingPayout}`,
+    `${quoteCount.toLocaleString(NUMBER_LOCALE)} ${metricText.quotesCreated}`,
     isArabic
-      ? `${approvedCommissionAmount.toLocaleString(NUMBER_LOCALE)} SAR قيد الصرف`
-      : `${approvedCommissionAmount.toLocaleString(NUMBER_LOCALE)} SAR pending payout`,
-    isArabic
-      ? `${quoteCount.toLocaleString(NUMBER_LOCALE)} عرض سعر منشأ`
-      : `${quoteCount.toLocaleString(NUMBER_LOCALE)} quotes created`,
-    isArabic
-      ? `${salesCount.toLocaleString(NUMBER_LOCALE)} مبيعات من ${quoteCount.toLocaleString(NUMBER_LOCALE)} عرض سعر`
-      : `${salesCount.toLocaleString(NUMBER_LOCALE)} sales from ${quoteCount.toLocaleString(NUMBER_LOCALE)} quotes`,
+      ? `${salesCount.toLocaleString(NUMBER_LOCALE)} ${metricText.salesFromQuotes} ${quoteCount.toLocaleString(NUMBER_LOCALE)} ${metricText.quoteLabel}`
+      : `${salesCount.toLocaleString(NUMBER_LOCALE)} ${metricText.salesFromQuotes} ${quoteCount.toLocaleString(NUMBER_LOCALE)} ${metricText.quoteLabel}`,
   ];
-
   const values = [
     `${Number(data?.salesAmount ?? 0).toLocaleString(NUMBER_LOCALE)} SAR`,
     `${Number(data?.commissionAmount ?? 0).toLocaleString(NUMBER_LOCALE)} SAR`,
@@ -161,85 +255,138 @@ export function MetricsGrid() {
 export function PerformanceChart() {
   const t = useTranslations();
   const isArabic = useLocale() === "ar";
-  const [trendPeriod, setTrendPeriod] = useState<"week" | "month" | "year">("week");
+  const [trendPeriod, setTrendPeriod] = useState<UserTrendPeriod>("month");
+  const [trendGroup, setTrendGroup] = useState<UserTrendGroup>("weeks");
+  const [trendAnchor, setTrendAnchor] = useState(() => new Date());
+  const summaryParams = new URLSearchParams({
+    period: trendPeriod,
+    group: trendGroup,
+    anchor: trendAnchor.toISOString().slice(0, 10),
+  });
   const { data } = useBackend<{
     salesTrend?: Array<{ day: string; amount: number; total: number }>;
-  }>(`/api/v1/dashboard/summary?period=${trendPeriod}`);
+  }>(`/api/v1/dashboard/summary?${summaryParams.toString()}`);
 
   const trendByDay = new Map(
-    (data?.salesTrend ?? []).map((item) => [String(item.day).slice(0, 10), item]),
+    (data?.salesTrend ?? []).map((item) => [String(item.day), item]),
   );
-  const slotCount = trendPeriod === "year" ? 12 : trendPeriod === "month" ? 30 : 7;
-  const salesTrend = Array.from({ length: slotCount }, (_, index) => {
-    const day = new Date();
-    day.setHours(0, 0, 0, 0);
-    if (trendPeriod === "year") {
-      day.setDate(1);
-      day.setMonth(day.getMonth() - (11 - index));
-    } else {
-      day.setDate(day.getDate() - (slotCount - 1 - index));
-    }
-    const key =
-      trendPeriod === "year"
-        ? `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}`
-        : `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
-    return trendByDay.get(key) ?? { day: key, amount: 0, total: 0 };
-  });
+  const salesTrend = buildUserTrendSlots(trendPeriod, trendGroup, trendAnchor, isArabic).map((slot) => ({
+    ...slot,
+    ...(trendByDay.get(slot.day) ?? { amount: 0, total: 0 }),
+  }));
   const maximumAmount = Math.max(...salesTrend.map((item) => item.amount), 1);
   const periodAmount = salesTrend.reduce((total, item) => total + item.amount, 0);
   const periodSales = salesTrend.reduce((total, item) => total + item.total, 0);
   const averageSale = periodSales > 0 ? periodAmount / periodSales : 0;
-  const periodLabel =
-    trendPeriod === "week"
-      ? isArabic
-        ? "آخر 7 أيام"
-        : "Last 7 days"
-      : trendPeriod === "month"
-        ? isArabic
-          ? "آخر 30 يومًا"
-          : "Last 30 days"
-        : isArabic
-          ? "آخر 12 شهرًا"
-          : "Last 12 months";
+  const periodLabel = formatUserTrendPeriodLabel(trendAnchor, trendPeriod, isArabic);
+  const groupOptions =
+    trendPeriod === "month"
+      ? [
+          { value: "weeks" as const, label: isArabic ? "طھظ‚ط³ظٹظ… ط¨ط§ظ„ط£ط³ط§ط¨ظٹط¹" : "By weeks" },
+          { value: "days" as const, label: isArabic ? "طھظ‚ط³ظٹظ… ط¨ط§ظ„ط£ظٹط§ظ…" : "By days" },
+        ]
+      : trendPeriod === "year"
+        ? [
+            { value: "months" as const, label: isArabic ? "طھظ‚ط³ظٹظ… ط¨ط§ظ„ط´ظ‡ظˆط±" : "By months" },
+            { value: "quarters" as const, label: isArabic ? "ط±ط¨ط¹ ط³ظ†ظˆظٹ" : "Quarterly" },
+          ]
+        : [{ value: "days" as const, label: isArabic ? "ط¹ط±ط¶ ظٹظˆظ…ظٹ" : "Daily view" }];
+  function changeTrendPeriod(nextPeriod: UserTrendPeriod) {
+    setTrendPeriod(nextPeriod);
+    setTrendGroup(nextPeriod === "year" ? "months" : nextPeriod === "month" ? "weeks" : "days");
+    setTrendAnchor(new Date());
+  }
+  function navigateTrend(direction: "prev" | "next") {
+    const step = direction === "next" ? 1 : -1;
+    setTrendAnchor((current) => {
+      const next = new Date(current);
+      if (trendPeriod === "year") next.setFullYear(next.getFullYear() + step);
+      else if (trendPeriod === "month") next.setMonth(next.getMonth() + step);
+      else next.setDate(next.getDate() + step * 7);
+      return next;
+    });
+  }
+  const userTrendText = {
+    performanceTitle: isArabic
+      ? "\u0623\u062f\u0627\u0621 \u0627\u0644\u0639\u0645\u0644\u0627\u0621 \u0648\u0627\u0644\u0639\u0631\u0648\u0636 \u0648\u0627\u0644\u0639\u0645\u0648\u0644\u0627\u062a"
+      : "Customer, Quote, and Commission Performance",
+    performanceSubtitle: isArabic
+      ? "\u0645\u0631\u0627\u0642\u0628\u0629 \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a \u0648\u062a\u0648\u0632\u064a\u0639\u0647\u0627 \u062d\u0633\u0628 \u0627\u0644\u0641\u062a\u0631\u0627\u062a \u0627\u0644\u0632\u0645\u0646\u064a\u0629"
+      : "Track sales distribution across selected time periods",
+    salesLabel: isArabic ? "\u0645\u0628\u064a\u0639\u0627\u062a" : "Sales",
+    periodTotal: isArabic ? "\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0641\u062a\u0631\u0629" : "Period total",
+    salesCount: isArabic ? "\u0639\u062f\u062f \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a" : "Sales count",
+    averageSale: isArabic ? "\u0645\u062a\u0648\u0633\u0637 \u0642\u064a\u0645\u0629 \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a" : "Average sale value",
+    periodButtons: {
+      week: isArabic ? "\u0623\u0633\u0628\u0648\u0639" : "Week",
+      month: isArabic ? "\u0634\u0647\u0631" : "Month",
+      year: isArabic ? "\u0633\u0646\u0629" : "Year",
+    } as Record<UserTrendPeriod, string>,
+    groupLabels: {
+      days: isArabic ? "\u062a\u0642\u0633\u064a\u0645 \u0628\u0627\u0644\u0623\u064a\u0627\u0645" : "By days",
+      weeks: isArabic ? "\u062a\u0642\u0633\u064a\u0645 \u0628\u0627\u0644\u0623\u0633\u0627\u0628\u064a\u0639" : "By weeks",
+      months: isArabic ? "\u062a\u0642\u0633\u064a\u0645 \u0628\u0627\u0644\u0634\u0647\u0648\u0631" : "By months",
+      quarters: isArabic ? "\u0631\u0628\u0639 \u0633\u0646\u0648\u064a" : "Quarterly",
+    } as Record<UserTrendGroup, string>,
+  };
 
   return (
     <article className="chart-card full-card">
       <div className="card-title">
-        <h3>{t("chart.title")}</h3>
+        <div className="user-performance-heading">
+          <h3>{userTrendText.performanceTitle}</h3>
+          <p>{userTrendText.performanceSubtitle}</p>
+        </div>
         <div className="chart-title-tools">
           <div className="chart-legend">
             <span className="chart-legend-pill">
               <i className="teal pulse" />
-              {isArabic ? `مبيعات ${periodLabel}` : `Sales - ${periodLabel}`}
+              {`${userTrendText.salesLabel} - ${periodLabel}`}
             </span>
           </div>
-          <div className="chart-period-filter" role="group">
-            {[
-              ["week", isArabic ? "أسبوع" : "Week"],
-              ["month", isArabic ? "شهر" : "Month"],
-              ["year", isArabic ? "سنة" : "Year"],
-            ].map(([period, label]) => (
-              <button
-                className={trendPeriod === period ? "active" : ""}
-                key={period}
-                onClick={() => setTrendPeriod(period as "week" | "month" | "year")}
-                type="button"
-              >
-                {label}
-              </button>
-            ))}
+          <div className="chart-period-filter user-period-controls" role="group">
+            <div className="user-period-segment">
+              {(["week", "month", "year"] as UserTrendPeriod[]).map((period) => (
+                <button
+                  className={trendPeriod === period ? "active" : ""}
+                  key={period}
+                  onClick={() => changeTrendPeriod(period)}
+                  type="button"
+                >
+                  {userTrendText.periodButtons[period]}
+                </button>
+              ))}
+            </div>
+            <div className="user-period-navigator">
+              <button aria-label={isArabic ? "الفترة السابقة" : "Previous period"} onClick={() => navigateTrend("prev")} type="button">‹</button>
+              <strong>{periodLabel}</strong>
+              <button aria-label={isArabic ? "الفترة التالية" : "Next period"} onClick={() => navigateTrend("next")} type="button">›</button>
+            </div>
+            <div className="user-period-subfilters">
+              {groupOptions.map((option) => (
+                <button
+                  className={trendGroup === option.value ? "active" : ""}
+                  disabled={groupOptions.length === 1}
+                  key={option.value}
+                  onClick={() => setTrendGroup(option.value)}
+                  type="button"
+                >
+                  {userTrendText.groupLabels[option.value]}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
       <div className="chart-insights-row">
         <span className="chart-insight teal">
-          {isArabic ? "إجمالي الفترة" : "Period total"}: {periodAmount.toLocaleString(NUMBER_LOCALE)} SAR
+          {userTrendText.periodTotal}: {periodAmount.toLocaleString(NUMBER_LOCALE)} SAR
         </span>
         <span className="chart-insight navy">
-          {isArabic ? "عدد المبيعات" : "Sales count"}: {periodSales.toLocaleString(NUMBER_LOCALE)}
+          {userTrendText.salesCount}: {periodSales.toLocaleString(NUMBER_LOCALE)}
         </span>
         <span className="chart-insight emerald">
-          {isArabic ? "متوسط قيمة المبيعات" : "Average sale value"}:{" "}
+          {userTrendText.averageSale}:{" "}
           {averageSale.toLocaleString(NUMBER_LOCALE, { maximumFractionDigits: 2 })} SAR
         </span>
       </div>
@@ -249,11 +396,7 @@ export function PerformanceChart() {
         style={{ "--chart-columns": salesTrend.length } as React.CSSProperties}
       >
         {salesTrend.map((item) => {
-          const dayLabel = new Intl.DateTimeFormat(isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE, {
-            ...(trendPeriod === "year"
-              ? { month: "short" as const, year: "2-digit" as const }
-              : { weekday: "short" as const }),
-          }).format(new Date(`${item.day}${trendPeriod === "year" ? "-01" : ""}T12:00:00`));
+          const dayLabel = item.label;
           return (
             <div className="bar-chart-column" key={item.day}>
               <small>{dayLabel}</small>
@@ -1708,7 +1851,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
             </svg>
             <input
               onChange={(event) => setParticipationSearch(event.target.value)}
-              placeholder={isArabic ? "ابحث بالاسم، الشركة، الجوال..." : "Search by name, company, mobile..."}
+              placeholder={isArabic ? "\\u0627\\u0628\\u062d\\u062b \\u0628\\u0627\\u0644\\u0627\\u0633\\u0645\\u060c \\u0627\\u0644\\u0634\\u0631\\u0643\\u0629\\u060c \\u0627\\u0644\\u062c\\u0648\\u0627\\u0644..." : "Search by name, company, mobile..."}
               type="search"
               value={participationSearch}
             />
@@ -1746,13 +1889,13 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
           <table>
             <thead>
               <tr>
-                <th>{isArabic ? "رقم العقد" : "Contract #"}</th>
+                <th>{isArabic ? "\\u0631\\u0642\\u0645 \\u0627\\u0644\\u0639\\u0642\\u062f" : "Contract #"}</th>
                 <th>{text.customer}</th>
                 <th>{text.companyName}</th>
                 <th>{text.packageType}</th>
                 <th>{text.spaceSqm}</th>
                 <th>{text.totalAmount}</th>
-                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th>{isArabic ? "\\u0627\\u0644\\u062d\\u0627\\u0644\\u0629" : "Status"}</th>
                 <th>{text.contractDate}</th>
                 <th>{text.actions}</th>
               </tr>
@@ -1764,8 +1907,8 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
                 return (
                   <tr key={contract.id}>
                     <td>{String(contract.contract_number ?? contract.id)}</td>
-                    <td>{String(contract.customer_name ?? "—")}</td>
-                    <td>{String(contract.company_name ?? "—")}</td>
+                    <td>{String(contract.customer_name ?? "-")}</td>
+                    <td>{String(contract.company_name ?? "-")}</td>
                     <td>{packageLabels[packageValue] ?? packageValue}</td>
                     <td>{Number(contract.space_sqm ?? 0).toLocaleString(NUMBER_LOCALE)}</td>
                     <td>{formatMoney(contract.total_amount, String(contract.currency ?? "SAR"))}</td>
@@ -1773,11 +1916,11 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
                     <td>{cleanDate(contract.contract_date)}</td>
                     <td>
                       <div className="contract-table-actions">
-                        <button className="contract-table-action" onClick={() => editContract(contract)} type="button">
-                          {text.edit}
+                        <button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button">
+                          <ContractActionIcon type="edit" />
                         </button>
-                        <button className="contract-table-action primary" onClick={() => printContract(contract)} type="button">
-                          {text.print}
+                        <button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button">
+                          <ContractActionIcon type="print" />
                         </button>
                       </div>
                     </td>
@@ -2440,7 +2583,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
             </svg>
             <input
               onChange={(event) => setSponsorshipSearch(event.target.value)}
-              placeholder={isArabic ? "ابحث بالاسم، الشركة، الجوال..." : "Search by name, company, mobile..."}
+              placeholder={isArabic ? "\\u0627\\u0628\\u062d\\u062b \\u0628\\u0627\\u0644\\u0627\\u0633\\u0645\\u060c \\u0627\\u0644\\u0634\\u0631\\u0643\\u0629\\u060c \\u0627\\u0644\\u062c\\u0648\\u0627\\u0644..." : "Search by name, company, mobile..."}
               type="search"
               value={sponsorshipSearch}
             />
@@ -2480,13 +2623,13 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
           <table>
             <thead>
               <tr>
-                <th>{isArabic ? "رقم العقد" : "Contract #"}</th>
+                <th>{isArabic ? "\\u0631\\u0642\\u0645 \\u0627\\u0644\\u0639\\u0642\\u062f" : "Contract #"}</th>
                 <th>{text.customer}</th>
                 <th>{text.companyName}</th>
                 <th>{text.packageType}</th>
                 <th>{text.sponsorshipCategory}</th>
                 <th>{text.grandTotal}</th>
-                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th>{isArabic ? "\\u0627\\u0644\\u062d\\u0627\\u0644\\u0629" : "Status"}</th>
                 <th>{text.contractDate}</th>
                 <th>{text.actions}</th>
               </tr>
@@ -2499,8 +2642,8 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
                 return (
                   <tr key={contract.id}>
                     <td>{String(contract.contract_number ?? contract.id)}</td>
-                    <td>{String(contract.customer_name ?? "—")}</td>
-                    <td>{String(contract.company_name ?? "—")}</td>
+                    <td>{String(contract.customer_name ?? "-")}</td>
+                    <td>{String(contract.company_name ?? "-")}</td>
                     <td>{packageLabels[packageValue] ?? packageValue}</td>
                     <td>{categoryLabels[categoryValue] ?? categoryValue}</td>
                     <td>{formatMoney(contract.grand_total, String(contract.currency ?? "SAR"))}</td>
@@ -2508,8 +2651,8 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
                     <td>{cleanDate(contract.contract_date)}</td>
                     <td>
                       <div className="contract-table-actions">
-                        <button className="contract-table-action" onClick={() => editContract(contract)} type="button">{text.edit}</button>
-                        <button className="contract-table-action primary" onClick={() => printContract(contract)} type="button">{text.print}</button>
+                        <button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button>
+                        <button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button>
                       </div>
                     </td>
                   </tr>
@@ -2963,7 +3106,7 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
                 <th>{text.companyName}</th>
                 <th>{text.itemDescription}</th>
                 <th>{text.grandTotal}</th>
-                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th>{isArabic ? "\\u0627\\u0644\\u062d\\u0627\\u0644\\u0629" : "Status"}</th>
                 <th>{text.orderDate}</th>
                 <th>{text.actions}</th>
               </tr>
@@ -2982,8 +3125,8 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
                     <td>{cleanDate(order.order_date)}</td>
                     <td>
                       <div className="contract-table-actions">
-                        <button className="contract-table-action" onClick={() => editOrder(order)} type="button">{text.edit}</button>
-                        <button className="contract-table-action primary" onClick={() => printOrder(order)} type="button">{text.print}</button>
+                        <button aria-label={text.edit} className="contract-table-action icon" onClick={() => editOrder(order)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button>
+                        <button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printOrder(order)} title={text.print} type="button"><ContractActionIcon type="print" /></button>
                       </div>
                     </td>
                   </tr>
@@ -3017,7 +3160,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [country, setCountry] = useState("Saudi Arabia");
   const [lessorName, setLessorName] = useState("Alsawsan Exhibitions & Conferences");
   const [tenantName, setTenantName] = useState("");
-  const [rentalItem, setRentalItem] = useState(isArabic ? "مساحة / جناح تأجيري" : "Rental space / booth");
+  const [rentalItem, setRentalItem] = useState(isArabic ? "\u0645\u0633\u0627\u062d\u0629 / \u062c\u0646\u0627\u062d \u062a\u0623\u062c\u064a\u0631\u064a" : "Rental space / booth");
   const [rentalLocation, setRentalLocation] = useState("");
   const [leaseStartDate, setLeaseStartDate] = useState(() => dateAfterDays(0));
   const [leaseEndDate, setLeaseEndDate] = useState(() => dateAfterDays(3));
@@ -3031,51 +3174,50 @@ export function RentalContractsPanel({locale}: {locale: string}) {
 
   const text = isArabic
     ? {
-        formTitle: "إضافة بيانات العقد التأجيري",
-        formSubtitle: "بيانات العقد مرتبطة بالعملاء المهتمين",
-        listTitle: "قائمة العقود التأجيرية",
-        listSubtitle: "العقود التأجيرية التي تم إدخالها من حسابك",
-        customer: "العميل المهتم",
-        customerPlaceholder: "اختر العميل المهتم",
-        customerSearch: "ابحث باسم العميل أو الشركة",
-        lessorName: "المؤجر",
-        tenantName: "المستأجر",
-        companyName: "اسم الشركة",
-        contactName: "الشخص المسؤول",
-        email: "البريد الإلكتروني",
-        phone: "الهاتف",
-        address: "العنوان",
-        city: "المدينة",
-        country: "الدولة",
-        rentalItem: "العين المؤجرة / الوصف",
-        rentalLocation: "موقع التأجير",
-        leaseStartDate: "بداية مدة الإيجار",
-        leaseEndDate: "نهاية مدة الإيجار",
-        unitPrice: "قيمة الإيجار",
-        quantity: "الكمية / المدة",
-        subtotal: "الإجمالي قبل الضريبة",
-        vatAmount: "ضريبة 15%",
-        grandTotal: "الإجمالي شامل الضريبة",
-        contractDate: "تاريخ العقد",
-        notes: "ملاحظات وشروط",
-        save: "حفظ العقد",
-        update: "تحديث العقد",
-        edit: "تعديل",
-        print: "طباعة",
-        actions: "الإجراءات",
-        saving: "جاري الحفظ...",
-        saved: "تم حفظ العقد",
-        updated: "تم تحديث العقد",
-        failed: "تعذر حفظ العقد",
-        validation: "أدخل اسم الشركة، الشخص المسؤول، ووصف العين المؤجرة",
-        noCustomerData: "اختر عميلاً مهتماً لتعبئة بيانات الشركة تلقائياً",
-        noContracts: "لا توجد عقود تأجيرية حتى الآن",
-        draft: "مسودة",
-        sent: "مرسل",
-        signed: "موقع",
-        cancelled: "ملغي",
-      }
-    : {
+        formTitle: "\u0625\u0636\u0627\u0641\u0629 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0642\u062f \u0627\u0644\u062a\u0623\u062c\u064a\u0631\u064a",
+        formSubtitle: "\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0642\u062f \u0645\u0631\u062a\u0628\u0637\u0629 \u0628\u0627\u0644\u0639\u0645\u0644\u0627\u0621 \u0627\u0644\u0645\u0647\u062a\u0645\u064a\u0646",
+        listTitle: "\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0639\u0642\u0648\u062f \u0627\u0644\u062a\u0623\u062c\u064a\u0631\u064a\u0629",
+        listSubtitle: "\u0627\u0644\u0639\u0642\u0648\u062f \u0627\u0644\u062a\u0623\u062c\u064a\u0631\u064a\u0629 \u0627\u0644\u062a\u064a \u062a\u0645 \u0625\u062f\u062e\u0627\u0644\u0647\u0627 \u0645\u0646 \u062d\u0633\u0627\u0628\u0643",
+        customer: "\u0627\u0644\u0639\u0645\u064a\u0644 \u0627\u0644\u0645\u0647\u062a\u0645",
+        customerPlaceholder: "\u0627\u062e\u062a\u0631 \u0627\u0644\u0639\u0645\u064a\u0644 \u0627\u0644\u0645\u0647\u062a\u0645",
+        customerSearch: "\u0627\u0628\u062d\u062b \u0628\u0627\u0633\u0645 \u0627\u0644\u0639\u0645\u064a\u0644 \u0623\u0648 \u0627\u0644\u0634\u0631\u0643\u0629",
+        lessorName: "\u0627\u0644\u0645\u0624\u062c\u0631",
+        tenantName: "\u0627\u0644\u0645\u0633\u062a\u0623\u062c\u0631",
+        companyName: "\u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629 / \u0627\u0644\u0645\u0624\u0633\u0633\u0629 \u0644\u0644\u0637\u0631\u0641 \u0627\u0644\u062b\u0627\u0646\u064a",
+        contactName: "\u0627\u0633\u0645 \u0627\u0644\u0634\u062e\u0635 \u0627\u0644\u0645\u0633\u0624\u0648\u0644",
+        email: "\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a",
+        phone: "\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644",
+        address: "\u0627\u0644\u0639\u0646\u0648\u0627\u0646",
+        city: "\u0627\u0644\u0645\u062f\u064a\u0646\u0629",
+        country: "\u0627\u0644\u062f\u0648\u0644\u0629",
+        rentalItem: "\u0627\u0644\u0639\u064a\u0646 \u0627\u0644\u0645\u0624\u062c\u0631\u0629 / \u0627\u0644\u0648\u0635\u0641",
+        rentalLocation: "\u0645\u0648\u0642\u0639 \u0627\u0644\u062a\u0623\u062c\u064a\u0631",
+        leaseStartDate: "\u0628\u062f\u0627\u064a\u0629 \u0645\u062f\u0629 \u0627\u0644\u0625\u064a\u062c\u0627\u0631",
+        leaseEndDate: "\u0646\u0647\u0627\u064a\u0629 \u0645\u062f\u0629 \u0627\u0644\u0625\u064a\u062c\u0627\u0631",
+        unitPrice: "\u0642\u064a\u0645\u0629 \u0627\u0644\u0625\u064a\u062c\u0627\u0631 \u0642\u0628\u0644 \u0627\u0644\u0636\u0631\u064a\u0628\u0629",
+        quantity: "\u0627\u0644\u0643\u0645\u064a\u0629 / \u0627\u0644\u0645\u062f\u0629",
+        subtotal: "\u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a \u0642\u0628\u0644 \u0627\u0644\u0636\u0631\u064a\u0628\u0629",
+        vatAmount: "\u0636\u0631\u064a\u0628\u0629 \u0627\u0644\u0642\u064a\u0645\u0629 \u0627\u0644\u0645\u0636\u0627\u0641\u0629 15%",
+        grandTotal: "\u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a \u0634\u0627\u0645\u0644 \u0627\u0644\u0636\u0631\u064a\u0628\u0629",
+        contractDate: "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0639\u0642\u062f",
+        notes: "\u0645\u0644\u0627\u062d\u0638\u0627\u062a \u0648\u0634\u0631\u0648\u0637",
+        save: "\u062d\u0641\u0638 \u0627\u0644\u0639\u0642\u062f",
+        update: "\u062a\u062d\u062f\u064a\u062b \u0627\u0644\u0639\u0642\u062f",
+        edit: "\u062a\u0639\u062f\u064a\u0644",
+        print: "\u0637\u0628\u0627\u0639\u0629",
+        actions: "\u0627\u0644\u0625\u062c\u0631\u0627\u0621\u0627\u062a",
+        saving: "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638...",
+        saved: "\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0639\u0642\u062f",
+        updated: "\u062a\u0645 \u062a\u062d\u062f\u064a\u062b \u0627\u0644\u0639\u0642\u062f",
+        failed: "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u0627\u0644\u0639\u0642\u062f",
+        validation: "\u0623\u062f\u062e\u0644 \u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u0634\u062e\u0635 \u0627\u0644\u0645\u0633\u0624\u0648\u0644\u060c \u0648\u0648\u0635\u0641 \u0627\u0644\u0639\u064a\u0646 \u0627\u0644\u0645\u0624\u062c\u0631\u0629",
+        noCustomerData: "\u0627\u062e\u062a\u0631 \u0639\u0645\u064a\u0644\u0627\u064b \u0645\u0647\u062a\u0645\u0627\u064b \u0644\u062a\u0639\u0628\u0626\u0629 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0634\u0631\u0643\u0629 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b",
+        noContracts: "\u0644\u0627 \u062a\u0648\u062c\u062f \u0639\u0642\u0648\u062f \u062a\u0623\u062c\u064a\u0631\u064a\u0629 \u062d\u062a\u0649 \u0627\u0644\u0622\u0646",
+        draft: "\u0645\u0633\u0648\u062f\u0629",
+        sent: "\u0645\u0631\u0633\u0644",
+        signed: "\u0645\u0648\u0642\u0639",
+        cancelled: "\u0645\u0644\u063a\u064a",
+      }    : {
         formTitle: "Add rental contract details",
         formSubtitle: "Rental contract details linked to interested customers",
         listTitle: "Rental contracts list",
@@ -3171,7 +3313,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setCountry("Saudi Arabia");
     setLessorName("Alsawsan Exhibitions & Conferences");
     setTenantName("");
-    setRentalItem(isArabic ? "مساحة / جناح تأجيري" : "Rental space / booth");
+    setRentalItem(isArabic ? "\u0645\u0633\u0627\u062d\u0629 / \u062c\u0646\u0627\u062d \u062a\u0623\u062c\u064a\u0631\u064a" : "Rental space / booth");
     setRentalLocation("");
     setLeaseStartDate(dateAfterDays(0));
     setLeaseEndDate(dateAfterDays(3));
@@ -3220,52 +3362,109 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     const vat = Number(contract.vat_amount ?? subtotal * 0.15);
     const grandTotal = Number(contract.grand_total ?? subtotal + vat);
     const money = (value: number) => `${value.toLocaleString(NUMBER_LOCALE)} ${currency}`;
+    const contractDate = cleanDate(contract.contract_date);
+    const lessorName =
+      String(contract.lessor_name ?? "").trim() ||
+      "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات";
+    const tenantName = String(contract.tenant_name ?? contract.company_name ?? "").trim();
+    const representative = String(contract.contact_name ?? "").trim();
+    const rentalItem = String(contract.rental_item ?? "").trim();
+    const rentalLocation = String(contract.rental_location ?? "").trim();
+    const leaseStart = cleanDate(contract.lease_start_date);
+    const leaseEnd = cleanDate(contract.lease_end_date);
+    const quantity = Number(contract.quantity ?? 1);
+    const displayValue = (value: unknown) => {
+      const textValue = String(value ?? "").trim();
+      return textValue || "-";
+    };
+    const leasePeriod = [leaseStart, leaseEnd].filter(Boolean).join(" - ") || "-";
     printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>عقد تأجيري - ${escapePrintValue(contract.contract_number)}</title><style>
-      @page { size: A4 portrait; margin: 12mm; }
-      * { box-sizing: border-box; }
-      body { margin: 0; font-family: Arial, sans-serif; color: #111827; background: #fff; font-size: 12px; line-height: 1.6; }
-      .sheet { width: 100%; min-height: 270mm; border: 1px solid #cbd5e1; padding: 14mm; }
-      .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; border-bottom: 3px solid #0f2942; padding-bottom: 14px; margin-bottom: 16px; }
-      .head h1 { margin: 0; color: #0f2942; font-size: 26px; }
-      .head h2 { margin: 3px 0 0; color: #00a3c3; font-size: 16px; direction: ltr; }
-      .number { border: 1px solid #0f2942; padding: 8px 12px; border-radius: 8px; font-weight: 700; direction: ltr; }
-      .section { margin-top: 14px; border: 1px solid #dbe4ee; border-radius: 8px; overflow: hidden; }
-      .section-title { background: #0f2942; color: #fff; padding: 8px 12px; font-weight: 700; display:flex; justify-content:space-between; }
-      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .field { padding: 9px 12px; border-top: 1px solid #e2e8f0; min-height: 52px; }
-      .field:nth-child(odd) { border-left: 1px solid #e2e8f0; }
-      .field.wide { grid-column: 1 / -1; border-left: 0; }
-      .field span { display:block; color:#64748b; font-size:10px; font-weight:700; }
-      .field strong { display:block; margin-top:4px; font-size:13px; overflow-wrap:anywhere; }
-      table { width:100%; border-collapse:collapse; margin-top:14px; }
-      th { background:#f8fafc; color:#334155; }
-      th, td { border:1px solid #dbe4ee; padding:8px; text-align:center; }
-      .terms { padding: 10px 12px; font-size: 11px; }
-      .signatures { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px; }
-      .signature { min-height:95px; border:1px solid #94a3b8; padding:10px; }
-      .line { margin-top:28px; border-bottom:1px solid #111827; height:24px; }
-      @media print { .sheet { border:0; padding:0; } }
+      @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+      :root { --navy:#0F2027; --blue:#1E3A8A; --gold:#C59B27; --brown:#A55C1B; --border:#E5E7EB; --muted:#64748b; }
+      @page { size: A4 portrait; margin: 10mm; }
+      * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { margin:0; background:#f3f4f6; color:var(--navy); font-family:"Cairo","Tajawal","Almarai",Arial,sans-serif; font-size:10.4px; line-height:1.6; }
+      .sheet { width:210mm; min-height:297mm; margin:0 auto; background:#fff; padding:11mm 12mm 13mm; position:relative; }
+      .contract-header { margin-bottom:12px; }
+      .header-logos { direction:ltr; display:grid; grid-template-columns:1fr 1fr; align-items:start; gap:18px; margin-bottom:8px; width:100%; }
+      .brand { direction:rtl; text-align:right; line-height:1.35; justify-self:end; min-width:280px; }
+      .brand-en { margin:0; color:#050505; font-family:Georgia,"Times New Roman",serif; font-size:32px; font-weight:800; letter-spacing:.2px; direction:ltr; text-align:right; line-height:1; }
+      .brand-since { margin:-1px 46px 0 0; color:var(--gold); font-size:8px; font-weight:800; letter-spacing:.8px; direction:ltr; text-align:right; }
+      .brand-company { margin:2px 0 0; color:var(--navy); font-size:10.2px; font-weight:800; }
+      .event-logo { direction:rtl; text-align:left; line-height:1.15; justify-self:start; min-width:180px; }
+      .exhibition-logo-svg { width:74px; height:auto; display:inline-block; }
+      .event-logo-caption { margin-top:1px; color:var(--navy); font-size:6.5px; font-weight:800; text-align:left; }
+      .event-logo-caption-en { color:#111827; font-family:Arial,sans-serif; font-size:4.8px; font-weight:700; text-align:left; direction:ltr; }
+      .title { text-align:center; margin:4px 0 10px; }
+      .title h2 { margin:0; color:#000; font-size:14.8px; font-weight:800; line-height:1.45; text-decoration:underline; }
+      .title p { margin:6px 0 0; color:#000; font-size:13.6px; font-weight:800; line-height:1.55; }
+      .contract-no { display:inline-block; margin-top:7px; border:1px solid var(--navy); border-radius:6px; padding:3px 14px; direction:ltr; font-size:10px; font-weight:800; color:var(--navy); background:#fff; }
+      .section-card { border:0; border-radius:0; padding:0; margin:10px 0; background:#fff; }
+      .intro { text-align:justify; margin:0 0 9px; text-indent:16px; }
+      .party { border:0; border-radius:0; padding:0; margin:7px 0; background:#fff; text-align:justify; }
+      .party strong { color:var(--navy); font-weight:800; }
+      .clause-title { margin:0 0 7px; color:var(--navy); font-size:11.5px; font-weight:800; }
+      table { width:100%; border-collapse:collapse; margin:10px 0 11px; font-size:10px; }
+      th, td { border:1px solid var(--border); padding:6px 7px; text-align:center; vertical-align:middle; }
+      th { background:var(--navy); color:#fff; font-weight:800; }
+      td { color:#111827; font-weight:700; background:#fff; }
+      .info-table th { width:18%; background:#f8fafc; color:var(--navy); text-align:right; }
+      .info-table td { width:32%; text-align:right; }
+      .total-text { margin:4px 0 0; font-weight:800; color:var(--navy); }
+      ul { margin:5px 0 0; padding-right:18px; }
+      li { margin-bottom:3px; text-align:justify; }
+      .signatures { display:grid; grid-template-columns:1fr 1fr; gap:36px; margin-top:18px; border-top:1px dashed #000; padding-top:16px; }
+      .sig-box { border:0; border-radius:0; min-height:112px; padding:0; position:relative; }
+      .sig-title { color:var(--navy); font-weight:800; margin-bottom:8px; }
+      .sig-line { margin-top:8px; height:20px; border-bottom:1px solid var(--navy); }
+      .stamp-circle { width:118px; height:58px; border:1px dashed #999; border-radius:0; margin-top:9px; display:flex; align-items:center; justify-content:center; color:#777; font-size:9px; font-weight:700; }
+      .footer-bar { height:0; border-top:1.5px solid #000; margin:14px 0 7px; }
+      .footer { display:flex; justify-content:space-between; color:var(--navy); font-size:9.5px; font-weight:800; }
+      @media print { body { background:#fff; } .sheet { width:100%; min-height:auto; margin:0; padding:0; border:0; } }
     </style></head><body><main class="sheet">
-      <header class="head"><div><h1>عقد تأجيري</h1><h2>RENTAL CONTRACT</h2><p>متوافق مع نموذج عقد التأجير ومحاضر الاتفاق الخاصة بالمعارض والفعاليات.</p></div><div class="number">${escapePrintValue(contract.contract_number)}</div></header>
-      <section class="section"><div class="section-title"><span>أطراف العقد</span><span>Contract Parties</span></div><div class="grid">
-        <div class="field"><span>المؤجر / Lessor</span><strong>${escapePrintValue(contract.lessor_name)}</strong></div>
-        <div class="field"><span>المستأجر / Tenant</span><strong>${escapePrintValue(contract.tenant_name ?? contract.company_name)}</strong></div>
-        <div class="field"><span>اسم الشركة / Company</span><strong>${escapePrintValue(contract.company_name)}</strong></div>
-        <div class="field"><span>المسؤول / Contact</span><strong>${escapePrintValue(contract.contact_name)}</strong></div>
-        <div class="field"><span>الهاتف / Phone</span><strong>${escapePrintValue(contract.phone)}</strong></div>
-        <div class="field"><span>البريد / Email</span><strong>${escapePrintValue(contract.email)}</strong></div>
-        <div class="field wide"><span>العنوان / Address</span><strong>${escapePrintValue(contract.address)}</strong></div>
-      </div></section>
-      <section class="section"><div class="section-title"><span>بيانات التأجير</span><span>Rental Details</span></div><div class="grid">
-        <div class="field wide"><span>العين المؤجرة / Leased Item</span><strong>${escapePrintValue(contract.rental_item)}</strong></div>
-        <div class="field"><span>موقع التأجير / Location</span><strong>${escapePrintValue(contract.rental_location)}</strong></div>
-        <div class="field"><span>تاريخ العقد / Contract Date</span><strong>${escapePrintValue(cleanDate(contract.contract_date))}</strong></div>
-        <div class="field"><span>بداية الإيجار / Lease Start</span><strong>${escapePrintValue(cleanDate(contract.lease_start_date))}</strong></div>
-        <div class="field"><span>نهاية الإيجار / Lease End</span><strong>${escapePrintValue(cleanDate(contract.lease_end_date))}</strong></div>
-      </div></section>
-      <table><thead><tr><th>الوصف</th><th>القيمة</th><th>الكمية / المدة</th><th>قبل الضريبة</th><th>الضريبة</th><th>الإجمالي</th></tr></thead><tbody><tr><td>${escapePrintValue(contract.rental_item)}</td><td>${money(Number(contract.unit_price ?? 0))}</td><td>${Number(contract.quantity ?? 1).toLocaleString(NUMBER_LOCALE)}</td><td>${money(subtotal)}</td><td>${money(vat)}</td><td><strong>${money(grandTotal)}</strong></td></tr></tbody></table>
-      <section class="section"><div class="section-title"><span>الشروط والملاحظات</span><span>Terms</span></div><div class="terms"><p>يلتزم المستأجر باستخدام العين المؤجرة حسب الغرض المتفق عليه، والمحافظة عليها، وسداد كامل القيمة حسب المواعيد المتفق عليها.</p><p>${escapePrintValue(contract.notes)}</p></div></section>
-      <div class="signatures"><div class="signature"><strong>توقيع المؤجر</strong><div class="line"></div></div><div class="signature"><strong>توقيع المستأجر</strong><div class="line"></div></div></div>
+      <div class="contract-header">
+        <div class="header-logos">
+          <div class="event-logo">
+            <svg class="exhibition-logo-svg" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg" aria-label="exhibition logo">
+              <path d="M100 5 C115 45, 115 85, 100 120 C85 85, 85 45, 100 5 Z" fill="#c59b27"/>
+              <path d="M97 15 C92 45, 92 80, 97 110" stroke="#2c1e13" stroke-width="2.5" fill="none"/>
+              <path d="M103 25 C115 50, 150 75, 180 80 C140 90, 115 85, 103 120 C95 85, 75 90, 20 80 C50 75, 85 50, 97 25" fill="#805d33"/>
+            </svg>
+            <div class="event-logo-caption">المعرض الدولي لصناع القهوة والشوكولاتة</div>
+            <div class="event-logo-caption-en">The international exhibition for coffee and chocolate makers</div>
+          </div>
+          <div class="brand">
+            <h1 class="brand-en">netaqAlbi</h1>
+            <p class="brand-since">SINCE 1992</p>
+            <p class="brand-company">شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات</p>
+          </div>
+        </div>
+      </div>
+      <div class="title"><h2>عقد مشاركة في المعرض الدولي لصناع القهوة والشوكولاتة</h2><p>خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م<br>بفندق جدة هيلتون (القاعة الكبرى)</p><span class="contract-no">${escapePrintValue(contract.contract_number)}</span></div>
+      <section class="section-card">
+        <p class="intro">تم بعون الله وتوفيقه إبرام هذا العقد بتاريخ <strong>${escapePrintValue(displayValue(contractDate))}</strong> بين كل من:</p>
+        <div class="party"><strong>الطرف الأول:</strong> ${escapePrintValue(displayValue(lessorName))}، ويشار إليه لاحقاً بـ <strong>الطرف الأول / المنظم</strong>.</div>
+        <div class="party"><strong>الطرف الثاني:</strong> ${escapePrintValue(displayValue(tenantName))}، ويمثله/تمثله <strong>${escapePrintValue(displayValue(representative))}</strong>، ويشار إليه لاحقاً بـ <strong>الطرف الثاني / المشارك</strong>.</div>
+        <table class="info-table"><tbody>
+          <tr><th>اسم الشركة</th><td>${escapePrintValue(displayValue(contract.company_name))}</td><th>المسؤول</th><td>${escapePrintValue(displayValue(contract.contact_name))}</td></tr>
+          <tr><th>الجوال</th><td dir="ltr">${escapePrintValue(displayValue(contract.phone))}</td><th>البريد الإلكتروني</th><td dir="ltr">${escapePrintValue(displayValue(contract.email))}</td></tr>
+          <tr><th>العنوان</th><td>${escapePrintValue(displayValue(contract.address))}</td><th>مدة التأجير</th><td>${escapePrintValue(leasePeriod)}</td></tr>
+        </tbody></table>
+      </section>
+      <section class="section-card"><div class="clause-title">أولاً: التمهيد</div><p class="intro">يعد التمهيد أعلاه جزءاً لا يتجزأ من هذا العقد ومكملاً له، وقد اتفق الطرفان بكامل الأهلية المعتبرة شرعاً ونظاماً على البنود التالية.</p></section>
+      <section class="section-card">
+        <div class="clause-title">ثانياً: بيانات التأجير والقيمة المالية</div>
+        <table><thead><tr><th>رقم / وصف المساحة</th><th>الموقع</th><th>الكمية / المدة</th><th>القيمة</th><th>ضريبة القيمة المضافة</th><th>الإجمالي شامل الضريبة</th></tr></thead><tbody><tr><td>${escapePrintValue(displayValue(rentalItem || "مساحة / جناح تأجيري"))}</td><td>${escapePrintValue(displayValue(rentalLocation))}</td><td>${quantity.toLocaleString(NUMBER_LOCALE)}</td><td>${money(subtotal)}</td><td>${money(vat)}</td><td><strong>${money(grandTotal)}</strong></td></tr></tbody></table>
+        <p class="total-text">الإجمالي شامل ضريبة القيمة المضافة: ${money(grandTotal)}</p>
+      </section>
+      <section class="section-card"><div class="clause-title">ثالثاً: مميزات المشاركة والتزامات الطرف الثاني</div>
+        <ul><li>تخصيص المساحة أو الجناح المحدد للطرف الثاني داخل المعرض طوال مدة الفعالية.</li><li>يلتزم الطرف الثاني باستخدام المساحة في الغرض المتفق عليه وعدم التنازل عنها أو تأجيرها للغير إلا بموافقة خطية من الطرف الأول.</li><li>يلتزم الطرف الثاني بتزويد الطرف الأول بالشعار أو الاسم التجاري المراد طباعته بجودة عالية قبل الموعد المحدد.</li><li>يلتزم الطرف الثاني بكافة الأنظمة والشروط الصادرة من إدارة المعرض والجهات التنظيمية في الموقع.</li></ul>
+      </section>
+      <section class="section-card"><div class="clause-title">رابعاً: الفسخ والقوة القاهرة</div><p class="intro">يحق للطرف الأول فسخ العقد عند إخلال الطرف الثاني بأي من التزاماته الجوهرية أو عدم سداد المستحقات في مواعيدها، ولا يكون أي طرف مسؤولاً عن التأخير الناتج عن ظروف قاهرة خارجة عن الإرادة.</p></section>
+      <section class="section-card"><div class="clause-title">خامساً: ملاحظات إضافية</div><p class="intro">${escapePrintValue(displayValue(contract.notes))}</p></section>
+      <div class="signatures"><div class="sig-box"><div class="sig-title">الطرف الأول</div><p>الاسم: سهيل بن بكر الطيار</p><p>الصفة: الرئيس التنفيذي</p><div class="sig-line"></div><p>الختم:</p><div class="stamp-circle">الختم</div></div><div class="sig-box"><div class="sig-title">الطرف الثاني</div><p>الاسم: ${escapePrintValue(displayValue(representative))}</p><p>الصفة: المفوض بالتوقيع / المدير</p><div class="sig-line"></div><p>الختم:</p><div class="stamp-circle">الختم</div></div></div>
+      <div class="footer-bar"></div>
+      <div class="footer"><span>عقد مشاركة وتأجير إلكتروني معتمد</span><span>www.nco.sa</span></div>
     </main><script>window.onload = () => window.print();</script></body></html>`);
     printWindow.document.close();
   }
@@ -3347,14 +3546,14 @@ export function RentalContractsPanel({locale}: {locale: string}) {
 
       <article className="quote-card quote-history-card">
         <div className="card-title"><div><h3>{text.listTitle}</h3><span>{text.listSubtitle}</span></div></div>
-        <div className="contract-smart-filter-row"><div className="contract-smart-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" /><path d="m15.5 15.5 4 4" /></svg><input onChange={(event) => setSearch(event.target.value)} placeholder={isArabic ? "ابحث بالاسم، الشركة، الجوال..." : "Search by name, company, mobile..."} type="search" value={search} /><strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong></div></div>
-        <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "رقم العقد" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.grandTotal}</th><th>{isArabic ? "الحالة" : "Status"}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
+        <div className="contract-smart-filter-row"><div className="contract-smart-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" /><path d="m15.5 15.5 4 4" /></svg><input onChange={(event) => setSearch(event.target.value)} placeholder={isArabic ? "\u0627\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645\u060c \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u062c\u0648\u0627\u0644..." : "Search by name, company, mobile..."} type="search" value={search} /><strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong></div></div>
+        <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.grandTotal}</th><th>{isArabic ? "\u0627\u0644\u062d\u0627\u0644\u0629" : "Status"}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
           {filteredContracts.map((contract) => {
             const statusValue = String(contract.status ?? "draft");
-            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "—")}</td><td>{String(contract.company_name ?? "—")}</td><td>{String(contract.rental_item ?? "—")}</td><td>{formatMoney(contract.grand_total, String(contract.currency ?? "SAR"))}</td><td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button className="contract-table-action" onClick={() => editContract(contract)} type="button">{text.edit}</button><button className="contract-table-action primary" onClick={() => printContract(contract)} type="button">{text.print}</button></div></td></tr>;
+            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "-")}</td><td>{String(contract.company_name ?? "-")}</td><td>{String(contract.rental_item ?? "-")}</td><td>{formatMoney(contract.grand_total, String(contract.currency ?? "SAR"))}</td><td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button><button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button></div></td></tr>;
           })}
           {!contracts.loading && !filteredContracts.length ? <tr><td className="quote-history-empty" colSpan={8}>{text.noContracts}</td></tr> : null}
-          {contracts.loading ? <tr><td className="quote-history-empty" colSpan={8}>{isArabic ? "جاري التحميل..." : "Loading..."}</td></tr> : null}
+          {contracts.loading ? <tr><td className="quote-history-empty" colSpan={8}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td></tr> : null}
         </tbody></table></div>
       </article>
     </div>
@@ -3446,7 +3645,7 @@ export function SalesTable({ expanded = false }: { expanded?: boolean }) {
               {showUserColumn ? (
                 <th>{isArabic ? "المستخدم" : "User"}</th>
               ) : null}
-              <th>{isArabic ? "الحالة" : "Status"}</th>
+              <th>{isArabic ? "\\u0627\\u0644\\u062d\\u0627\\u0644\\u0629" : "Status"}</th>
               <th>{isArabic ? "رقم العرض" : "Quote Number"}</th>
               <th>{isArabic ? "التاريخ" : "Date"}</th>
             </tr>

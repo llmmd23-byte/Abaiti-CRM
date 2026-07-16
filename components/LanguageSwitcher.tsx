@@ -1,10 +1,8 @@
 "use client";
 
-import { useLocale } from "next-intl";
-import { Link, usePathname } from "@/i18n/navigation";
+import {Link, usePathname} from "@/i18n/navigation";
 
-export default function LanguageSwitcher() {
-  const locale = useLocale();
+export default function LanguageSwitcher({locale = "ar"}: {locale?: "ar" | "en"}) {
   const pathname = usePathname() || "/";
   const nextLocale = locale === "ar" ? "en" : "ar";
 

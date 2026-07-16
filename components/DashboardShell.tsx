@@ -1,6 +1,5 @@
 "use client";
 
-import {useLocale, useTranslations} from "next-intl";
 import {Link, usePathname, useRouter} from "@/i18n/navigation";
 import Image from "next/image";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -63,6 +62,52 @@ type NavItem = {
 };
 
 type SessionPermission = {can_view?: boolean};
+type DashboardLocale = "ar" | "en";
+
+const dashboardShellMessages: Record<DashboardLocale, Record<string, string>> = {
+  ar: {
+    "brand.home": "الرئيسية",
+    "nav.dashboard": "لوحة التحكم",
+    "portal.overview": "نظرة عامة",
+    "portal.marketing": "التسويق",
+    "portal.potentialCustomers": "العملاء المهتمين",
+    "portal.stores": "المعارض",
+    "portal.salesTools": "عروض الأسعار",
+    "portal.participationContracts": "عقود المشاركة",
+    "portal.sponsorshipContracts": "عقد الرعاية",
+    "portal.salesOrders": "أمر بيع",
+    "portal.rentalContracts": "عقود تأجيرية",
+    "portal.sales": "المبيعات",
+    "portal.activation": "التفعيل",
+    "portal.educationalHub": "المحتوى التعليمي",
+    "portal.helpDesk": "مركز الدعم",
+    "portal.accounts": "الحسابات",
+    "portal.settings": "الإعدادات",
+    "dashboardPages.sidebar.accountStatus": "حالة الحساب",
+    "dashboardPages.sidebar.logout": "تسجيل الخروج",
+  },
+  en: {
+    "brand.home": "Home",
+    "nav.dashboard": "Dashboard",
+    "portal.overview": "Overview",
+    "portal.marketing": "Marketing",
+    "portal.potentialCustomers": "Interested leads",
+    "portal.stores": "Stores",
+    "portal.salesTools": "Quotes",
+    "portal.participationContracts": "Participation contracts",
+    "portal.sponsorshipContracts": "Sponsorship contract",
+    "portal.salesOrders": "Sales order",
+    "portal.rentalContracts": "Rental contracts",
+    "portal.sales": "Sales",
+    "portal.activation": "Activation",
+    "portal.educationalHub": "Educational hub",
+    "portal.helpDesk": "Help desk",
+    "portal.accounts": "Accounts",
+    "portal.settings": "Settings",
+    "dashboardPages.sidebar.accountStatus": "Account status",
+    "dashboardPages.sidebar.logout": "Log out",
+  },
+};
 
 const sectionPermissionKeys: Partial<Record<DashboardSection, string>> = {
   overview: "page.user.overview",
@@ -256,10 +301,12 @@ function LogoutIcon() {
 }
 
 export default function DashboardShell({
+  locale = "ar",
   initialUser,
   children
 }: {
   active?: DashboardSection;
+  locale?: DashboardLocale;
   initialUser?: {
     name?: string;
     role?: string;
@@ -269,8 +316,7 @@ export default function DashboardShell({
   } | null;
   children: React.ReactNode;
 }) {
-  const t = useTranslations();
-  const locale = useLocale();
+  const t = (key: string) => dashboardShellMessages[locale]?.[key] ?? key;
   const pathname = usePathname();
   const router = useRouter();
   const direction = locale === "ar" ? "rtl" : "ltr";
@@ -457,7 +503,7 @@ export default function DashboardShell({
           </div>
 
           <div className="sidebar-language-control">
-            <LanguageSwitcher />
+            <LanguageSwitcher locale={locale} />
           </div>
 
           <div className="sidebar-session-actions">

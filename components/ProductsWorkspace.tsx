@@ -33,6 +33,7 @@ type Industry = {
   title: {ar: string; en: string};
   subtitle: {ar: string; en: string};
   url: string;
+  externalUrl?: string;
 };
 type BackendRow = Record<string, unknown> & {id: number};
 
@@ -52,7 +53,7 @@ const catalogCopy = {
 };
 
 const industryLinks = {
-  EVENTS_EXHIBITIONS: "https://ree-expo.com/"
+  EVENTS_EXHIBITIONS: "/landing-pages/coffee-chocolate-expo-2026-v2.pdf#toolbar=0&navpanes=0"
 } as const;
 
 const industriesData: Industry[] = [
@@ -335,6 +336,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const marketingAssets = useBackend<BackendRow[]>("/api/v1/data/marketing-assets");
   const displayedIndustries: Industry[] = industriesData.map((industry) => {
     const live = liveIndustries?.find((row) => row.slug === industry.id);
+    const liveLandingUrl = live ? String(live.landing_url ?? "").trim() : "";
     return live ? {
       ...industry,
       title: {
@@ -345,10 +347,12 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
         ...industry.subtitle,
         ar: String(live.description ?? industry.subtitle.ar),
       },
-      url: String(live.landing_url ?? industry.url)
+      url: liveLandingUrl || industry.url,
+      externalUrl: String(live.external_url ?? "").trim() || undefined,
     } : industry;
   });
   const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
+  const primaryExternalUrl = primaryIndustry.externalUrl;
 
   async function handleCopyLink(url: string, sectorId: string) {
     await navigator.clipboard.writeText(url);
@@ -380,6 +384,47 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
 
   function marketingAssetUrl(asset: BackendRow, action: "view" | "download") {
     return `/api/v1/marketing-assets/${action}/${encodeURIComponent(String(asset.id))}`;
+  }
+
+  function publicMarketingAssetUrl(asset: BackendRow) {
+    const rawPath = String(asset.file_path ?? "").replace(/\\/g, "/").replace(/^\/+/, "");
+    if (!rawPath) return null;
+    const marker = "public/marketing-library/";
+    const fileName = rawPath.startsWith(marker)
+      ? rawPath.slice(marker.length)
+      : rawPath.split("/").filter(Boolean).at(-1);
+    if (!fileName) return null;
+    return `/marketing-library/${fileName
+      .split("/")
+      .map((part) => encodeURIComponent(part))
+      .join("/")}`;
+  }
+
+  function marketingAssetFileName(asset: BackendRow) {
+    return String(asset.original_name ?? asset.title ?? "marketing-file").replace(/[\r\n]/g, "");
+  }
+
+  async function handleMarketingAssetAction(asset: BackendRow, action: "view" | "download") {
+    const url = action === "view" ? publicMarketingAssetUrl(asset) ?? marketingAssetUrl(asset, action) : marketingAssetUrl(asset, action);
+    try {
+      if (action === "view") {
+        window.open(url, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = marketingAssetFileName(asset);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      window.alert(
+        isArabic
+          ? "تعذر فتح الملف. تأكد من وجود الملف أو سجّل الدخول مرة أخرى."
+          : "Unable to open the file. Make sure it exists or sign in again.",
+      );
+    }
   }
 
   if (initialView === "form") {
@@ -418,38 +463,40 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
 
       <div className="marketing-tab-panel">
         {activeTab === "sectors" ? (
-          <div className="landing-sector-card">
+          <div className={`landing-sector-card ${isArabic ? "rtl" : "ltr"}`}>
             <div className="landing-sector-heading">
-              <div className="landing-sector-actions">
-                <a
-                  className="landing-sector-control"
-                  href={primaryIndustry.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <span>{isArabic ? "\u0641\u062a\u062d \u0627\u0644\u0645\u0648\u0642\u0639" : "Open site"}</span>
-                </a>
-                <button
-                  className="landing-sector-control"
-                  onClick={() =>
-                    void handleCopyLink(
-                      primaryIndustry.url,
-                      primaryIndustry.id,
-                    )
-                  }
-                  type="button"
-                >
-                  <span>
-                    {copiedSectorId === primaryIndustry.id
-                      ? isArabic
-                        ? "\u062a\u0645 \u0627\u0644\u0646\u0633\u062e"
-                        : "Copied"
-                      : isArabic
-                        ? "\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637"
-                        : "Copy link"}
-                  </span>
-                </button>
-              </div>
+              {primaryExternalUrl ? (
+                <div className="landing-sector-actions">
+                  <a
+                    className="landing-sector-control"
+                    href={primaryExternalUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span>{isArabic ? "\u0641\u062a\u062d \u0627\u0644\u0645\u0648\u0642\u0639" : "Open site"}</span>
+                  </a>
+                  <button
+                    className="landing-sector-control"
+                    onClick={() =>
+                      void handleCopyLink(
+                        primaryExternalUrl,
+                        primaryIndustry.id,
+                      )
+                    }
+                    type="button"
+                  >
+                    <span>
+                      {copiedSectorId === primaryIndustry.id
+                        ? isArabic
+                          ? "\u062a\u0645 \u0627\u0644\u0646\u0633\u062e"
+                          : "Copied"
+                        : isArabic
+                          ? "\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637"
+                          : "Copy link"}
+                    </span>
+                  </button>
+                </div>
+              ) : null}
               <div className="landing-sector-copy">
                 <h2>{primaryIndustry.title[isArabic ? "ar" : "en"]}</h2>
                 <p>
@@ -459,7 +506,12 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
             </div>
 
             <div className="landing-sector-frame">
-              <iframe src={primaryIndustry.url} title={primaryIndustry.title[isArabic ? "ar" : "en"]} />
+              <object data={primaryIndustry.url} type="application/pdf">
+                <iframe src={primaryIndustry.url} title={primaryIndustry.title[isArabic ? "ar" : "en"]} />
+                <a href={primaryIndustry.url} target="_blank" rel="noreferrer">
+                  {isArabic ? "فتح بروشور صفحة الهبوط" : "Open landing brochure"}
+                </a>
+              </object>
             </div>
           </div>
         ) : null}
@@ -536,21 +588,20 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                         <td>{cleanAssetDate(asset.created_at)}</td>
                         <td>
                           <div className="actions-wrapper marketing-asset-actions">
-                            <a
+                            <button
                               className="action-btn btn-view"
-                              href={marketingAssetUrl(asset, "view")}
-                              target="_blank"
-                              rel="noreferrer"
+                              onClick={() => void handleMarketingAssetAction(asset, "view")}
+                              type="button"
                             >
                               {isArabic ? "\u0627\u0644\u0639\u0631\u0636" : "View"}
-                            </a>
-                            <a
+                            </button>
+                            <button
                               className="action-btn btn-download"
-                              download
-                              href={marketingAssetUrl(asset, "download")}
+                              onClick={() => void handleMarketingAssetAction(asset, "download")}
+                              type="button"
                             >
                               {isArabic ? "\u062a\u0646\u0632\u064a\u0644" : "Download"}
-                            </a>
+                            </button>
                           </div>
                         </td>
                       </tr>

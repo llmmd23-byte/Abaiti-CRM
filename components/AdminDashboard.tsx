@@ -9,6 +9,7 @@ import DashboardSelect from "@/components/DashboardSelect";
 
 type MetricKey = "users" | "clients" | "demos" | "quotes" | "sales";
 type DashboardPeriod = "all" | "day" | "week" | "month" | "year";
+type DashboardSubFilter = "days" | "weeks" | "months" | "quarters";
 type Summary = {
   totals: Record<MetricKey, number> & {
     openTickets: number;
@@ -58,6 +59,16 @@ type AdminPermissionData = {
     role_type?: "admin" | "user";
   }>;
   users: AdminRow[];
+};
+type LandingBrochure = {
+  id?: number;
+  isDefault?: boolean;
+  isActive?: boolean;
+  name?: string;
+  size?: number;
+  updatedAt?: string | null;
+  url?: string;
+  externalUrl?: string;
 };
 type ManagementData = {
   users: AdminRow[];
@@ -141,6 +152,12 @@ function displayAdminValue(value: unknown, isArabic: boolean) {
   return adminValueLabels[key]?.[isArabic ? "ar" : "en"] ?? (key || "—");
 }
 
+function externalUrl(value: unknown) {
+  const url = String(value ?? "").trim();
+  if (!url) return "";
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
 function formatAdminDateTime(value: unknown, isArabic: boolean) {
   const raw = String(value ?? "").trim();
   if (!raw) return "—";
@@ -185,9 +202,18 @@ function isWithinPeriod(row: AdminRow, period: DashboardPeriod) {
 function chartDateLabel(
   value: string,
   period: DashboardPeriod,
+  subFilter: DashboardSubFilter,
   isArabic: boolean,
 ) {
   if (period === "day") return `${value}:00`;
+  if (value.startsWith("week-")) {
+    const weekNumber = value.replace("week-", "");
+    return isArabic ? `الأسبوع ${weekNumber}` : `Week ${weekNumber}`;
+  }
+  if (value.includes("-Q")) {
+    const quarter = value.split("-Q")[1] ?? "";
+    return isArabic ? `الربع ${quarter}` : `Q${quarter}`;
+  }
   if (period === "all" || period === "year")
     return new Date(`${value}-01T12:00:00`).toLocaleDateString(
       isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE,
@@ -197,6 +223,21 @@ function chartDateLabel(
     isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE,
     { weekday: "short" },
   );
+}
+
+function formatAdminPeriodLabel(
+  date: Date,
+  period: DashboardPeriod,
+  isArabic: boolean,
+) {
+  const locale = isArabic ? ARABIC_DATE_LOCALE : "en-US";
+  if (period === "year") return String(date.getFullYear());
+  if (period === "month") {
+    return date.toLocaleDateString(locale, { month: "long", year: "numeric" });
+  }
+  const start = new Date(date);
+  if (period === "week") start.setDate(start.getDate() - 6);
+  return `${start.toLocaleDateString(locale, { day: "2-digit", month: "short" })} - ${date.toLocaleDateString(locale, { day: "2-digit", month: "short", year: "numeric" })}`;
 }
 
 function AdminIcon({ name }: { name: string }) {
@@ -256,7 +297,9 @@ export default function AdminDashboard() {
   const language = isArabic ? "ar" : "en";
   const [summary, setSummary] = useState<Summary | null>(null);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("users");
-  const [period, setPeriod] = useState<DashboardPeriod>("all");
+  const [period, setPeriod] = useState<DashboardPeriod>("month");
+  const [subFilter, setSubFilter] = useState<DashboardSubFilter>("weeks");
+  const [periodAnchor, setPeriodAnchor] = useState(() => new Date());
   const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
   const [management, setManagement] = useState<ManagementData | null>(null);
   const [managementError, setManagementError] = useState("");
@@ -289,7 +332,12 @@ export default function AdminDashboard() {
   }
 
   function loadSummary() {
-    fetch(`/api/v1/admin/summary?period=${period}`, { cache: "no-store" })
+    const params = new URLSearchParams({
+      period,
+      group: subFilter,
+      anchor: periodAnchor.toISOString().slice(0, 10),
+    });
+    fetch(`/api/v1/admin/summary?${params.toString()}`, { cache: "no-store" })
       .then((response) => response.json())
       .then((body) => setSummary(body.data ?? null))
       .catch(() => setSummary(null));
@@ -302,7 +350,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadSummary();
-  }, [period]);
+  }, [period, subFilter, periodAnchor]);
 
   useEffect(() => {
     loadManagement();
@@ -314,6 +362,37 @@ export default function AdminDashboard() {
 
   const series = summary?.series[activeMetric] ?? [];
   const maxValue = Math.max(1, ...series.map((item) => item.value));
+  const periodLabel = formatAdminPeriodLabel(periodAnchor, period, isArabic);
+  const subFilterOptions =
+    period === "month"
+      ? [
+          { value: "weeks" as const, label: isArabic ? "تقسيم بالأسابيع" : "By weeks" },
+          { value: "days" as const, label: isArabic ? "تقسيم بالأيام" : "By days" },
+        ]
+      : period === "year"
+        ? [
+            { value: "months" as const, label: isArabic ? "تقسيم بالشهور" : "By months" },
+            { value: "quarters" as const, label: isArabic ? "ربع سنوي" : "Quarterly" },
+          ]
+        : [{ value: "days" as const, label: isArabic ? "عرض يومي" : "Daily view" }];
+  function changeDashboardPeriod(nextPeriod: DashboardPeriod) {
+    setPeriod(nextPeriod);
+    setSubFilter(
+      nextPeriod === "year" ? "months" : nextPeriod === "month" ? "weeks" : "days",
+    );
+    setPeriodAnchor(new Date());
+  }
+  function navigateDashboardPeriod(direction: "prev" | "next") {
+    const step = direction === "next" ? 1 : -1;
+    setPeriodAnchor((current) => {
+      const next = new Date(current);
+      if (period === "year") next.setFullYear(next.getFullYear() + step);
+      else if (period === "month") next.setMonth(next.getMonth() + step);
+      else if (period === "week") next.setDate(next.getDate() + step * 7);
+      else next.setDate(next.getDate() + step);
+      return next;
+    });
+  }
   const periodManagement = management
     ? (Object.fromEntries(
         Object.entries(management).map(([key, rows]) => [
@@ -442,30 +521,59 @@ export default function AdminDashboard() {
                     {metricLabels[activeMetric][language]}
                   </h2>
                 </div>
-                <div className="admin-period-filter">
-                  <DashboardSelect
-                    ariaLabel={isArabic ? "الفترة الزمنية" : "Time period"}
-                    onValueChange={(value) =>
-                      setPeriod(value as DashboardPeriod)
-                    }
-                    options={[
-                      { value: "all", label: isArabic ? "الكل" : "All" },
-                      { value: "day", label: isArabic ? "اليوم" : "Today" },
-                      {
-                        value: "week",
-                        label: isArabic ? "الأسبوع" : "This week",
-                      },
-                      {
-                        value: "month",
-                        label: isArabic ? "الشهر" : "This month",
-                      },
-                      {
-                        value: "year",
-                        label: isArabic ? "السنة" : "This year",
-                      },
-                    ]}
-                    value={period}
-                  />
+                <div className="admin-period-controls">
+                  <div className="admin-period-segment" aria-label={isArabic ? "الفترة الرئيسية" : "Main period"}>
+                    {(["week", "month", "year"] as DashboardPeriod[]).map((item) => (
+                      <button
+                        className={period === item ? "active" : ""}
+                        key={item}
+                        onClick={() => changeDashboardPeriod(item)}
+                        type="button"
+                      >
+                        {item === "week"
+                          ? isArabic
+                            ? "أسبوع"
+                            : "Week"
+                          : item === "month"
+                            ? isArabic
+                              ? "شهر"
+                              : "Month"
+                            : isArabic
+                              ? "سنة"
+                              : "Year"}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="admin-period-navigator">
+                    <button
+                      aria-label={isArabic ? "الفترة السابقة" : "Previous period"}
+                      onClick={() => navigateDashboardPeriod("prev")}
+                      type="button"
+                    >
+                      {isArabic ? "›" : "‹"}
+                    </button>
+                    <strong>{periodLabel}</strong>
+                    <button
+                      aria-label={isArabic ? "الفترة التالية" : "Next period"}
+                      onClick={() => navigateDashboardPeriod("next")}
+                      type="button"
+                    >
+                      {isArabic ? "‹" : "›"}
+                    </button>
+                  </div>
+                  <div className="admin-period-subfilters">
+                    {subFilterOptions.map((item) => (
+                      <button
+                        className={subFilter === item.value ? "active" : ""}
+                        disabled={subFilterOptions.length === 1}
+                        key={item.value}
+                        onClick={() => setSubFilter(item.value)}
+                        type="button"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="admin-chart">
@@ -480,7 +588,7 @@ export default function AdminDashboard() {
                         <b>{item.value}</b>
                       </i>
                     </div>
-                    <span>{chartDateLabel(item.date, period, isArabic)}</span>
+                    <span>{chartDateLabel(item.date, period, subFilter, isArabic)}</span>
                   </div>
                 ))}
               </div>
@@ -636,6 +744,7 @@ function AdminMetricList({
         ["stage", isArabic ? "الحالة" : "Status"],
         ["name", isArabic ? "الاسم" : "Name"],
         ["phone", isArabic ? "رقم الجوال" : "Mobile"],
+        ["website", isArabic ? "الموقع الإلكتروني" : "Website"],
         ["tag_names", isArabic ? "الوسوم" : "Tags"],
         ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
       ],
@@ -1184,6 +1293,8 @@ function AdminMetricList({
                     key.includes("sold_at") ||
                     key === "valid_until";
                   const isAmount = key === "amount" || key === "sale_amount";
+                  const isWebsite = key === "website";
+                  const websiteUrl = isWebsite ? externalUrl(value) : "";
                   return (
                     <td key={key}>
                       {isStatus ? (
@@ -1224,6 +1335,14 @@ function AdminMetricList({
                           </div>
                         ) : (
                           "—"
+                        )
+                      ) : isWebsite ? (
+                        websiteUrl ? (
+                          <a href={websiteUrl} rel="noreferrer" target="_blank">
+                            {String(value)}
+                          </a>
+                        ) : (
+                          ""
                         )
                       ) : (
                         String(value ?? "—")
@@ -1337,7 +1456,7 @@ function AdminMetricList({
                       ...(data.roles?.length
                         ? data.roles.map((role) => ({
                             value: String(role.slug),
-                            label: `${isArabic ? role.name_ar : role.name_en} · ${
+                            label: `${isArabic ? role.name_ar : role.name_en} - ${
                               role.role_type === "admin"
                                 ? isArabic
                                   ? "أدمن"
@@ -2767,7 +2886,38 @@ function AdminManagementSection({
   const [contentUploadTitle, setContentUploadTitle] = useState("");
   const [contentUploadDescription, setContentUploadDescription] = useState("");
   const [contentUploadMessage, setContentUploadMessage] = useState("");
+  const [contentUploadFileName, setContentUploadFileName] = useState("");
   const contentUploadFileRef = useRef<HTMLInputElement | null>(null);
+  const [landingBrochure, setLandingBrochure] = useState<LandingBrochure | null>(null);
+  const [landingPageUrl, setLandingPageUrl] = useState("");
+  const [landingBrochureMessage, setLandingBrochureMessage] = useState("");
+  const [isLandingPreviewOpen, setIsLandingPreviewOpen] = useState(false);
+  const landingBrochureFileRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (section !== "content") return;
+    void loadLandingBrochure();
+  }, [section]);
+
+  useEffect(() => {
+    if (!isLandingPreviewOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsLandingPreviewOpen(false);
+    };
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest("[data-landing-preview-close]")) {
+        event.preventDefault();
+        setIsLandingPreviewOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, [isLandingPreviewOpen]);
 
   if (section === "permissions") {
     return <AdminPermissionsSection isArabic={isArabic} />;
@@ -3053,6 +3203,25 @@ function AdminManagementSection({
     }
   }
 
+  async function updateTicketStatus(ticket: AdminRow, status: string) {
+    try {
+      const response = await fetch(`/api/v1/data/support-tickets/${ticket.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          status,
+          notes: ticket.notes ?? null,
+        }),
+      });
+      if (!response.ok) throw new Error("SAVE_FAILED");
+      onReload();
+    } catch {
+      setTicketEditMessage(
+        isArabic ? "تعذر تحديث التذكرة" : "Unable to update ticket",
+      );
+    }
+  }
+
   async function saveProduct() {
     if (
       !productDraft.name.trim() ||
@@ -3220,6 +3389,7 @@ function AdminManagementSection({
       if (!response.ok) throw new Error(String(payload.error ?? "UPLOAD_FAILED"));
       setContentUploadTitle("");
       setContentUploadDescription("");
+      setContentUploadFileName("");
       if (contentUploadFileRef.current) contentUploadFileRef.current.value = "";
       onReload();
       setContentUploadMessage(isArabic ? "تم رفع الملف" : "File uploaded");
@@ -3227,6 +3397,149 @@ function AdminManagementSection({
       setContentUploadMessage(isArabic ? "تعذر رفع الملف" : "Unable to upload file");
     }
     window.setTimeout(() => setContentUploadMessage(""), 2400);
+  }
+
+  function formatLandingBrochureSize(value: unknown) {
+    const size = Number(value ?? 0);
+    if (!Number.isFinite(size) || size <= 0) return "—";
+    if (size >= 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)} MB`;
+    if (size >= 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${size} B`;
+  }
+
+  function landingBrochureDate(value: unknown) {
+    if (!value) return "—";
+    const date = new Date(String(value));
+    if (Number.isNaN(date.getTime())) return "—";
+    return date.toISOString().slice(0, 10);
+  }
+
+  async function loadLandingBrochure() {
+    try {
+      const response = await fetch("/api/v1/admin/landing-brochure", {
+        cache: "no-store",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error("LOAD_FAILED");
+      setLandingBrochure(payload.data ?? null);
+      setLandingPageUrl(String(payload.data?.externalUrl ?? ""));
+    } catch {
+      setLandingBrochure(null);
+      setLandingPageUrl("");
+    }
+  }
+
+  function previewActiveBrochure() {
+    setIsLandingPreviewOpen(true);
+  }
+
+  function closeLandingPreview() {
+    setIsLandingPreviewOpen(false);
+  }
+
+  async function uploadLandingBrochure() {
+    const file = landingBrochureFileRef.current?.files?.[0];
+    if (!file) {
+      setLandingBrochureMessage(isArabic ? "اختر ملف PDF أولاً" : "Choose a PDF file first");
+      return;
+    }
+    if (
+      file.size > 20 * 1024 * 1024 ||
+      (!file.type.includes("pdf") && !file.name.toLocaleLowerCase().endsWith(".pdf"))
+    ) {
+      setLandingBrochureMessage(
+        isArabic ? "الملف يجب أن يكون PDF ولا يتجاوز 20MB" : "The file must be a PDF up to 20MB",
+      );
+      return;
+    }
+
+    setLandingBrochureMessage(isArabic ? "جاري تحديث البروشور..." : "Updating brochure...");
+    const body = new FormData();
+    body.append("file", file);
+    body.append("title", file.name);
+    try {
+      const response = await fetch("/api/v1/admin/landing-brochure", {
+        method: "POST",
+        body,
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "UPLOAD_FAILED"));
+      if (landingBrochureFileRef.current) landingBrochureFileRef.current.value = "";
+      setLandingBrochure(payload.data ?? null);
+      onReload();
+      setLandingBrochureMessage(isArabic ? "تم تحديث بروشور صفحة الهبوط" : "Landing brochure updated");
+    } catch {
+      setLandingBrochureMessage(isArabic ? "تعذر تحديث البروشور" : "Unable to update brochure");
+    }
+    window.setTimeout(() => setLandingBrochureMessage(""), 2600);
+  }
+
+  async function saveLandingPageUrl() {
+    const nextUrl = landingPageUrl.trim();
+    if (nextUrl && !/^https?:\/\/\S+\.\S+/i.test(nextUrl)) {
+      setLandingBrochureMessage(
+        isArabic ? "أدخل رابطاً صحيحاً يبدأ بـ http أو https" : "Enter a valid URL starting with http or https",
+      );
+      return;
+    }
+
+    setLandingBrochureMessage(isArabic ? "جاري حفظ الرابط..." : "Saving link...");
+    try {
+      const response = await fetch("/api/v1/admin/landing-brochure", {
+        method: "PUT",
+        headers: {"Content-Type": "application/json; charset=utf-8"},
+        body: JSON.stringify({externalUrl: nextUrl}),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
+      setLandingBrochure(payload.data ?? null);
+      setLandingPageUrl(String(payload.data?.externalUrl ?? ""));
+      onReload();
+      setLandingBrochureMessage(isArabic ? "تم حفظ الرابط" : "Link saved");
+    } catch {
+      setLandingBrochureMessage(isArabic ? "تعذر حفظ الرابط" : "Unable to save link");
+    }
+    window.setTimeout(() => setLandingBrochureMessage(""), 2600);
+  }
+
+  async function clearLandingPageUrl() {
+    setLandingPageUrl("");
+    setLandingBrochureMessage(isArabic ? "جاري إزالة الرابط..." : "Clearing link...");
+    try {
+      const response = await fetch("/api/v1/admin/landing-brochure", {
+        method: "PUT",
+        headers: {"Content-Type": "application/json; charset=utf-8"},
+        body: JSON.stringify({externalUrl: ""}),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error("CLEAR_FAILED");
+      setLandingBrochure(payload.data ?? null);
+      onReload();
+      setLandingBrochureMessage(isArabic ? "تمت إزالة الرابط" : "Link cleared");
+    } catch {
+      setLandingBrochureMessage(isArabic ? "تعذر إزالة الرابط" : "Unable to clear link");
+    }
+    window.setTimeout(() => setLandingBrochureMessage(""), 2600);
+  }
+
+  async function deleteActiveBrochure() {
+    if (!window.confirm(isArabic ? "حذف البروشور المخصص والرجوع للملف الافتراضي؟" : "Delete the custom brochure and restore the default file?")) {
+      return;
+    }
+    setLandingBrochureMessage(isArabic ? "جاري الحذف..." : "Deleting...");
+    try {
+      const response = await fetch("/api/v1/admin/landing-brochure", {
+        method: "DELETE",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error("DELETE_FAILED");
+      setLandingBrochure(payload.data ?? null);
+      onReload();
+      setLandingBrochureMessage(isArabic ? "تم حذف البروشور المخصص" : "Custom brochure deleted");
+    } catch {
+      setLandingBrochureMessage(isArabic ? "تعذر حذف البروشور" : "Unable to delete brochure");
+    }
+    window.setTimeout(() => setLandingBrochureMessage(""), 2600);
   }
 
   if (section === "accounts") {
@@ -3244,6 +3557,242 @@ function AdminManagementSection({
   return (
     <section className="admin-data-card">
       {section === "content" ? (
+        <>
+
+          <article className="landing-page-manager">
+            <div className="landing-page-manager-header">
+              <div>
+                <h2>
+                  {isArabic
+                    ? "إدارة بروشور وصفحة الهبوط"
+                    : "Landing Page Brochure Manager"}
+                </h2>
+                <p>
+                  {isArabic
+                    ? "تحكم في الملف المرفق أو رابط صفحة الهبوط الخارجية وعرضها للعملاء."
+                    : "Control the attached brochure and optional external landing page link shown to users."}
+                </p>
+              </div>
+              <div className="landing-brochure-badges">
+                <span className={`landing-brochure-badge ${landingBrochure?.isActive ? "active" : "inactive"}`}>
+                  {landingBrochure?.isDefault
+                    ? isArabic
+                      ? "الملف الافتراضي نشط"
+                      : "Default file active"
+                    : isArabic
+                      ? "نشط ويعرض الآن"
+                      : "Active now"}
+                </span>
+                <span className={`landing-brochure-badge link ${landingBrochure?.externalUrl ? "active" : ""}`}>
+                  {landingBrochure?.externalUrl
+                    ? isArabic
+                      ? "رابط خارجي نشط"
+                      : "External link active"
+                    : isArabic
+                      ? "لا يوجد رابط خارجي نشط"
+                      : "No external link active"}
+                </span>
+              </div>
+            </div>
+
+            <div className="landing-page-manager-grid">
+              <div className="current-file-preview">
+                <div className="landing-file-icon" aria-hidden="true">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </div>
+                <h4>{landingBrochure?.name ?? (isArabic ? "لا يوجد ملف نشط" : "No active file")}</h4>
+                <p>
+                  {isArabic ? "الحجم" : "Size"}: {formatLandingBrochureSize(landingBrochure?.size)}
+                  {" • "}
+                  {isArabic ? "تاريخ التحديث" : "Updated"}: {landingBrochureDate(landingBrochure?.updatedAt)}
+                </p>
+                <div className="landing-brochure-actions">
+                  <button onClick={previewActiveBrochure} type="button" disabled={!landingBrochure?.url}>
+                    {isArabic ? "معاينة سريعة" : "Preview"}
+                  </button>
+                  <button
+                    className="danger"
+                    onClick={() => void deleteActiveBrochure()}
+                    type="button"
+                    disabled={Boolean(landingBrochure?.isDefault)}
+                  >
+                    {isArabic ? "حذف البروشور" : "Delete brochure"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="upload-and-link-zone">
+                <button
+                  className="upload-new-zone"
+                  onClick={() => landingBrochureFileRef.current?.click()}
+                  type="button"
+                >
+                  <input
+                    ref={landingBrochureFileRef}
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    onChange={() => void uploadLandingBrochure()}
+                  />
+                  <span className="landing-upload-icon" aria-hidden="true">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                  </span>
+                  <strong>
+                    {isArabic
+                      ? "اضغط هنا لتحديث أو تغيير ملف البروشور"
+                      : "Click here to update or change the brochure file"}
+                  </strong>
+                  <small>
+                    {isArabic
+                      ? "الملفات المقبولة فقط: PDF (الحد الأقصى: 20MB)"
+                      : "Accepted files: PDF only (max 20MB)"}
+                  </small>
+                </button>
+
+                <div className="landing-url-input-container">
+                  <label>{isArabic ? "رابط صفحة الهبوط الخارجية (اختياري):" : "External landing page URL (optional):"}</label>
+                  <div className="landing-url-row">
+                    <div className="landing-url-input-shell">
+                      <span aria-hidden="true">🔗</span>
+                      <input
+                        type="url"
+                        placeholder="https://example.com"
+                        value={landingPageUrl}
+                        onChange={(event) => setLandingPageUrl(event.target.value)}
+                      />
+                    </div>
+                    <button className="save" onClick={() => void saveLandingPageUrl()} type="button">
+                      {isArabic ? "حفظ الرابط" : "Save link"}
+                    </button>
+                    <button className="clear" onClick={() => void clearLandingPageUrl()} type="button">
+                      {isArabic ? "إزالة" : "Clear"}
+                    </button>
+                  </div>
+                  <p>
+                    {isArabic
+                      ? "ملاحظة: إذا تركت هذا الحقل فارغاً، فلن يظهر زر نسخ الرابط في واجهة المستخدم."
+                      : "Note: If this field is empty, the copy link button will not appear in the user view."}
+                  </p>
+                </div>
+              </div>
+            </div>
+            {landingBrochureMessage ? (
+              <p className="landing-brochure-message">{landingBrochureMessage}</p>
+            ) : null}
+          </article>
+
+          {isLandingPreviewOpen ? (
+            <div
+              className="landing-preview-modal"
+              role="dialog"
+              aria-modal="true"
+              onMouseDown={closeLandingPreview}
+              data-landing-preview-close
+            >
+              <button
+                className="landing-preview-floating-close"
+                data-landing-preview-close
+                onClick={closeLandingPreview}
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  closeLandingPreview();
+                }}
+                type="button"
+              >
+                {isArabic ? "إغلاق" : "Close"}
+                <b aria-hidden="true">×</b>
+              </button>
+              <div
+                className="landing-preview-window"
+                onMouseDown={(event) => event.stopPropagation()}
+                onPointerDown={(event) => event.stopPropagation()}
+              >
+                <div className="landing-preview-admin-bar">
+                  <span>
+                    <i aria-hidden="true" />
+                    {isArabic
+                      ? "وضع المعاينة الفورية: هكذا ستظهر الشاشة للمستخدم النهائي"
+                      : "Live preview mode: this is how the screen appears to the end user"}
+                  </span>
+                  <button
+                    data-landing-preview-close
+                    onClick={closeLandingPreview}
+                    onPointerDown={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      closeLandingPreview();
+                    }}
+                    type="button"
+                  >
+                    {isArabic ? "إغلاق المعاينة" : "Close preview"}
+                    <b aria-hidden="true">×</b>
+                  </button>
+                </div>
+                <div className="landing-preview-body">
+                  <div className="landing-preview-user-card">
+                    <div className="landing-preview-user-header">
+                      <div className="landing-preview-actions">
+                        {landingBrochure?.externalUrl ? (
+                          <button
+                            onClick={() => void navigator.clipboard?.writeText(String(landingBrochure.externalUrl))}
+                            type="button"
+                          >
+                            {isArabic ? "نسخ الرابط" : "Copy link"}
+                          </button>
+                        ) : null}
+                        {landingBrochure?.externalUrl ? (
+                          <button
+                            onClick={() => window.open(landingBrochure.externalUrl, "_blank", "noopener,noreferrer")}
+                            type="button"
+                          >
+                            {isArabic ? "فتح الموقع" : "Open site"}
+                          </button>
+                        ) : null}
+                      </div>
+                      <div className="landing-preview-copy">
+                        <h3>{isArabic ? "أنظمة المعارض والفعاليات" : "Events and Exhibitions Systems"}</h3>
+                        <p>
+                          {isArabic
+                            ? "حل متكامل لإدارة وتنظيم المعارض والمؤتمرات وحجز الأجنحة والخدمات اللوجستية رقمياً بالكامل."
+                            : "A complete solution for managing exhibitions, conferences, booth bookings, and logistics digitally."}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="landing-preview-frame">
+                      {landingBrochure?.url ? (
+                        <iframe
+                          title={isArabic ? "معاينة بروشور صفحة الهبوط" : "Landing brochure preview"}
+                          src={landingBrochure.url}
+                        />
+                      ) : (
+                        <div className="landing-preview-placeholder">
+                          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                          </svg>
+                          <span>
+                            {isArabic
+                              ? "لم يتم رفع أي بروشور تفاعلي حالياً لمشاهدة معاينته"
+                              : "No interactive brochure is available to preview yet"}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+
         <article className="admin-content-upload-card">
           <div>
             <h3>{isArabic ? "رفع ملف تسويقي جديد" : "Upload Marketing File"}</h3>
@@ -3272,19 +3821,44 @@ function AdminManagementSection({
             </label>
             <label>
               <span>{isArabic ? "اختيار الملف" : "Choose File"}</span>
-              <input ref={contentUploadFileRef} type="file" />
+              <div className="admin-custom-file-picker">
+                <input
+                  ref={contentUploadFileRef}
+                  type="file"
+                  onChange={(event) =>
+                    setContentUploadFileName(event.target.files?.[0]?.name ?? "")
+                  }
+                />
+                <button
+                  onClick={() => contentUploadFileRef.current?.click()}
+                  type="button"
+                >
+                  {isArabic ? "اختيار ملف" : "Choose file"}
+                </button>
+                <strong>
+                  {contentUploadFileName ||
+                    (isArabic ? "لم يتم اختيار ملف" : "No file selected")}
+                </strong>
+              </div>
             </label>
           </div>
           <div className="admin-content-upload-actions">
             <button onClick={() => void uploadMarketingContent()} type="button">
-              {isArabic ? "رفع الملف" : "Upload File"}
+              <span>{isArabic ? "رفع الملف" : "Upload File"}</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
             </button>
             {contentUploadMessage ? <p>{contentUploadMessage}</p> : null}
           </div>
         </article>
+
+        </>
       ) : null}
       <div
-        className={`admin-data-head ${section === "tickets" ? "admin-ticket-data-head" : ""} ${section === "products" ? "admin-product-data-head" : ""} ${section === "activity" ? "admin-activity-data-head" : ""}`}
+        className={`admin-data-head ${section === "tickets" ? "admin-ticket-data-head" : ""} ${section === "products" ? "admin-product-data-head" : ""} ${section === "activity" ? "admin-activity-data-head" : ""} ${section === "content" ? "admin-content-data-head" : ""}`}
         style={
           section === "tickets"
             ? { alignItems: "center", flexDirection: "row", flexWrap: "nowrap" }
@@ -3299,7 +3873,7 @@ function AdminManagementSection({
           </strong>
         </div>
         <div
-          className={`admin-data-tools ${section === "tickets" ? "admin-ticket-data-tools" : ""} ${section === "products" ? "admin-product-data-tools" : ""} ${section === "activity" ? "admin-activity-data-tools" : ""}`}
+          className={`admin-data-tools ${section === "tickets" ? "admin-ticket-data-tools" : ""} ${section === "products" ? "admin-product-data-tools" : ""} ${section === "activity" ? "admin-activity-data-tools" : ""} ${section === "content" ? "admin-content-data-tools" : ""}`}
           style={
             section === "tickets"
               ? {
@@ -3314,23 +3888,50 @@ function AdminManagementSection({
               : undefined
           }
         >
-          <input
-            aria-label={isArabic ? "البحث" : "Search"}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={isArabic ? "البحث في السجلات..." : "Search records..."}
+          <div
+            className={`admin-record-search-bar${section === "tickets" ? " admin-ticket-search-wide" : ""}`}
             style={
               section === "tickets"
                 ? {
-                    flex: "0 0 240px",
-                    maxWidth: "240px",
-                    minWidth: "240px",
-                    width: "240px",
+                    alignItems: "center",
+                    background: "#ffffff",
+                    border: "1px solid #dbe7ef",
+                    borderRadius: "12px",
+                    boxShadow: "none",
+                    display: "inline-flex",
+                    flex: "0 0 320px",
+                    gap: "10px",
+                    height: "44px",
+                    maxWidth: "320px",
+                    minHeight: "44px",
+                    minWidth: "320px",
+                    padding: "0 12px",
+                    width: "320px",
                   }
                 : undefined
             }
-            type="search"
-            value={query}
-          />
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <circle cx="10.8" cy="10.8" r="6.2" />
+              <path d="m15.5 15.5 4 4" />
+            </svg>
+            <input
+              aria-label={isArabic ? "البحث" : "Search"}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={
+                section === "tickets"
+                  ? isArabic
+                    ? "ابحث برقم التذكرة أو الاسم، الجوال..."
+                    : "Search by ticket number"
+                  : isArabic
+                    ? "ابحث باسم الملف..."
+                    : "Search by file name..."
+              }
+              type="search"
+              value={query}
+            />
+            <strong>{filteredRows.length.toLocaleString(NUMBER_LOCALE)}</strong>
+          </div>
           {section === "products" ? (
             <button
               className="admin-add-product"
@@ -3379,7 +3980,17 @@ function AdminManagementSection({
               className={`admin-account-advanced-filter${isTicketAdvancedFilter ? " active" : ""}`}
               onClick={() => setIsTicketAdvancedFilter((current) => !current)}
               style={{
-                flex: "0 0 auto",
+                background: "#ffffff",
+                border: "1px solid #00afb9",
+                borderRadius: "12px",
+                boxShadow: "none",
+                color: "#007f89",
+                flex: "0 0 108px",
+                fontSize: "12px",
+                fontWeight: 800,
+                height: "44px",
+                padding: "0 14px",
+                width: "108px",
               }}
               type="button"
             >
@@ -3424,11 +4035,34 @@ function AdminManagementSection({
             </div>
           ) : null}
           {section === "tickets" ? (
-            <div className="admin-ticket-types-dropdown-wrap">
+            <div
+              className="admin-ticket-types-dropdown-wrap"
+              style={{
+                flex: "0 0 72px",
+                minWidth: "72px",
+                position: "relative",
+                width: "72px",
+              }}
+            >
               <button
                 aria-expanded={isTicketTypesMenuOpen}
                 className={`admin-ticket-types-toggle${isTicketTypesMenuOpen ? " active" : ""}`}
                 onClick={() => setIsTicketTypesMenuOpen((current) => !current)}
+                style={{
+                  alignItems: "center",
+                  background: "#ffffff",
+                  border: "1px solid #dbe7ef",
+                  borderRadius: "8px",
+                  boxShadow: "none",
+                  color: "#0f2240",
+                  display: "inline-flex",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  height: "44px",
+                  justifyContent: "center",
+                  padding: 0,
+                  width: "72px",
+                }}
                 type="button"
               >
                 {isArabic ? "الأنواع" : "Types"}
@@ -3577,20 +4211,54 @@ function AdminManagementSection({
                   ))}
                   {section === "tickets" ? (
                     <td>
-                      <div className="admin-row-actions">
+                      <div className="admin-ticket-actions-container">
                         <button
-                          className="admin-row-edit"
+                          className="ticket-action-btn accept"
+                          disabled={["in_progress", "resolved", "closed"].includes(String(row.status ?? ""))}
+                          onClick={() => void updateTicketStatus(row, "in_progress")}
+                          type="button"
+                        >
+                          <svg aria-hidden="true" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          {isArabic ? "قبول الطلب" : "Accept"}
+                        </button>
+                        <button
+                          className="ticket-action-btn assign"
                           onClick={() => openTicketEditor(row)}
                           type="button"
                         >
-                          {isArabic ? "تعديل" : "Edit"}
+                          <svg aria-hidden="true" viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                          {isArabic ? "إسناد لفني" : "Assign"}
                         </button>
                         <button
-                          className="admin-row-timeline"
+                          className="ticket-action-btn details"
                           onClick={() => setTimelineTicket(row)}
                           type="button"
                         >
-                          {isArabic ? "الخط الزمني" : "Timeline"}
+                          <svg aria-hidden="true" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                          </svg>
+                          {isArabic ? "عرض التفاصيل" : "Details"}
+                        </button>
+                        <span className="ticket-action-spacer" />
+                        <button
+                          className="ticket-action-btn cancel"
+                          disabled={String(row.status ?? "") === "closed"}
+                          onClick={() => void updateTicketStatus(row, "closed")}
+                          type="button"
+                        >
+                          <svg aria-hidden="true" viewBox="0 0 24 24">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <line x1="10" y1="11" x2="10" y2="17" />
+                            <line x1="14" y1="11" x2="14" y2="17" />
+                          </svg>
+                          {isArabic ? "إلغاء التذكرة" : "Cancel"}
                         </button>
                       </div>
                     </td>
@@ -4195,7 +4863,7 @@ function AdminManagementSection({
             <p>
               {isArabic
                 ? `هل تريد حذف «${String(deleteTarget.row.name ?? "")}»؟ لا يمكن التراجع عن هذا الإجراء.`
-                : `Delete “${String(deleteTarget.row.name ?? "")}”? This action cannot be undone.`}
+                : `Delete "${String(deleteTarget.row.name ?? "")}"? This action cannot be undone.`}
             </p>
             <div className="admin-delete-actions">
               <button

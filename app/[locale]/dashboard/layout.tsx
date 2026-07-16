@@ -1,4 +1,4 @@
-import {redirect} from "next/navigation";
+﻿import {redirect} from "next/navigation";
 
 import DashboardShell from "@/components/DashboardShell";
 import {getSession} from "@/lib/auth";
@@ -20,6 +20,7 @@ export default async function ProtectedDashboardLayout({
 
   return (
     <DashboardShell
+      locale={locale === "en" ? "en" : "ar"}
       initialUser={{
         name: String(profile?.name ?? session.name),
         role: session.role,

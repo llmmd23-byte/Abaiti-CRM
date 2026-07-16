@@ -66,7 +66,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   industries: {
     table: "industries",
     permissionKey: "table.industries",
-    writable: ["name", "name_en", "slug", "landing_url", "description", "status"],
+    writable: ["name", "name_en", "slug", "landing_url", "external_url", "description", "status"],
   },
   leads: {
     table: "leads",
@@ -2623,16 +2623,32 @@ export async function deleteResource(
 export async function getDashboardSummary(
   session: MiddarSession,
   trendPeriod: "week" | "month" | "year" = "week",
+  trendAnchor?: string,
+  trendGroup: "days" | "weeks" | "months" | "quarters" = "days",
 ) {
   const userId = Number(session.sub);
   const ownerClause = " WHERE affiliate_user_id = ?";
   const ownerParams = [userId];
   const salesPeriodOwnerClause = " AND affiliate_user_id = ?";
-  const trendConfig = {
-    week: { interval: "6 DAY", dateFormat: "%Y-%m-%d" },
-    month: { interval: "29 DAY", dateFormat: "%Y-%m-%d" },
-    year: { interval: "11 MONTH", dateFormat: "%Y-%m" },
-  }[trendPeriod];
+  const anchor = trendAnchor && /^\d{4}-\d{2}-\d{2}$/.test(trendAnchor) ? trendAnchor : null;
+  const trendDateExpression = "COALESCE(sold_at, created_at)";
+  const trendRange =
+    trendPeriod === "year"
+      ? `${trendDateExpression} >= DATE_FORMAT(DATE(?), '%Y-01-01') AND ${trendDateExpression} < DATE_FORMAT(DATE(?) + INTERVAL 1 YEAR, '%Y-01-01')`
+      : trendPeriod === "month"
+        ? `${trendDateExpression} >= DATE_FORMAT(DATE(?), '%Y-%m-01') AND ${trendDateExpression} < DATE_FORMAT(DATE(?) + INTERVAL 1 MONTH, '%Y-%m-01')`
+        : `DATE(${trendDateExpression}) >= DATE(?) - INTERVAL 6 DAY AND DATE(${trendDateExpression}) < DATE(?) + INTERVAL 1 DAY`;
+  const trendExpression =
+    trendPeriod === "year"
+      ? trendGroup === "quarters"
+        ? `CONCAT(YEAR(${trendDateExpression}), '-Q', QUARTER(${trendDateExpression}))`
+        : `DATE_FORMAT(${trendDateExpression}, '%Y-%m')`
+      : trendPeriod === "month"
+        ? trendGroup === "days"
+          ? `DATE_FORMAT(${trendDateExpression}, '%Y-%m-%d')`
+          : `CONCAT('week-', CEIL(DAYOFMONTH(${trendDateExpression}) / 7))`
+        : `DATE_FORMAT(${trendDateExpression}, '%Y-%m-%d')`;
+  const trendParams = [anchor ?? new Date().toISOString().slice(0, 10), anchor ?? new Date().toISOString().slice(0, 10), userId];
 
   const [
     [leadRows],
@@ -2669,14 +2685,14 @@ export async function getDashboardSummary(
         ownerParams,
       ),
       db.execute<RowDataPacket[]>(
-        `SELECT DATE_FORMAT(COALESCE(sold_at, created_at), '${trendConfig.dateFormat}') AS day,
+        `SELECT ${trendExpression} AS day,
                 COALESCE(SUM(sale_amount), 0) AS amount,
                 COUNT(*) AS total
            FROM sales
-          WHERE DATE(COALESCE(sold_at, created_at)) >= DATE_SUB(CURDATE(), INTERVAL ${trendConfig.interval})${salesPeriodOwnerClause}
-          GROUP BY DATE_FORMAT(COALESCE(sold_at, created_at), '${trendConfig.dateFormat}')
-          ORDER BY day ASC`,
-        ownerParams,
+           WHERE ${trendRange}${salesPeriodOwnerClause}
+           GROUP BY ${trendExpression}
+           ORDER BY day ASC`,
+        trendParams,
       ),
       db.execute<RowDataPacket[]>(
         `SELECT COALESCE(SUM(commission_amount),0) amount,

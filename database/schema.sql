@@ -216,6 +216,7 @@ CREATE TABLE IF NOT EXISTS leads (
   company_name VARCHAR(180) NULL,
   email VARCHAR(190) NULL,
   phone VARCHAR(40) NULL,
+  website VARCHAR(255) NULL,
   source VARCHAR(160) NULL,
   stage ENUM('new', 'interested', 'proposal', 'won', 'lost') NOT NULL DEFAULT 'interested',
   potential_value DECIMAL(12,2) NULL,

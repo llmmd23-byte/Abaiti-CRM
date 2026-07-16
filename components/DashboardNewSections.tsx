@@ -76,6 +76,12 @@ function normalizeHexColor(value: unknown) {
   return /^#[0-9a-f]{6}$/i.test(color) ? color : "#00b4d8";
 }
 
+function externalUrl(value: unknown) {
+  const url = String(value ?? "").trim();
+  if (!url) return "";
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
 function hexToRgb(hex: string) {
   const clean = normalizeHexColor(hex).slice(1);
   return {
@@ -184,9 +190,8 @@ export function CustomersView() {
     lost: { ar: "\u0645\u0641\u0642\u0648\u062f", en: "Lost" },
   };
   const stageOrder = ["new", "interested", "proposal", "won", "lost"];
-  const emptyCustomerNameLabel = isArabic ? "لا يوجد اسم" : "No name";
   const getCustomerName = (row: BackendRow | null) =>
-    String(row?.name ?? "").trim() || emptyCustomerNameLabel;
+    String(row?.name ?? "").trim();
   const getCustomerTitle = (row: BackendRow | null) =>
     String(row?.company_name ?? "").trim() ||
     String(row?.name ?? "").trim() ||
@@ -1938,7 +1943,6 @@ export function CustomersView() {
             <thead>
               <tr>
                 <th>{isArabic ? "اسم الشركة" : "Company Name"}</th>
-                <th>{isArabic ? "النشاط" : "Activity"}</th>
                 <th>{isArabic ? "الحالة" : "Status"}</th>
                 <th>{isArabic ? "الاسم" : "Name"}</th>
                 <th>
@@ -1946,6 +1950,7 @@ export function CustomersView() {
                     ? "\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644"
                     : "Mobile Number"}
                 </th>
+                <th>{isArabic ? "الموقع الإلكتروني" : "Website"}</th>
                 <th>
                   {isArabic ? "المتطلبات الإضافية" : "Additional Requirements"}
                 </th>
@@ -1974,20 +1979,7 @@ export function CustomersView() {
                 return (
                   <Fragment key={row.id}>
                     <tr>
-                    <td>{String(row.company_name ?? "?")}</td>
-                    <td>
-                      {String(
-                        industries?.find(
-                          (industry) =>
-                            Number(industry.id) === Number(row.industry_id),
-                        )?.[isArabic ? "name" : "name_en"] ??
-                          industries?.find(
-                            (industry) =>
-                              Number(industry.id) === Number(row.industry_id),
-                          )?.name ??
-                          "?",
-                      )}
-                    </td>
+                    <td>{String(row.company_name ?? "").trim()}</td>
                     <td>
                       <span className={`badge ${String(row.stage ?? "new")}`}>
                         {stageLabels[String(row.stage ?? "new")]?.[
@@ -1996,7 +1988,20 @@ export function CustomersView() {
                       </span>
                     </td>
                     <td>{getCustomerName(row)}</td>
-                    <td dir="ltr">{String(row.phone ?? "?")}</td>
+                    <td dir="ltr">{String(row.phone ?? "").trim()}</td>
+                    <td dir="ltr">
+                      {String(row.website ?? "").trim() ? (
+                        <a
+                          href={externalUrl(row.website)}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          {String(row.website)}
+                        </a>
+                      ) : (
+                        ""
+                      )}
+                    </td>
                     <td className="customers-details-cell customers-requirements-cell">
                       {String(row.requirements ?? "").trim() ||
                         (isArabic ? "لا توجد متطلبات" : "No requirements")}
@@ -2012,7 +2017,7 @@ export function CustomersView() {
                                 key={Number(tag?.id)}
                                 style={{ borderColor: tagColor, color: tagColor }}
                               >
-                                {String(tag?.tag_name ?? "?")}
+                                {String(tag?.tag_name ?? "").trim()}
                               </span>
                             );
                           })

@@ -23,6 +23,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
 
   const requestedPeriod = new URL(request.url).searchParams.get("period");
+  const requestedGroup = new URL(request.url).searchParams.get("group");
+  const requestedAnchor = new URL(request.url).searchParams.get("anchor");
   const period =
     requestedPeriod === "all" ||
     requestedPeriod === "day" ||
@@ -31,22 +33,45 @@ export async function GET(request: Request) {
     requestedPeriod === "year"
       ? requestedPeriod
       : "all";
+  const group =
+    requestedGroup === "days" ||
+    requestedGroup === "weeks" ||
+    requestedGroup === "months" ||
+    requestedGroup === "quarters"
+      ? requestedGroup
+      : period === "year"
+        ? "months"
+        : period === "month"
+          ? "weeks"
+          : "days";
+  const anchor =
+    requestedAnchor && /^\d{4}-\d{2}-\d{2}$/.test(requestedAnchor)
+      ? requestedAnchor
+      : new Date().toISOString().slice(0, 10);
   const rangeCondition =
     period === "all"
       ? "created_at IS NOT NULL"
       : period === "day"
-      ? "created_at >= CURDATE()"
+      ? `created_at >= DATE('${anchor}') AND created_at < DATE('${anchor}') + INTERVAL 1 DAY`
       : period === "month"
-        ? "created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')"
+        ? `created_at >= DATE_FORMAT(DATE('${anchor}'), '%Y-%m-01') AND created_at < DATE_FORMAT(DATE('${anchor}') + INTERVAL 1 MONTH, '%Y-%m-01')`
         : period === "year"
-          ? "created_at >= DATE_FORMAT(CURDATE(), '%Y-01-01')"
-          : "created_at >= CURDATE() - INTERVAL 6 DAY";
+          ? `created_at >= DATE_FORMAT(DATE('${anchor}'), '%Y-01-01') AND created_at < DATE_FORMAT(DATE('${anchor}') + INTERVAL 1 YEAR, '%Y-01-01')`
+          : `created_at >= DATE('${anchor}') - INTERVAL 6 DAY AND created_at < DATE('${anchor}') + INTERVAL 1 DAY`;
   const periodExpression =
     period === "day"
       ? "DATE_FORMAT(created_at, '%H')"
-      : period === "all" || period === "year"
-        ? "DATE_FORMAT(created_at, '%Y-%m')"
-        : "DATE_FORMAT(created_at, '%Y-%m-%d')";
+      : period === "year"
+        ? group === "quarters"
+          ? "CONCAT(YEAR(created_at), '-Q', QUARTER(created_at))"
+          : "DATE_FORMAT(created_at, '%Y-%m')"
+        : period === "month"
+          ? group === "days"
+            ? "DATE_FORMAT(created_at, '%Y-%m-%d')"
+            : "CONCAT('week-', CEIL(DAYOFMONTH(created_at) / 7))"
+          : period === "all"
+            ? "DATE_FORMAT(created_at, '%Y-%m')"
+            : "DATE_FORMAT(created_at, '%Y-%m-%d')";
 
   const [adminRows] = await db.execute<RowDataPacket[]>(
     "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
@@ -124,6 +149,8 @@ export async function GET(request: Request) {
         unpaidCommissions: Number(summary.unpaidCommissions ?? 0),
       },
       period,
+      group,
+      anchor,
       series: Object.fromEntries(seriesEntries),
     },
   });
