@@ -56,6 +56,8 @@ const industryLinks = {
   EVENTS_EXHIBITIONS: "/landing-pages/coffee-chocolate-expo-2026-v2.pdf#toolbar=0&navpanes=0"
 } as const;
 
+const LANDING_BROCHURE_VIEW_URL = "/api/v1/landing-brochure#toolbar=0&navpanes=0";
+
 const industriesData: Industry[] = [
   {
     id: "events-exhibitions",
@@ -334,21 +336,6 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
   const marketingAssets = useBackend<BackendRow[]>("/api/v1/data/marketing-assets");
-  const marketingAssetRows = marketingAssets.data ?? [];
-  function landingDocumentUrl(value: string) {
-    const directAssetMatch = value.match(/\/api\/v1\/marketing-assets\/view\/\d+/);
-    if (directAssetMatch) return value;
-
-    const publicAssetMatch = value.match(/\/marketing-library\/([^#?]+)/);
-    if (!publicAssetMatch) return value;
-
-    const fileName = decodeURIComponent(publicAssetMatch[1] ?? "");
-    const asset = marketingAssetRows.find((row) => {
-      const rawPath = String(row.file_path ?? "").replace(/\\/g, "/");
-      return rawPath.split("/").filter(Boolean).at(-1) === fileName;
-    });
-    return asset ? `/api/v1/marketing-assets/view/${encodeURIComponent(String(asset.id))}#toolbar=0&navpanes=0` : value;
-  }
   const displayedIndustries: Industry[] = industriesData.map((industry) => {
     const live = liveIndustries?.find((row) => row.slug === industry.id);
     const liveLandingUrl = live ? String(live.landing_url ?? "").trim() : "";
@@ -362,7 +349,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
         ...industry.subtitle,
         ar: String(live.description ?? industry.subtitle.ar),
       },
-      url: liveLandingUrl ? landingDocumentUrl(liveLandingUrl) : industry.url,
+      url: industry.id === "events-exhibitions" ? LANDING_BROCHURE_VIEW_URL : industry.url,
       externalUrl: String(live.external_url ?? "").trim() || undefined,
     } : industry;
   });
@@ -507,12 +494,12 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
             </div>
 
             <div className="landing-sector-frame">
-              <object data={primaryIndustry.url} type="application/pdf">
+              <div className="landing-sector-frame-stack">
                 <iframe src={primaryIndustry.url} title={primaryIndustry.title[isArabic ? "ar" : "en"]} />
                 <a href={primaryIndustry.url} target="_blank" rel="noreferrer">
                   {isArabic ? "فتح بروشور صفحة الهبوط" : "Open landing brochure"}
                 </a>
-              </object>
+              </div>
             </div>
           </div>
         ) : null}

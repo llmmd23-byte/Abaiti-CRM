@@ -8292,6 +8292,7 @@ html[dir="rtl"] .compact-action {
   border-radius: 12px;
 }
 
+.landing-sector-frame-stack,
 .landing-sector-frame object,
 .landing-sector-frame iframe {
   display: block;
@@ -8302,12 +8303,17 @@ html[dir="rtl"] .compact-action {
   background: #ffffff;
 }
 
+.landing-sector-frame-stack {
+  position: relative;
+}
+
+.landing-sector-frame-stack > a,
 .landing-sector-frame object a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  margin: 24px;
+  min-height: 38px;
+  margin: 10px;
   padding: 10px 18px;
   border-radius: 10px;
   background: #0f172a;
@@ -8315,6 +8321,15 @@ html[dir="rtl"] .compact-action {
   font-size: 14px;
   font-weight: 800;
   text-decoration: none;
+}
+
+.landing-sector-frame-stack > a {
+  position: absolute;
+  inset-inline-start: 14px;
+  bottom: 14px;
+  z-index: 2;
+  margin: 0;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
 }
 
 .products-workspace-head.compact h2 {
