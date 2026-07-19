@@ -1,18 +1,20 @@
 ﻿"use client";
 
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 
 export function useBackend<T>(path: string) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const hasLoadedData = useRef(false);
   const reload = useCallback(async () => {
-    setLoading(true);
+    if (!hasLoadedData.current) setLoading(true);
     setError("");
     try {
       const response = await fetch(path, {cache: "no-store"});
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "REQUEST_FAILED");
+      hasLoadedData.current = true;
       setData(body.data);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "REQUEST_FAILED");

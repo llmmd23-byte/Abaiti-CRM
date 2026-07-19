@@ -1,11 +1,12 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { signOutAction } from "@/app/auth-actions";
 import Image from "next/image";
 import DashboardSelect from "@/components/DashboardSelect";
+import { notifyMarketingAssetsChanged } from "@/lib/marketing-assets-sync";
 
 type MetricKey = "users" | "clients" | "demos" | "quotes" | "sales";
 type DashboardPeriod = "all" | "day" | "week" | "month" | "year";
@@ -59,6 +60,7 @@ type AdminPermissionData = {
     role_type?: "admin" | "user";
   }>;
   users: AdminRow[];
+  latestUpdatedAt?: string | null;
 };
 type LandingBrochure = {
   id?: number;
@@ -91,6 +93,23 @@ type ManagementData = {
   commissions: AdminRow[];
   ticketEvents: AdminRow[];
   tagStats: AdminRow[];
+};
+
+const EMPTY_MANAGEMENT_DATA: ManagementData = {
+  users: [],
+  roles: [],
+  tickets: [],
+  ticketTypes: [],
+  products: [],
+  content: [],
+  industries: [],
+  clients: [],
+  demos: [],
+  quotes: [],
+  sales: [],
+  commissions: [],
+  ticketEvents: [],
+  tagStats: [],
 };
 
 const NUMBER_LOCALE = "en-US";
@@ -291,16 +310,21 @@ function AdminIcon({ name }: { name: string }) {
   );
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({
+  initialSection = "dashboard",
+}: {
+  initialSection?: AdminSection;
+} = {}) {
   const locale = useLocale();
   const isArabic = locale === "ar";
   const language = isArabic ? "ar" : "en";
+  const pathname = usePathname() || "/admin";
   const [summary, setSummary] = useState<Summary | null>(null);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("users");
   const [period, setPeriod] = useState<DashboardPeriod>("month");
   const [subFilter, setSubFilter] = useState<DashboardSubFilter>("weeks");
   const [periodAnchor, setPeriodAnchor] = useState(() => new Date());
-  const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
+  const [activeSection, setActiveSection] = useState<AdminSection>(initialSection);
   const [management, setManagement] = useState<ManagementData | null>(null);
   const [managementError, setManagementError] = useState("");
 
@@ -345,20 +369,25 @@ export default function AdminDashboard() {
 
   function refreshAdminData() {
     loadManagement();
-    loadSummary();
   }
 
   useEffect(() => {
+    if (activeSection !== "dashboard") return;
     loadSummary();
-  }, [period, subFilter, periodAnchor]);
+  }, [activeSection, period, subFilter, periodAnchor]);
 
   useEffect(() => {
     loadManagement();
   }, []);
 
   useEffect(() => {
-    setActiveSection("dashboard");
-  }, [locale]);
+    const params = new URLSearchParams();
+    params.set("section", activeSection);
+    const nextUrl = `${window.location.pathname}?${params.toString()}`;
+    if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
+      window.history.replaceState(null, "", nextUrl);
+    }
+  }, [activeSection]);
 
   const series = summary?.series[activeMetric] ?? [];
   const maxValue = Math.max(1, ...series.map((item) => item.value));
@@ -393,14 +422,6 @@ export default function AdminDashboard() {
       return next;
     });
   }
-  const periodManagement = management
-    ? (Object.fromEntries(
-        Object.entries(management).map(([key, rows]) => [
-          key,
-          rows.filter((row) => isWithinPeriod(row, period)),
-        ]),
-      ) as ManagementData)
-    : null;
   return (
     <div className="admin-shell" dir={isArabic ? "rtl" : "ltr"}>
       <aside className="admin-sidebar">
@@ -435,14 +456,14 @@ export default function AdminDashboard() {
           >
             <Link
               className={isArabic ? "active" : ""}
-              href="/admin"
+              href={`${pathname}?section=${activeSection}`}
               locale="ar"
             >
               AR
             </Link>
             <Link
               className={!isArabic ? "active" : ""}
-              href="/admin"
+              href={`${pathname}?section=${activeSection}`}
               locale="en"
             >
               EN
@@ -598,7 +619,10 @@ export default function AdminDashboard() {
               metric={activeMetric}
               data={management}
               isArabic={isArabic}
-              onReload={refreshAdminData}
+              onReload={() => {
+                loadManagement();
+                loadSummary();
+              }}
             />
 
             <section className="admin-bottom-grid">
@@ -709,12 +733,7 @@ function AdminMetricList({
     setPasswordDraft("");
     setPasswordMessage("");
   }, [metric]);
-  if (!data)
-    return (
-      <section className="admin-metric-list admin-loading">
-        {isArabic ? "جاري تحميل القائمة..." : "Loading list..."}
-      </section>
-    );
+  const metricData = data ?? EMPTY_MANAGEMENT_DATA;
 
   const openTicketTypeEditor = (_ticketType?: AdminRow) => {};
 
@@ -723,7 +742,7 @@ function AdminMetricList({
     { rows: AdminRow[]; columns: Array<[string, string]> }
   > = {
     users: {
-      rows: data.users,
+      rows: metricData.users,
       columns: [
         ["name", isArabic ? "الاسم" : "Name"],
         ["email", isArabic ? "البريد الإلكتروني" : "Email"],
@@ -734,7 +753,7 @@ function AdminMetricList({
       ],
     },
     clients: {
-      rows: data.clients,
+      rows: metricData.clients,
       columns: [
         ["company_name", isArabic ? "اسم الشركة" : "Company Name"],
         [
@@ -750,7 +769,7 @@ function AdminMetricList({
       ],
     },
     demos: {
-      rows: data.demos,
+      rows: metricData.demos,
       columns: [
         ["contact_name", isArabic ? "العميل" : "Client"],
         ["company_name", isArabic ? "الشركة" : "Company"],
@@ -761,7 +780,7 @@ function AdminMetricList({
       ],
     },
     quotes: {
-      rows: data.quotes,
+      rows: metricData.quotes,
       columns: [
         ["quote_number", isArabic ? "رقم العرض" : "Quote Number"],
         ["customer_name", isArabic ? "العميل" : "Client"],
@@ -773,7 +792,7 @@ function AdminMetricList({
       ],
     },
     sales: {
-      rows: data.sales,
+      rows: metricData.sales,
       columns: [
         ["id", isArabic ? "رقم العملية" : "Sale ID"],
         ["customer_name", isArabic ? "العميل" : "Client"],
@@ -786,7 +805,7 @@ function AdminMetricList({
   };
   const config = configs[metric];
   const statusOptions: Record<
-    MetricKey,
+    MetricKey | "content",
     Array<{ value: string; label: string }>
   > = {
     users: [
@@ -823,6 +842,10 @@ function AdminMetricList({
       { value: "paid", label: isArabic ? "مدفوع" : "Paid" },
       { value: "cancelled", label: isArabic ? "ملغي" : "Cancelled" },
       { value: "refunded", label: isArabic ? "مسترد" : "Refunded" },
+    ],
+    content: [
+      { value: "active", label: isArabic ? "نشط" : "Active" },
+      { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
     ],
   };
   const userTextFields = [
@@ -872,7 +895,7 @@ function AdminMetricList({
       .filter((item) => Number.isInteger(item) && item > 0);
   const tagTypeFilterOptions = Array.from(
     new Map(
-      (data.tagStats ?? [])
+      (metricData.tagStats ?? [])
         .filter((row) => row.tag_type_id)
         .map((row) => [
           String(row.tag_type_id),
@@ -885,7 +908,7 @@ function AdminMetricList({
   );
   const tagFilterOptions = Array.from(
     new Map(
-      (data.tagStats ?? [])
+      (metricData.tagStats ?? [])
         .filter((row) => row.tag_id)
         .filter(
           (row) =>
@@ -917,39 +940,53 @@ function AdminMetricList({
           },
           ...tagFilterOptions,
         ];
-  const visibleRows = config.rows.filter((row) => {
-    const matchesSearch =
-      !normalizedSearch ||
-      Object.values(row).some((value) =>
-        String(value ?? "")
-          .toLocaleLowerCase()
-          .includes(normalizedSearch),
-      );
-    const rowStatus = String(
-      metric === "clients" ? (row.stage ?? "") : (row.status ?? ""),
-    );
-    const matchesClientUser =
-      !hasUserFilter ||
-      clientUserFilter === "all" ||
-      String(row.affiliate_user_name ?? "") === clientUserFilter;
-    const rowTagTypeIds = metric === "clients" ? parseIdList(row.tag_type_ids) : [];
-    const rowTagIds = metric === "clients" ? parseIdList(row.tag_ids) : [];
-    const matchesTagType =
-      metric !== "clients" ||
-      clientTagTypeFilter === "all" ||
-      rowTagTypeIds.includes(Number(clientTagTypeFilter));
-    const matchesTag =
-      metric !== "clients" ||
-      clientTagFilter === "all" ||
-      rowTagIds.includes(Number(clientTagFilter));
-    return (
-      matchesSearch &&
-      matchesClientUser &&
-      matchesTagType &&
-      matchesTag &&
-      (statusFilter === "all" || rowStatus === statusFilter)
-    );
-  });
+  const visibleRows = useMemo(
+    () =>
+      config.rows.filter((row) => {
+        const matchesSearch =
+          !normalizedSearch ||
+          Object.values(row).some((value) =>
+            String(value ?? "")
+              .toLocaleLowerCase()
+              .includes(normalizedSearch),
+          );
+        const rowStatus = String(
+          metric === "clients" ? (row.stage ?? "") : (row.status ?? ""),
+        );
+        const matchesClientUser =
+          !hasUserFilter ||
+          clientUserFilter === "all" ||
+          String(row.affiliate_user_name ?? "") === clientUserFilter;
+        const rowTagTypeIds =
+          metric === "clients" ? parseIdList(row.tag_type_ids) : [];
+        const rowTagIds = metric === "clients" ? parseIdList(row.tag_ids) : [];
+        const matchesTagType =
+          metric !== "clients" ||
+          clientTagTypeFilter === "all" ||
+          rowTagTypeIds.includes(Number(clientTagTypeFilter));
+        const matchesTag =
+          metric !== "clients" ||
+          clientTagFilter === "all" ||
+          rowTagIds.includes(Number(clientTagFilter));
+        return (
+          matchesSearch &&
+          matchesClientUser &&
+          matchesTagType &&
+          matchesTag &&
+          (statusFilter === "all" || rowStatus === statusFilter)
+        );
+      }),
+    [
+      clientTagFilter,
+      clientTagTypeFilter,
+      clientUserFilter,
+      config.rows,
+      hasUserFilter,
+      metric,
+      normalizedSearch,
+      statusFilter,
+    ],
+  );
 
   function openEditor(row: AdminRow) {
     setEditingRow(row);
@@ -983,11 +1020,11 @@ function AdminMetricList({
         : metric === "clients"
           ? {
               name: String(row.name ?? ""),
-              company_name: String(row.company_name ?? ""),
-              phone: String(row.phone ?? ""),
-              stage: String(row.stage ?? "new"),
-            }
-          : metric === "demos"
+            company_name: String(row.company_name ?? ""),
+            phone: String(row.phone ?? ""),
+            stage: String(row.stage ?? "new"),
+          }
+        : metric === "demos"
             ? {
                 contact_name: String(row.contact_name ?? ""),
                 company_name: String(row.company_name ?? ""),
@@ -1397,6 +1434,8 @@ function AdminMetricList({
                 <h3>
                   {String(
                     editingRow.name ??
+                      editingRow.title ??
+                      editingRow.original_name ??
                       editingRow.contact_name ??
                       editingRow.quote_number ??
                       editingRow.id,
@@ -1453,8 +1492,8 @@ function AdminMetricList({
                       setEditDraft((current) => ({ ...current, role }))
                     }
                     options={[
-                      ...(data.roles?.length
-                        ? data.roles.map((role) => ({
+                      ...(metricData.roles?.length
+                        ? metricData.roles.map((role) => ({
                             value: String(role.slug),
                             label: `${isArabic ? role.name_ar : role.name_en} - ${
                               role.role_type === "admin"
@@ -1840,6 +1879,82 @@ function AdminTagsSection({
     setTagDrafts(nextTags);
   }, [data.tagStats]);
 
+  function adminHexToRgb(hex: string) {
+    const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex.slice(1) : "00b4d8";
+    return {
+      r: Number.parseInt(normalized.slice(0, 2), 16),
+      g: Number.parseInt(normalized.slice(2, 4), 16),
+      b: Number.parseInt(normalized.slice(4, 6), 16),
+    };
+  }
+
+  function adminRgbToHex({ r, g, b }: { r: number; g: number; b: number }) {
+    return `#${[r, g, b]
+      .map((value) =>
+        Math.max(0, Math.min(255, Math.round(value)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")}`;
+  }
+
+  function adminMixHex(startHex: string, endHex: string, ratio: number) {
+    const start = adminHexToRgb(startHex);
+    const end = adminHexToRgb(endHex);
+    return adminRgbToHex({
+      r: start.r + (end.r - start.r) * ratio,
+      g: start.g + (end.g - start.g) * ratio,
+      b: start.b + (end.b - start.b) * ratio,
+    });
+  }
+
+  async function rebalanceTagGradient(
+    typeId: number,
+    createdTag?: {
+      id: number;
+      tag_type_id?: number | null;
+      tag_name?: string | null;
+      tag_color?: string | null;
+    },
+    fallbackTypeColor?: string,
+  ) {
+    const type = groupedTypes.find((item) => item.id === typeId);
+    const baseColor = String(type?.color ?? fallbackTypeColor ?? "#00b4d8");
+    const gradientEnd = "#11293d";
+    const tagsById = new Map<
+      number,
+      { id: number; name: string; color: string; count: number }
+    >();
+    groupedTypes
+      .find((item) => item.id === typeId)
+      ?.tags.forEach((tag) => {
+        tagsById.set(tag.id, tag);
+      });
+    if (createdTag?.id) {
+      tagsById.set(createdTag.id, {
+        id: createdTag.id,
+        name: String(createdTag.tag_name ?? ""),
+        color: String(createdTag.tag_color ?? "#00b4d8"),
+        count: 0,
+      });
+    }
+    const tags = Array.from(tagsById.values()).sort(
+      (first, second) => first.id - second.id,
+    );
+    await Promise.all(
+      tags.map((tag, index) => {
+        const ratio = tags.length === 1 ? 0 : index / (tags.length - 1);
+        return fetch(`/api/v1/data/lead-tags/${tag.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({
+            tag_color: adminMixHex(baseColor, gradientEnd, ratio),
+          }),
+        });
+      }),
+    );
+  }
+
   async function saveTagSettings(type: {
     id: number;
     name: string;
@@ -1895,6 +2010,8 @@ function AdminTagsSection({
           }),
         });
         if (!response.ok) throw new Error("ADD_TAG_FAILED");
+        const createdTag = await response.json().catch(() => null);
+        await rebalanceTagGradient(type.id, createdTag?.data ?? createdTag, typeDraft.color);
         setNewTagDrafts((current) => ({
           ...current,
           [type.id]: { name: "", color: "#00b4d8" },
@@ -2487,6 +2604,13 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   const availablePermissionKeys =
     permissionData.permissionKeysByRoleType?.[selectedRoleType] ??
     permissionData.permissionKeys;
+  const latestPermissionsUpdate = permissionData.latestUpdatedAt
+    ? new Intl.DateTimeFormat(isArabic ? "ar-SA-u-ca-gregory" : "en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date(permissionData.latestUpdatedAt))
+    : "—";
   const subjectLabel =
     subjectType === "role"
       ? String(
@@ -2822,6 +2946,15 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
         </table>
       </div>
       ) : null}
+
+      <div className="admin-permissions-footnote">
+        <span>
+          {isArabic
+            ? "آخر تعديل للصلاحيات كان بتاريخ"
+            : "Last permissions update was on"}
+        </span>
+        <strong>{latestPermissionsUpdate}</strong>
+      </div>
     </section>
   );
 }
@@ -2888,11 +3021,19 @@ function AdminManagementSection({
   const [contentUploadMessage, setContentUploadMessage] = useState("");
   const [contentUploadFileName, setContentUploadFileName] = useState("");
   const contentUploadFileRef = useRef<HTMLInputElement | null>(null);
+  const [editingContentRow, setEditingContentRow] = useState<AdminRow | null>(null);
+  const [contentEditDraft, setContentEditDraft] = useState({
+    title: "",
+    status: "active",
+  });
+  const [contentEditMessage, setContentEditMessage] = useState("");
   const [landingBrochure, setLandingBrochure] = useState<LandingBrochure | null>(null);
   const [landingPageUrl, setLandingPageUrl] = useState("");
   const [landingBrochureMessage, setLandingBrochureMessage] = useState("");
   const [isLandingPreviewOpen, setIsLandingPreviewOpen] = useState(false);
   const landingBrochureFileRef = useRef<HTMLInputElement | null>(null);
+  const managementData = data ?? EMPTY_MANAGEMENT_DATA;
+  const landingBrochurePreviewUrl = "/api/v1/landing-brochure#toolbar=1&navpanes=0";
 
   useEffect(() => {
     if (section !== "content") return;
@@ -2904,23 +3045,133 @@ function AdminManagementSection({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsLandingPreviewOpen(false);
     };
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target;
-      if (target instanceof Element && target.closest("[data-landing-preview-close]")) {
-        event.preventDefault();
-        setIsLandingPreviewOpen(false);
-      }
-    };
     window.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("pointerdown", handlePointerDown, true);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("pointerdown", handlePointerDown, true);
     };
   }, [isLandingPreviewOpen]);
 
+  const configs = {
+    tickets: {
+      rows: managementData.tickets,
+      columns: [
+        ["ticket_number", isArabic ? "رقم التذكرة" : "Ticket Number"],
+        ["subject", isArabic ? "الموضوع" : "Subject"],
+        ["category", isArabic ? "التصنيف" : "Category"],
+        ["details", isArabic ? "تفاصيل التذكرة" : "Ticket Details"],
+        ["notes", isArabic ? "الملاحظات" : "Notes"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["user_name", isArabic ? "المستخدم" : "User"],
+        ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
+      ],
+    },
+    accounts: {
+      rows: managementData.users,
+      columns: [
+        ["name", isArabic ? "الاسم" : "Name"],
+        ["email", isArabic ? "البريد الإلكتروني" : "Email"],
+        ["role", isArabic ? "الصلاحية" : "Role"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["last_login_at", isArabic ? "آخر دخول" : "Last Login"],
+      ],
+    },
+    products: {
+      rows: managementData.products,
+      columns: [
+        [isArabic ? "name" : "name_en", isArabic ? "المنتج" : "Product"],
+        ["slug", isArabic ? "الرمز" : "Slug"],
+        ["base_price", isArabic ? "السعر" : "Price"],
+        ["currency", isArabic ? "العملة" : "Currency"],
+        ["status", isArabic ? "الحالة" : "Status"],
+      ],
+    },
+    activity: {
+      rows: managementData.industries,
+      columns: [
+        [isArabic ? "name" : "name_en", isArabic ? "اسم النشاط" : "Industry"],
+        ["slug", isArabic ? "الرمز" : "Slug"],
+        ["description", isArabic ? "الوصف" : "Description"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["created_at", isArabic ? "تاريخ الإضافة" : "Created Date"],
+      ],
+    },
+    content: {
+      rows: managementData.content,
+      columns: [
+        ["title", isArabic ? "العنوان" : "Title"],
+        ["asset_type", isArabic ? "نوع المحتوى" : "Content Type"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["created_at", isArabic ? "تاريخ الإضافة" : "Created Date"],
+      ],
+    },
+  } satisfies Record<
+    Exclude<AdminSection, "dashboard" | "permissions" | "tags">,
+    { rows: AdminRow[]; columns: string[][] }
+  >;
+  const config =
+    section === "content"
+      ? {
+          rows: managementData.content,
+          columns: [
+            ["title", isArabic ? "اسم الملف" : "File Name"],
+            ["original_name", isArabic ? "الملف الأصلي" : "Original File"],
+            ["asset_type", isArabic ? "النوع" : "Type"],
+            ["file_size", isArabic ? "الحجم" : "Size"],
+            ["status", isArabic ? "الحالة" : "Status"],
+            ["created_at", isArabic ? "تاريخ الرفع" : "Upload Date"],
+          ],
+        }
+      : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags">] ?? {
+          rows: [],
+          columns: [],
+        };
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const visibleRows = normalizedQuery
+    ? config.rows.filter((row) =>
+        Object.values(row).some((value) =>
+          String(value ?? "")
+            .toLocaleLowerCase()
+            .includes(normalizedQuery),
+        ),
+      )
+    : config.rows;
+  const ticketAdvancedRows = useMemo(
+    () =>
+      section === "tickets" && isTicketAdvancedFilter
+        ? visibleRows.filter((row) =>
+            ["open", "in_progress", "pending"].includes(
+              String(row.status ?? "open"),
+            ),
+          )
+        : visibleRows,
+    [isTicketAdvancedFilter, section, visibleRows],
+  );
+  const filteredRows = useMemo(
+    () =>
+      section === "tickets" && ticketStatusFilter !== "all"
+        ? ticketAdvancedRows.filter(
+            (row) => String(row.status ?? "open") === ticketStatusFilter,
+          )
+        : ticketAdvancedRows,
+    [section, ticketAdvancedRows, ticketStatusFilter],
+  );
+  const usersById = useMemo(
+    () =>
+      new Map(
+        managementData.users.map((user) => [
+          Number(user.id),
+          String(user.name ?? user.email ?? "").trim(),
+        ]),
+      ),
+    [managementData.users],
+  );
+
   if (section === "permissions") {
     return <AdminPermissionsSection isArabic={isArabic} />;
+  }
+
+  if (section === "tags") {
+    return <AdminTagsSection data={managementData} isArabic={isArabic} onReload={onReload} />;
   }
 
   if (!data)
@@ -2936,112 +3187,6 @@ function AdminManagementSection({
         ) : null}
       </section>
     );
-
-  if (section === "tags") {
-    return <AdminTagsSection data={data} isArabic={isArabic} onReload={onReload} />;
-  }
-
-  const configs = {
-    tickets: {
-      rows: data.tickets,
-      columns: [
-        ["ticket_number", isArabic ? "رقم التذكرة" : "Ticket Number"],
-        ["subject", isArabic ? "الموضوع" : "Subject"],
-        ["category", isArabic ? "التصنيف" : "Category"],
-        ["details", isArabic ? "تفاصيل التذكرة" : "Ticket Details"],
-        ["notes", isArabic ? "الملاحظات" : "Notes"],
-        ["status", isArabic ? "الحالة" : "Status"],
-        ["user_name", isArabic ? "المستخدم" : "User"],
-        ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
-      ],
-    },
-    accounts: {
-      rows: data.users,
-      columns: [
-        ["name", isArabic ? "الاسم" : "Name"],
-        ["email", isArabic ? "البريد الإلكتروني" : "Email"],
-        ["role", isArabic ? "الصلاحية" : "Role"],
-        ["status", isArabic ? "الحالة" : "Status"],
-        ["last_login_at", isArabic ? "آخر دخول" : "Last Login"],
-      ],
-    },
-    products: {
-      rows: data.products,
-      columns: [
-        [isArabic ? "name" : "name_en", isArabic ? "المنتج" : "Product"],
-        ["slug", isArabic ? "الرمز" : "Slug"],
-        ["base_price", isArabic ? "السعر" : "Price"],
-        ["currency", isArabic ? "العملة" : "Currency"],
-        ["status", isArabic ? "الحالة" : "Status"],
-      ],
-    },
-    activity: {
-      rows: data.industries,
-      columns: [
-        [isArabic ? "name" : "name_en", isArabic ? "اسم النشاط" : "Industry"],
-        ["slug", isArabic ? "الرمز" : "Slug"],
-        ["description", isArabic ? "الوصف" : "Description"],
-        ["status", isArabic ? "الحالة" : "Status"],
-        ["created_at", isArabic ? "تاريخ الإضافة" : "Created Date"],
-      ],
-    },
-    content: {
-      rows: data.content,
-      columns: [
-        ["title", isArabic ? "العنوان" : "Title"],
-        ["asset_type", isArabic ? "نوع المحتوى" : "Content Type"],
-        ["status", isArabic ? "الحالة" : "Status"],
-        ["created_at", isArabic ? "تاريخ الإضافة" : "Created Date"],
-      ],
-    },
-  } satisfies Record<
-    Exclude<AdminSection, "dashboard" | "permissions" | "tags">,
-    { rows: AdminRow[]; columns: string[][] }
-  >;
-  const config =
-    section === "content"
-      ? {
-          rows: data.content,
-          columns: [
-            ["title", isArabic ? "اسم الملف" : "File Name"],
-            ["original_name", isArabic ? "الملف الأصلي" : "Original File"],
-            ["asset_type", isArabic ? "النوع" : "Type"],
-            ["file_size", isArabic ? "الحجم" : "Size"],
-            ["status", isArabic ? "الحالة" : "Status"],
-            ["created_at", isArabic ? "تاريخ الرفع" : "Upload Date"],
-          ],
-        }
-      : configs[section];
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  const visibleRows = normalizedQuery
-    ? config.rows.filter((row) =>
-        Object.values(row).some((value) =>
-          String(value ?? "")
-            .toLocaleLowerCase()
-            .includes(normalizedQuery),
-        ),
-      )
-    : config.rows;
-  const ticketAdvancedRows =
-    section === "tickets" && isTicketAdvancedFilter
-      ? visibleRows.filter((row) =>
-          ["open", "in_progress", "pending"].includes(
-            String(row.status ?? "open"),
-          ),
-        )
-      : visibleRows;
-  const filteredRows =
-    section === "tickets" && ticketStatusFilter !== "all"
-      ? ticketAdvancedRows.filter(
-          (row) => String(row.status ?? "open") === ticketStatusFilter,
-        )
-      : ticketAdvancedRows;
-  const usersById = new Map(
-    data.users.map((user) => [
-      Number(user.id),
-      String(user.name ?? user.email ?? "").trim(),
-    ]),
-  );
 
   function getTicketUserName(row: AdminRow) {
     const directName = String(row.user_name ?? row.affiliate_user_name ?? "").trim();
@@ -3116,7 +3261,7 @@ function AdminManagementSection({
   }
 
   const savedTicketTimelineEvents = timelineTicket
-    ? (data.ticketEvents ?? [])
+    ? (managementData.ticketEvents ?? [])
         .filter((event) => Number(event.ticket_id) === Number(timelineTicket.id))
         .sort(
           (first, second) =>
@@ -3391,12 +3536,67 @@ function AdminManagementSection({
       setContentUploadDescription("");
       setContentUploadFileName("");
       if (contentUploadFileRef.current) contentUploadFileRef.current.value = "";
+      notifyMarketingAssetsChanged();
       onReload();
       setContentUploadMessage(isArabic ? "تم رفع الملف" : "File uploaded");
     } catch {
       setContentUploadMessage(isArabic ? "تعذر رفع الملف" : "Unable to upload file");
     }
     window.setTimeout(() => setContentUploadMessage(""), 2400);
+  }
+
+  function openContentEditor(row: AdminRow) {
+    setEditingContentRow(row);
+    setContentEditDraft({
+      title: String(row.title ?? row.original_name ?? ""),
+      status: String(row.status ?? "active"),
+    });
+    setContentEditMessage("");
+  }
+
+  async function saveContentEdit() {
+    if (!editingContentRow) return;
+    setContentEditMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const response = await fetch(`/api/v1/data/marketing-assets/${editingContentRow.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          title: contentEditDraft.title.trim(),
+          status: contentEditDraft.status,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
+      notifyMarketingAssetsChanged();
+      await onReload();
+      await loadLandingBrochure();
+      setEditingContentRow(null);
+    } catch {
+      setContentEditMessage(isArabic ? "تعذر حفظ الملف" : "Unable to save file");
+    }
+  }
+
+  async function toggleMarketingAssetStatus(asset: AdminRow) {
+    const currentStatus = String(asset.status ?? "active");
+    const nextStatus = currentStatus === "active" ? "inactive" : "active";
+    try {
+      const response = await fetch(`/api/v1/data/marketing-assets/${asset.id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json; charset=utf-8"},
+        body: JSON.stringify({status: nextStatus}),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "UPDATE_FAILED"));
+      notifyMarketingAssetsChanged();
+      await onReload();
+      await loadLandingBrochure();
+      if (isLandingPreviewOpen && nextStatus === "inactive") {
+        setIsLandingPreviewOpen(false);
+      }
+    } catch {
+      window.alert(isArabic ? "تعذر تغيير حالة الملف" : "Unable to change file status");
+    }
   }
 
   function formatLandingBrochureSize(value: unknown) {
@@ -3694,26 +3894,21 @@ function AdminManagementSection({
               className="landing-preview-modal"
               role="dialog"
               aria-modal="true"
-              onMouseDown={closeLandingPreview}
-              data-landing-preview-close
-            >
-              <button
-                className="landing-preview-floating-close"
-                data-landing-preview-close
-                onClick={closeLandingPreview}
-                onPointerDown={(event) => {
-                  event.preventDefault();
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) {
                   closeLandingPreview();
-                }}
-                type="button"
-              >
-                {isArabic ? "إغلاق" : "Close"}
-                <b aria-hidden="true">×</b>
-              </button>
+                }
+              }}
+            >
               <div
                 className={`landing-preview-window ${isArabic ? "rtl" : "ltr"}`}
-                onMouseDown={(event) => event.stopPropagation()}
-                onPointerDown={(event) => event.stopPropagation()}
+                dir={isArabic ? "rtl" : "ltr"}
+                onMouseDown={(event) => {
+                  event.stopPropagation();
+                }}
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                }}
               >
                 <div className="landing-preview-admin-bar">
                   <span>
@@ -3723,9 +3918,8 @@ function AdminManagementSection({
                       : "Live preview mode: this is how the screen appears to the end user"}
                   </span>
                   <button
-                    data-landing-preview-close
                     onClick={closeLandingPreview}
-                    onPointerDown={(event) => {
+                    onPointerDownCapture={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
                       closeLandingPreview();
@@ -3737,40 +3931,16 @@ function AdminManagementSection({
                   </button>
                 </div>
                 <div className="landing-preview-body">
-                  <div className={`landing-preview-user-card ${isArabic ? "rtl" : "ltr"}`}>
-                    <div className="landing-preview-user-header">
-                      <div className="landing-preview-actions">
-                        {landingBrochure?.externalUrl ? (
-                          <button
-                            onClick={() => void navigator.clipboard?.writeText(String(landingBrochure.externalUrl))}
-                            type="button"
-                          >
-                            {isArabic ? "نسخ الرابط" : "Copy link"}
-                          </button>
-                        ) : null}
-                        {landingBrochure?.externalUrl ? (
-                          <button
-                            onClick={() => window.open(landingBrochure.externalUrl, "_blank", "noopener,noreferrer")}
-                            type="button"
-                          >
-                            {isArabic ? "فتح الموقع" : "Open site"}
-                          </button>
-                        ) : null}
-                      </div>
-                      <div className="landing-preview-copy">
-                        <h3>{isArabic ? "أنظمة المعارض والفعاليات" : "Events and Exhibitions Systems"}</h3>
-                        <p>
-                          {isArabic
-                            ? "حل متكامل لإدارة وتنظيم المعارض والمؤتمرات وحجز الأجنحة والخدمات اللوجستية رقمياً بالكامل."
-                            : "A complete solution for managing exhibitions, conferences, booth bookings, and logistics digitally."}
-                        </p>
-                      </div>
+                  <div className={`admin-preview-card ${isArabic ? "rtl" : "ltr"}`} dir={isArabic ? "rtl" : "ltr"}>
+                    <div className="preview-header">
+                      <h2>Exhibitions and Event Systems</h2>
+                      <p>A complete solution for managing exhibitions, conferences, booth bookings, and logistics digitally.</p>
                     </div>
-                    <div className="landing-preview-frame">
-                      {landingBrochure?.url ? (
+                    <div className="admin-pdf-wrapper">
+                      {landingBrochurePreviewUrl ? (
                         <iframe
+                          src={landingBrochurePreviewUrl}
                           title={isArabic ? "معاينة بروشور صفحة الهبوط" : "Landing brochure preview"}
-                          src={landingBrochure.url}
                         />
                       ) : (
                         <div className="landing-preview-placeholder">
@@ -3855,17 +4025,81 @@ function AdminManagementSection({
           </div>
         </article>
 
+        {editingContentRow ? (
+          <div
+            className="admin-edit-overlay"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setEditingContentRow(null);
+            }}
+            role="presentation"
+          >
+            <section
+              className="admin-edit-modal admin-content-edit-modal"
+              dir={isArabic ? "rtl" : "ltr"}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="admin-edit-head">
+                <div>
+                  <span>{isArabic ? "تعديل الملف" : "Edit File Properties"}</span>
+                  <h3>{String(editingContentRow.title ?? editingContentRow.original_name ?? editingContentRow.id)}</h3>
+                </div>
+                <button onClick={() => setEditingContentRow(null)} type="button">
+                  X
+                </button>
+              </div>
+              <label>
+                <span>{isArabic ? "اسم الملف" : "File Name"}</span>
+                <input
+                  onChange={(event) =>
+                    setContentEditDraft((current) => ({
+                      ...current,
+                      title: event.target.value,
+                    }))
+                  }
+                  placeholder={isArabic ? "اكتب اسم الملف" : "Enter file name"}
+                  value={contentEditDraft.title}
+                />
+              </label>
+              <label>
+                <span>{isArabic ? "الحالة" : "Status"}</span>
+                <DashboardSelect
+                  ariaLabel={isArabic ? "الحالة" : "Status"}
+                  menuClassName="admin-edit-select-menu"
+                  onValueChange={(status) =>
+                    setContentEditDraft((current) => ({ ...current, status }))
+                  }
+                  options={[
+                    { value: "active", label: isArabic ? "نشط" : "Active" },
+                    { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
+                  ]}
+                  portal
+                  value={contentEditDraft.status}
+                />
+              </label>
+              {contentEditMessage ? <p>{contentEditMessage}</p> : null}
+              <div className="admin-edit-actions">
+                <button
+                  className="primary"
+                  onClick={() => void saveContentEdit()}
+                  type="button"
+                >
+                  {isArabic ? "حفظ التعديلات" : "Save Changes"}
+                </button>
+                <button onClick={() => setEditingContentRow(null)} type="button">
+                  {isArabic ? "إلغاء" : "Cancel"}
+                </button>
+              </div>
+            </section>
+          </div>
+        ) : null}
+
         </>
       ) : null}
       <div
-        className={`admin-data-head ${section === "tickets" ? "admin-ticket-data-head" : ""} ${section === "products" ? "admin-product-data-head" : ""} ${section === "activity" ? "admin-activity-data-head" : ""} ${section === "content" ? "admin-content-data-head" : ""}`}
-        style={
-          section === "tickets"
-            ? { alignItems: "center", flexDirection: "row", flexWrap: "nowrap" }
-            : undefined
-        }
+        className={`admin-data-head ${section === "tickets" ? "admin-ticket-data-head toolbar-container" : ""} ${section === "products" ? "admin-product-data-head" : ""} ${section === "activity" ? "admin-activity-data-head" : ""} ${section === "content" ? "admin-content-data-head" : ""}`}
       >
-        <div>
+        <div className={section === "tickets" ? "admin-ticket-summary records-info" : undefined}>
           <span>{isArabic ? "إدارة البيانات" : "Data Management"}</span>
           <strong>
             {filteredRows.length.toLocaleString(NUMBER_LOCALE)}{" "}
@@ -3873,43 +4107,10 @@ function AdminManagementSection({
           </strong>
         </div>
         <div
-          className={`admin-data-tools ${section === "tickets" ? "admin-ticket-data-tools" : ""} ${section === "products" ? "admin-product-data-tools" : ""} ${section === "activity" ? "admin-activity-data-tools" : ""} ${section === "content" ? "admin-content-data-tools" : ""}`}
-          style={
-            section === "tickets"
-              ? {
-                  alignItems: "center",
-                  direction: "rtl",
-                  display: "inline-flex",
-                  flexDirection: "row",
-                  flexWrap: "nowrap",
-                  gap: "10px",
-                  width: "auto",
-                }
-              : undefined
-          }
+          className={`admin-data-tools ${section === "tickets" ? "admin-ticket-data-tools admin-ticket-toolbar" : ""} ${section === "products" ? "admin-product-data-tools" : ""} ${section === "activity" ? "admin-activity-data-tools" : ""} ${section === "content" ? "admin-content-data-tools" : ""} ${section === "tickets" ? "search-box" : ""}`}
         >
           <div
             className={`admin-record-search-bar${section === "tickets" ? " admin-ticket-search-wide" : ""}`}
-            style={
-              section === "tickets"
-                ? {
-                    alignItems: "center",
-                    background: "#ffffff",
-                    border: "1px solid #dbe7ef",
-                    borderRadius: "12px",
-                    boxShadow: "none",
-                    display: "inline-flex",
-                    flex: "0 0 320px",
-                    gap: "10px",
-                    height: "44px",
-                    maxWidth: "320px",
-                    minHeight: "44px",
-                    minWidth: "320px",
-                    padding: "0 12px",
-                    width: "320px",
-                  }
-                : undefined
-            }
           >
             <svg aria-hidden="true" viewBox="0 0 24 24">
               <circle cx="10.8" cy="10.8" r="6.2" />
@@ -3921,8 +4122,8 @@ function AdminManagementSection({
               placeholder={
                 section === "tickets"
                   ? isArabic
-                    ? "ابحث برقم التذكرة أو الاسم، الجوال..."
-                    : "Search by ticket number"
+                    ? "ابحث برقم التذكرة..."
+                    : "Search by ticket number..."
                   : isArabic
                     ? "ابحث باسم الملف..."
                     : "Search by file name..."
@@ -3930,7 +4131,6 @@ function AdminManagementSection({
               type="search"
               value={query}
             />
-            <strong>{filteredRows.length.toLocaleString(NUMBER_LOCALE)}</strong>
           </div>
           {section === "products" ? (
             <button
@@ -4000,12 +4200,6 @@ function AdminManagementSection({
           {section === "tickets" ? (
             <div
               className="admin-ticket-status-filter"
-              style={{
-                flex: "0 0 165px",
-                maxWidth: "165px",
-                minWidth: "165px",
-                width: "165px",
-              }}
             >
               <DashboardSelect
                 ariaLabel={
@@ -4035,14 +4229,13 @@ function AdminManagementSection({
             </div>
           ) : null}
           {section === "tickets" ? (
+            <button className="btn admin-ticket-types-btn" type="button">
+              {isArabic ? "الأنواع" : "Types"}
+            </button>
+          ) : null}
+          {section === "tickets" ? (
             <div
               className="admin-ticket-types-dropdown-wrap"
-              style={{
-                flex: "0 0 72px",
-                minWidth: "72px",
-                position: "relative",
-                width: "72px",
-              }}
             >
               <button
                 aria-expanded={isTicketTypesMenuOpen}
@@ -4188,7 +4381,17 @@ function AdminManagementSection({
                 <tr>
                   {config.columns.map(([key]) => (
                     <td key={key}>
-                      {key === "status" || key === "role" ? (
+                      {section === "content" && key === "status" ? (
+                        <button
+                          className={`admin-content-status-toggle admin-status admin-status-${String(row.status ?? "inactive")}`}
+                          onClick={() => void toggleMarketingAssetStatus(row)}
+                          aria-label={isArabic ? "تبديل حالة الملف" : "Toggle file status"}
+                          title={isArabic ? "اضغط لتبديل الحالة" : "Click to toggle status"}
+                          type="button"
+                        >
+                          {displayAdminValue(row.status, isArabic)}
+                        </button>
+                      ) : key === "status" || key === "role" ? (
                         <span
                           className={`admin-status admin-status-${String(row[key] ?? "unknown")}`}
                         >
@@ -4303,6 +4506,13 @@ function AdminManagementSection({
                   ) : section === "content" ? (
                     <td>
                       <div className="admin-row-actions">
+                        <button
+                          className="admin-row-edit"
+                          onClick={() => openContentEditor(row)}
+                          type="button"
+                        >
+                          {isArabic ? "تعديل" : "Edit"}
+                        </button>
                         <button
                           className="admin-row-delete"
                           onClick={() => requestMarketingAssetDeletion(row)}
@@ -5784,3 +5994,4 @@ function AdminCommissionList({
     </section>
   );
 }
+

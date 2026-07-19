@@ -375,17 +375,6 @@ export default function DashboardShell({
     setPendingHref(item.href);
     prefetchItem(item);
   };
-  useEffect(() => {
-    if (!currentUser) return;
-    [overviewItem, ...coreGrowthItems, ...supportResourceItems]
-      .filter((item) => {
-        const permissionKey = sectionPermissionKeys[item.key];
-        return Boolean(
-          permissionKey && currentUser.permissions?.[permissionKey]?.can_view,
-        );
-      })
-      .forEach((item) => router.prefetch(item.href));
-  }, [currentUser, router]);
   const normalizedPathname = pathname || "/dashboard";
   const activeSection =
     [...coreGrowthItems, ...supportResourceItems, overviewItem].find((item) => {
@@ -431,7 +420,7 @@ export default function DashboardShell({
                 href={overviewItem.href}
                 onClick={() => handleNavIntent(overviewItem)}
                 onPointerEnter={() => prefetchItem(overviewItem)}
-                prefetch
+                prefetch={false}
               >
                 <NavItemIcon icon={overviewItem.icon} />
                 {t(overviewItem.label)}
@@ -450,7 +439,7 @@ export default function DashboardShell({
                     href={item.href}
                     onClick={() => handleNavIntent(item)}
                     onPointerEnter={() => prefetchItem(item)}
-                    prefetch
+                    prefetch={false}
                   >
                     <NavItemIcon icon={item.icon} />
                     {itemLabel}
@@ -473,7 +462,7 @@ export default function DashboardShell({
                     href={item.href}
                     onClick={() => handleNavIntent(item)}
                     onPointerEnter={() => prefetchItem(item)}
-                    prefetch
+                    prefetch={false}
                   >
                     <NavItemIcon icon={item.icon} />
                     {itemLabel}
