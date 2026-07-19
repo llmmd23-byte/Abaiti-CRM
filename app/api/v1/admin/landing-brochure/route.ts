@@ -82,6 +82,18 @@ function publicAssetNameFromUrl(value: unknown) {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+async function latestLandingBrochureAsset() {
+  const [assets] = await db.execute<RowDataPacket[]>(
+    `SELECT id,title,original_name,file_size,mime_type,status,created_at,updated_at
+       FROM marketing_assets
+      WHERE description = 'landing-page-brochure'
+        AND status = 'active'
+      ORDER BY updated_at DESC, created_at DESC, id DESC
+      LIMIT 1`,
+  );
+  return assets[0] ?? null;
+}
+
 async function defaultBrochureData() {
   const fileStat = await stat(DEFAULT_BROCHURE_PATH).catch(() => null);
   return {
@@ -113,7 +125,23 @@ async function activeBrochureData() {
   const assetId = customAssetIdFromUrl(landingUrl);
   const publicAssetName = publicAssetNameFromUrl(landingUrl);
   if (!assetId && !publicAssetName) {
-    return {...(await defaultBrochureData()), externalUrl};
+    const latestAsset = await latestLandingBrochureAsset();
+    if (!latestAsset) return {...(await defaultBrochureData()), externalUrl};
+    await db.execute("UPDATE industries SET landing_url = ? WHERE slug = ?", [
+      `/api/v1/marketing-assets/view/${Number(latestAsset.id)}#toolbar=0&navpanes=0`,
+      INDUSTRY_SLUG,
+    ]);
+    return {
+      isDefault: false,
+      isActive: true,
+      url: `/api/v1/marketing-assets/view/${Number(latestAsset.id)}#toolbar=0&navpanes=0`,
+      id: Number(latestAsset.id),
+      name: String(latestAsset.original_name ?? latestAsset.title ?? "landing-brochure.pdf"),
+      size: Number(latestAsset.file_size ?? 0),
+      updatedAt: latestAsset.updated_at ?? latestAsset.created_at ?? null,
+      mimeType: latestAsset.mime_type,
+      externalUrl,
+    };
   }
 
   const [assets] = assetId
@@ -130,7 +158,25 @@ async function activeBrochureData() {
         [`%/marketing-library/${publicAssetName}`],
       );
   const asset = assets[0];
-  if (!asset) return {...(await defaultBrochureData()), externalUrl};
+  if (!asset) {
+    const latestAsset = await latestLandingBrochureAsset();
+    if (!latestAsset) return {...(await defaultBrochureData()), externalUrl};
+    await db.execute("UPDATE industries SET landing_url = ? WHERE slug = ?", [
+      `/api/v1/marketing-assets/view/${Number(latestAsset.id)}#toolbar=0&navpanes=0`,
+      INDUSTRY_SLUG,
+    ]);
+    return {
+      isDefault: false,
+      isActive: true,
+      url: `/api/v1/marketing-assets/view/${Number(latestAsset.id)}#toolbar=0&navpanes=0`,
+      id: Number(latestAsset.id),
+      name: String(latestAsset.original_name ?? latestAsset.title ?? "landing-brochure.pdf"),
+      size: Number(latestAsset.file_size ?? 0),
+      updatedAt: latestAsset.updated_at ?? latestAsset.created_at ?? null,
+      mimeType: latestAsset.mime_type,
+      externalUrl,
+    };
+  }
 
   return {
     isDefault: false,

@@ -28,7 +28,17 @@ function publicAssetNameFromUrl(value: unknown) {
 async function activeAssetFromLandingUrl(landingUrl: string) {
   const assetId = assetIdFromUrl(landingUrl);
   const publicAssetName = publicAssetNameFromUrl(landingUrl);
-  if (!assetId && !publicAssetName) return null;
+  if (!assetId && !publicAssetName) {
+    const [latestAssets] = await db.execute<RowDataPacket[]>(
+      `SELECT id,original_name,mime_type,file_data,status
+         FROM marketing_assets
+        WHERE description = 'landing-page-brochure'
+          AND status = 'active'
+        ORDER BY updated_at DESC, created_at DESC, id DESC
+        LIMIT 1`,
+    );
+    return latestAssets[0] ?? null;
+  }
 
   const [assets] = assetId
     ? await db.execute<RowDataPacket[]>(
@@ -45,7 +55,17 @@ async function activeAssetFromLandingUrl(landingUrl: string) {
       );
 
   const asset = assets[0];
-  if (!asset || String(asset.status ?? "active") !== "active") return null;
+  if (!asset || String(asset.status ?? "active") !== "active") {
+    const [latestAssets] = await db.execute<RowDataPacket[]>(
+      `SELECT id,original_name,mime_type,file_data,status
+         FROM marketing_assets
+        WHERE description = 'landing-page-brochure'
+          AND status = 'active'
+        ORDER BY updated_at DESC, created_at DESC, id DESC
+        LIMIT 1`,
+    );
+    return latestAssets[0] ?? null;
+  }
   return asset;
 }
 
