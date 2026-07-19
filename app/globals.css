@@ -8204,6 +8204,11 @@ html[dir="rtl"] .compact-action {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
+.landing-sector-card.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
 .landing-sector-heading {
   display: flex;
   direction: rtl;
@@ -8216,12 +8221,24 @@ html[dir="rtl"] .compact-action {
   text-align: right;
 }
 
+.landing-sector-card.ltr .landing-sector-heading {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
 .landing-sector-copy {
   order: 1;
   width: 100%;
   margin-inline-start: auto;
   direction: rtl;
   text-align: right;
+}
+
+.landing-sector-card.ltr .landing-sector-copy {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  direction: ltr;
+  text-align: left;
 }
 
 .landing-sector-copy h2 {
@@ -8233,6 +8250,14 @@ html[dir="rtl"] .compact-action {
   letter-spacing: 0;
 }
 
+.landing-sector-card.ltr .landing-sector-copy h2,
+.landing-sector-card.ltr .landing-sector-copy p {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  direction: ltr;
+  text-align: left;
+}
+
 .landing-sector-copy p {
   max-width: 720px;
   margin: 6px 0 0 auto;
@@ -8242,6 +8267,10 @@ html[dir="rtl"] .compact-action {
   line-height: 1.7;
   direction: rtl;
   text-align: right;
+}
+
+.landing-sector-card.ltr .landing-sector-actions {
+  direction: ltr;
 }
 
 .landing-sector-actions {

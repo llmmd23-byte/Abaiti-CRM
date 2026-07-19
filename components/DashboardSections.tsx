@@ -492,8 +492,14 @@ export function QuoteSystem() {
     durationPlaceholder: isArabic ? "اكتب مدة العرض" : "Enter duration",
     durationLimit: isArabic ? "الحد الأقصى 30 يوم" : "Maximum 30 days",
   };
-  const filteredQuotes = (quotes.data ?? []).filter(
-    (quote) => quoteStatusFilter === "all" || String(quote.status ?? "draft") === quoteStatusFilter,
+  const filteredQuotes = useMemo(
+    () =>
+      (quotes.data ?? []).filter(
+        (quote) =>
+          quoteStatusFilter === "all" ||
+          String(quote.status ?? "draft") === quoteStatusFilter,
+      ),
+    [quoteStatusFilter, quotes.data],
   );
 
   useEffect(() => {
@@ -3308,18 +3314,25 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     signed: text.signed,
     cancelled: text.cancelled,
   };
-  const filteredContracts = (contracts.data ?? []).filter((contract) => {
-    const query = search.trim().toLocaleLowerCase();
-    if (!query) return true;
-    return [
-      contract.contract_number,
-      contract.customer_name,
-      contract.company_name,
-      contract.contact_name,
-      contract.rental_item,
-      contract.phone,
-    ].some((value) => String(value ?? "").toLocaleLowerCase().includes(query));
-  });
+  const filteredContracts = useMemo(
+    () => {
+      const query = search.trim().toLocaleLowerCase();
+      if (!query) return contracts.data ?? [];
+      return (contracts.data ?? []).filter((contract) =>
+        [
+          contract.contract_number,
+          contract.customer_name,
+          contract.company_name,
+          contract.contact_name,
+          contract.rental_item,
+          contract.phone,
+        ].some((value) =>
+          String(value ?? "").toLocaleLowerCase().includes(query),
+        ),
+      );
+    },
+    [contracts.data, search],
+  );
 
   function applyLeadData(nextLeadId: string) {
     setLeadId(nextLeadId);
@@ -3810,13 +3823,17 @@ export function HelpDeskPanel({ expanded = false }: { expanded?: boolean }) {
       setCategory(availableCategoryOptions[0].value);
     }
   }, [availableCategoryOptions, category]);
-  const filteredTickets = (tickets.data ?? []).filter((ticket) => {
-    const status = String(ticket.status ?? "open");
-    if (advancedTicketFilter && !["open", "in_progress"].includes(status)) {
-      return false;
-    }
-    return ticketFilter === "all" || status === ticketFilter;
-  });
+  const filteredTickets = useMemo(
+    () =>
+      (tickets.data ?? []).filter((ticket) => {
+        const status = String(ticket.status ?? "open");
+        if (advancedTicketFilter && !["open", "in_progress"].includes(status)) {
+          return false;
+        }
+        return ticketFilter === "all" || status === ticketFilter;
+      }),
+    [advancedTicketFilter, ticketFilter, tickets.data],
+  );
 
   const createdAgo = (value: unknown) => {
     const date = parseDatabaseDate(value);

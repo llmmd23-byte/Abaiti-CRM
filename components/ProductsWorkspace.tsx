@@ -1,7 +1,7 @@
 "use client";
 
 import {useLocale} from "next-intl";
-import {useState, type CSSProperties, type ReactNode} from "react";
+import {useMemo, useState, type CSSProperties, type ReactNode} from "react";
 import {DemoView} from "@/components/DashboardNewSections";
 import {useBackend} from "@/lib/client-backend";
 
@@ -336,25 +336,42 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
   const marketingAssets = useBackend<BackendRow[]>("/api/v1/data/marketing-assets");
-  const displayedIndustries: Industry[] = industriesData.map((industry) => {
-    const live = liveIndustries?.find((row) => row.slug === industry.id);
-    const liveLandingUrl = live ? String(live.landing_url ?? "").trim() : "";
-    return live ? {
-      ...industry,
-      title: {
-        ...industry.title,
-        ar: String(live.name ?? industry.title.ar),
-      },
-      subtitle: {
-        ...industry.subtitle,
-        ar: String(live.description ?? industry.subtitle.ar),
-      },
-      url: industry.id === "events-exhibitions" ? LANDING_BROCHURE_VIEW_URL : industry.url,
-      externalUrl: String(live.external_url ?? "").trim() || undefined,
-    } : industry;
-  });
+  const displayedIndustries: Industry[] = useMemo(
+    () =>
+      industriesData.map((industry) => {
+        const live = liveIndustries?.find((row) => row.slug === industry.id);
+        return live
+          ? {
+              ...industry,
+              title: {
+                ...industry.title,
+                ar: String(live.name ?? industry.title.ar),
+              },
+              subtitle: {
+                ...industry.subtitle,
+                ar: String(live.description ?? industry.subtitle.ar),
+              },
+              url:
+                industry.id === "events-exhibitions"
+                  ? LANDING_BROCHURE_VIEW_URL
+                  : industry.url,
+              externalUrl: String(live.external_url ?? "").trim() || undefined,
+            }
+          : industry;
+      }),
+    [liveIndustries],
+  );
   const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
   const primaryExternalUrl = primaryIndustry.externalUrl;
+  const visibleMarketingAssets = useMemo(
+    () =>
+      (marketingAssets.data ?? []).filter((asset) => {
+        if (activeAssetFilter === "all") return true;
+        if (activeAssetFilter === "images") return String(asset.asset_type) === "image";
+        return String(asset.asset_type) === "video";
+      }),
+    [activeAssetFilter, marketingAssets.data],
+  );
 
   async function handleCopyLink(url: string, sectorId: string) {
     await navigator.clipboard.writeText(url);
@@ -422,8 +439,8 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   return (
     <section className="products-workspace" dir={isArabic ? "rtl" : "ltr"}>
       {activeTab !== "sectors" ? (
-      <div className="marketing-hub-hero bg-white border border-slate-100 shadow-sm rounded-2xl p-6 mb-6 w-full flex items-center justify-between">
-        <div className="marketing-hub-copy flex flex-col gap-1 text-right">
+      <div className="marketing-hub-hero bg-white border border-slate-100 shadow-sm rounded-2xl p-6 mb-6 w-full flex items-center justify-between gap-4">
+        <div className={`marketing-hub-copy flex flex-col gap-1 ${isArabic ? "text-right" : "text-left"}`}>
           <p className="eyebrow text-[#00b4d8] text-xs font-semibold mb-1">{marketing.eyebrow}</p>
           <h2 className="text-[#0f2942] text-xl font-bold md:text-2xl">{marketing.heading}</h2>
           <p className="marketing-hub-subtitle text-slate-500 text-sm">{marketing.subheading}</p>
@@ -559,12 +576,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                   </tr>
                 </thead>
                 <tbody>
-                  {(marketingAssets.data ?? [])
-                    .filter((asset) => {
-                      if (activeAssetFilter === "all") return true;
-                      if (activeAssetFilter === "images") return String(asset.asset_type) === "image";
-                      return String(asset.asset_type) === "video";
-                    })
+                  {visibleMarketingAssets
                     .map((asset) => (
                       <tr key={asset.id}>
                         <td>
