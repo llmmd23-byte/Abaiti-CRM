@@ -1938,10 +1938,15 @@ html[dir="ltr"] .dashboard-main {
   width: 16px;
   height: 16px;
   fill: none;
+  color: #ffffff !important;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
+}
+
+.admin-add-user-btn span {
+  color: #ffffff !important;
 }
 
 .admin-add-user-btn:hover {
@@ -3886,6 +3891,18 @@ html[dir="ltr"] .dashboard-main {
 
 .admin-preview-card.ltr .preview-header p {
   order: 2;
+}
+
+.admin-preview-card.rtl .preview-header,
+.admin-preview-card.rtl .preview-header h2,
+.admin-preview-card.rtl .preview-header p {
+  direction: rtl;
+  text-align: right;
+}
+
+.admin-preview-card.rtl .preview-header {
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .admin-pdf-wrapper {

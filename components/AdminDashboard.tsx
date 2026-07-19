@@ -4513,8 +4513,16 @@ function AdminManagementSection({
                 <div className="landing-preview-body">
                   <div className={`admin-preview-card ${isArabic ? "rtl" : "ltr"}`} dir={isArabic ? "rtl" : "ltr"}>
                     <div className="preview-header">
-                      <h2>Exhibitions and Event Systems</h2>
-                      <p>A complete solution for managing exhibitions, conferences, booth bookings, and logistics digitally.</p>
+                      <h2>
+                        {isArabic
+                          ? "أنظمة المعارض والفعاليات"
+                          : "Exhibitions and Event Systems"}
+                      </h2>
+                      <p>
+                        {isArabic
+                          ? "حل متكامل لإدارة المعارض والمؤتمرات وحجوزات الأجنحة والخدمات اللوجستية رقمياً."
+                          : "A complete solution for managing exhibitions, conferences, booth bookings, and logistics digitally."}
+                      </p>
                     </div>
                     <div className="admin-pdf-wrapper">
                       {landingBrochurePreviewUrl ? (
