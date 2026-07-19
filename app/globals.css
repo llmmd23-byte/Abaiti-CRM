@@ -3330,6 +3330,19 @@ html[dir="ltr"] .dashboard-main {
   pointer-events: auto;
 }
 
+.landing-preview-window.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+.landing-preview-window.ltr .landing-preview-admin-bar {
+  direction: ltr;
+}
+
+.landing-preview-window.ltr .landing-preview-admin-bar span {
+  text-align: left;
+}
+
 .landing-preview-floating-close {
   position: fixed;
   top: 18px;
@@ -3428,6 +3441,11 @@ html[dir="ltr"] .dashboard-main {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
+.landing-preview-window.ltr .landing-preview-user-card {
+  direction: ltr;
+  text-align: left;
+}
+
 .landing-preview-user-header {
   display: flex;
   align-items: flex-start;
@@ -3439,12 +3457,21 @@ html[dir="ltr"] .dashboard-main {
   text-align: right;
 }
 
+.landing-preview-window.ltr .landing-preview-user-header {
+  direction: ltr;
+  text-align: left;
+}
+
 .landing-preview-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   flex: 0 0 auto;
   order: 2;
+}
+
+.landing-preview-window.ltr .landing-preview-actions {
+  justify-content: flex-start;
 }
 
 .landing-preview-actions button {
@@ -3471,6 +3498,13 @@ html[dir="ltr"] .dashboard-main {
   text-align: right !important;
 }
 
+.landing-preview-window.ltr .landing-preview-copy {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  direction: ltr !important;
+  text-align: left !important;
+}
+
 .landing-preview-copy h3 {
   margin: 0 0 6px;
   color: #0f172a;
@@ -3478,6 +3512,12 @@ html[dir="ltr"] .dashboard-main {
   font-weight: 800;
   direction: rtl !important;
   text-align: right !important;
+}
+
+.landing-preview-window.ltr .landing-preview-copy h3,
+.landing-preview-window.ltr .landing-preview-copy p {
+  direction: ltr !important;
+  text-align: left !important;
 }
 
 .landing-preview-copy p {
@@ -3488,6 +3528,12 @@ html[dir="ltr"] .dashboard-main {
   line-height: 1.5;
   direction: rtl !important;
   text-align: right !important;
+}
+
+.landing-preview-window.ltr .landing-preview-copy p {
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  max-width: none;
 }
 
 .landing-preview-frame {

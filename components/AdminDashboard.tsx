@@ -3711,7 +3711,7 @@ function AdminManagementSection({
                 <b aria-hidden="true">×</b>
               </button>
               <div
-                className="landing-preview-window"
+                className={`landing-preview-window ${isArabic ? "rtl" : "ltr"}`}
                 onMouseDown={(event) => event.stopPropagation()}
                 onPointerDown={(event) => event.stopPropagation()}
               >
@@ -3737,7 +3737,7 @@ function AdminManagementSection({
                   </button>
                 </div>
                 <div className="landing-preview-body">
-                  <div className="landing-preview-user-card">
+                  <div className={`landing-preview-user-card ${isArabic ? "rtl" : "ltr"}`}>
                     <div className="landing-preview-user-header">
                       <div className="landing-preview-actions">
                         {landingBrochure?.externalUrl ? (
