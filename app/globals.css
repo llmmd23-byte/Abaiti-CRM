@@ -14781,54 +14781,87 @@ html[dir="ltr"] .landing-main .hero {
   color: #047857;
 }
 .admin-row-delete {
-  min-height: 35px;
-  padding: 7px 14px;
-  border: 1px solid #fecaca;
-  border-radius: 10px;
+  min-height: 36px;
+  width: 36px;
+  padding: 0;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
   background: #fff;
   color: #dc2626;
   font: inherit;
-  font-size: 12px;
-  font-weight: 800;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 .admin-row-delete:hover {
-  border-color: #ef4444;
-  background: #fef2f2;
+  border-color: #e53e3e;
+  background: #fff5f5;
 }
 
 .admin-shell .admin-row-actions {
+  display: flex;
   justify-content: center;
   gap: 8px;
+  align-items: center;
 }
 
 .admin-shell .admin-row-actions .admin-row-edit,
 .admin-shell .admin-row-actions .admin-row-delete {
-  min-height: 34px;
-  padding: 6px 16px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
+  min-height: 36px;
+  width: 36px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 0;
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
     color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .admin-shell .admin-row-actions .admin-row-edit {
-  border-color: #008080;
-  color: #008080;
+  border-color: #d9e2ec;
+  color: #0f2d4a;
+  background: #ffffff;
 }
 
 .admin-shell .admin-row-actions .admin-row-edit:hover {
-  border-color: #008080;
-  background: #008080;
-  color: #ffffff;
+  border-color: #1a748b;
+  background: #f0f4f8;
+  color: #1a748b;
 }
 
 .admin-shell .admin-row-actions .admin-row-delete {
-  border-color: #e2e8f0;
-  color: #d94040;
+  border-color: #d9e2ec;
+  color: #dc2626;
+  background: #ffffff;
+}
+
+.admin-shell .admin-row-actions .admin-row-delete:hover {
+  border-color: #e53e3e;
+  background: #fff5f5;
+  color: #e53e3e;
+}
+
+.admin-action-column-header {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.admin-shell .admin-row-actions .admin-row-edit svg,
+.admin-shell .admin-row-actions .admin-row-delete svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }
 .admin-delete-modal {
   width: min(390px, calc(100vw - 32px));
@@ -18099,6 +18132,7 @@ html[dir="rtl"]
 .admin-shell .admin-ticket-data-tools .btn-types {
   border-radius: 8px !important;
   box-sizing: border-box !important;
+  font: inherit !important;
   font-size: 14px !important;
   font-weight: 600 !important;
   height: 44px !important;
@@ -18119,18 +18153,55 @@ html[dir="rtl"]
 }
 
 .admin-shell .admin-ticket-data-tools .status-select .dashboard-select-trigger {
+  border: 1px solid #00afb9 !important;
   border-radius: 8px !important;
   font-size: 14px !important;
   font-weight: 600 !important;
 }
 
+.admin-shell .admin-ticket-data-tools .btn-advanced-filter,
+.admin-shell .admin-ticket-data-tools .btn-types {
+  border: 1px solid #00afb9 !important;
+}
+
 .admin-shell .admin-ticket-types-dropdown-wrap {
-  flex: 0 0 92px !important;
-  width: 92px !important;
-  min-width: 92px !important;
+  flex: 0 0 110px !important;
+  width: 110px !important;
+  min-width: 110px !important;
 }
 
 .admin-shell .admin-ticket-data-tools .btn-types {
-  width: 92px !important;
+  width: 110px !important;
   padding: 10px 16px !important;
+}
+
+.admin-shell[dir="ltr"] .admin-data-head.admin-ticket-data-head {
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 18px !important;
+  direction: ltr !important;
+}
+
+.admin-shell[dir="ltr"] .admin-data-head.admin-ticket-data-head > :first-child {
+  order: 0 !important;
+  text-align: left !important;
+}
+
+.admin-shell[dir="ltr"] .admin-data-head.admin-ticket-data-head .admin-data-tools.admin-ticket-data-tools {
+  order: 1 !important;
+  direction: ltr !important;
+  justify-content: flex-end !important;
+}
+
+.admin-shell[dir="ltr"] .admin-data-head.admin-ticket-data-head .admin-ticket-summary.records-info {
+  text-align: left !important;
+}
+
+.admin-shell[dir="ltr"] .admin-ticket-data-tools .btn-advanced-filter,
+.admin-shell[dir="ltr"] .admin-ticket-data-tools .status-select,
+.admin-shell[dir="ltr"] .admin-ticket-data-tools .btn-types {
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
 }
