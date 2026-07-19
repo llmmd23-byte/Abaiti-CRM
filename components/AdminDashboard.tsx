@@ -4107,10 +4107,10 @@ function AdminManagementSection({
           </strong>
         </div>
         <div
-          className={`admin-data-tools ${section === "tickets" ? "admin-ticket-data-tools admin-ticket-toolbar" : ""} ${section === "products" ? "admin-product-data-tools" : ""} ${section === "activity" ? "admin-activity-data-tools" : ""} ${section === "content" ? "admin-content-data-tools" : ""} ${section === "tickets" ? "search-box" : ""}`}
+          className={`admin-data-tools ${section === "tickets" ? "admin-ticket-data-tools admin-ticket-toolbar" : ""} ${section === "products" ? "admin-product-data-tools" : ""} ${section === "activity" ? "admin-activity-data-tools" : ""} ${section === "content" ? "admin-content-data-tools" : ""}`}
         >
           <div
-            className={`admin-record-search-bar${section === "tickets" ? " admin-ticket-search-wide" : ""}`}
+            className={`admin-record-search-bar${section === "tickets" ? " admin-ticket-search-wide search-box" : ""}`}
           >
             <svg aria-hidden="true" viewBox="0 0 24 24">
               <circle cx="10.8" cy="10.8" r="6.2" />
@@ -4122,7 +4122,7 @@ function AdminManagementSection({
               placeholder={
                 section === "tickets"
                   ? isArabic
-                    ? "ابحث برقم التذكرة..."
+                    ? "ابحث برقم التذكرة أو الاسم..."
                     : "Search by ticket number..."
                   : isArabic
                     ? "ابحث باسم الملف..."
@@ -4177,7 +4177,7 @@ function AdminManagementSection({
           {section === "tickets" ? (
             <button
               aria-pressed={isTicketAdvancedFilter}
-              className={`admin-account-advanced-filter${isTicketAdvancedFilter ? " active" : ""}`}
+              className={`admin-account-advanced-filter btn-advanced-filter${isTicketAdvancedFilter ? " active" : ""}`}
               onClick={() => setIsTicketAdvancedFilter((current) => !current)}
               style={{
                 background: "#ffffff",
@@ -4199,7 +4199,7 @@ function AdminManagementSection({
           ) : null}
           {section === "tickets" ? (
             <div
-              className="admin-ticket-status-filter"
+              className="admin-ticket-status-filter status-select"
             >
               <DashboardSelect
                 ariaLabel={
@@ -4229,17 +4229,12 @@ function AdminManagementSection({
             </div>
           ) : null}
           {section === "tickets" ? (
-            <button className="btn admin-ticket-types-btn" type="button">
-              {isArabic ? "الأنواع" : "Types"}
-            </button>
-          ) : null}
-          {section === "tickets" ? (
             <div
               className="admin-ticket-types-dropdown-wrap"
             >
               <button
                 aria-expanded={isTicketTypesMenuOpen}
-                className={`admin-ticket-types-toggle${isTicketTypesMenuOpen ? " active" : ""}`}
+                className={`admin-ticket-types-toggle btn-types${isTicketTypesMenuOpen ? " active" : ""}`}
                 onClick={() => setIsTicketTypesMenuOpen((current) => !current)}
                 style={{
                   alignItems: "center",

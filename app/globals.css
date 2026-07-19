@@ -118,6 +118,95 @@ html[dir="ltr"] :is(.dashboard-route-shell, .dashboard-shell, .admin-shell) {
   text-align: left;
 }
 
+/* English layout override */
+html[lang="en"],
+.en-version {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+html[lang="en"] :is(h1, h2, h3, h4, h5, h6, p, span, label),
+html[dir="ltr"] :is(h1, h2, h3, h4, h5, h6, p, span, label) {
+  text-align: left !important;
+}
+
+html[lang="en"] :is(input[type="text"], input[type="search"], .search-bar-container) {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+html[lang="en"] input::placeholder {
+  text-align: left !important;
+}
+
+html[dir="ltr"] :is(.card-header-container, .header-flex, .landing-page-manager-header) {
+  flex-direction: row-reverse !important;
+  justify-content: space-between !important;
+}
+
+.toolbar-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+html[dir="rtl"] .toolbar-container,
+body.rtl .toolbar-container {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+html[dir="ltr"] .toolbar-container,
+body.ltr .toolbar-container {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+html[dir="ltr"] .toolbar-container input,
+html[dir="ltr"] .toolbar-container button,
+html[dir="ltr"] .toolbar-container select {
+  direction: ltr;
+  text-align: left;
+}
+
+.admin-ticket-summary.records-info {
+  min-width: 0;
+}
+
+.admin-ticket-toolbar {
+  flex-wrap: wrap;
+}
+
+.admin-ticket-search {
+  flex: 1 1 320px;
+  min-width: 320px;
+  max-width: 360px;
+}
+
+.admin-ticket-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-ticket-status-filter {
+  flex: 0 0 165px;
+  width: 165px;
+  min-width: 165px;
+  max-width: 165px;
+}
+
+.admin-ticket-types-dropdown-wrap {
+  flex: 0 0 72px;
+  width: 72px;
+  min-width: 72px;
+  position: relative;
+}
+
+.admin-ticket-types-btn {
+  flex: 0 0 auto;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -1197,6 +1286,7 @@ html[dir="ltr"] .dashboard-main {
 .dashboard-route-shell {
   min-height: 100vh;
   border-top: 0;
+  zoom: 0.92;
 }
 
 /* Keep dashboard background and non-interactive spacing free of text-selection cursors. */
@@ -2219,6 +2309,19 @@ html[dir="ltr"] .dashboard-main {
   justify-content: flex-start !important;
   gap: 18px !important;
   direction: rtl !important;
+}
+
+.admin-shell[dir="ltr"] .admin-data-head.admin-content-data-head {
+  direction: ltr !important;
+  justify-content: space-between !important;
+}
+
+.admin-shell[dir="ltr"] .admin-data-head.admin-content-data-head > :first-child {
+  text-align: left !important;
+}
+
+.admin-shell[dir="ltr"] .admin-data-head.admin-content-data-head .admin-content-data-tools {
+  justify-content: flex-end !important;
 }
 
 .admin-shell .admin-data-head.admin-content-data-head > :first-child {
@@ -3309,6 +3412,7 @@ html[dir="ltr"] .dashboard-main {
   position: fixed;
   inset: 0;
   z-index: 9999;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3319,6 +3423,8 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .landing-preview-window {
+  position: relative;
+  z-index: 1;
   display: flex;
   width: min(1200px, 100%);
   max-height: 90vh;
@@ -3335,16 +3441,13 @@ html[dir="ltr"] .dashboard-main {
   text-align: left;
 }
 
-.landing-preview-window.ltr .landing-preview-admin-bar {
-  direction: ltr;
-}
-
-.landing-preview-window.ltr .landing-preview-admin-bar span {
-  text-align: left;
+.landing-preview-window.rtl {
+  direction: rtl;
+  text-align: right;
 }
 
 .landing-preview-floating-close {
-  position: fixed;
+  position: absolute;
   top: 18px;
   inset-inline-start: 18px;
   z-index: 10001;
@@ -3430,6 +3533,78 @@ html[dir="ltr"] .dashboard-main {
   background: #f1f5f9;
 }
 
+.admin-preview-card {
+  width: 100%;
+  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.admin-preview-card.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+.admin-preview-card.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.preview-header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  text-align: inherit;
+}
+
+.preview-header h2 {
+  flex: 1 1 260px;
+  max-width: 55%;
+  margin: 0;
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.preview-header p {
+  flex: 1 1 320px;
+  max-width: 45%;
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.admin-pdf-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: min(68vh, calc(100vh - 230px));
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.admin-pdf-wrapper iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: min(68vh, calc(100vh - 230px));
+  border: 0;
+  background: #ffffff;
+}
+
 .landing-preview-user-card {
   display: flex;
   flex-direction: column;
@@ -3446,6 +3621,11 @@ html[dir="ltr"] .dashboard-main {
   text-align: left;
 }
 
+.landing-preview-window.rtl .landing-preview-user-card {
+  direction: rtl;
+  text-align: right;
+}
+
 .landing-preview-user-header {
   display: flex;
   align-items: flex-start;
@@ -3459,7 +3639,26 @@ html[dir="ltr"] .dashboard-main {
 
 .landing-preview-window.ltr .landing-preview-user-header {
   direction: ltr;
+  flex-direction: row;
   text-align: left;
+}
+
+.landing-preview-window.ltr .landing-preview-actions {
+  order: 2;
+  margin-inline-start: auto;
+  justify-content: flex-end;
+}
+
+.landing-preview-window.ltr .landing-preview-copy {
+  order: 1;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  text-align: left;
+  width: auto;
+}
+
+.landing-preview-window.ltr .landing-preview-copy p {
+  margin: 0;
 }
 
 .landing-preview-actions {
@@ -3468,10 +3667,6 @@ html[dir="ltr"] .dashboard-main {
   gap: 10px;
   flex: 0 0 auto;
   order: 2;
-}
-
-.landing-preview-window.ltr .landing-preview-actions {
-  justify-content: flex-start;
 }
 
 .landing-preview-actions button {
@@ -3498,13 +3693,6 @@ html[dir="ltr"] .dashboard-main {
   text-align: right !important;
 }
 
-.landing-preview-window.ltr .landing-preview-copy {
-  margin-inline-start: 0;
-  margin-inline-end: auto;
-  direction: ltr !important;
-  text-align: left !important;
-}
-
 .landing-preview-copy h3 {
   margin: 0 0 6px;
   color: #0f172a;
@@ -3512,12 +3700,6 @@ html[dir="ltr"] .dashboard-main {
   font-weight: 800;
   direction: rtl !important;
   text-align: right !important;
-}
-
-.landing-preview-window.ltr .landing-preview-copy h3,
-.landing-preview-window.ltr .landing-preview-copy p {
-  direction: ltr !important;
-  text-align: left !important;
 }
 
 .landing-preview-copy p {
@@ -3530,22 +3712,87 @@ html[dir="ltr"] .dashboard-main {
   text-align: right !important;
 }
 
-.landing-preview-window.ltr .landing-preview-copy p {
-  margin-inline-start: 0;
-  margin-inline-end: auto;
-  max-width: none;
-}
-
 .landing-preview-frame {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 500px;
+  height: min(70vh, calc(100vh - 220px));
+  max-height: 70vh;
   overflow: hidden;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  background: #334155;
+  background: #ffffff;
+}
+
+.landing-preview-frame .landing-preview-pdf {
+  width: 100%;
+  height: 100%;
+}
+
+.landing-preview-pdf,
+.landing-sector-pdf-preview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #ffffff;
+}
+
+.landing-preview-pdf {
+  min-height: 100%;
+}
+
+.landing-sector-pdf-preview {
+  min-height: 100%;
+}
+
+.pdf-preview-frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.pdf-preview-frame canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.pdf-preview-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.pdf-preview-placeholder a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #0f2240;
+  background: #0f2240;
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .landing-preview-frame iframe {
@@ -3553,6 +3800,46 @@ html[dir="ltr"] .dashboard-main {
   height: 100%;
   border: 0;
   background: #ffffff;
+}
+
+.landing-preview-frame object,
+.landing-sector-frame-stack object {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #ffffff;
+}
+
+.landing-preview-open-link,
+.landing-sector-frame-fallback a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #0f2240;
+  background: #0f2240;
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.landing-sector-frame-fallback {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  color: #64748b;
+  text-align: center;
 }
 
 .landing-preview-placeholder {
@@ -4657,6 +4944,9 @@ html[dir="ltr"] .dashboard-main {
 .leads-hub-view {
   display: grid;
   gap: 18px;
+}
+
+.leads-hub-panel {
 }
 
 .leads-hub-tabs {
@@ -7532,16 +7822,43 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
   max-width: 100%;
 }
 
+.quote-inline-status .dashboard-select-trigger {
+  position: relative;
+  justify-content: center;
+  padding-inline: 36px;
+  text-align: center;
+}
+
 .quote-inline-status .dashboard-select-value {
-  flex: 1;
+  flex: 0 1 auto;
   color: #334155;
   font-weight: 700;
-  text-align: right;
+  text-align: center;
 }
 
 .quote-inline-status .dashboard-select-chevron,
 .quote-status-filter .dashboard-select-chevron {
   color: #00b4d8;
+}
+
+.quote-inline-status .dashboard-select-chevron {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+[dir="rtl"] .quote-inline-status .dashboard-select-chevron {
+  right: auto;
+  left: 16px;
+}
+
+[dir="ltr"] .quote-inline-status .dashboard-select-chevron {
+  right: 16px;
+  left: auto;
+}
+
+.quote-inline-status .dashboard-select-trigger.open .dashboard-select-chevron {
+  transform: translateY(-50%) rotate(180deg);
 }
 
 .quote-inline-status.quote-status-draft .dashboard-select-trigger {
@@ -8250,11 +8567,6 @@ html[dir="rtl"] .compact-action {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
-.landing-sector-card.ltr {
-  direction: ltr;
-  text-align: left;
-}
-
 .landing-sector-heading {
   display: flex;
   direction: rtl;
@@ -8267,24 +8579,12 @@ html[dir="rtl"] .compact-action {
   text-align: right;
 }
 
-.landing-sector-card.ltr .landing-sector-heading {
-  direction: ltr !important;
-  text-align: left !important;
-}
-
 .landing-sector-copy {
   order: 1;
   width: 100%;
   margin-inline-start: auto;
   direction: rtl;
   text-align: right;
-}
-
-.landing-sector-card.ltr .landing-sector-copy {
-  margin-inline-start: 0;
-  margin-inline-end: auto;
-  direction: ltr;
-  text-align: left;
 }
 
 .landing-sector-copy h2 {
@@ -8296,14 +8596,6 @@ html[dir="rtl"] .compact-action {
   letter-spacing: 0;
 }
 
-.landing-sector-card.ltr .landing-sector-copy h2,
-.landing-sector-card.ltr .landing-sector-copy p {
-  margin-inline-start: 0;
-  margin-inline-end: auto;
-  direction: ltr;
-  text-align: left;
-}
-
 .landing-sector-copy p {
   max-width: 720px;
   margin: 6px 0 0 auto;
@@ -8313,10 +8605,6 @@ html[dir="rtl"] .compact-action {
   line-height: 1.7;
   direction: rtl;
   text-align: right;
-}
-
-.landing-sector-card.ltr .landing-sector-actions {
-  direction: ltr;
 }
 
 .landing-sector-actions {
@@ -8373,9 +8661,15 @@ html[dir="rtl"] .compact-action {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 560px;
+  min-height: min(70vh, calc(100vh - 220px));
   border: 0;
   background: #ffffff;
+}
+
+.landing-sector-frame-stack .pdf-preview-frame {
+  width: 100%;
+  min-height: 0;
+  height: 100%;
 }
 
 .landing-sector-frame-stack {
@@ -10236,8 +10530,8 @@ html[dir="ltr"] .dashboard-route-shell .dashboard-main {
   top: 0;
   flex: 0 0 272px;
   width: 272px;
-  min-height: 100vh;
-  height: 100vh;
+  min-height: calc(100vh / 0.92);
+  height: calc(100vh / 0.92);
   padding: 30px 24px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -14456,6 +14750,36 @@ html[dir="ltr"] .landing-main .hero {
   align-items: center;
   gap: 7px;
 }
+
+.admin-content-status-toggle,
+.admin-row-status-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-content-status-toggle.admin-status-inactive,
+.admin-row-status-toggle:not(.is-active) {
+  border-color: #dbe4ee;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.admin-content-status-toggle.admin-status-active,
+.admin-row-status-toggle.is-active {
+  border-color: #bbf7d0;
+  background: #ecfdf5;
+  color: #047857;
+}
 .admin-row-delete {
   min-height: 35px;
   padding: 7px 14px;
@@ -14471,6 +14795,40 @@ html[dir="ltr"] .landing-main .hero {
 .admin-row-delete:hover {
   border-color: #ef4444;
   background: #fef2f2;
+}
+
+.admin-shell .admin-row-actions {
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-shell .admin-row-actions .admin-row-edit,
+.admin-shell .admin-row-actions .admin-row-delete {
+  min-height: 34px;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.admin-shell .admin-row-actions .admin-row-edit {
+  border-color: #008080;
+  color: #008080;
+}
+
+.admin-shell .admin-row-actions .admin-row-edit:hover {
+  border-color: #008080;
+  background: #008080;
+  color: #ffffff;
+}
+
+.admin-shell .admin-row-actions .admin-row-delete {
+  border-color: #e2e8f0;
+  color: #d94040;
 }
 .admin-delete-modal {
   width: min(390px, calc(100vw - 32px));
@@ -16078,6 +16436,22 @@ html[dir="rtl"]
   min-width: 980px;
 }
 
+.admin-permissions-footnote {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-permissions-footnote strong {
+  color: #0f293d;
+  font-weight: 800;
+}
+
 .admin-permissions-table td:first-child {
   min-width: 280px;
 }
@@ -17457,6 +17831,41 @@ html[dir="rtl"]
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
 }
 
+.admin-shell .admin-data-head.admin-ticket-data-head .admin-ticket-summary {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  min-width: 160px !important;
+  text-align: right !important;
+}
+
+.admin-shell .admin-data-head.admin-ticket-data-head .admin-ticket-summary span {
+  color: #00afb9 !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1.2 !important;
+}
+
+.admin-shell .admin-data-head.admin-ticket-data-head .admin-ticket-summary strong {
+  color: #0f2240 !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  line-height: 1.05 !important;
+}
+
+.admin-shell .admin-data-head.admin-ticket-data-head .admin-ticket-toolbar {
+  align-items: center !important;
+  display: inline-flex !important;
+  flex: 1 1 auto !important;
+  flex-wrap: nowrap !important;
+  gap: 10px !important;
+  justify-content: flex-start !important;
+  min-width: 0 !important;
+}
+
 .admin-shell[dir="rtl"] .admin-ticket-status-filter .dashboard-select-option {
   min-height: 42px !important;
   padding: 10px 14px !important;
@@ -17653,4 +18062,75 @@ html[dir="rtl"]
 .admin-table-wrap a[href]:hover,
 .customers-list-table a[href]:hover {
   color: #00b4d8;
+}
+
+.admin-shell .admin-data-head.admin-ticket-data-head.toolbar-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  flex-wrap: nowrap !important;
+}
+
+.admin-shell .admin-ticket-summary.records-info {
+  flex: 0 0 auto !important;
+  min-width: 150px !important;
+}
+
+.admin-shell .admin-data-tools.admin-ticket-data-tools {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  flex-wrap: nowrap !important;
+}
+
+.admin-shell .admin-ticket-data-tools > .admin-record-search-bar.search-box,
+.admin-data-head .admin-data-tools.admin-ticket-data-tools > .admin-record-search-bar.search-box {
+  flex: 1 1 420px !important;
+  width: auto !important;
+  min-width: 280px !important;
+  max-width: none !important;
+}
+
+.admin-shell .admin-ticket-data-tools .btn-advanced-filter,
+.admin-shell .admin-ticket-data-tools .status-select,
+.admin-shell .admin-ticket-data-tools .btn-types {
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  height: 44px !important;
+  min-height: 44px !important;
+}
+
+.admin-shell .admin-ticket-data-tools .btn-advanced-filter {
+  flex: 0 0 142px !important;
+  width: 142px !important;
+  padding: 10px 16px !important;
+}
+
+.admin-shell .admin-ticket-data-tools > .status-select {
+  flex: 0 0 165px !important;
+  width: 165px !important;
+  min-width: 165px !important;
+  max-width: 165px !important;
+}
+
+.admin-shell .admin-ticket-data-tools .status-select .dashboard-select-trigger {
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.admin-shell .admin-ticket-types-dropdown-wrap {
+  flex: 0 0 92px !important;
+  width: 92px !important;
+  min-width: 92px !important;
+}
+
+.admin-shell .admin-ticket-data-tools .btn-types {
+  width: 92px !important;
+  padding: 10px 16px !important;
 }
