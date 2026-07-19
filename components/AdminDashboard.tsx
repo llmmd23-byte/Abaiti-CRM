@@ -6,6 +6,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { signOutAction } from "@/app/auth-actions";
 import Image from "next/image";
 import DashboardSelect from "@/components/DashboardSelect";
+import PdfPreviewFrame from "@/components/PdfPreviewFrame";
 import { notifyMarketingAssetsChanged } from "@/lib/marketing-assets-sync";
 
 type MetricKey = "users" | "clients" | "demos" | "quotes" | "sales";
@@ -721,6 +722,15 @@ function AdminMetricList({
   const [passwordRow, setPasswordRow] = useState<AdminRow | null>(null);
   const [passwordDraft, setPasswordDraft] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
+  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
+  const [createUserDraft, setCreateUserDraft] = useState({
+    name: "",
+    email: "",
+    role: "affiliate",
+    status: "active",
+    password: "",
+  });
+  const [createUserMessage, setCreateUserMessage] = useState("");
   useEffect(() => {
     setSearch("");
     setStatusFilter("all");
@@ -732,6 +742,8 @@ function AdminMetricList({
     setPasswordRow(null);
     setPasswordDraft("");
     setPasswordMessage("");
+    setIsCreateUserOpen(false);
+    setCreateUserMessage("");
   }, [metric]);
   const metricData = data ?? EMPTY_MANAGEMENT_DATA;
 
@@ -873,6 +885,26 @@ function AdminMetricList({
     ["last_login_at", isArabic ? "آخر دخول" : "Last Login"],
     ["skills_proof_files", isArabic ? "ملفات إثبات المهارات" : "Skill Proof Files"],
   ] as const;
+  const userRoleOptions =
+    metricData.roles?.length
+      ? metricData.roles.map((role) => ({
+          value: String(role.slug),
+          label: `${isArabic ? role.name_ar : role.name_en} - ${
+            role.role_type === "admin"
+              ? isArabic
+                ? "أدمن"
+                : "Admin"
+              : isArabic
+                ? "مستخدم"
+                : "User"
+          }`,
+        }))
+      : [
+          { value: "admin", label: "Admin" },
+          { value: "affiliate", label: "Affiliate" },
+          { value: "sales", label: "Sales" },
+          { value: "support", label: "Support" },
+        ];
   const normalizedSearch = search.trim().toLocaleLowerCase();
   const hasUserFilter = ["clients", "demos", "quotes", "sales"].includes(
     metric,
@@ -1117,6 +1149,69 @@ function AdminMetricList({
     }
   }
 
+  function openCreateUserModal() {
+    setCreateUserDraft({
+      name: "",
+      email: "",
+      role: userRoleOptions[0]?.value ?? "affiliate",
+      status: "active",
+      password: "",
+    });
+    setCreateUserMessage("");
+    setIsCreateUserOpen(true);
+  }
+
+  function closeCreateUserModal() {
+    setIsCreateUserOpen(false);
+    setCreateUserMessage("");
+    setCreateUserDraft({
+      name: "",
+      email: "",
+      role: userRoleOptions[0]?.value ?? "affiliate",
+      status: "active",
+      password: "",
+    });
+  }
+
+  async function createUser() {
+    if (
+      !createUserDraft.name.trim() ||
+      !createUserDraft.email.trim() ||
+      !createUserDraft.role ||
+      !createUserDraft.status ||
+      createUserDraft.password.length < 6
+    ) {
+      setCreateUserMessage(
+        isArabic
+          ? "أكمل الحقول المطلوبة، وكلمة المرور 6 أحرف على الأقل"
+          : "Complete the required fields. Password must be at least 6 characters.",
+      );
+      return;
+    }
+    setCreateUserMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const response = await fetch("/api/v1/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify(createUserDraft),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error ?? "CREATE_FAILED");
+      closeCreateUserModal();
+      onReload();
+    } catch (error) {
+      setCreateUserMessage(
+        error instanceof Error && error.message === "EMAIL_EXISTS"
+          ? isArabic
+            ? "البريد الإلكتروني مستخدم مسبقًا"
+            : "Email is already in use"
+          : isArabic
+            ? "تعذر إنشاء المستخدم"
+            : "Unable to create user",
+      );
+    }
+  }
+
   return (
     <section className="admin-metric-list">
       <div className="admin-metric-list-head">
@@ -1248,6 +1343,23 @@ function AdminMetricList({
             <strong>
               {visibleRows.length.toLocaleString(NUMBER_LOCALE)}
             </strong>
+          ) : null}
+          {metric === "users" ? (
+            <button
+              className="admin-add-user-btn add-user-btn"
+              onClick={openCreateUserModal}
+              type="button"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M15 19a6 6 0 0 0-12 0" />
+                <circle cx="9" cy="8" r="4" />
+                <path d="M19 8v6" />
+                <path d="M16 11h6" />
+              </svg>
+              <span>
+                {isArabic ? "إضافة مستخدم جديد" : "Add New User"}
+              </span>
+            </button>
           ) : null}
         </div>
       </div>
@@ -1419,6 +1531,132 @@ function AdminMetricList({
           </tbody>
         </table>
       </div>
+      {isCreateUserOpen ? (
+        <div
+          className="admin-create-user-overlay modal-overlay active"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeCreateUserModal();
+          }}
+          role="presentation"
+        >
+          <section
+            aria-modal="true"
+            className="admin-create-user-modal modal-content-box"
+            role="dialog"
+          >
+            <div className="admin-create-user-head modal-header">
+              <h3>{isArabic ? "إضافة مستخدم جديد" : "Add New User"}</h3>
+              <button
+                aria-label={isArabic ? "إغلاق" : "Close"}
+                className="close-modal-btn"
+                onClick={closeCreateUserModal}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            <form
+              className="admin-create-user-form modal-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void createUser();
+              }}
+            >
+              <label className="form-group">
+                <span>{isArabic ? "الاسم بالكامل" : "Full Name"}</span>
+                <input
+                  onChange={(event) =>
+                    setCreateUserDraft((current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder={isArabic ? "أدخل اسم المستخدم" : "Enter user name"}
+                  required
+                  type="text"
+                  value={createUserDraft.name}
+                />
+              </label>
+              <label className="form-group">
+                <span>{isArabic ? "البريد الإلكتروني" : "Email"}</span>
+                <input
+                  dir="ltr"
+                  onChange={(event) =>
+                    setCreateUserDraft((current) => ({
+                      ...current,
+                      email: event.target.value,
+                    }))
+                  }
+                  placeholder="example@middar.com"
+                  required
+                  type="email"
+                  value={createUserDraft.email}
+                />
+              </label>
+              <div className="admin-create-user-row form-row">
+                <label className="form-group">
+                  <span>{isArabic ? "الصلاحية" : "Role"}</span>
+                  <DashboardSelect
+                    ariaLabel={isArabic ? "الصلاحية" : "Role"}
+                    menuClassName="admin-edit-select-menu"
+                    onValueChange={(role) =>
+                      setCreateUserDraft((current) => ({ ...current, role }))
+                    }
+                    options={userRoleOptions}
+                    portal
+                    value={createUserDraft.role}
+                  />
+                </label>
+                <label className="form-group">
+                  <span>{isArabic ? "حالة الحساب" : "Account Status"}</span>
+                  <DashboardSelect
+                    ariaLabel={isArabic ? "حالة الحساب" : "Account Status"}
+                    menuClassName="admin-edit-select-menu"
+                    onValueChange={(status) =>
+                      setCreateUserDraft((current) => ({ ...current, status }))
+                    }
+                    options={statusOptions.users}
+                    portal
+                    value={createUserDraft.status}
+                  />
+                </label>
+              </div>
+              <label className="form-group">
+                <span>{isArabic ? "كلمة المرور" : "Password"}</span>
+                <input
+                  dir="ltr"
+                  minLength={6}
+                  onChange={(event) =>
+                    setCreateUserDraft((current) => ({
+                      ...current,
+                      password: event.target.value,
+                    }))
+                  }
+                  placeholder="••••••••"
+                  required
+                  type="password"
+                  value={createUserDraft.password}
+                />
+              </label>
+              {createUserMessage ? (
+                <p className="admin-create-user-message">{createUserMessage}</p>
+              ) : null}
+              <div className="admin-create-user-actions modal-footer">
+                <button
+                  className="btn-cancel"
+                  onClick={closeCreateUserModal}
+                  type="button"
+                >
+                  {isArabic ? "إلغاء" : "Cancel"}
+                </button>
+                <button className="btn-submit" type="submit">
+                  {isArabic ? "حفظ المستخدم" : "Save User"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      ) : null}
       {editingRow ? (
         <div
           className="admin-edit-overlay"
@@ -1953,6 +2191,7 @@ function AdminTagsSection({
         });
       }),
     );
+    return tags;
   }
 
   async function saveTagSettings(type: {
@@ -2011,7 +2250,24 @@ function AdminTagsSection({
         });
         if (!response.ok) throw new Error("ADD_TAG_FAILED");
         const createdTag = await response.json().catch(() => null);
-        await rebalanceTagGradient(type.id, createdTag?.data ?? createdTag, typeDraft.color);
+        const gradientTags = await rebalanceTagGradient(
+          type.id,
+          createdTag?.data ?? createdTag,
+          typeDraft.color,
+        );
+        if (gradientTags?.length) {
+          setTagDrafts((current) => {
+            const next = {...current};
+            gradientTags.forEach((tag) => {
+              next[tag.id] = {
+                ...(next[tag.id] ?? {name: tag.name, color: tag.color}),
+                name: tag.name,
+                color: tag.color,
+              };
+            });
+            return next;
+          });
+        }
         setNewTagDrafts((current) => ({
           ...current,
           [type.id]: { name: "", color: "#00b4d8" },
@@ -2025,68 +2281,6 @@ function AdminTagsSection({
     } finally {
       setSavingKey("");
     }
-  }
-
-  function hexToRgb(hex: string) {
-    const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex.slice(1) : "00b4d8";
-    return {
-      r: Number.parseInt(normalized.slice(0, 2), 16),
-      g: Number.parseInt(normalized.slice(2, 4), 16),
-      b: Number.parseInt(normalized.slice(4, 6), 16),
-    };
-  }
-
-  function rgbToHex({ r, g, b }: { r: number; g: number; b: number }) {
-    return `#${[r, g, b]
-      .map((value) =>
-        Math.max(0, Math.min(255, Math.round(value)))
-          .toString(16)
-          .padStart(2, "0"),
-      )
-      .join("")}`;
-  }
-
-  function mixHex(startHex: string, endHex: string, ratio: number) {
-    const start = hexToRgb(startHex);
-    const end = hexToRgb(endHex);
-    return rgbToHex({
-      r: start.r + (end.r - start.r) * ratio,
-      g: start.g + (end.g - start.g) * ratio,
-      b: start.b + (end.b - start.b) * ratio,
-    });
-  }
-
-  function createTagGradient(type: {
-    id: number;
-    color: string;
-    tags: Array<{ id: number; name: string; color: string; count: number }>;
-  }) {
-    if (!type.tags.length) {
-      setMessage(
-        isArabic
-          ? "لا توجد وسوم لإنشاء تدرج لها"
-          : "No tags available for a gradient",
-      );
-      return;
-    }
-    const baseColor = typeDrafts[type.id]?.color ?? type.color;
-    const gradientEnd = "#11293d";
-    setTagDrafts((current) => {
-      const next = { ...current };
-      type.tags.forEach((tag, index) => {
-        const ratio = type.tags.length === 1 ? 0 : index / (type.tags.length - 1);
-        next[tag.id] = {
-          ...(next[tag.id] ?? { name: tag.name, color: tag.color }),
-          color: mixHex(baseColor, gradientEnd, ratio),
-        };
-      });
-      return next;
-    });
-    setMessage(
-      isArabic
-        ? "تم إنشاء التدرج اللوني. اضغط حفظ التعديلات لتثبيت التغييرات."
-        : "Gradient created. Save changes to apply it.",
-    );
   }
 
   function pieBackground(
@@ -2363,13 +2557,6 @@ function AdminTagsSection({
                 <div className="admin-linked-tags-editor">
                   <div className="admin-linked-tags-head">
                     <strong>{isArabic ? "الوسوم المرتبطة" : "Linked tags"}</strong>
-                    <button
-                      className="admin-action-btn admin-gradient-btn"
-                      onClick={() => createTagGradient(type)}
-                      type="button"
-                    >
-                      {isArabic ? "إنشاء تدرج لوني" : "Create color gradient"}
-                    </button>
                   </div>
                   {type.tags.length ? (
                     type.tags.map((tag) => {
@@ -3165,7 +3352,6 @@ function AdminManagementSection({
       ),
     [managementData.users],
   );
-
   if (section === "permissions") {
     return <AdminPermissionsSection isArabic={isArabic} />;
   }
@@ -3938,7 +4124,9 @@ function AdminManagementSection({
                     </div>
                     <div className="admin-pdf-wrapper">
                       {landingBrochurePreviewUrl ? (
-                        <iframe
+                        <PdfPreviewFrame
+                          className="admin-pdf-preview"
+                          minHeight={560}
                           src={landingBrochurePreviewUrl}
                           title={isArabic ? "معاينة بروشور صفحة الهبوط" : "Landing brochure preview"}
                         />

@@ -10,7 +10,7 @@ import {db} from "@/lib/db";
 
 export const AUTH_COOKIE = "middar_session";
 
-type UserRole = "admin" | "affiliate" | "sales" | "support";
+type UserRole = string;
 
 interface UserRow extends RowDataPacket {
   id: number;
@@ -97,7 +97,29 @@ export async function getSession(): Promise<MiddarSession | null> {
 
   try {
     const {payload} = await jwtVerify(token, jwtSecret(), {algorithms: ["HS256"]});
-    return payload as MiddarSession;
+    const userId = Number(payload.sub);
+    if (!Number.isInteger(userId) || userId < 1) return null;
+
+    const [rows] = await db.execute<UserRow[]>(
+      `SELECT u.id, u.name, u.email, u.password_hash,
+              COALESCE(r.slug, 'affiliate') AS role,
+              u.status, u.is_active, u.preferred_locale
+         FROM users u
+         LEFT JOIN roles r ON r.id = u.role_id
+        WHERE u.id = ?
+        LIMIT 1`,
+      [userId],
+    );
+    const user = rows[0];
+    if (!user || Number(user.is_active) !== 1 || user.status !== "active") return null;
+
+    return {
+      ...payload,
+      sub: String(user.id),
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    } as MiddarSession;
   } catch {
     return null;
   }

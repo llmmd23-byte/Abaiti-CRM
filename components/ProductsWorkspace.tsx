@@ -3,6 +3,7 @@
 import {useLocale} from "next-intl";
 import {useState, type CSSProperties, type ReactNode} from "react";
 import {DemoView} from "@/components/DashboardNewSections";
+import PdfPreviewFrame from "@/components/PdfPreviewFrame";
 import {useBackend} from "@/lib/client-backend";
 
 type ProductWorkspaceView = "catalog" | "form";
@@ -504,7 +505,12 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
 
             <div className="landing-sector-frame">
               <div className="landing-sector-frame-stack">
-                <iframe src={primaryIndustry.url} title={primaryIndustry.title[isArabic ? "ar" : "en"]} />
+                <PdfPreviewFrame
+                  className="landing-sector-pdf-preview"
+                  minHeight={560}
+                  src={primaryIndustry.url}
+                  title={primaryIndustry.title[isArabic ? "ar" : "en"]}
+                />
                 <a href={primaryIndustry.url} target="_blank" rel="noreferrer">
                   {isArabic ? "فتح بروشور صفحة الهبوط" : "Open landing brochure"}
                 </a>
