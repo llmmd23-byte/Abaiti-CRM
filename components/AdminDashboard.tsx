@@ -860,6 +860,17 @@ function AdminMetricList({
       { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
     ],
   };
+  const userRoleOptions = useMemo(() => {
+    const options = metricData.roles
+      .filter((role) => String(role.slug ?? "").trim())
+      .map((role) => ({
+        value: String(role.slug),
+        label: String(isArabic ? (role.name_ar ?? role.name_en) : (role.name_en ?? role.name_ar)),
+      }));
+    return options.length
+      ? options
+      : [{ value: "affiliate", label: isArabic ? "مسوق" : "Affiliate" }];
+  }, [isArabic, metricData.roles]);
   const userTextFields = [
     ["name", isArabic ? "الاسم" : "Name", "text"],
     ["email", isArabic ? "البريد الإلكتروني" : "Email", "email"],
@@ -885,26 +896,6 @@ function AdminMetricList({
     ["last_login_at", isArabic ? "آخر دخول" : "Last Login"],
     ["skills_proof_files", isArabic ? "ملفات إثبات المهارات" : "Skill Proof Files"],
   ] as const;
-  const userRoleOptions =
-    metricData.roles?.length
-      ? metricData.roles.map((role) => ({
-          value: String(role.slug),
-          label: `${isArabic ? role.name_ar : role.name_en} - ${
-            role.role_type === "admin"
-              ? isArabic
-                ? "أدمن"
-                : "Admin"
-              : isArabic
-                ? "مستخدم"
-                : "User"
-          }`,
-        }))
-      : [
-          { value: "admin", label: "Admin" },
-          { value: "affiliate", label: "Affiliate" },
-          { value: "sales", label: "Sales" },
-          { value: "support", label: "Support" },
-        ];
   const normalizedSearch = search.trim().toLocaleLowerCase();
   const hasUserFilter = ["clients", "demos", "quotes", "sales"].includes(
     metric,
@@ -1196,7 +1187,7 @@ function AdminMetricList({
         body: JSON.stringify(createUserDraft),
       });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error ?? "CREATE_FAILED");
+      if (!response.ok) throw new Error(String(body.error ?? "CREATE_FAILED"));
       closeCreateUserModal();
       onReload();
     } catch (error) {
@@ -1274,6 +1265,14 @@ function AdminMetricList({
                     ...tagTypeFilterOptions,
                   ]}
                   value={clientTagTypeFilter}
+                />
+              </div>
+              <div className="admin-user-status-filter admin-client-user-filter">
+                <DashboardSelect
+                  ariaLabel={isArabic ? "\u0641\u0644\u062a\u0631\u0629 \u062d\u0633\u0628 \u0627\u0644\u0648\u0633\u0645" : "Filter by tag"}
+                  onValueChange={setClientTagFilter}
+                  options={tagSelectOptions}
+                  value={clientTagFilter}
                 />
               </div>
             </>
@@ -1356,9 +1355,7 @@ function AdminMetricList({
                 <path d="M19 8v6" />
                 <path d="M16 11h6" />
               </svg>
-              <span>
-                {isArabic ? "إضافة مستخدم جديد" : "Add New User"}
-              </span>
+              <span>{isArabic ? "إضافة مستخدم جديد" : "Add New User"}</span>
             </button>
           ) : null}
         </div>
@@ -1533,7 +1530,7 @@ function AdminMetricList({
       </div>
       {isCreateUserOpen ? (
         <div
-          className="admin-create-user-overlay modal-overlay active"
+          className="admin-create-user-overlay"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeCreateUserModal();
           }}
@@ -1541,7 +1538,7 @@ function AdminMetricList({
         >
           <section
             aria-modal="true"
-            className="admin-create-user-modal modal-content-box"
+            className="admin-create-user-modal"
             role="dialog"
           >
             <div className="admin-create-user-head modal-header">
@@ -1598,7 +1595,7 @@ function AdminMetricList({
                   <span>{isArabic ? "الصلاحية" : "Role"}</span>
                   <DashboardSelect
                     ariaLabel={isArabic ? "الصلاحية" : "Role"}
-                    menuClassName="admin-edit-select-menu"
+                    menuClassName="admin-edit-select-menu admin-create-user-select-menu"
                     onValueChange={(role) =>
                       setCreateUserDraft((current) => ({ ...current, role }))
                     }
@@ -1611,7 +1608,7 @@ function AdminMetricList({
                   <span>{isArabic ? "حالة الحساب" : "Account Status"}</span>
                   <DashboardSelect
                     ariaLabel={isArabic ? "حالة الحساب" : "Account Status"}
-                    menuClassName="admin-edit-select-menu"
+                    menuClassName="admin-edit-select-menu admin-create-user-select-menu"
                     onValueChange={(status) =>
                       setCreateUserDraft((current) => ({ ...current, status }))
                     }
@@ -1632,7 +1629,7 @@ function AdminMetricList({
                       password: event.target.value,
                     }))
                   }
-                  placeholder="••••••••"
+                  placeholder="********"
                   required
                   type="password"
                   value={createUserDraft.password}
@@ -2191,7 +2188,6 @@ function AdminTagsSection({
         });
       }),
     );
-    return tags;
   }
 
   async function saveTagSettings(type: {
@@ -2250,24 +2246,7 @@ function AdminTagsSection({
         });
         if (!response.ok) throw new Error("ADD_TAG_FAILED");
         const createdTag = await response.json().catch(() => null);
-        const gradientTags = await rebalanceTagGradient(
-          type.id,
-          createdTag?.data ?? createdTag,
-          typeDraft.color,
-        );
-        if (gradientTags?.length) {
-          setTagDrafts((current) => {
-            const next = {...current};
-            gradientTags.forEach((tag) => {
-              next[tag.id] = {
-                ...(next[tag.id] ?? {name: tag.name, color: tag.color}),
-                name: tag.name,
-                color: tag.color,
-              };
-            });
-            return next;
-          });
-        }
+        await rebalanceTagGradient(type.id, createdTag?.data ?? createdTag, typeDraft.color);
         setNewTagDrafts((current) => ({
           ...current,
           [type.id]: { name: "", color: "#00b4d8" },
@@ -2281,6 +2260,68 @@ function AdminTagsSection({
     } finally {
       setSavingKey("");
     }
+  }
+
+  function hexToRgb(hex: string) {
+    const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex.slice(1) : "00b4d8";
+    return {
+      r: Number.parseInt(normalized.slice(0, 2), 16),
+      g: Number.parseInt(normalized.slice(2, 4), 16),
+      b: Number.parseInt(normalized.slice(4, 6), 16),
+    };
+  }
+
+  function rgbToHex({ r, g, b }: { r: number; g: number; b: number }) {
+    return `#${[r, g, b]
+      .map((value) =>
+        Math.max(0, Math.min(255, Math.round(value)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")}`;
+  }
+
+  function mixHex(startHex: string, endHex: string, ratio: number) {
+    const start = hexToRgb(startHex);
+    const end = hexToRgb(endHex);
+    return rgbToHex({
+      r: start.r + (end.r - start.r) * ratio,
+      g: start.g + (end.g - start.g) * ratio,
+      b: start.b + (end.b - start.b) * ratio,
+    });
+  }
+
+  function createTagGradient(type: {
+    id: number;
+    color: string;
+    tags: Array<{ id: number; name: string; color: string; count: number }>;
+  }) {
+    if (!type.tags.length) {
+      setMessage(
+        isArabic
+          ? "لا توجد وسوم لإنشاء تدرج لها"
+          : "No tags available for a gradient",
+      );
+      return;
+    }
+    const baseColor = typeDrafts[type.id]?.color ?? type.color;
+    const gradientEnd = "#11293d";
+    setTagDrafts((current) => {
+      const next = { ...current };
+      type.tags.forEach((tag, index) => {
+        const ratio = type.tags.length === 1 ? 0 : index / (type.tags.length - 1);
+        next[tag.id] = {
+          ...(next[tag.id] ?? { name: tag.name, color: tag.color }),
+          color: mixHex(baseColor, gradientEnd, ratio),
+        };
+      });
+      return next;
+    });
+    setMessage(
+      isArabic
+        ? "تم إنشاء التدرج اللوني. اضغط حفظ التعديلات لتثبيت التغييرات."
+        : "Gradient created. Save changes to apply it.",
+    );
   }
 
   function pieBackground(
@@ -2557,6 +2598,13 @@ function AdminTagsSection({
                 <div className="admin-linked-tags-editor">
                   <div className="admin-linked-tags-head">
                     <strong>{isArabic ? "الوسوم المرتبطة" : "Linked tags"}</strong>
+                    <button
+                      className="admin-action-btn admin-gradient-btn"
+                      onClick={() => createTagGradient(type)}
+                      type="button"
+                    >
+                      {isArabic ? "إنشاء تدرج لوني" : "Create color gradient"}
+                    </button>
                   </div>
                   {type.tags.length ? (
                     type.tags.map((tag) => {
@@ -3220,7 +3268,7 @@ function AdminManagementSection({
   const [isLandingPreviewOpen, setIsLandingPreviewOpen] = useState(false);
   const landingBrochureFileRef = useRef<HTMLInputElement | null>(null);
   const managementData = data ?? EMPTY_MANAGEMENT_DATA;
-  const landingBrochurePreviewUrl = "/api/v1/landing-brochure#toolbar=1&navpanes=0";
+  const landingBrochurePreviewUrl = `${String(landingBrochure?.url ?? "/landing-pages/coffee-chocolate-expo-2026-v2.pdf").split("#")[0]}#toolbar=1&navpanes=0`;
 
   useEffect(() => {
     if (section !== "content") return;
@@ -3352,6 +3400,7 @@ function AdminManagementSection({
       ),
     [managementData.users],
   );
+
   if (section === "permissions") {
     return <AdminPermissionsSection isArabic={isArabic} />;
   }
@@ -3928,14 +3977,97 @@ function AdminManagementSection({
     window.setTimeout(() => setLandingBrochureMessage(""), 2600);
   }
 
+  async function toggleAccountStatus(row: AdminRow) {
+    const currentStatus = String(row.status ?? "inactive");
+    const nextStatus = currentStatus === "active" ? "inactive" : "active";
+    try {
+      const response = await fetch(`/api/v1/admin/users/${row.id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json; charset=utf-8"},
+        body: JSON.stringify({
+          ...row,
+          status: nextStatus,
+          is_active: nextStatus === "active" ? 1 : 0,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
+      onReload();
+    } catch {
+      window.alert(isArabic ? "طتعذر تحديث حالة الحساب" : "Unable to update account status");
+    }
+  }
+
   if (section === "accounts") {
     return (
-      <section className="admin-data-card admin-accounts-workspace">
-        <AdminAccountQuotes
-          data={data}
-          isArabic={isArabic}
-          onReload={onReload}
-        />
+      <section className="admin-data-card admin-accounts-workspace" dir={isArabic ? "rtl" : "ltr"}>
+        <div className="admin-data-head admin-accounts-head">
+          <div className="records-info">
+            <span>{isArabic ? "إدارة البيانات" : "Data Management"}</span>
+            <strong>
+              {visibleRows.length.toLocaleString(NUMBER_LOCALE)}{" "}
+              {isArabic ? "سجل" : "records"}
+            </strong>
+          </div>
+          <div className="admin-data-tools admin-accounts-tools">
+            <div className="admin-record-search-bar search-box">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="10.8" cy="10.8" r="6.2" />
+                <path d="m15.5 15.5 4 4" />
+              </svg>
+              <input
+                aria-label={isArabic ? "البحث" : "Search"}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={isArabic ? "ابحث بالاسم أو البريد الإلكتروني..." : "Search by name or email..."}
+                type="search"
+                value={query}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="admin-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>{isArabic ? "الاسم" : "Name"}</th>
+                <th>{isArabic ? "البريد الإلكتروني" : "Email"}</th>
+                <th>{isArabic ? "الصلاحية" : "Role"}</th>
+                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th>{isArabic ? "آخر دخول" : "Last Login"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleRows.map((row, index) => (
+                <tr key={`account-${row.id}-${index}`}>
+                  <td>{String(row.name ?? "—")}</td>
+                  <td>{String(row.email ?? "—")}</td>
+                  <td>
+                    <span className={`admin-status admin-status-${String(row.role ?? "affiliate")}`}>
+                      {displayAdminValue(row.role, isArabic)}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className={`admin-row-status-toggle ${String(row.status ?? "inactive") === "active" ? "is-active" : ""}`}
+                      onClick={() => void toggleAccountStatus(row)}
+                      type="button"
+                    >
+                      {displayAdminValue(row.status, isArabic)}
+                    </button>
+                  </td>
+                  <td>{String(row.last_login_at ?? "—").slice(0, 10)}</td>
+                </tr>
+              ))}
+              {visibleRows.length === 0 ? (
+                <tr>
+                  <td className="admin-empty" colSpan={5}>
+                    {isArabic ? "لا توجد حسابات مطابقة" : "No matching accounts"}
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
       </section>
     );
   }
@@ -4319,6 +4451,11 @@ function AdminManagementSection({
               type="search"
               value={query}
             />
+            {section === "tickets" ? (
+              <div className="admin-ticket-records-badge">
+                {filteredRows.length.toLocaleString(NUMBER_LOCALE)}
+              </div>
+            ) : null}
           </div>
           {section === "products" ? (
             <button
@@ -4367,19 +4504,6 @@ function AdminManagementSection({
               aria-pressed={isTicketAdvancedFilter}
               className={`admin-account-advanced-filter btn-advanced-filter${isTicketAdvancedFilter ? " active" : ""}`}
               onClick={() => setIsTicketAdvancedFilter((current) => !current)}
-              style={{
-                background: "#ffffff",
-                border: "1px solid #00afb9",
-                borderRadius: "12px",
-                boxShadow: "none",
-                color: "#007f89",
-                flex: "0 0 108px",
-                fontSize: "12px",
-                fontWeight: 800,
-                height: "44px",
-                padding: "0 14px",
-                width: "108px",
-              }}
               type="button"
             >
               {isArabic ? "فلترة متقدمة" : "Advanced Filter"}
@@ -4424,21 +4548,6 @@ function AdminManagementSection({
                 aria-expanded={isTicketTypesMenuOpen}
                 className={`admin-ticket-types-toggle btn-types${isTicketTypesMenuOpen ? " active" : ""}`}
                 onClick={() => setIsTicketTypesMenuOpen((current) => !current)}
-                style={{
-                  alignItems: "center",
-                  background: "#ffffff",
-                  border: "1px solid #dbe7ef",
-                  borderRadius: "8px",
-                  boxShadow: "none",
-                  color: "#0f2240",
-                  display: "inline-flex",
-                  fontSize: "12px",
-                  fontWeight: 800,
-                  height: "44px",
-                  justifyContent: "center",
-                  padding: 0,
-                  width: "72px",
-                }}
                 type="button"
               >
                 {isArabic ? "الأنواع" : "Types"}
