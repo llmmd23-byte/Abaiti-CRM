@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import DashboardSelect from "@/components/DashboardSelect";
 import LeadRequestForm from "@/components/LeadRequestForm";
 import { createBackend, updateBackend, useBackend } from "@/lib/client-backend";
@@ -273,35 +273,29 @@ export function CustomersView() {
     { value: "week", label: isArabic ? "هذا الأسبوع" : "This Week" },
     { value: "month", label: isArabic ? "هذا الشهر" : "This Month" },
   ];
-  const customerTagTypeFilterOptions = useMemo(
-    () => [
-      {
-        value: "all",
-        label: isArabic ? "جميع أنواع الوسوم" : "All Tag Types",
-      },
-      ...(leadTagTypes.data ?? []).map((type) => ({
-        value: String(type.id),
-        label: String(type.type_name ?? type.id),
+  const customerTagTypeFilterOptions = [
+    {
+      value: "all",
+      label: isArabic ? "جميع أنواع الوسوم" : "All Tag Types",
+    },
+    ...(leadTagTypes.data ?? []).map((type) => ({
+      value: String(type.id),
+      label: String(type.type_name ?? type.id),
+    })),
+  ];
+  const customerTagFilterOptions = [
+    { value: "all", label: isArabic ? "جميع الوسوم" : "All Tags" },
+    ...(leadTags.data ?? [])
+      .filter(
+        (tag) =>
+          customerTagTypeFilter === "all" ||
+          Number(tag.tag_type_id) === Number(customerTagTypeFilter),
+      )
+      .map((tag) => ({
+        value: String(tag.id),
+        label: String(tag.tag_name ?? tag.id),
       })),
-    ],
-    [isArabic, leadTagTypes.data],
-  );
-  const customerTagFilterOptions = useMemo(
-    () => [
-      { value: "all", label: isArabic ? "جميع الوسوم" : "All Tags" },
-      ...(leadTags.data ?? [])
-        .filter(
-          (tag) =>
-            customerTagTypeFilter === "all" ||
-            Number(tag.tag_type_id) === Number(customerTagTypeFilter),
-        )
-        .map((tag) => ({
-          value: String(tag.id),
-          label: String(tag.tag_name ?? tag.id),
-        })),
-    ],
-    [customerTagTypeFilter, isArabic, leadTags.data],
-  );
+  ];
   const currentUserId = Number(currentUser?.userid ?? 0);
   const currentUserRole = String(currentUser?.role ?? "").toLocaleLowerCase();
   const canSeeTeamCustomers =
@@ -316,33 +310,30 @@ export function CustomersView() {
     { value: "own", label: isArabic ? "عملائي" : "My Customers" },
     { value: "team", label: isArabic ? "عملاء الفريق" : "Team Customers" },
   ];
-  const customerTeamUserFilterOptions = useMemo(
-    () => [
-      { value: "all", label: isArabic ? "كل المستخدمين" : "All Users" },
-      ...Array.from(
-        (data ?? [])
-          .filter(
-            (row) =>
-              currentUserId > 0 &&
-              Number(row.affiliate_user_id ?? currentUserId) !== currentUserId,
-          )
-          .reduce((options, row) => {
-            const userId = Number(row.affiliate_user_id);
-            if (!Number.isFinite(userId) || userId <= 0) return options;
-            const fallbackLabel = isArabic
-              ? `مستخدم ${userId.toLocaleString(NUMBER_LOCALE)}`
-              : `User ${userId.toLocaleString(NUMBER_LOCALE)}`;
-            options.set(String(userId), {
-              value: String(userId),
-              label: String(row.affiliate_user_name ?? "").trim() || fallbackLabel,
-            });
-            return options;
-          }, new Map<string, { value: string; label: string }>())
-          .values(),
-      ),
-    ],
-    [currentUserId, data, isArabic],
-  );
+  const customerTeamUserFilterOptions = [
+    { value: "all", label: isArabic ? "كل المستخدمين" : "All Users" },
+    ...Array.from(
+      (data ?? [])
+        .filter(
+          (row) =>
+            currentUserId > 0 &&
+            Number(row.affiliate_user_id ?? currentUserId) !== currentUserId,
+        )
+        .reduce((options, row) => {
+          const userId = Number(row.affiliate_user_id);
+          if (!Number.isFinite(userId) || userId <= 0) return options;
+          const fallbackLabel = isArabic
+            ? `مستخدم ${userId.toLocaleString(NUMBER_LOCALE)}`
+            : `User ${userId.toLocaleString(NUMBER_LOCALE)}`;
+          options.set(String(userId), {
+            value: String(userId),
+            label: String(row.affiliate_user_name ?? "").trim() || fallbackLabel,
+          });
+          return options;
+        }, new Map<string, { value: string; label: string }>())
+        .values(),
+    ),
+  ];
 
   function matchesCustomerDateFilter(value: unknown) {
     if (customerDateFilter === "all") return true;
@@ -380,29 +371,22 @@ export function CustomersView() {
   }
 
   const normalizedSearch = customerSearch.trim().toLocaleLowerCase();
-  const leadTagsById = useMemo(
-    () =>
-      new Map(
-        (leadTags.data ?? []).map((tag) => [Number(tag.id), tag] as const),
-      ),
-    [leadTags.data],
+  const leadTagsById = new Map(
+    (leadTags.data ?? []).map((tag) => [Number(tag.id), tag] as const),
   );
-  const leadTagAssignmentsByLeadId = useMemo(
-    () =>
-      (leadTagAssignments.data ?? []).reduce((groups, assignment) => {
-        const leadId = Number(assignment.lead_id);
-        if (!Number.isFinite(leadId) || leadId <= 0) return groups;
-        const key = String(leadId);
-        const current = groups.get(key) ?? [];
-        current.push(assignment);
-        groups.set(key, current);
-        return groups;
-      }, new Map<string, BackendRow[]>()),
-    [leadTagAssignments.data],
+  const leadTagAssignmentsByLeadId = (leadTagAssignments.data ?? []).reduce(
+    (groups, assignment) => {
+      const leadId = Number(assignment.lead_id);
+      if (!Number.isFinite(leadId) || leadId <= 0) return groups;
+      const key = String(leadId);
+      const current = groups.get(key) ?? [];
+      current.push(assignment);
+      groups.set(key, current);
+      return groups;
+    },
+    new Map<string, BackendRow[]>(),
   );
-  const filteredCustomers = useMemo(
-    () =>
-      (data ?? []).filter((row) => {
+  const filteredCustomers = (data ?? []).filter((row) => {
         const ownerId = Number(row.affiliate_user_id ?? currentUserId);
         if (
           canSeeTeamCustomers &&
@@ -464,98 +448,53 @@ export function CustomersView() {
             .toLocaleLowerCase()
             .includes(normalizedSearch),
         );
-      }),
-    [
-      canSeeTeamCustomers,
-      currentUserId,
-      customerDateFilter,
-      customerOwnerFilter,
-      customerTagFilter,
-      customerTagTypeFilter,
-      customerTeamUserFilter,
-      data,
-      industries,
-      leadTagAssignmentsByLeadId,
-      leadTagsById,
-      normalizedSearch,
-    ],
+  });
+  const customerTotalPages = Math.max(
+    1,
+    Math.ceil(filteredCustomers.length / CUSTOMER_PAGE_SIZE),
   );
-  const customerTotalPages = useMemo(
-    () => Math.max(1, Math.ceil(filteredCustomers.length / CUSTOMER_PAGE_SIZE)),
-    [filteredCustomers.length],
+  const activeCustomerPage = Math.min(customerPage, customerTotalPages);
+  const paginatedCustomers = filteredCustomers.slice(
+    (activeCustomerPage - 1) * CUSTOMER_PAGE_SIZE,
+    activeCustomerPage * CUSTOMER_PAGE_SIZE,
   );
-  const activeCustomerPage = useMemo(
-    () => Math.min(customerPage, customerTotalPages),
-    [customerPage, customerTotalPages],
+  const firstCustomerIndex =
+    filteredCustomers.length === 0
+      ? 0
+      : (activeCustomerPage - 1) * CUSTOMER_PAGE_SIZE + 1;
+  const lastCustomerIndex = Math.min(
+    activeCustomerPage * CUSTOMER_PAGE_SIZE,
+    filteredCustomers.length,
   );
-  const paginatedCustomers = useMemo(
-    () =>
-      filteredCustomers.slice(
-        (activeCustomerPage - 1) * CUSTOMER_PAGE_SIZE,
-        activeCustomerPage * CUSTOMER_PAGE_SIZE,
-      ),
-    [activeCustomerPage, filteredCustomers],
+  const firstPaginationButton = Math.min(
+    Math.max(1, activeCustomerPage - 2),
+    Math.max(1, customerTotalPages - 4),
   );
-  const firstCustomerIndex = useMemo(
-    () =>
-      filteredCustomers.length === 0
-        ? 0
-        : (activeCustomerPage - 1) * CUSTOMER_PAGE_SIZE + 1,
-    [activeCustomerPage, filteredCustomers.length],
+  const customerPageNumbers = Array.from(
+    { length: Math.min(5, customerTotalPages) },
+    (_, index) => firstPaginationButton + index,
   );
-  const lastCustomerIndex = useMemo(
-    () => Math.min(activeCustomerPage * CUSTOMER_PAGE_SIZE, filteredCustomers.length),
-    [activeCustomerPage, filteredCustomers.length],
-  );
-  const firstPaginationButton = useMemo(
-    () =>
-      Math.min(
-        Math.max(1, activeCustomerPage - 2),
-        Math.max(1, customerTotalPages - 4),
-      ),
-    [activeCustomerPage, customerTotalPages],
-  );
-  const customerPageNumbers = useMemo(
-    () =>
-      Array.from(
-        { length: Math.min(5, customerTotalPages) },
-        (_, index) => firstPaginationButton + index,
-      ),
-    [customerTotalPages, firstPaginationButton],
-  );
-  const customersByStage = useMemo(
-    () =>
-      filteredCustomers.reduce((groups, row) => {
-        const stage = String(row.stage ?? "new");
-        const current = groups.get(stage) ?? [];
-        current.push(row);
-        groups.set(stage, current);
-        return groups;
-      }, new Map<string, BackendRow[]>()),
-    [filteredCustomers],
-  );
-  const customerNotes = useMemo(
-    () =>
-      notesLead
-        ? (leadNotes.data ?? [])
-            .filter((note) => Number(note.lead_id) === Number(notesLead.id))
-            .sort(
-              (first, second) =>
-                new Date(String(second.created_at ?? "")).getTime() -
-                new Date(String(first.created_at ?? "")).getTime(),
-            )
-        : [],
-    [leadNotes.data, notesLead],
-  );
-  const leadContacts = useMemo(
-    () =>
-      contactsLead
-        ? (contacts.data ?? []).filter(
-            (contact) => Number(contact.lead_id) === Number(contactsLead.id),
-          )
-        : [],
-    [contacts.data, contactsLead],
-  );
+  const customersByStage = filteredCustomers.reduce((groups, row) => {
+    const stage = String(row.stage ?? "new");
+    const current = groups.get(stage) ?? [];
+    current.push(row);
+    groups.set(stage, current);
+    return groups;
+  }, new Map<string, BackendRow[]>());
+  const customerNotes = notesLead
+    ? (leadNotes.data ?? [])
+        .filter((note) => Number(note.lead_id) === Number(notesLead.id))
+        .sort(
+          (first, second) =>
+            new Date(String(second.created_at ?? "")).getTime() -
+            new Date(String(first.created_at ?? "")).getTime(),
+        )
+    : [];
+  const leadContacts = contactsLead
+    ? (contacts.data ?? []).filter(
+        (contact) => Number(contact.lead_id) === Number(contactsLead.id),
+      )
+    : [];
 
   useEffect(() => {
     setCustomerPage(1);
@@ -2474,14 +2413,8 @@ const educationalVideos = [
 export function EducationalHubView() {
   const [activeTab, setActiveTab] = useState<"images" | "videos">("images");
   const { data } = useBackend<BackendRow[]>("/api/v1/data/educational-assets");
-  const liveImages = useMemo(
-    () => (data ?? []).filter((item) => item.asset_type !== "video"),
-    [data],
-  );
-  const liveVideos = useMemo(
-    () => (data ?? []).filter((item) => item.asset_type === "video"),
-    [data],
-  );
+  const liveImages = (data ?? []).filter((item) => item.asset_type !== "video");
+  const liveVideos = (data ?? []).filter((item) => item.asset_type === "video");
 
   return (
     <section className="education-hub-view" dir="rtl">
@@ -2582,38 +2515,26 @@ export function AccountsView() {
   const t = useTranslations();
   const isArabic = useLocale() === "ar";
   const { data } = useBackend<BackendRow[]>("/api/v1/data/commissions");
-  const approvedTotal = useMemo(
-    () =>
-      (data ?? [])
-        .filter((row) => row.status === "approved")
-        .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0),
-    [data],
-  );
-  const pending = useMemo(
-    () =>
-      (data ?? [])
-        .filter((row) => row.status === "pending")
-        .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0),
-    [data],
-  );
+  const approvedTotal = (data ?? [])
+    .filter((row) => row.status === "approved")
+    .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0);
+  const pending = (data ?? [])
+    .filter((row) => row.status === "pending")
+    .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0);
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
-  const paidThisMonth = useMemo(
-    () =>
-      (data ?? [])
-        .filter((row) => {
-          if (row.status !== "paid") return false;
-          const paidDate = new Date(String(row.paid_at ?? row.created_at ?? ""));
-          return (
-            !Number.isNaN(paidDate.getTime()) &&
-            paidDate.getMonth() === currentMonth &&
-            paidDate.getFullYear() === currentYear
-          );
-        })
-        .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0),
-    [currentMonth, currentYear, data],
-  );
+  const paidThisMonth = (data ?? [])
+    .filter((row) => {
+      if (row.status !== "paid") return false;
+      const paidDate = new Date(String(row.paid_at ?? row.created_at ?? ""));
+      return (
+        !Number.isNaN(paidDate.getTime()) &&
+        paidDate.getMonth() === currentMonth &&
+        paidDate.getFullYear() === currentYear
+      );
+    })
+    .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0);
   const commissionStatusDate = (row: BackendRow) => {
     const status = String(row.status ?? "pending");
     const value =
@@ -2855,17 +2776,13 @@ export function DemoView() {
     ? ["\u0646\u0638\u0627\u0645 \u0627\u0644\u062a\u062c\u0632\u0626\u0629", "\u0646\u0638\u0627\u0645 \u0627\u0644\u0645\u0637\u0627\u0639\u0645 \u0648\u0627\u0644\u0645\u0642\u0627\u0647\u064a", "\u0646\u0638\u0627\u0645 \u0627\u0644\u062e\u062f\u0645\u0627\u062a"]
     : ["Retail system", "Restaurants and cafes system", "Services system"];
   const normalizedCustomerQuery = customerQuery.trim().toLocaleLowerCase();
-  const matchingCustomers = useMemo(
-    () =>
-      (leads.data ?? [])
-        .filter((lead) =>
-          [lead.name, lead.company_name, lead.phone, lead.email].some((value) =>
-            String(value ?? "").toLocaleLowerCase().includes(normalizedCustomerQuery),
-          ),
-        )
-        .slice(0, 8),
-    [leads.data, normalizedCustomerQuery],
-  );
+  const matchingCustomers = (leads.data ?? [])
+    .filter((lead) =>
+      [lead.name, lead.company_name, lead.phone, lead.email].some((value) =>
+        String(value ?? "").toLocaleLowerCase().includes(normalizedCustomerQuery),
+      ),
+    )
+    .slice(0, 8);
   const demoStatusLabels: Record<string, string> = isArabic
     ? {
         new: "\u062c\u062f\u064a\u062f",
@@ -2887,15 +2804,11 @@ export function DemoView() {
     if (current === "completed" || current === "cancelled") return "completed";
     return "contacted";
   };
-  const filteredDemos = useMemo(
-    () =>
-      (demos.data ?? []).filter(
-        (demo) =>
-          demoStatusFilter === "all" ||
-          (isDemoExpired(demo) ? "completed" : normalizeDemoStatus(demo.status)) ===
-            demoStatusFilter,
-      ),
-    [demoStatusFilter, demos.data],
+  const filteredDemos = (demos.data ?? []).filter(
+    (demo) =>
+      demoStatusFilter === "all" ||
+      (isDemoExpired(demo) ? "completed" : normalizeDemoStatus(demo.status)) ===
+        demoStatusFilter,
   );
   const demoRemainingTimeLabel = (demo: BackendRow) => {
     const createdAt = new Date(String(demo.created_at ?? ""));

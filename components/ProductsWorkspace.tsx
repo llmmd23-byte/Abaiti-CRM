@@ -1,7 +1,7 @@
 "use client";
 
 import {useLocale} from "next-intl";
-import {useMemo, useState, type CSSProperties, type ReactNode} from "react";
+import {useState, type CSSProperties, type ReactNode} from "react";
 import {DemoView} from "@/components/DashboardNewSections";
 import {useBackend} from "@/lib/client-backend";
 
@@ -336,42 +336,34 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
   const marketingAssets = useBackend<BackendRow[]>("/api/v1/data/marketing-assets");
-  const displayedIndustries: Industry[] = useMemo(
-    () =>
-      industriesData.map((industry) => {
-        const live = liveIndustries?.find((row) => row.slug === industry.id);
-        return live
-          ? {
-              ...industry,
-              title: {
-                ...industry.title,
-                ar: String(live.name ?? industry.title.ar),
-              },
-              subtitle: {
-                ...industry.subtitle,
-                ar: String(live.description ?? industry.subtitle.ar),
-              },
-              url:
-                industry.id === "events-exhibitions"
-                  ? LANDING_BROCHURE_VIEW_URL
-                  : industry.url,
-              externalUrl: String(live.external_url ?? "").trim() || undefined,
-            }
-          : industry;
-      }),
-    [liveIndustries],
-  );
+  const displayedIndustries: Industry[] = industriesData.map((industry) => {
+    const live = liveIndustries?.find((row) => row.slug === industry.id);
+    return live
+      ? {
+          ...industry,
+          title: {
+            ...industry.title,
+            ar: String(live.name ?? industry.title.ar),
+          },
+          subtitle: {
+            ...industry.subtitle,
+            ar: String(live.description ?? industry.subtitle.ar),
+          },
+          url:
+            industry.id === "events-exhibitions"
+              ? LANDING_BROCHURE_VIEW_URL
+              : industry.url,
+          externalUrl: String(live.external_url ?? "").trim() || undefined,
+        }
+      : industry;
+  });
   const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
   const primaryExternalUrl = primaryIndustry.externalUrl;
-  const visibleMarketingAssets = useMemo(
-    () =>
-      (marketingAssets.data ?? []).filter((asset) => {
-        if (activeAssetFilter === "all") return true;
-        if (activeAssetFilter === "images") return String(asset.asset_type) === "image";
-        return String(asset.asset_type) === "video";
-      }),
-    [activeAssetFilter, marketingAssets.data],
-  );
+  const visibleMarketingAssets = (marketingAssets.data ?? []).filter((asset) => {
+    if (activeAssetFilter === "all") return true;
+    if (activeAssetFilter === "images") return String(asset.asset_type) === "image";
+    return String(asset.asset_type) === "video";
+  });
 
   async function handleCopyLink(url: string, sectorId: string) {
     await navigator.clipboard.writeText(url);
