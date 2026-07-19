@@ -491,10 +491,15 @@ export async function GET() {
   );
   const adminCompanyId = adminRows[0]?.CompanyID ?? null;
   const adminUserId = Number(session.sub);
-  const scopedCompanyId = Number(adminCompanyId ?? adminUserId);
-  const userScopeClause = (alias: string) => `(${alias}.CompanyID = ? OR ${alias}.id = ?)`;
-  const userScopeParams = [scopedCompanyId, adminUserId];
-  await ensureSupportTicketTypesTable(scopedCompanyId);
+  const userScopeClause = (alias: string) =>
+    adminCompanyId !== null && adminCompanyId !== undefined
+      ? `(${alias}.CompanyID = ? OR ${alias}.id = ?)`
+      : `${alias}.id = ?`;
+  const userScopeParams =
+    adminCompanyId !== null && adminCompanyId !== undefined
+      ? [adminCompanyId, adminUserId]
+      : [adminUserId];
+  await ensureSupportTicketTypesTable(Number(adminCompanyId ?? adminUserId));
 
   const [users] = await db.execute<RowDataPacket[]>(
     `SELECT u.id,u.name,u.email,u.username,u.phone,u.role_id,COALESCE(r.slug,'affiliate') role,COALESCE(r.role_type,'user') role_type,
@@ -527,7 +532,7 @@ export async function GET() {
        FROM support_ticket_types
       WHERE company_id = ?
       ORDER BY sort_order ASC, created_at ASC LIMIT 250`,
-    [scopedCompanyId],
+    [Number(adminCompanyId ?? adminUserId)],
   );
   const [products] = await db.execute<RowDataPacket[]>(
     "SELECT id,name,name_en,slug,base_price,currency,status,created_at FROM products ORDER BY created_at DESC LIMIT 250",
@@ -631,7 +636,7 @@ export async function GET() {
       WHERE tt.company_id = ?
       GROUP BY tt.id,tt.type_name,tt.type_color,t.id,t.tag_name,t.tag_color
       ORDER BY tt.created_at DESC,t.tag_name ASC`,
-    [scopedCompanyId],
+    [adminCompanyId ?? adminUserId],
   );
 
   return NextResponse.json({
