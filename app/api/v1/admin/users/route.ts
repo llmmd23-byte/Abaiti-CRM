@@ -16,6 +16,14 @@ export async function POST(request: Request) {
     return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
   }
 
+  const adminId = Number(session.sub);
+  const [adminRows] = await db.execute<RowDataPacket[]>(
+    "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
+    [adminId],
+  );
+  const adminCompanyId = adminRows[0]?.CompanyID ?? null;
+  const scopedCompanyId = Number(adminCompanyId ?? adminId);
+
   const body = await request.json();
   const name = String(body.name ?? "").trim().slice(0, 160);
   const email = String(body.email ?? "").trim().toLowerCase().slice(0, 190);
@@ -45,9 +53,18 @@ export async function POST(request: Request) {
   const passwordHash = await bcrypt.hash(password, 10);
   const [result] = await db.execute<ResultSetHeader>(
     `INSERT INTO users
-      (name, email, password_hash, role_id, status, is_active, preferred_locale)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [name, email, passwordHash, roleId, status, status === "active" ? 1 : 0, "ar"],
+      (name, email, password_hash, role_id, status, is_active, preferred_locale, CompanyID)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      name,
+      email,
+      passwordHash,
+      roleId,
+      status,
+      status === "active" ? 1 : 0,
+      "ar",
+      scopedCompanyId,
+    ],
   );
 
   const [rows] = await db.execute<RowDataPacket[]>(
