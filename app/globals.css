@@ -8366,9 +8366,10 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
 }
 
 .quote-inline-status {
-  display: inline-block;
+  display: inline-flex;
   width: 148px;
   max-width: 100%;
+  justify-content: center;
 }
 
 .quote-inline-status .dashboard-select-trigger {
@@ -8385,9 +8386,57 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
   text-align: center;
 }
 
+.dashboard-route-shell .dashboard-main .quote-history-card td:has(.quote-inline-status) {
+  text-align: center;
+}
+
+.dashboard-route-shell
+  .dashboard-main
+  .quote-history-card
+  td:has(.quote-inline-status)
+  .dashboard-select {
+  margin-inline: auto;
+}
+
 .quote-inline-status .dashboard-select-chevron,
 .quote-status-filter .dashboard-select-chevron {
   color: #00b4d8;
+}
+
+.quote-status-filter {
+  width: 195px;
+}
+
+.quote-status-filter .dashboard-select-trigger {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #00b4d8;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.quote-status-filter .dashboard-select-trigger:hover,
+.quote-status-filter .dashboard-select-trigger.open,
+.quote-status-filter .dashboard-select-trigger:focus-visible {
+  border-color: #00b4d8;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.08);
+}
+
+.quote-status-filter
+  :is(.dashboard-select-value, .dashboard-select-placeholder) {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.quote-status-filter .dashboard-select-chevron {
+  width: 18px;
+  height: 18px;
+  color: #7aa2c2;
 }
 
 .quote-inline-status .dashboard-select-chevron {
