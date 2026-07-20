@@ -3401,6 +3401,7 @@ function AdminManagementSection({
   const [landingPageUrl, setLandingPageUrl] = useState("");
   const [landingBrochureMessage, setLandingBrochureMessage] = useState("");
   const [isLandingPreviewOpen, setIsLandingPreviewOpen] = useState(false);
+  const [isLandingDeleteConfirmOpen, setIsLandingDeleteConfirmOpen] = useState(false);
   const landingBrochureFileRef = useRef<HTMLInputElement | null>(null);
   const managementData = data ?? EMPTY_MANAGEMENT_DATA;
   const landingBrochurePreviewUrl = "/api/v1/landing-brochure#toolbar=1&navpanes=0";
@@ -3411,15 +3412,16 @@ function AdminManagementSection({
   }, [section]);
 
   useEffect(() => {
-    if (!isLandingPreviewOpen) return;
+    if (!isLandingPreviewOpen && !isLandingDeleteConfirmOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsLandingPreviewOpen(false);
+      if (event.key === "Escape") setIsLandingDeleteConfirmOpen(false);
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isLandingPreviewOpen]);
+  }, [isLandingPreviewOpen, isLandingDeleteConfirmOpen]);
 
   useEffect(() => {
     if (section !== "tickets") return;
@@ -4168,9 +4170,7 @@ function AdminManagementSection({
   }
 
   async function deleteActiveBrochure() {
-    if (!window.confirm(isArabic ? "حذف البروشور المخصص والرجوع للملف الافتراضي؟" : "Delete the custom brochure and restore the default file?")) {
-      return;
-    }
+    setIsLandingDeleteConfirmOpen(false);
     setLandingBrochureMessage(isArabic ? "جاري الحذف..." : "Deleting...");
     try {
       const response = await fetch("/api/v1/admin/landing-brochure", {
@@ -4345,7 +4345,7 @@ function AdminManagementSection({
                   </button>
                   <button
                     className="danger"
-                    onClick={() => void deleteActiveBrochure()}
+                    onClick={() => setIsLandingDeleteConfirmOpen(true)}
                     type="button"
                     disabled={Boolean(landingBrochure?.isDefault)}
                   >
@@ -4416,6 +4416,58 @@ function AdminManagementSection({
               <p className="landing-brochure-message">{landingBrochureMessage}</p>
             ) : null}
           </article>
+
+          {isLandingDeleteConfirmOpen ? (
+            <div
+              className="landing-delete-confirm-overlay"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) {
+                  setIsLandingDeleteConfirmOpen(false);
+                }
+              }}
+              role="dialog"
+              aria-modal="true"
+              aria-label={isArabic ? "تأكيد حذف البروشور" : "Confirm brochure deletion"}
+            >
+              <div
+                className="landing-delete-confirm-modal"
+                dir={isArabic ? "rtl" : "ltr"}
+                onMouseDown={(event) => event.stopPropagation()}
+              >
+                <div className="landing-delete-confirm-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4h8v2" />
+                    <path d="m19 6-1 14H6L5 6" />
+                    <path d="M10 11v5" />
+                    <path d="M14 11v5" />
+                  </svg>
+                </div>
+                <h3>{isArabic ? "تأكيد حذف البروشور" : "Delete brochure?"}</h3>
+                <p>
+                  {isArabic
+                    ? "سيتم حذف البروشور المخصص والرجوع للملف الافتراضي. هل تريد المتابعة؟"
+                    : "The custom brochure will be deleted and the default file will be restored. Do you want to continue?"}
+                </p>
+                <div className="landing-delete-confirm-actions">
+                  <button
+                    className="secondary"
+                    onClick={() => setIsLandingDeleteConfirmOpen(false)}
+                    type="button"
+                  >
+                    {isArabic ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    className="danger"
+                    onClick={() => void deleteActiveBrochure()}
+                    type="button"
+                  >
+                    {isArabic ? "تأكيد الحذف" : "Delete"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {isLandingPreviewOpen ? (
             <div

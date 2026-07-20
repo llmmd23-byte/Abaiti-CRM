@@ -3875,6 +3875,19 @@ html[dir="ltr"] .dashboard-main {
   text-align: left;
 }
 
+.admin-preview-card.ltr .preview-header {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.admin-preview-card.ltr .preview-header h2 {
+  order: 1;
+}
+
+.admin-preview-card.ltr .preview-header p {
+  order: 2;
+}
+
 .admin-pdf-wrapper {
   position: relative;
   width: 100%;
@@ -4158,6 +4171,97 @@ html[dir="ltr"] .dashboard-main {
 .landing-preview-placeholder span {
   font-size: 14px;
   font-weight: 700;
+}
+
+.landing-delete-confirm-overlay {
+  position: fixed;
+  z-index: 10050;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 34, 64, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.landing-delete-confirm-modal {
+  width: min(430px, 100%);
+  padding: 28px;
+  border: 1px solid #fee2e2;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 34, 64, 0.22);
+  text-align: center;
+}
+
+.landing-delete-confirm-icon {
+  display: inline-flex;
+  width: 58px;
+  height: 58px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.landing-delete-confirm-icon svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.landing-delete-confirm-modal h3 {
+  margin: 16px 0 8px;
+  color: #11293d;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.landing-delete-confirm-modal p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.landing-delete-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.landing-delete-confirm-actions button {
+  display: inline-flex;
+  min-width: 132px;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.landing-delete-confirm-actions .secondary {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.landing-delete-confirm-actions .danger {
+  color: #ffffff;
+  background: #b91c1c;
+  box-shadow: 0 12px 26px rgba(185, 28, 28, 0.18);
+}
+
+.landing-delete-confirm-actions .danger:hover {
+  background: #991b1b;
 }
 
 @media (max-width: 820px) {

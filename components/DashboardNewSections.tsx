@@ -82,6 +82,14 @@ function externalUrl(value: unknown) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`;
 }
 
+function isLikelyWebsiteUrl(value: unknown) {
+  const url = String(value ?? "").trim();
+  if (!url) return false;
+  if (/\s/.test(url)) return false;
+  if (/[\u0600-\u06FF]/.test(url)) return false;
+  return /^https?:\/\//i.test(url) || /^[^\s@]+\.[^\s@]{2,}(?:\/[^\s]*)?$/i.test(url);
+}
+
 function extractRequirementField(requirements: unknown, labels: string[]) {
   const text = String(requirements ?? "");
   for (const label of labels) {
@@ -105,7 +113,21 @@ function isPlaceUrl(value: unknown) {
 
 function customerWebsiteUrl(customer: BackendRow) {
   const website = String(customer.website ?? "").trim();
-  return website && !isPlaceUrl(website) ? externalUrl(website) : "";
+  return website && !isPlaceUrl(website) && isLikelyWebsiteUrl(website)
+    ? externalUrl(website)
+    : "";
+}
+
+function customerCity(customer: BackendRow) {
+  const requirementCity = extractRequirementField(customer.requirements, [
+    "City",
+    "city",
+    "المدينة",
+  ]);
+  const address = String(customer.address ?? "").trim();
+  const rawCity = requirementCity || address;
+  if (!rawCity) return "";
+  return rawCity.split(/[،,|-]/)[0]?.trim() ?? "";
 }
 
 function customerPlaceUrl(customer: BackendRow) {
@@ -2209,6 +2231,7 @@ export function CustomersView() {
                     ),
                   )
                   .filter(Boolean);
+                const cityName = customerCity(row);
                 return (
                   <Fragment key={row.id}>
                     <tr>
@@ -2229,7 +2252,7 @@ export function CustomersView() {
                           rel="noreferrer"
                           target="_blank"
                         >
-                          {String(row.website)}
+                          {String(row.website).trim()}
                         </a>
                       ) : (
                         ""
@@ -2241,6 +2264,17 @@ export function CustomersView() {
                     </td>
                     <td className="customers-details-cell customers-tags-cell">
                       <div className="customers-tags-list">
+                        {cityName ? (
+                          <span
+                            className="lead-tag-pill customer-city-pill"
+                            style={{
+                              borderColor: "#1a748b",
+                              color: "#1a748b",
+                            }}
+                          >
+                            {isArabic ? `المدينة: ${cityName}` : `City: ${cityName}`}
+                          </span>
+                        ) : null}
                         {rowTags.length ? (
                           rowTags.map((tag) => {
                             const tagColor = String(tag?.tag_color ?? "#00b4d8");
@@ -2254,11 +2288,11 @@ export function CustomersView() {
                               </span>
                             );
                           })
-                        ) : (
+                        ) : !cityName ? (
                           <span className="muted-table-value">
                             {isArabic ? "لا توجد وسوم" : "No tags"}
                           </span>
-                        )}
+                        ) : null}
                       </div>
                     </td>
                     <td>
