@@ -6883,6 +6883,61 @@ html[dir="ltr"] .dashboard-main {
   font-size: 13px;
 }
 
+.import-progress-container {
+  margin-top: 15px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  direction: rtl;
+}
+
+.excel-import-modal[dir="ltr"] .import-progress-container {
+  direction: ltr;
+}
+
+.progress-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.progress-status-text {
+  color: #0f2d4a;
+}
+
+.progress-percentage {
+  color: #1a748b;
+  font-weight: 700;
+}
+
+.progress-bar-wrapper {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #e2e8f0;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #1a748b, #00a8cc);
+  transition: width 0.3s ease;
+}
+
+.progress-details-footer {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 11.5px;
+  text-align: start;
+}
+
 .excel-import-modal-actions {
   display: flex;
   justify-content: flex-end;

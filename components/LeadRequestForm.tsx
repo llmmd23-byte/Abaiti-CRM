@@ -127,6 +127,9 @@ export default function LeadRequestForm({
         csvOnly: "ارفع ملف Excel أو CSV فقط.",
         importFailed: "تعذر قراءة الملف. تأكد أن أول صف يحتوي أسماء الأعمدة أو استخدم القالب المعتمد.",
         noRows: "لم يتم العثور على صفوف صالحة للاستيراد",
+        processingRows: "جاري استيراد البيانات...",
+        processedRows: (processed: number, total: number) =>
+          `تم معالجة ${processed.toLocaleString(NUMBER_LOCALE)} من أصل ${total.toLocaleString(NUMBER_LOCALE)} سجل`,
         imported: (count: number) =>
           `تم استيراد ${count.toLocaleString(NUMBER_LOCALE)} عميل`,
       }
@@ -162,6 +165,9 @@ export default function LeadRequestForm({
         csvOnly: "Upload an Excel or CSV file only.",
         importFailed: "Could not read the file. Make sure the first row has column names or use the approved template.",
         noRows: "No valid rows were found to import",
+        processingRows: "Importing data...",
+        processedRows: (processed: number, total: number) =>
+          `Processed ${processed.toLocaleString(NUMBER_LOCALE)} of ${total.toLocaleString(NUMBER_LOCALE)} records`,
         imported: (count: number) =>
           `Imported ${count.toLocaleString(NUMBER_LOCALE)} customers`,
       };
@@ -179,10 +185,23 @@ export default function LeadRequestForm({
   const [excelImportFile, setExcelImportFile] = useState<File | null>(null);
   const [excelImportStatus, setExcelImportStatus] = useState("");
   const [excelImporting, setExcelImporting] = useState(false);
+  const [excelImportProgress, setExcelImportProgress] = useState({
+    processed: 0,
+    total: 0,
+  });
   const excelFileInputRef = useRef<HTMLInputElement | null>(null);
   const { data: industries } = useBackend<IndustryRow[]>(
     "/api/v1/data/industries",
   );
+  const excelImportPercent =
+    excelImportProgress.total > 0
+      ? Math.min(
+          100,
+          Math.round(
+            (excelImportProgress.processed / excelImportProgress.total) * 100,
+          ),
+        )
+      : 0;
   const leadTemplateHref = useMemo(() => {
     const sheet = XLSX.utils.aoa_to_sheet([
       ["company_name", "name", "phone", "email", "website", "place_url", "address", "requirements"],
@@ -206,6 +225,7 @@ export default function LeadRequestForm({
   function resetExcelImport() {
     setExcelImportFile(null);
     setExcelImportStatus("");
+    setExcelImportProgress({ processed: 0, total: 0 });
     if (excelFileInputRef.current) excelFileInputRef.current.value = "";
   }
 
@@ -278,6 +298,7 @@ export default function LeadRequestForm({
             "requirements",
           ];
       const dataRows = hasHeaderRow ? rows.slice(1) : rows;
+      setExcelImportProgress({ processed: 0, total: dataRows.length });
       let imported = 0;
 
       for (const values of dataRows) {
@@ -297,7 +318,13 @@ export default function LeadRequestForm({
             values,
             1,
           );
-        if (!companyName) continue;
+        if (!companyName) {
+          setExcelImportProgress((current) => ({
+            ...current,
+            processed: current.processed + 1,
+          }));
+          continue;
+        }
 
         await createBackend("leads", {
           company_name: companyName,
@@ -319,9 +346,17 @@ export default function LeadRequestForm({
           stage: "interested",
         });
         imported += 1;
+        setExcelImportProgress((current) => ({
+          ...current,
+          processed: current.processed + 1,
+        }));
       }
 
       setExcelImportStatus(imported ? copy.imported(imported) : copy.noRows);
+      setExcelImportProgress((current) => ({
+        processed: current.total,
+        total: current.total,
+      }));
       if (imported) {
         setExcelImportFile(null);
         if (excelFileInputRef.current) excelFileInputRef.current.value = "";
@@ -548,7 +583,7 @@ export default function LeadRequestForm({
           aria-modal="true"
           aria-label={copy.importTitle}
         >
-          <div className="excel-import-modal">
+          <div className="excel-import-modal" dir={isArabic ? "rtl" : "ltr"}>
             <div className="excel-import-modal-head">
               <h3>{copy.importTitle}</h3>
               <button
@@ -568,6 +603,7 @@ export default function LeadRequestForm({
             <button
               className={`file-drop-area ${excelImportFile ? "has-file" : ""}`}
               onClick={() => excelFileInputRef.current?.click()}
+              disabled={excelImporting}
               type="button"
             >
               <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -584,6 +620,7 @@ export default function LeadRequestForm({
               onChange={(event) => {
                 setExcelImportFile(event.target.files?.[0] ?? null);
                 setExcelImportStatus("");
+                setExcelImportProgress({ processed: 0, total: 0 });
               }}
               ref={excelFileInputRef}
               type="file"
@@ -591,13 +628,43 @@ export default function LeadRequestForm({
             {excelImportFile ? (
               <div className="selected-file-info">
                 <span>{excelImportFile.name}</span>
-                <button onClick={resetExcelImport} type="button">
+                <button
+                  disabled={excelImporting}
+                  onClick={resetExcelImport}
+                  type="button"
+                >
                   {copy.removeFile}
                 </button>
               </div>
             ) : null}
             {excelImportStatus ? (
               <p className="excel-import-status">{excelImportStatus}</p>
+            ) : null}
+            {excelImporting || excelImportProgress.total > 0 ? (
+              <div className="import-progress-container">
+                <div className="progress-info-header">
+                  <span className="progress-status-text">
+                    {excelImporting ? copy.processingRows : excelImportStatus}
+                  </span>
+                  <span className="progress-percentage">
+                    {excelImportPercent}%
+                  </span>
+                </div>
+                <div className="progress-bar-wrapper">
+                  <div
+                    className="progress-bar-fill"
+                    style={{ width: `${excelImportPercent}%` }}
+                  />
+                </div>
+                <div className="progress-details-footer">
+                  <span>
+                    {copy.processedRows(
+                      excelImportProgress.processed,
+                      excelImportProgress.total,
+                    )}
+                  </span>
+                </div>
+              </div>
             ) : null}
             <div className="excel-import-modal-actions">
               <button onClick={closeExcelImport} type="button">
