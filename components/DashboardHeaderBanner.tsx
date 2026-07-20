@@ -6,6 +6,9 @@ export type DashboardHeaderSection =
   | "overview"
   | "leads"
   | "quotes"
+  | "participationContracts"
+  | "sponsorshipContracts"
+  | "rentalContracts"
   | "sales"
   | "accounts"
   | "activation";
@@ -66,6 +69,48 @@ const headerContent: Record<
       subtitle:
         "Review affiliate quotations sent to customers and monitor deal close rates.",
       badge: "Quotes Panel",
+    },
+  },
+  participationContracts: {
+    ar: {
+      label: "إدارة العقود",
+      title: "إدارة عقود المشاركة ومتابعتها في واجهة واحدة",
+      subtitle: "سجلات العقود مرتبطة بالحسابات وتتبع حالات الاعتماد والتوقيع تلقائياً.",
+      badge: "مركز العقود",
+    },
+    en: {
+      label: "Contract management",
+      title: "Manage participation contracts in one interface",
+      subtitle: "Contract records linked to accounts with automatic approval and signature tracking.",
+      badge: "Contracts Hub",
+    },
+  },
+  sponsorshipContracts: {
+    ar: {
+      label: "إدارة العقود",
+      title: "إدارة عقود الرعاية ومتابعتها في واجهة واحدة",
+      subtitle: "سجلات عقود الرعاية مرتبطة بالحسابات وتتبع حالات الاعتماد والتوقيع تلقائياً.",
+      badge: "مركز العقود",
+    },
+    en: {
+      label: "Contract management",
+      title: "Manage sponsorship contracts in one interface",
+      subtitle: "Sponsorship contract records linked to accounts with automatic approval and signature tracking.",
+      badge: "Contracts Hub",
+    },
+  },
+  rentalContracts: {
+    ar: {
+      label: "إدارة العقود",
+      title: "إدارة العقود التأجيرية ومتابعتها في واجهة واحدة",
+      subtitle: "سجلات العقود مرتبطة بالحسابات وتتبع حالات التجديد والسداد تلقائياً.",
+      badge: "مركز العقود",
+    },
+    en: {
+      label: "Contract management",
+      title: "Manage rental contracts in one interface",
+      subtitle: "Contract records linked to accounts with automatic renewal and payment tracking.",
+      badge: "Contracts Hub",
     },
   },
   sales: {

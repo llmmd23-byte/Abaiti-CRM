@@ -1,6 +1,7 @@
-import {getTranslations, setRequestLocale} from "next-intl/server";
+import {setRequestLocale} from "next-intl/server";
 
-import {DashboardHeader, SponsorshipContractsPanel} from "@/components/DashboardSections";
+import DashboardHeaderBanner from "@/components/DashboardHeaderBanner";
+import {SponsorshipContractsPanel} from "@/components/DashboardSections";
 import {requireUserPageAccess} from "@/lib/user-page-access";
 
 export default async function DashboardSponsorshipContractsPage({
@@ -11,14 +12,10 @@ export default async function DashboardSponsorshipContractsPage({
   const {locale} = await params;
   await requireUserPageAccess("page.user.sponsorship_contracts", locale);
   setRequestLocale(locale);
-  const t = await getTranslations();
 
   return (
     <>
-      <DashboardHeader
-        eyebrow={t("portal.salesTools")}
-        title={t("portal.sponsorshipContracts")}
-      />
+      <DashboardHeaderBanner section="sponsorshipContracts" />
       <SponsorshipContractsPanel locale={locale} />
     </>
   );

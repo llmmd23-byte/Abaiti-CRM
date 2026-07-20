@@ -1659,6 +1659,87 @@ html[dir="ltr"] .dashboard-main {
   background: #fff;
 }
 
+.admin-analytics-user-filter {
+  min-width: 250px;
+}
+
+.admin-analytics-user-filter .dashboard-select-trigger {
+  min-height: 42px;
+  border-color: #1a748b;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(26, 116, 139, 0.08);
+}
+
+.admin-analytics-user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 18px;
+  padding: 16px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.admin-analytics-user-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-analytics-user-avatar {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 999px;
+  background: #e6f7ff;
+  color: #1a748b;
+}
+
+.admin-analytics-user-avatar svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.admin-analytics-user-summary h3 {
+  margin: 0 0 3px;
+  color: #0f2d4a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.admin-analytics-user-summary span,
+.admin-analytics-user-metrics span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.admin-analytics-user-metrics {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.admin-analytics-user-metrics div {
+  display: flex;
+  min-width: 110px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-analytics-user-metrics strong {
+  color: #0f2d4a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
 .admin-period-controls {
   display: flex;
   flex-wrap: wrap;

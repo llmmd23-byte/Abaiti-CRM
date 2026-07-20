@@ -2156,42 +2156,6 @@ export function CustomersView() {
               value={customerAddedByFilter}
             />
           </div>
-          {canSeeTeamCustomers ? (
-            <div className="customer-date-filter">
-              <DashboardSelect
-                ariaLabel={
-                  isArabic
-                    ? "فلترة العملاء حسب المستخدم"
-                    : "Filter customers by user"
-                }
-                onValueChange={(value) =>
-                  setCustomerOwnerFilter(value as CustomerOwnerFilter)
-                }
-                options={customerOwnerFilterOptions}
-                portal
-                value={customerOwnerFilter}
-              />
-            </div>
-          ) : null}
-          {canSeeTeamCustomers && customerOwnerFilter === "team" ? (
-            <div className="customer-date-filter">
-              <DashboardSelect
-                ariaLabel={
-                  isArabic
-                    ? "اختيار مستخدم من الفريق"
-                    : "Select a team user"
-                }
-                onValueChange={setCustomerTeamUserFilter}
-                options={customerTeamUserFilterOptions}
-                portal
-                searchable
-                searchPlaceholder={
-                  isArabic ? "ابحث عن مستخدم..." : "Search users..."
-                }
-                value={customerTeamUserFilter}
-              />
-            </div>
-          ) : null}
           <div className="customer-tag-filters">
             <div className="customer-tag-filter">
               <DashboardSelect
