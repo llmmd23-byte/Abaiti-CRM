@@ -1105,11 +1105,12 @@ textarea {
 
 .sidebar {
   position: sticky;
-  top: 77px;
+  top: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  height: calc(100vh - 77px);
+  min-height: 100vh;
+  height: 100vh;
   padding: 24px;
   color: rgba(255, 255, 255, 0.72);
   background:
@@ -6612,56 +6613,59 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .customers-list-table table {
-  min-width: 1230px;
+  width: 100%;
+  min-width: 0;
   table-layout: fixed;
 }
 
 .customers-list-table th,
 .customers-list-table td {
+  padding: 10px 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
   white-space: nowrap;
+  font-size: 13px;
 }
 
 .customers-list-table th:nth-child(1),
 .customers-list-table td:nth-child(1) {
-  width: 220px;
+  width: 18%;
 }
 
 .customers-list-table th:nth-child(2),
 .customers-list-table td:nth-child(2) {
-  width: 105px;
+  width: 76px;
 }
 
 .customers-list-table th:nth-child(3),
 .customers-list-table td:nth-child(3) {
-  width: 140px;
+  width: 13%;
 }
 
 .customers-list-table th:nth-child(4),
 .customers-list-table td:nth-child(4) {
-  width: 145px;
+  width: 132px;
 }
 
 .customers-list-table th:nth-child(5),
 .customers-list-table td:nth-child(5) {
-  width: 220px;
+  width: 16%;
 }
 
 .customers-list-table th:nth-child(6),
 .customers-list-table td:nth-child(6) {
-  width: 200px;
+  width: 13%;
 }
 
 .customers-list-table th:nth-child(7),
 .customers-list-table td:nth-child(7) {
-  width: 170px;
+  width: 12%;
 }
 
 .customers-list-table th:nth-child(8),
 .customers-list-table td:nth-child(8) {
-  width: 205px;
+  width: 142px;
   overflow: visible;
   text-align: center;
 }
@@ -6680,10 +6684,14 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .customers-list-table .lead-tag-pill {
+  min-height: 28px;
+  padding-inline: 10px;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .customers-list-table a[href] {
@@ -15675,9 +15683,21 @@ html[dir="rtl"]
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: nowrap;
   white-space: nowrap;
+}
+
+.customers-list-table .customer-action-icon-button {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 9px;
+}
+
+.customers-list-table .customer-action-icon-button svg {
+  width: 15px;
+  height: 15px;
 }
 
 .customer-row-contacts-button {
