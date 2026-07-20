@@ -6284,10 +6284,10 @@ html[dir="ltr"] .dashboard-main {
 
 .customer-edit-industry-select .dashboard-select-trigger {
   min-height: 54px;
-  border-color: #0ea5a3;
-  background: #0ea5a3;
+  border-color: #0f2d4a;
+  background: #0f2d4a;
   color: #ffffff;
-  box-shadow: 0 16px 34px rgba(14, 165, 163, 0.16);
+  box-shadow: 0 16px 34px rgba(15, 45, 74, 0.18);
 }
 
 .customer-edit-industry-select .dashboard-select-value,
@@ -6297,8 +6297,8 @@ html[dir="ltr"] .dashboard-main {
 
 .customer-edit-industry-select .dashboard-select-trigger:hover,
 .customer-edit-industry-select .dashboard-select-trigger.open {
-  border-color: #0b9b98;
-  background: #0b9b98;
+  border-color: #123a5f;
+  background: #123a5f;
 }
 
 .customer-edit-modal > p {
@@ -6701,6 +6701,242 @@ html[dir="ltr"] .dashboard-main {
   text-overflow: ellipsis;
   vertical-align: middle;
   white-space: nowrap;
+}
+
+.btn-excel-import {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.btn-excel-import {
+  background: #107c41;
+  box-shadow: 0 10px 24px rgba(16, 124, 65, 0.16);
+}
+
+.btn-excel-import svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.btn-excel-import:hover {
+  transform: translateY(-1px);
+}
+
+.btn-excel-import:hover {
+  background: #0b5c30;
+}
+
+.excel-import-modal-overlay {
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(15, 41, 66, 0.42);
+  backdrop-filter: blur(5px);
+}
+
+.excel-import-modal {
+  width: min(100%, 680px);
+  padding: 26px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 41, 66, 0.18);
+}
+
+.excel-import-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.excel-import-modal-head h3 {
+  margin: 0;
+  color: #11293d;
+  font-size: 18px;
+}
+
+.excel-import-modal-head button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.download-template-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  border: 1px dashed #86efac;
+  border-radius: 9px;
+  background: #f0fdf4;
+  color: #166534;
+  font-size: 13.5px;
+}
+
+.download-template-box a {
+  color: #107c41;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.file-drop-area {
+  display: grid;
+  width: 100%;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 18px;
+  place-items: center;
+  padding: 26px 28px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #475569;
+  text-align: start;
+  cursor: pointer;
+}
+
+.file-drop-area:hover,
+.file-drop-area.has-file {
+  border-color: #107c41;
+  background: #f0fdf4;
+}
+
+.file-drop-area svg {
+  grid-row: span 2;
+  width: 34px;
+  height: 34px;
+  fill: none;
+  stroke: #94a3b8;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.file-drop-area strong {
+  width: 100%;
+  color: #334155;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.file-drop-area span {
+  width: 100%;
+  color: #94a3b8;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.selected-file-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 13px;
+}
+
+.selected-file-info button {
+  border: 0;
+  background: transparent;
+  color: #dc2626;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.excel-import-status {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.excel-import-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.excel-import-modal-actions button {
+  min-width: 120px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.excel-import-modal-actions .btn-submit-excel {
+  background: #107c41;
+  color: #ffffff;
+}
+
+.excel-import-modal-actions .btn-submit-excel:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .excel-import-modal {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .file-drop-area {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .file-drop-area svg {
+    grid-row: auto;
+  }
+
+  .excel-import-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .excel-import-modal-actions button {
+    width: 100%;
+  }
 }
 
 .customer-kanban-board {
@@ -10376,6 +10612,48 @@ html[dir="rtl"] .compact-action {
   box-shadow: 0 0 0 4px rgba(0, 161, 157, 0.1);
 }
 
+.dashboard-lead-request .lead-request-industry-field .dashboard-select-trigger {
+  border-color: #0f2d4a !important;
+  background: #0f2d4a !important;
+  color: #ffffff !important;
+  box-shadow: 0 16px 34px rgba(15, 45, 74, 0.18) !important;
+}
+
+.dashboard-lead-request
+  .lead-request-industry-field
+  .dashboard-select-trigger:is(:hover, :focus-visible, .open) {
+  border-color: #123a5f !important;
+  background: #123a5f !important;
+}
+
+.dashboard-lead-request
+  .lead-request-industry-field
+  :is(.dashboard-select-value, .dashboard-select-placeholder, .dashboard-select-chevron) {
+  color: #ffffff !important;
+}
+
+.dashboard-lead-request .lead-request-industry-field .dashboard-select-menu {
+  border-color: rgba(15, 45, 74, 0.16) !important;
+}
+
+.dashboard-lead-request .lead-request-industry-field .dashboard-select-option {
+  color: #0f2d4a !important;
+}
+
+.dashboard-lead-request
+  .lead-request-industry-field
+  .dashboard-select-option:is(:hover, :focus-visible, .active, .selected) {
+  background: #0f2d4a !important;
+  color: #ffffff !important;
+}
+
+.dashboard-lead-request
+  .lead-request-industry-field
+  .dashboard-select-option:is(:hover, :focus-visible, .active, .selected)
+  .dashboard-select-check {
+  color: #ffffff !important;
+}
+
 .dashboard-lead-request button {
   display: flex;
   width: 100%;
@@ -10399,6 +10677,40 @@ html[dir="rtl"] .compact-action {
 .dashboard-lead-request button:hover {
   background: #00827f;
   transform: translateY(-1px);
+}
+
+.lead-request-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+.dashboard-lead-request .lead-request-actions-row > button {
+  width: 50%;
+  min-height: 42px;
+  flex: 1 1 0;
+  margin-top: 0;
+  padding: 0 18px;
+}
+
+.dashboard-lead-request .lead-request-actions-row > button[type="submit"] {
+  background: #00a19d;
+}
+
+.dashboard-lead-request .lead-request-actions-row > .btn-excel-import {
+  background: #107c41;
+  box-shadow: 0 10px 24px rgba(16, 124, 65, 0.16);
+}
+
+.dashboard-lead-request .lead-request-actions-row > .btn-excel-import:hover {
+  background: #0b5c30;
+}
+
+.dashboard-lead-request .excel-import-modal button {
+  width: auto;
+  margin-top: 0;
 }
 
 .dashboard-lead-request .dashboard-lead-request-status {
