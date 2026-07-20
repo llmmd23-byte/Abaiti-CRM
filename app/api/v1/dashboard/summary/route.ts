@@ -8,8 +8,10 @@ export async function GET(request: Request) {
   if (session instanceof NextResponse) return session;
   try {
     const period = new URL(request.url).searchParams.get("period");
-    const group = new URL(request.url).searchParams.get("group");
-    const anchor = new URL(request.url).searchParams.get("anchor");
+    const searchParams = new URL(request.url).searchParams;
+    const group = searchParams.get("group");
+    const anchor = searchParams.get("anchor");
+    const selectedUserId = Number(searchParams.get("userId") ?? 0);
     const trendPeriod =
       period === "month" || period === "year" ? period : "week";
     const trendGroup =
@@ -21,7 +23,13 @@ export async function GET(request: Request) {
             ? "weeks"
             : "days";
     return NextResponse.json({
-      data: await getDashboardSummary(session, trendPeriod, anchor ?? undefined, trendGroup),
+      data: await getDashboardSummary(
+        session,
+        trendPeriod,
+        anchor ?? undefined,
+        trendGroup,
+        Number.isFinite(selectedUserId) && selectedUserId > 0 ? selectedUserId : null,
+      ),
     });
   } catch (error) {
     return apiError(error);

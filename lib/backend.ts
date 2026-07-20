@@ -2754,11 +2754,24 @@ export async function getDashboardSummary(
   trendPeriod: "week" | "month" | "year" = "week",
   trendAnchor?: string,
   trendGroup: "days" | "weeks" | "months" | "quarters" = "days",
+  selectedUserId?: number | null,
 ) {
-  const userId = Number(session.sub);
-  const ownerClause = " WHERE affiliate_user_id = ?";
-  const ownerParams = [userId];
-  const salesPeriodOwnerClause = " AND affiliate_user_id = ?";
+  const permittedOwnerIds = await ownerIdsForScope(session, "table.leads");
+  let ownerIds = permittedOwnerIds;
+  if (selectedUserId && Number.isFinite(selectedUserId)) {
+    if (permittedOwnerIds && !permittedOwnerIds.includes(selectedUserId)) {
+      throw new Error("FORBIDDEN_USER_FILTER");
+    }
+    ownerIds = [selectedUserId];
+  }
+  const ownerPlaceholder = ownerIds?.map(() => "?").join(", ");
+  const ownerClause = ownerIds ? ` WHERE affiliate_user_id IN (${ownerPlaceholder})` : "";
+  const ownerParams = ownerIds ?? [];
+  const salesPeriodOwnerClause = ownerIds
+    ? ` AND affiliate_user_id IN (${ownerPlaceholder})`
+    : "";
+  const ticketOwnerClause = ownerIds ? ` WHERE user_id IN (${ownerPlaceholder})` : "";
+  const ticketStatusPrefix = ownerIds ? "AND" : "WHERE";
   const anchor = trendAnchor && /^\d{4}-\d{2}-\d{2}$/.test(trendAnchor) ? trendAnchor : null;
   const trendDateExpression = "COALESCE(sold_at, created_at)";
   const trendRange =
@@ -2777,7 +2790,11 @@ export async function getDashboardSummary(
           ? `DATE_FORMAT(${trendDateExpression}, '%Y-%m-%d')`
           : `CONCAT('week-', CEIL(DAYOFMONTH(${trendDateExpression}) / 7))`
         : `DATE_FORMAT(${trendDateExpression}, '%Y-%m-%d')`;
-  const trendParams = [anchor ?? new Date().toISOString().slice(0, 10), anchor ?? new Date().toISOString().slice(0, 10), userId];
+  const trendParams = [
+    anchor ?? new Date().toISOString().slice(0, 10),
+    anchor ?? new Date().toISOString().slice(0, 10),
+    ...ownerParams,
+  ];
 
   const [
     [leadRows],
@@ -2833,8 +2850,8 @@ export async function getDashboardSummary(
       db.execute<RowDataPacket[]>(
         `SELECT COUNT(*) total
            FROM support_tickets
-          WHERE user_id = ?
-            AND status IN ('open','in_progress')`,
+          ${ticketOwnerClause}
+          ${ticketStatusPrefix} status IN ('open','in_progress')`,
         ownerParams,
       ),
     ]);
@@ -2859,6 +2876,38 @@ export async function getDashboardSummary(
     pendingCommissions: Number(commissionRows[0]?.pending ?? 0),
     openTickets: Number(ticketRows[0]?.total ?? 0),
   };
+}
+
+export async function listDashboardUsers(session: MiddarSession) {
+  const permittedOwnerIds = await ownerIdsForScope(session, "table.leads");
+  const ownerClause = permittedOwnerIds
+    ? `WHERE u.id IN (${permittedOwnerIds.map(() => "?").join(", ")})`
+    : "";
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT u.id,
+            u.name,
+            u.email,
+            COALESCE(r.name_ar, r.name_en, r.slug, 'User') role_name,
+            COALESCE(r.slug, 'affiliate') role,
+            u.last_login_at,
+            COUNT(l.id) leads_count
+       FROM users u
+       LEFT JOIN roles r ON r.id = u.role_id
+       LEFT JOIN leads l ON l.affiliate_user_id = u.id
+       ${ownerClause}
+      GROUP BY u.id, u.name, u.email, r.name_ar, r.name_en, r.slug, u.last_login_at
+      ORDER BY u.name ASC, u.email ASC`,
+    permittedOwnerIds ?? [],
+  );
+  return rows.map((row) => ({
+    id: Number(row.id),
+    name: String(row.name ?? row.email ?? `User #${row.id}`),
+    email: String(row.email ?? ""),
+    role: String(row.role ?? "affiliate"),
+    role_name: String(row.role_name ?? row.role ?? "User"),
+    last_login_at: row.last_login_at ?? null,
+    leads_count: Number(row.leads_count ?? 0),
+  }));
 }
 
 export async function getProfile(session: MiddarSession) {

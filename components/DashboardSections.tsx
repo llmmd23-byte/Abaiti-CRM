@@ -281,14 +281,29 @@ export function PerformanceChart() {
   const [trendPeriod, setTrendPeriod] = useState<UserTrendPeriod>("month");
   const [trendGroup, setTrendGroup] = useState<UserTrendGroup>("weeks");
   const [trendAnchor, setTrendAnchor] = useState(() => new Date());
+  const [selectedUserId, setSelectedUserId] = useState("all");
   const summaryParams = new URLSearchParams({
     period: trendPeriod,
     group: trendGroup,
     anchor: trendAnchor.toISOString().slice(0, 10),
   });
+  if (selectedUserId !== "all") summaryParams.set("userId", selectedUserId);
   const { data } = useBackend<{
+    leads?: number;
+    wonLeads?: number;
     salesTrend?: Array<{ day: string; amount: number; total: number }>;
   }>(`/api/v1/dashboard/summary?${summaryParams.toString()}`);
+  const dashboardUsers = useBackend<
+    Array<{
+      id: number;
+      name: string;
+      email: string;
+      role: string;
+      role_name: string;
+      last_login_at: string | null;
+      leads_count: number;
+    }>
+  >("/api/v1/dashboard/users");
 
   const trendByDay = new Map(
     (data?.salesTrend ?? []).map((item) => [String(item.day), item]),
@@ -301,19 +316,40 @@ export function PerformanceChart() {
   const periodAmount = salesTrend.reduce((total, item) => total + item.amount, 0);
   const periodSales = salesTrend.reduce((total, item) => total + item.total, 0);
   const averageSale = periodSales > 0 ? periodAmount / periodSales : 0;
+  const selectedUser = (dashboardUsers.data ?? []).find(
+    (user) => String(user.id) === selectedUserId,
+  );
+  const allUserLeads = (dashboardUsers.data ?? []).reduce(
+    (total, user) => total + Number(user.leads_count ?? 0),
+    0,
+  );
+  const addedLeadsCount =
+    selectedUserId === "all" ? allUserLeads || Number(data?.leads ?? 0) : Number(data?.leads ?? selectedUser?.leads_count ?? 0);
+  const activityRate =
+    Number(data?.leads ?? 0) > 0
+      ? Math.round((Number(data?.wonLeads ?? 0) / Number(data?.leads ?? 1)) * 100)
+      : 0;
+  const lastLoginLabel = selectedUser?.last_login_at
+    ? new Intl.DateTimeFormat(isArabic ? ARABIC_DATE_LOCALE : "en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(selectedUser.last_login_at))
+    : isArabic
+      ? "غير متاح"
+      : "Not available";
   const periodLabel = formatUserTrendPeriodLabel(trendAnchor, trendPeriod, isArabic);
   const groupOptions =
     trendPeriod === "month"
       ? [
-          { value: "weeks" as const, label: isArabic ? "طھظ‚ط³ظٹظ… ط¨ط§ظ„ط£ط³ط§ط¨ظٹط¹" : "By weeks" },
-          { value: "days" as const, label: isArabic ? "طھظ‚ط³ظٹظ… ط¨ط§ظ„ط£ظٹط§ظ…" : "By days" },
+          { value: "weeks" as const },
+          { value: "days" as const },
         ]
       : trendPeriod === "year"
         ? [
-            { value: "months" as const, label: isArabic ? "طھظ‚ط³ظٹظ… ط¨ط§ظ„ط´ظ‡ظˆط±" : "By months" },
-            { value: "quarters" as const, label: isArabic ? "ط±ط¨ط¹ ط³ظ†ظˆظٹ" : "Quarterly" },
+            { value: "months" as const },
+            { value: "quarters" as const },
           ]
-        : [{ value: "days" as const, label: isArabic ? "ط¹ط±ط¶ ظٹظˆظ…ظٹ" : "Daily view" }];
+        : [{ value: "days" as const }];
   function changeTrendPeriod(nextPeriod: UserTrendPeriod) {
     setTrendPeriod(nextPeriod);
     setTrendGroup(nextPeriod === "year" ? "months" : nextPeriod === "month" ? "weeks" : "days");
@@ -340,6 +376,13 @@ export function PerformanceChart() {
     periodTotal: isArabic ? "\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0641\u062a\u0631\u0629" : "Period total",
     salesCount: isArabic ? "\u0639\u062f\u062f \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a" : "Sales count",
     averageSale: isArabic ? "\u0645\u062a\u0648\u0633\u0637 \u0642\u064a\u0645\u0629 \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a" : "Average sale value",
+    allUsers: isArabic ? "كل المستخدمين (الكل)" : "All users",
+    userSelect: isArabic ? "اختيار المستخدم" : "Select user",
+    allUsersPerformance: isArabic ? "أداء: كل المستخدمين" : "Performance: all users",
+    fullReport: isArabic ? "تقرير شامل" : "Full report",
+    addedLeads: isArabic ? "العملاء المضافون" : "Added leads",
+    activityRate: isArabic ? "معدل النشاط بالمنصة" : "Platform activity rate",
+    lastLogin: isArabic ? "آخر تسجيل دخول" : "Last login",
     periodButtons: {
       week: isArabic ? "\u0623\u0633\u0628\u0648\u0639" : "Week",
       month: isArabic ? "\u0634\u0647\u0631" : "Month",
@@ -361,13 +404,7 @@ export function PerformanceChart() {
           <p>{userTrendText.performanceSubtitle}</p>
         </div>
         <div className="chart-title-tools">
-          <div className="chart-legend">
-            <span className="chart-legend-pill">
-              <i className="teal pulse" />
-              {`${userTrendText.salesLabel} - ${periodLabel}`}
-            </span>
-          </div>
-          <div className="chart-period-filter user-period-controls" role="group">
+          <div className="analytics-filters-bar">
             <div className="user-period-segment">
               {(["week", "month", "year"] as UserTrendPeriod[]).map((period) => (
                 <button
@@ -398,6 +435,65 @@ export function PerformanceChart() {
                 </button>
               ))}
             </div>
+            <div className="user-select-box">
+              <span className="select-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
+                  <path d="M4 21a8 8 0 0 1 16 0" />
+                  <path d="M19 8v4" />
+                  <path d="M17 10h4" />
+                </svg>
+              </span>
+              <select
+                aria-label={userTrendText.userSelect}
+                className="user-dropdown"
+                onChange={(event) => setSelectedUserId(event.target.value)}
+                value={selectedUserId}
+              >
+                <option value="all">{userTrendText.allUsers}</option>
+                {(dashboardUsers.data ?? []).map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {`${user.name} (${user.role_name})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="user-stats-card">
+        <div className="user-info">
+          <div className="user-avatar" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
+          </div>
+          <div>
+            <h4>
+              {selectedUser
+                ? `${isArabic ? "أداء:" : "Performance:"} ${selectedUser.name}`
+                : userTrendText.allUsersPerformance}
+            </h4>
+            <span className="user-role-badge">
+              {selectedUser ? selectedUser.role_name : userTrendText.fullReport}
+            </span>
+          </div>
+        </div>
+        <div className="user-metrics">
+          <div className="metric-item">
+            <span className="metric-label">{userTrendText.addedLeads}</span>
+            <span className="metric-value text-teal">
+              {addedLeadsCount.toLocaleString(NUMBER_LOCALE)}
+            </span>
+          </div>
+          <div className="metric-item">
+            <span className="metric-label">{userTrendText.activityRate}</span>
+            <span className="metric-value text-navy">{activityRate}%</span>
+          </div>
+          <div className="metric-item">
+            <span className="metric-label">{userTrendText.lastLogin}</span>
+            <span className="metric-value">{selectedUser ? lastLoginLabel : isArabic ? "الآن" : "Now"}</span>
           </div>
         </div>
       </div>

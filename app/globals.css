@@ -5944,6 +5944,183 @@ html[dir="ltr"] .header-right-content {
   text-align: center;
 }
 
+.analytics-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  direction: rtl;
+  flex-wrap: wrap;
+}
+
+html[dir="ltr"] .analytics-filters-bar {
+  direction: ltr;
+}
+
+.analytics-filters-bar .user-period-segment,
+.analytics-filters-bar .user-period-navigator,
+.analytics-filters-bar .user-period-subfilters {
+  min-height: 38px;
+  border-color: #dbe8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.analytics-filters-bar .user-period-subfilters {
+  border-color: #c8f1ef;
+  background: #f0fbfd;
+}
+
+.analytics-filters-bar button {
+  min-height: 30px;
+  padding: 4px 13px;
+  border: 0;
+  border-radius: 8px;
+  color: #5d6b82;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.analytics-filters-bar button.active {
+  color: #ffffff;
+  background: #00a19d;
+  box-shadow: 0 10px 22px rgba(0, 161, 157, 0.16);
+}
+
+.analytics-filters-bar .user-period-subfilters button.active {
+  color: #0b8f8a;
+  background: #ffffff;
+}
+
+.user-select-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #1a748b;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(26, 116, 139, 0.08);
+}
+
+.select-icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin-inline-end: 8px;
+  color: #1a748b;
+}
+
+.select-icon svg,
+.user-avatar svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.user-dropdown {
+  min-width: 190px;
+  min-height: 34px;
+  padding: 0 4px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #0f2d4a;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.user-stats-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  direction: rtl;
+}
+
+html[dir="ltr"] .user-stats-card {
+  direction: ltr;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.user-avatar {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #e6f7ff;
+  color: #1a748b;
+}
+
+.user-info h4 {
+  margin: 0 0 2px;
+  color: #0f2d4a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.user-role-badge {
+  color: #64748b;
+  font-size: 11.5px;
+}
+
+.user-metrics {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.metric-label {
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.metric-value {
+  color: #334155;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.text-teal {
+  color: #1a748b;
+}
+
+.text-navy {
+  color: #0f2d4a;
+}
+
 .chart-legend-pill i {
   position: relative;
   width: 9px;
@@ -20092,6 +20269,27 @@ html[dir="rtl"]
   width: 230px !important;
   min-width: 230px !important;
   max-width: 230px !important;
+}
+
+.admin-shell .admin-client-added-by-filter {
+  border: 1px solid #1a748b !important;
+  background: #f0fdfa !important;
+}
+
+.admin-shell .admin-client-added-by-filter .dashboard-select-trigger {
+  min-height: 56px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #1a748b !important;
+  font-weight: 800 !important;
+}
+
+.admin-shell .admin-client-added-by-filter .dashboard-select-trigger:hover,
+.admin-shell .admin-client-added-by-filter .dashboard-select-trigger.open,
+.admin-shell .admin-client-added-by-filter .dashboard-select-trigger:focus-visible {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .admin-shell .admin-user-status-filter .dashboard-select-trigger {

@@ -914,14 +914,30 @@ function AdminMetricList({
   const hasUserFilter = ["clients", "demos", "quotes", "sales"].includes(
     metric,
   );
+  const userFilterValueForRow = (row: AdminRow) => {
+    const userId = Number(row.affiliate_user_id ?? row.user_id);
+    if (Number.isInteger(userId) && userId > 0) return `id:${userId}`;
+    const userName = String(row.affiliate_user_name ?? row.user_name ?? "").trim();
+    return userName ? `name:${userName}` : "";
+  };
   const userFilterOptions =
     hasUserFilter
       ? Array.from(
           new Map(
             config.rows
-              .map((row) => String(row.affiliate_user_name ?? "").trim())
-              .filter(Boolean)
-              .map((name) => [name, { value: name, label: name }]),
+              .map((row) => {
+                const value = userFilterValueForRow(row);
+                const label = String(
+                  row.affiliate_user_name ?? row.user_name ?? "",
+                ).trim();
+                return value && label ? [value, { value, label }] : null;
+              })
+              .filter(
+                (
+                  option,
+                ): option is [string, { value: string; label: string }] =>
+                  Boolean(option),
+              ),
           ).values(),
         )
       : [];
@@ -993,7 +1009,7 @@ function AdminMetricList({
         const matchesClientUser =
           !hasUserFilter ||
           clientUserFilter === "all" ||
-          String(row.affiliate_user_name ?? "") === clientUserFilter;
+          userFilterValueForRow(row) === clientUserFilter;
         const rowTagTypeIds =
           metric === "clients" ? parseIdList(row.tag_type_ids) : [];
         const rowTagIds = metric === "clients" ? parseIdList(row.tag_ids) : [];
@@ -1332,6 +1348,25 @@ function AdminMetricList({
                   onValueChange={setClientTagFilter}
                   options={tagSelectOptions}
                   value={clientTagFilter}
+                />
+              </div>
+              <div className="admin-user-status-filter admin-client-user-filter admin-client-added-by-filter highlight-user-filter">
+                <DashboardSelect
+                  ariaLabel={isArabic ? "\u0641\u0644\u062a\u0631\u0629 \u062d\u0633\u0628 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u0630\u064a \u0623\u0636\u0627\u0641 \u0627\u0644\u0639\u0645\u064a\u0644" : "Filter by added user"}
+                  onValueChange={setClientUserFilter}
+                  options={[
+                    {
+                      value: "all",
+                      label: isArabic ? "\u0623\u064f\u0636\u064a\u0641 \u0628\u0648\u0627\u0633\u0637\u0629: \u0627\u0644\u0643\u0644" : "Added by: all",
+                    },
+                    ...userFilterOptions.map((option) => ({
+                      ...option,
+                      label: isArabic
+                        ? `\u0623\u064f\u0636\u064a\u0641 \u0628\u0648\u0627\u0633\u0637\u0629: ${option.label}`
+                        : `Added by: ${option.label}`,
+                    })),
+                  ]}
+                  value={clientUserFilter}
                 />
               </div>
             </>

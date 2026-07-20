@@ -252,6 +252,7 @@ export function CustomersView() {
     useState<CustomerDateFilter>("all");
   const [customerTagTypeFilter, setCustomerTagTypeFilter] = useState("all");
   const [customerTagFilter, setCustomerTagFilter] = useState("all");
+  const [customerAddedByFilter, setCustomerAddedByFilter] = useState("all");
   const [customerOwnerFilter, setCustomerOwnerFilter] =
     useState<CustomerOwnerFilter>("all");
   const [customerTeamUserFilter, setCustomerTeamUserFilter] = useState("all");
@@ -459,6 +460,34 @@ export function CustomersView() {
     { value: "own", label: isArabic ? "عملائي" : "My Customers" },
     { value: "team", label: isArabic ? "عملاء الفريق" : "Team Customers" },
   ];
+  const customerAddedByFilterOptions = [
+    {
+      value: "all",
+      label: isArabic ? "أُضيف بواسطة: الكل" : "Added by: all",
+    },
+    ...Array.from(
+      new Map(
+        (data ?? [])
+          .map((row) => {
+            const userId = Number(row.affiliate_user_id ?? 0);
+            const value =
+              Number.isInteger(userId) && userId > 0
+                ? `id:${userId}`
+                : `name:${String(row.affiliate_user_name ?? "").trim()}`;
+            const label = String(row.affiliate_user_name ?? "").trim();
+            return value && label ? [value, label] : null;
+          })
+          .filter(
+            (item): item is [string, string] =>
+              Boolean(item?.[0]) && Boolean(item?.[1]),
+          ),
+      ),
+      ([value, label]) => [value, label],
+    ).map(([value, label]) => ({
+      value,
+      label: isArabic ? `أُضيف بواسطة: ${label}` : `Added by: ${label}`,
+    })),
+  ];
   const customerTeamUserFilterOptions = [
     { value: "all", label: isArabic ? "كل المستخدمين" : "All Users" },
     ...Array.from(
@@ -524,6 +553,9 @@ export function CustomersView() {
     () =>
       (data ?? []).filter((row) => {
         const ownerId = Number(row.affiliate_user_id ?? currentUserId);
+        const ownerKey = Number.isInteger(ownerId) && ownerId > 0
+          ? `id:${ownerId}`
+          : `name:${String(row.affiliate_user_name ?? "").trim()}`;
         if (
           canSeeTeamCustomers &&
           currentUserId > 0 &&
@@ -546,6 +578,12 @@ export function CustomersView() {
           customerOwnerFilter === "team" &&
           customerTeamUserFilter !== "all" &&
           ownerId !== Number(customerTeamUserFilter)
+        ) {
+          return false;
+        }
+        if (
+          customerAddedByFilter !== "all" &&
+          ownerKey !== customerAddedByFilter
         ) {
           return false;
         }
@@ -594,6 +632,7 @@ export function CustomersView() {
       customerOwnerFilter,
       customerTagFilter,
       customerTagTypeFilter,
+      customerAddedByFilter,
       customerTeamUserFilter,
       data,
       industries,
@@ -643,6 +682,7 @@ export function CustomersView() {
     customerDateFilter,
     customerTagTypeFilter,
     customerTagFilter,
+    customerAddedByFilter,
     customerOwnerFilter,
     customerTeamUserFilter,
     customerView,
@@ -2101,6 +2141,19 @@ export function CustomersView() {
               options={customerDateFilterOptions}
               portal
               value={customerDateFilter}
+            />
+          </div>
+          <div className="customer-date-filter highlight-user-filter">
+            <DashboardSelect
+              ariaLabel={
+                isArabic
+                  ? "فلترة العملاء حسب المستخدم الذي أضافهم"
+                  : "Filter customers by added user"
+              }
+              onValueChange={setCustomerAddedByFilter}
+              options={customerAddedByFilterOptions}
+              portal
+              value={customerAddedByFilter}
             />
           </div>
           {canSeeTeamCustomers ? (
