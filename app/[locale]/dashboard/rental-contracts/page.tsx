@@ -1,4 +1,4 @@
-import {getTranslations, setRequestLocale} from "next-intl/server";
+import {setRequestLocale} from "next-intl/server";
 
 import {DashboardHeader, RentalContractsPanel} from "@/components/DashboardSections";
 import {requireUserPageAccess} from "@/lib/user-page-access";
@@ -11,13 +11,24 @@ export default async function DashboardRentalContractsPage({
   const {locale} = await params;
   await requireUserPageAccess("page.user.rental_contracts", locale);
   setRequestLocale(locale);
-  const t = await getTranslations();
+  const isArabic = locale === "ar";
 
   return (
     <>
       <DashboardHeader
-        eyebrow={t("portal.salesTools")}
-        title={t("portal.rentalContracts")}
+        badge={isArabic ? "مركز العقود" : "Contracts Hub"}
+        eyebrow={isArabic ? "إدارة العقود" : "Contract Management"}
+        subtitle={
+          isArabic
+            ? "سجلات العقود مرتبطة بالحسابات وتتبع حالات التجديد والسداد تلقائياً."
+            : "Contract records are linked to accounts and track renewal and payment status automatically."
+        }
+        title={
+          isArabic
+            ? "إدارة العقود التأجيرية ومتابعتها في واجهة واحدة"
+            : "Manage and track rental contracts in one interface"
+        }
+        variant="card"
       />
       <RentalContractsPanel locale={locale} />
     </>

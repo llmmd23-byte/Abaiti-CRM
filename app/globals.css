@@ -5632,6 +5632,93 @@ html[dir="ltr"] .dashboard-main {
   margin-bottom: 22px;
 }
 
+.page-header-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  margin-bottom: 24px;
+  padding: 24px 32px;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 45, 74, 0.03);
+  box-sizing: border-box;
+}
+
+html[dir="rtl"] .page-header-card {
+  direction: rtl;
+}
+
+html[dir="ltr"] .page-header-card {
+  direction: ltr;
+}
+
+.header-right-content {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+html[dir="rtl"] .header-right-content {
+  align-items: flex-start;
+  text-align: right;
+}
+
+html[dir="ltr"] .header-right-content {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.category-subtitle {
+  margin-bottom: 6px;
+  color: #00a8cc;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.main-page-title {
+  margin: 0 0 6px;
+  color: #0f2d4a;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.description-text {
+  margin: 0;
+  color: #64748b;
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.header-left-action {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 18px;
+  border: 1px solid #bae7ff;
+  border-radius: 999px;
+  background-color: #e6f7ff;
+  color: #00a8cc;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -19023,6 +19110,14 @@ html[dir="rtl"]
 .admin-table-wrap a[href]:hover,
 .customers-list-table a[href]:hover {
   color: #00b4d8;
+}
+
+.phone-number {
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+  text-align: left;
+  white-space: nowrap;
 }
 
 .admin-shell .admin-data-head.admin-ticket-data-head.toolbar-container {

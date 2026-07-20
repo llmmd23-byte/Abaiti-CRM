@@ -182,11 +182,34 @@ export function DashboardHeader({
   eyebrow,
   title,
   action,
+  badge,
+  subtitle,
+  variant = "default",
 }: {
   eyebrow: string;
   title: string;
   action?: string;
+  badge?: string;
+  subtitle?: string;
+  variant?: "default" | "card";
 }) {
+  if (variant === "card") {
+    return (
+      <div className="page-header-card">
+        {badge ? (
+          <div className="header-left-action">
+            <span className="badge-pill">{badge}</span>
+          </div>
+        ) : null}
+        <div className="header-right-content">
+          <span className="category-subtitle">{eyebrow}</span>
+          <h1 className="main-page-title">{title}</h1>
+          {subtitle ? <p className="description-text">{subtitle}</p> : null}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-topbar page-topbar">
       <div>

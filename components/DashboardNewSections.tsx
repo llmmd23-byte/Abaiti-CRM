@@ -359,7 +359,11 @@ export function CustomersView() {
           </div>
           <div>
             <dt>{isArabic ? "رقم الجوال" : "Mobile Number"}</dt>
-            <dd dir="ltr">{displayValue(customer.phone)}</dd>
+            <dd dir="ltr">
+              <bdi className="phone-number" dir="ltr">
+                {displayValue(customer.phone)}
+              </bdi>
+            </dd>
           </div>
           <div>
             <dt>{isArabic ? "البريد الإلكتروني" : "Email"}</dt>
@@ -1787,7 +1791,11 @@ export function CustomersView() {
               {leadContacts.map((contact) => (
                 <tr key={contact.id}>
                   <td>{displayValue(contact.name)}</td>
-                  <td dir="ltr">{displayValue(contact.phone)}</td>
+                  <td dir="ltr">
+                    <bdi className="phone-number" dir="ltr">
+                      {displayValue(contact.phone)}
+                    </bdi>
+                  </td>
                   <td dir="ltr">{displayValue(contact.email)}</td>
                   <td>{displayValue(contact.job_title)}</td>
                   <td>
@@ -2244,7 +2252,11 @@ export function CustomersView() {
                       </span>
                     </td>
                     <td>{getCustomerName(row)}</td>
-                    <td dir="ltr">{String(row.phone ?? "").trim()}</td>
+                    <td dir="ltr">
+                      <bdi className="phone-number" dir="ltr">
+                        {String(row.phone ?? "").trim()}
+                      </bdi>
+                    </td>
                     <td dir="ltr">
                       {customerWebsiteUrl(row) ? (
                         <a
@@ -2498,7 +2510,11 @@ export function CustomersView() {
                                 ? "\u0627\u0644\u062c\u0648\u0627\u0644"
                                 : "Mobile"}
                             </dt>
-                            <dd dir="ltr">{String(row.phone ?? "?")}</dd>
+                            <dd dir="ltr">
+                              <bdi className="phone-number" dir="ltr">
+                                {String(row.phone ?? "?")}
+                              </bdi>
+                            </dd>
                           </div>
                           <div>
                             <dt>
@@ -3162,7 +3178,11 @@ export function DemoView() {
                         <strong>{String(lead.company_name ?? "?")}</strong>
                         <small>{String(lead.name ?? "?")}</small>
                       </span>
-                      <small dir="ltr">{String(lead.phone ?? "?")}</small>
+                      <small dir="ltr">
+                        <bdi className="phone-number" dir="ltr">
+                          {String(lead.phone ?? "?")}
+                        </bdi>
+                      </small>
                     </button>
                   ))}
                   {matchingCustomers.length === 0 ? (
@@ -3295,7 +3315,9 @@ export function DemoView() {
                       <strong>{String(demo.contact_name ?? "?")}</strong>
                     </td>
                     <td className="demo-phone-cell" dir="ltr">
-                      {String(demo.phone ?? "?")}
+                      <bdi className="phone-number" dir="ltr">
+                        {String(demo.phone ?? "?")}
+                      </bdi>
                     </td>
                     <td className="demo-date-cell" dir="ltr">
                       {String(demo.created_at ?? "").slice(0, 10) || "?"}
