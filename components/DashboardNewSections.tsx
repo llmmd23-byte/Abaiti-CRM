@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import DashboardSelect from "@/components/DashboardSelect";
 import LeadRequestForm from "@/components/LeadRequestForm";
 import { createBackend, updateBackend, useBackend } from "@/lib/client-backend";
@@ -82,6 +82,100 @@ function externalUrl(value: unknown) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`;
 }
 
+function extractRequirementField(requirements: unknown, labels: string[]) {
+  const text = String(requirements ?? "");
+  for (const label of labels) {
+    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = text.match(
+      new RegExp(`(?:^|\\n)${escaped}:\\s*([^\\n\\r]+)`, "i"),
+    );
+    if (match?.[1]?.trim()) return match[1].trim();
+  }
+  return "";
+}
+
+function extractFirstUrl(value: unknown) {
+  return String(value ?? "").match(/https?:\/\/[^\s,]+/i)?.[0] ?? "";
+}
+
+function isPlaceUrl(value: unknown) {
+  const url = String(value ?? "").trim();
+  return /google\.[^/]+\/maps|maps\.app\.goo\.gl|place_id:/i.test(url);
+}
+
+function customerWebsiteUrl(customer: BackendRow) {
+  const website = String(customer.website ?? "").trim();
+  return website && !isPlaceUrl(website) ? externalUrl(website) : "";
+}
+
+function customerPlaceUrl(customer: BackendRow) {
+  const placeUrl = String(customer.place_url ?? "").trim();
+  if (placeUrl) return externalUrl(placeUrl);
+
+  const website = String(customer.website ?? "").trim();
+  if (isPlaceUrl(website)) return externalUrl(website);
+
+  const requirementUrl =
+    extractRequirementField(customer.requirements, [
+      "Store Location",
+      "Place Location",
+      "Location",
+      "Google Maps URL",
+      "Google Place URL",
+      "Place URL",
+    ]) || extractFirstUrl(customer.requirements);
+  if (requirementUrl) return externalUrl(requirementUrl);
+
+  const placeId = extractRequirementField(customer.requirements, [
+    "Google Place ID",
+    "Place ID",
+  ]);
+  return placeId
+    ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}`
+    : "";
+}
+
+function cleanCustomerRequirements(value: unknown) {
+  const hiddenRequirementFields = new Set([
+    "google place id",
+    "place id",
+    "place type",
+    "search query",
+    "city",
+    "phone normalized",
+    "phone",
+    "website",
+    "store location",
+    "place location",
+    "location",
+    "google maps url",
+    "google place url",
+    "place url",
+    "facebook",
+    "instagram",
+    "twitter/x",
+    "linkedin",
+    "tiktok",
+    "youtube",
+    "snapchat",
+    "rating",
+    "reviews count",
+    "fetched at",
+  ]);
+
+  return String(value ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => {
+      if (!line) return false;
+      const key = line.split(":")[0]?.trim().toLowerCase();
+      if (hiddenRequirementFields.has(key)) return false;
+      return !/https?:\/\//i.test(line);
+    })
+    .join("\n")
+    .trim();
+}
+
 function hexToRgb(hex: string) {
   const clean = normalizeHexColor(hex).slice(1);
   return {
@@ -148,6 +242,8 @@ export function CustomersView() {
     name: "",
     industry_id: "",
     email: "",
+    website: "",
+    place_url: "",
     address: "",
     phone: "",
     stage: "new",
@@ -207,6 +303,9 @@ export function CustomersView() {
         "",
     ).trim();
     const customerStage = String(customer.stage ?? "new");
+    const placeUrl = customerPlaceUrl(customer);
+    const websiteUrl = customerWebsiteUrl(customer);
+    const requirementsText = cleanCustomerRequirements(customer.requirements);
 
     return (
       <section
@@ -251,8 +350,32 @@ export function CustomersView() {
           <div className="tag-customer-profile-wide">
             <dt>{isArabic ? "المتطلبات الإضافية" : "Additional Requirements"}</dt>
             <dd>
-              {String(customer.requirements ?? "").trim() ||
+              {requirementsText ||
                 (isArabic ? "لا توجد متطلبات" : "No requirements")}
+            </dd>
+          </div>
+          <div className="tag-customer-profile-wide">
+            <dt>{isArabic ? "الموقع الإلكتروني" : "Website"}</dt>
+            <dd dir="ltr">
+              {websiteUrl ? (
+                <a href={websiteUrl} rel="noreferrer" target="_blank">
+                  {String(customer.website)}
+                </a>
+              ) : (
+                "—"
+              )}
+            </dd>
+          </div>
+          <div className="tag-customer-profile-wide">
+            <dt>{isArabic ? "موقع المحل" : "Store Location"}</dt>
+            <dd dir={placeUrl ? "ltr" : undefined}>
+              {placeUrl ? (
+                <a href={placeUrl} rel="noreferrer" target="_blank">
+                  {placeUrl}
+                </a>
+              ) : (
+                "—"
+              )}
             </dd>
           </div>
           <div>
@@ -371,22 +494,9 @@ export function CustomersView() {
   }
 
   const normalizedSearch = customerSearch.trim().toLocaleLowerCase();
-  const leadTagsById = new Map(
-    (leadTags.data ?? []).map((tag) => [Number(tag.id), tag] as const),
-  );
-  const leadTagAssignmentsByLeadId = (leadTagAssignments.data ?? []).reduce(
-    (groups, assignment) => {
-      const leadId = Number(assignment.lead_id);
-      if (!Number.isFinite(leadId) || leadId <= 0) return groups;
-      const key = String(leadId);
-      const current = groups.get(key) ?? [];
-      current.push(assignment);
-      groups.set(key, current);
-      return groups;
-    },
-    new Map<string, BackendRow[]>(),
-  );
-  const filteredCustomers = (data ?? []).filter((row) => {
+  const filteredCustomers = useMemo(
+    () =>
+      (data ?? []).filter((row) => {
         const ownerId = Number(row.affiliate_user_id ?? currentUserId);
         if (
           canSeeTeamCustomers &&
@@ -414,7 +524,8 @@ export function CustomersView() {
           return false;
         }
         if (!matchesCustomerDateFilter(row.created_at)) return false;
-        const rowTagIds = (leadTagAssignmentsByLeadId.get(String(row.id)) ?? [])
+        const rowTagIds = (leadTagAssignments.data ?? [])
+          .filter((assignment) => Number(assignment.lead_id) === Number(row.id))
           .map((assignment) => Number(assignment.tag_id));
         if (
           customerTagFilter !== "all" &&
@@ -424,7 +535,9 @@ export function CustomersView() {
         }
         if (customerTagFilter === "all" && customerTagTypeFilter !== "all") {
           const hasTagFromSelectedType = rowTagIds.some((tagId) => {
-            const tag = leadTagsById.get(tagId);
+            const tag = (leadTags.data ?? []).find(
+              (item) => Number(item.id) === tagId,
+            );
             return Number(tag?.tag_type_id) === Number(customerTagTypeFilter);
           });
           if (!hasTagFromSelectedType) return false;
@@ -448,15 +561,33 @@ export function CustomersView() {
             .toLocaleLowerCase()
             .includes(normalizedSearch),
         );
-  });
+      }),
+    [
+      canSeeTeamCustomers,
+      currentUserId,
+      customerOwnerFilter,
+      customerTagFilter,
+      customerTagTypeFilter,
+      customerTeamUserFilter,
+      data,
+      industries,
+      leadTagAssignments.data,
+      leadTags.data,
+      normalizedSearch,
+    ],
+  );
   const customerTotalPages = Math.max(
     1,
     Math.ceil(filteredCustomers.length / CUSTOMER_PAGE_SIZE),
   );
   const activeCustomerPage = Math.min(customerPage, customerTotalPages);
-  const paginatedCustomers = filteredCustomers.slice(
-    (activeCustomerPage - 1) * CUSTOMER_PAGE_SIZE,
-    activeCustomerPage * CUSTOMER_PAGE_SIZE,
+  const paginatedCustomers = useMemo(
+    () =>
+      filteredCustomers.slice(
+        (activeCustomerPage - 1) * CUSTOMER_PAGE_SIZE,
+        activeCustomerPage * CUSTOMER_PAGE_SIZE,
+      ),
+    [activeCustomerPage, filteredCustomers],
   );
   const firstCustomerIndex =
     filteredCustomers.length === 0
@@ -470,31 +601,14 @@ export function CustomersView() {
     Math.max(1, activeCustomerPage - 2),
     Math.max(1, customerTotalPages - 4),
   );
-  const customerPageNumbers = Array.from(
-    { length: Math.min(5, customerTotalPages) },
-    (_, index) => firstPaginationButton + index,
+  const customerPageNumbers = useMemo(
+    () =>
+      Array.from(
+        { length: Math.min(5, customerTotalPages) },
+        (_, index) => firstPaginationButton + index,
+      ),
+    [customerTotalPages, firstPaginationButton],
   );
-  const customersByStage = filteredCustomers.reduce((groups, row) => {
-    const stage = String(row.stage ?? "new");
-    const current = groups.get(stage) ?? [];
-    current.push(row);
-    groups.set(stage, current);
-    return groups;
-  }, new Map<string, BackendRow[]>());
-  const customerNotes = notesLead
-    ? (leadNotes.data ?? [])
-        .filter((note) => Number(note.lead_id) === Number(notesLead.id))
-        .sort(
-          (first, second) =>
-            new Date(String(second.created_at ?? "")).getTime() -
-            new Date(String(first.created_at ?? "")).getTime(),
-        )
-    : [];
-  const leadContacts = contactsLead
-    ? (contacts.data ?? []).filter(
-        (contact) => Number(contact.lead_id) === Number(contactsLead.id),
-      )
-    : [];
 
   useEffect(() => {
     setCustomerPage(1);
@@ -525,6 +639,8 @@ export function CustomersView() {
       name: String(row.name ?? ""),
       industry_id: row.industry_id == null ? "" : String(row.industry_id),
       email: String(row.email ?? ""),
+      website: String(row.website ?? ""),
+      place_url: String(row.place_url ?? ""),
       address: String(row.address ?? ""),
       phone: String(row.phone ?? ""),
       stage: String(row.stage ?? "new"),
@@ -827,6 +943,60 @@ export function CustomersView() {
     );
   }
 
+  async function rebalanceAllTagGradients(
+    createdTag?: BackendRow,
+    fallbackTypeId?: number | null,
+    fallbackTypeColor?: string,
+  ) {
+    const gradientEnd = "#11293d";
+    const tagTypesById = new Map<number, BackendRow>();
+    (leadTagTypes.data ?? []).forEach((type) => {
+      const typeId = Number(type.id);
+      if (Number.isInteger(typeId) && typeId > 0) {
+        tagTypesById.set(typeId, type);
+      }
+    });
+    if (
+      fallbackTypeId &&
+      Number.isInteger(fallbackTypeId) &&
+      fallbackTypeId > 0 &&
+      !tagTypesById.has(fallbackTypeId)
+    ) {
+      tagTypesById.set(fallbackTypeId, {
+        id: fallbackTypeId,
+        type_color: fallbackTypeColor,
+      });
+    }
+
+    const createdTagId = createdTag ? Number(createdTag.id) : null;
+    await Promise.all(
+      Array.from(tagTypesById.entries()).map(([typeId, type]) => {
+        const baseColor = normalizeHexColor(type.type_color ?? fallbackTypeColor);
+        const tagsById = new Map<number, BackendRow>();
+        (leadTags.data ?? [])
+          .filter((tag) => Number(tag.tag_type_id) === typeId)
+          .forEach((tag) => tagsById.set(Number(tag.id), tag));
+        if (createdTag && createdTagId && Number(createdTag.tag_type_id ?? fallbackTypeId) === typeId) {
+          tagsById.set(createdTagId, {
+            ...createdTag,
+            tag_type_id: typeId,
+          });
+        }
+        const tags = Array.from(tagsById.values()).sort(
+          (first, second) => Number(first.id) - Number(second.id),
+        );
+        return Promise.all(
+          tags.map((tag, index) => {
+            const ratio = tags.length === 1 ? 0 : index / (tags.length - 1);
+            return updateBackend("lead-tags", tag.id, {
+              tag_color: mixHex(baseColor, gradientEnd, ratio),
+            });
+          }),
+        );
+      }),
+    );
+  }
+
   async function createNewTag() {
     const tagName = tagDraft.tag_name.trim();
     const typeId = Number(tagDraft.tag_type_id);
@@ -857,7 +1027,7 @@ export function CustomersView() {
           tag_color: tagDraft.tag_color,
         }));
       if (isNewTag) {
-        await rebalanceTagTypeGradient(typeId, createdTag);
+        await rebalanceAllTagGradients(createdTag, typeId);
       }
       await leadTags.reload();
       setTagDraft((current) => ({
@@ -962,7 +1132,7 @@ export function CustomersView() {
             tag_color: tagDraft.tag_color,
           }));
         if (isNewTag && tagTypeId) {
-          await rebalanceTagTypeGradient(Number(tagTypeId), tag, tagDraft.type_color);
+          await rebalanceAllTagGradients(tag, Number(tagTypeId), tagDraft.type_color);
         }
       }
       await createBackend("lead-tag-assignments", {
@@ -1002,15 +1172,18 @@ export function CustomersView() {
   }
 
   if (tagsLead) {
-    const customerAssignments =
-      leadTagAssignmentsByLeadId.get(String(tagsLead.id)) ?? [];
+    const customerAssignments = (leadTagAssignments.data ?? []).filter(
+      (assignment) => Number(assignment.lead_id) === Number(tagsLead.id),
+    );
     const assignedTagIds = new Set(
       customerAssignments.map((assignment) => Number(assignment.tag_id)),
     );
     const assignedTagTypeIds = new Set(
       customerAssignments
         .map((assignment) => {
-          const tag = leadTagsById.get(Number(assignment.tag_id));
+          const tag = (leadTags.data ?? []).find(
+            (item) => Number(item.id) === Number(assignment.tag_id),
+          );
           return Number(tag?.tag_type_id);
         })
         .filter((typeId) => Number.isInteger(typeId) && typeId > 0),
@@ -1408,6 +1581,14 @@ export function CustomersView() {
   }
 
   if (notesLead) {
+    const customerNotes = (leadNotes.data ?? [])
+      .filter((note) => Number(note.lead_id) === Number(notesLead.id))
+      .sort(
+        (first, second) =>
+          new Date(String(second.created_at ?? "")).getTime() -
+          new Date(String(first.created_at ?? "")).getTime(),
+      );
+
     return (
       <article className="table-card expanded-table-card lead-notes-screen">
         <div className="customer-edit-modal-head">
@@ -1468,6 +1649,10 @@ export function CustomersView() {
   }
 
   if (contactsLead) {
+    const leadContacts = (contacts.data ?? []).filter(
+      (contact) => Number(contact.lead_id) === Number(contactsLead.id),
+    );
+
     return (
       <article className="table-card expanded-table-card lead-contacts-screen">
         <div className="customer-edit-modal-head">
@@ -1760,6 +1945,36 @@ export function CustomersView() {
             />
           </label>
           <label>
+            <span>{isArabic ? "\u0627\u0644\u0645\u0648\u0642\u0639" : "Website"}</span>
+            <input
+              dir="ltr"
+              onChange={(event) =>
+                setLeadEditDraft((current) => ({
+                  ...current,
+                  website: event.target.value,
+                }))
+              }
+              placeholder="https://example.com"
+              type="url"
+              value={leadEditDraft.website}
+            />
+          </label>
+          <label>
+            <span>{isArabic ? "\u0645\u0648\u0642\u0639 \u0627\u0644\u0645\u062d\u0644" : "Store Location"}</span>
+            <input
+              dir="ltr"
+              onChange={(event) =>
+                setLeadEditDraft((current) => ({
+                  ...current,
+                  place_url: event.target.value,
+                }))
+              }
+              placeholder="https://www.google.com/maps/place/?q=place_id:..."
+              type="url"
+              value={leadEditDraft.place_url}
+            />
+          </label>
+          <label>
             <span>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644" : "Mobile Number"}</span>
             <input
               dir="ltr"
@@ -1984,10 +2199,15 @@ export function CustomersView() {
             </thead>
             <tbody>
               {paginatedCustomers.map((row) => {
-                const rowTagAssignments =
-                  leadTagAssignmentsByLeadId.get(String(row.id)) ?? [];
+                const rowTagAssignments = (leadTagAssignments.data ?? []).filter(
+                  (assignment) => Number(assignment.lead_id) === Number(row.id),
+                );
                 const rowTags = rowTagAssignments
-                  .map((assignment) => leadTagsById.get(Number(assignment.tag_id)))
+                  .map((assignment) =>
+                    (leadTags.data ?? []).find(
+                      (tag) => Number(tag.id) === Number(assignment.tag_id),
+                    ),
+                  )
                   .filter(Boolean);
                 return (
                   <Fragment key={row.id}>
@@ -2003,9 +2223,9 @@ export function CustomersView() {
                     <td>{getCustomerName(row)}</td>
                     <td dir="ltr">{String(row.phone ?? "").trim()}</td>
                     <td dir="ltr">
-                      {String(row.website ?? "").trim() ? (
+                      {customerWebsiteUrl(row) ? (
                         <a
-                          href={externalUrl(row.website)}
+                          href={customerWebsiteUrl(row)}
                           rel="noreferrer"
                           target="_blank"
                         >
@@ -2016,7 +2236,7 @@ export function CustomersView() {
                       )}
                     </td>
                     <td className="customers-details-cell customers-requirements-cell">
-                      {String(row.requirements ?? "").trim() ||
+                      {cleanCustomerRequirements(row.requirements) ||
                         (isArabic ? "لا توجد متطلبات" : "No requirements")}
                     </td>
                     <td className="customers-details-cell customers-tags-cell">
@@ -2144,7 +2364,9 @@ export function CustomersView() {
           ) : null}
           <div className="customer-kanban-board">
             {stageOrder.map((stage) => {
-              const stageLeads = customersByStage.get(stage) ?? [];
+              const stageLeads = filteredCustomers.filter(
+                (row) => String(row.stage ?? "new") === stage,
+              );
               return (
                 <section
                   className={`customer-kanban-column stage-${stage} ${dragOverStage === stage ? "drag-over" : ""}`}
@@ -2413,8 +2635,14 @@ const educationalVideos = [
 export function EducationalHubView() {
   const [activeTab, setActiveTab] = useState<"images" | "videos">("images");
   const { data } = useBackend<BackendRow[]>("/api/v1/data/educational-assets");
-  const liveImages = (data ?? []).filter((item) => item.asset_type !== "video");
-  const liveVideos = (data ?? []).filter((item) => item.asset_type === "video");
+  const liveImages = useMemo(
+    () => (data ?? []).filter((item) => item.asset_type !== "video"),
+    [data],
+  );
+  const liveVideos = useMemo(
+    () => (data ?? []).filter((item) => item.asset_type === "video"),
+    [data],
+  );
 
   return (
     <section className="education-hub-view" dir="rtl">
@@ -2515,26 +2743,38 @@ export function AccountsView() {
   const t = useTranslations();
   const isArabic = useLocale() === "ar";
   const { data } = useBackend<BackendRow[]>("/api/v1/data/commissions");
-  const approvedTotal = (data ?? [])
-    .filter((row) => row.status === "approved")
-    .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0);
-  const pending = (data ?? [])
-    .filter((row) => row.status === "pending")
-    .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0);
+  const approvedTotal = useMemo(
+    () =>
+      (data ?? [])
+        .filter((row) => row.status === "approved")
+        .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0),
+    [data],
+  );
+  const pending = useMemo(
+    () =>
+      (data ?? [])
+        .filter((row) => row.status === "pending")
+        .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0),
+    [data],
+  );
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
-  const paidThisMonth = (data ?? [])
-    .filter((row) => {
-      if (row.status !== "paid") return false;
-      const paidDate = new Date(String(row.paid_at ?? row.created_at ?? ""));
-      return (
-        !Number.isNaN(paidDate.getTime()) &&
-        paidDate.getMonth() === currentMonth &&
-        paidDate.getFullYear() === currentYear
-      );
-    })
-    .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0);
+  const paidThisMonth = useMemo(
+    () =>
+      (data ?? [])
+        .filter((row) => {
+          if (row.status !== "paid") return false;
+          const paidDate = new Date(String(row.paid_at ?? row.created_at ?? ""));
+          return (
+            !Number.isNaN(paidDate.getTime()) &&
+            paidDate.getMonth() === currentMonth &&
+            paidDate.getFullYear() === currentYear
+          );
+        })
+        .reduce((sum, row) => sum + Number(row.commission_amount ?? 0), 0),
+    [currentMonth, currentYear, data],
+  );
   const commissionStatusDate = (row: BackendRow) => {
     const status = String(row.status ?? "pending");
     const value =
@@ -2776,13 +3016,17 @@ export function DemoView() {
     ? ["\u0646\u0638\u0627\u0645 \u0627\u0644\u062a\u062c\u0632\u0626\u0629", "\u0646\u0638\u0627\u0645 \u0627\u0644\u0645\u0637\u0627\u0639\u0645 \u0648\u0627\u0644\u0645\u0642\u0627\u0647\u064a", "\u0646\u0638\u0627\u0645 \u0627\u0644\u062e\u062f\u0645\u0627\u062a"]
     : ["Retail system", "Restaurants and cafes system", "Services system"];
   const normalizedCustomerQuery = customerQuery.trim().toLocaleLowerCase();
-  const matchingCustomers = (leads.data ?? [])
-    .filter((lead) =>
-      [lead.name, lead.company_name, lead.phone, lead.email].some((value) =>
-        String(value ?? "").toLocaleLowerCase().includes(normalizedCustomerQuery),
-      ),
-    )
-    .slice(0, 8);
+  const matchingCustomers = useMemo(
+    () =>
+      (leads.data ?? [])
+        .filter((lead) =>
+          [lead.name, lead.company_name, lead.phone, lead.email].some((value) =>
+            String(value ?? "").toLocaleLowerCase().includes(normalizedCustomerQuery),
+          ),
+        )
+        .slice(0, 8),
+    [leads.data, normalizedCustomerQuery],
+  );
   const demoStatusLabels: Record<string, string> = isArabic
     ? {
         new: "\u062c\u062f\u064a\u062f",
@@ -2804,11 +3048,15 @@ export function DemoView() {
     if (current === "completed" || current === "cancelled") return "completed";
     return "contacted";
   };
-  const filteredDemos = (demos.data ?? []).filter(
-    (demo) =>
-      demoStatusFilter === "all" ||
-      (isDemoExpired(demo) ? "completed" : normalizeDemoStatus(demo.status)) ===
-        demoStatusFilter,
+  const filteredDemos = useMemo(
+    () =>
+      (demos.data ?? []).filter(
+        (demo) =>
+          demoStatusFilter === "all" ||
+          (isDemoExpired(demo) ? "completed" : normalizeDemoStatus(demo.status)) ===
+            demoStatusFilter,
+      ),
+    [demoStatusFilter, demos.data],
   );
   const demoRemainingTimeLabel = (demo: BackendRow) => {
     const createdAt = new Date(String(demo.created_at ?? ""));

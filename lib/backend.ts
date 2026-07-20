@@ -78,6 +78,8 @@ const resources: Record<BackendResource, ResourceDefinition> = {
       "company_name",
       "email",
       "phone",
+      "website",
+      "place_url",
       "source",
       "address",
       "requirements",
@@ -646,7 +648,18 @@ async function ensureStoreTables() {
   );
 }
 
+async function ensureLeadPlaceUrlColumn() {
+  if (!(await columnExists("leads", "place_url"))) {
+    await db.execute(
+      "ALTER TABLE leads ADD COLUMN place_url VARCHAR(255) NULL AFTER website",
+    );
+  }
+}
+
 async function ensureResourceTable(resource: string) {
+  if (resource === "leads") {
+    await ensureLeadPlaceUrlColumn();
+  }
   if (resource === "stores" || resource === "stock") {
     await ensureStoreTables();
   }

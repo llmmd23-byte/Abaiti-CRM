@@ -789,6 +789,7 @@ function AdminMetricList({
         ["name", isArabic ? "الاسم" : "Name"],
         ["phone", isArabic ? "رقم الجوال" : "Mobile"],
         ["website", isArabic ? "الموقع الإلكتروني" : "Website"],
+        ["place_url", isArabic ? "موقع المحل" : "Store Location"],
         ["tag_names", isArabic ? "الوسوم" : "Tags"],
         ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
       ],
@@ -1497,7 +1498,7 @@ function AdminMetricList({
                     key.includes("sold_at") ||
                     key === "valid_until";
                   const isAmount = key === "amount" || key === "sale_amount";
-                  const isWebsite = key === "website";
+                  const isWebsite = key === "website" || key === "place_url";
                   const websiteUrl = isWebsite ? externalUrl(value) : "";
                   return (
                     <td key={key}>
