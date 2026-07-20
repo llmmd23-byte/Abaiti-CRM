@@ -1848,6 +1848,64 @@ function generatedReference(resource: string) {
     .padStart(3, "0")}`;
 }
 
+function hexToRgb(hex: string) {
+  const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex.slice(1) : "00b4d8";
+  return {
+    r: Number.parseInt(normalized.slice(0, 2), 16),
+    g: Number.parseInt(normalized.slice(2, 4), 16),
+    b: Number.parseInt(normalized.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex({ r, g, b }: { r: number; g: number; b: number }) {
+  return `#${[r, g, b]
+    .map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
+function mixHex(startHex: string, endHex: string, ratio: number) {
+  const start = hexToRgb(startHex);
+  const end = hexToRgb(endHex);
+  return rgbToHex({
+    r: start.r + (end.r - start.r) * ratio,
+    g: start.g + (end.g - start.g) * ratio,
+    b: start.b + (end.b - start.b) * ratio,
+  });
+}
+
+async function rebalanceLeadTagGradient(typeId: number, session: MiddarSession) {
+  const [typeRows] = await db.execute<RowDataPacket[]>(
+    `SELECT id, type_color
+       FROM tag_types
+      WHERE id = ? AND company_id = ?
+      LIMIT 1`,
+    [typeId, await companyIdForSession(session)],
+  );
+  const type = typeRows[0];
+  if (!type) throw new Error("TAG_TYPE_NOT_FOUND");
+
+  const [tagRows] = await db.execute<RowDataPacket[]>(
+    `SELECT id
+       FROM tags
+      WHERE tag_type_id = ?
+      ORDER BY id ASC`,
+    [typeId],
+  );
+  if (!tagRows.length) return;
+
+  const baseColor = String(type.type_color ?? "#00b4d8");
+  const gradientEnd = "#11293d";
+  await Promise.all(
+    tagRows.map((tag, index) => {
+      const ratio = tagRows.length === 1 ? 0 : index / (tagRows.length - 1);
+      return db.execute(
+        `UPDATE tags SET tag_color = ? WHERE id = ?`,
+        [mixHex(baseColor, gradientEnd, ratio), Number(tag.id)],
+      );
+    }),
+  );
+}
+
 const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   products: ["name", "slug"],
   industries: ["name", "slug"],
@@ -2108,6 +2166,10 @@ export async function createResource(
     data.quote_number = generatedReference(resource);
   if (resource === "support-tickets" && !data.ticket_number)
     data.ticket_number = generatedReference(resource);
+  const leadTagTypeId =
+    resource === "lead-tags" && Number.isInteger(Number(data.tag_type_id))
+      ? Number(data.tag_type_id)
+      : null;
 
   const missing = (requiredFields[resource as BackendResource] ?? []).filter(
     (column) =>
@@ -2196,6 +2258,9 @@ export async function createResource(
       return existingAssignments[0] ?? null;
     }
     throw error;
+  }
+  if (resource === "lead-tags" && leadTagTypeId) {
+    await rebalanceLeadTagGradient(leadTagTypeId, session);
   }
   if (resource === "support-tickets") {
     await recordSupportTicketEvent({

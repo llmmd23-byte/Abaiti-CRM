@@ -372,6 +372,18 @@ export default function AdminDashboard({
     loadManagement();
   }
 
+  function patchManagementRow(resource: keyof ManagementData, row: AdminRow) {
+    setManagement((current) => {
+      if (!current || !Array.isArray(current[resource])) return current;
+      return {
+        ...current,
+        [resource]: (current[resource] as AdminRow[]).map((item) =>
+          Number(item.id) === Number(row.id) ? { ...item, ...row } : item,
+        ),
+      };
+    });
+  }
+
   useEffect(() => {
     if (activeSection !== "dashboard") return;
     loadSummary();
@@ -689,6 +701,7 @@ export default function AdminDashboard({
         ) : (
           <AdminManagementSection
             onReload={refreshAdminData}
+            onRowUpdated={patchManagementRow}
             section={activeSection}
             data={management}
             error={managementError}
@@ -860,6 +873,17 @@ function AdminMetricList({
       { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
     ],
   };
+  const userRoleOptions = useMemo(() => {
+    const options = metricData.roles
+      .filter((role) => String(role.slug ?? "").trim())
+      .map((role) => ({
+        value: String(role.slug),
+        label: String(isArabic ? (role.name_ar ?? role.name_en) : (role.name_en ?? role.name_ar)),
+      }));
+    return options.length
+      ? options
+      : [{ value: "affiliate", label: isArabic ? "مسوق" : "Affiliate" }];
+  }, [isArabic, metricData.roles]);
   const userTextFields = [
     ["name", isArabic ? "الاسم" : "Name", "text"],
     ["email", isArabic ? "البريد الإلكتروني" : "Email", "email"],
@@ -885,26 +909,6 @@ function AdminMetricList({
     ["last_login_at", isArabic ? "آخر دخول" : "Last Login"],
     ["skills_proof_files", isArabic ? "ملفات إثبات المهارات" : "Skill Proof Files"],
   ] as const;
-  const userRoleOptions =
-    metricData.roles?.length
-      ? metricData.roles.map((role) => ({
-          value: String(role.slug),
-          label: `${isArabic ? role.name_ar : role.name_en} - ${
-            role.role_type === "admin"
-              ? isArabic
-                ? "أدمن"
-                : "Admin"
-              : isArabic
-                ? "مستخدم"
-                : "User"
-          }`,
-        }))
-      : [
-          { value: "admin", label: "Admin" },
-          { value: "affiliate", label: "Affiliate" },
-          { value: "sales", label: "Sales" },
-          { value: "support", label: "Support" },
-        ];
   const normalizedSearch = search.trim().toLocaleLowerCase();
   const hasUserFilter = ["clients", "demos", "quotes", "sales"].includes(
     metric,
@@ -1110,6 +1114,51 @@ function AdminMetricList({
     }
   }
 
+
+  async function deleteEditingUser() {
+    if (!editingRow) return;
+    const email = String(editingRow.email ?? "").toLowerCase();
+    if (email === "admin@middar.com") {
+      setEditMessage(
+        isArabic
+          ? "لا يمكن حذف admin@middar.com لأنه حساب أساسي."
+          : "admin@middar.com cannot be deleted because it is a core account.",
+      );
+      return;
+    }
+    if (
+      !window.confirm(
+        isArabic
+          ? "هل تريد حذف حساب المستخدم؟ لا يمكن التراجع عن هذا الإجراء."
+          : "Delete this user account? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+    setEditMessage(isArabic ? "جاري الحذف..." : "Deleting...");
+    try {
+      const response = await fetch(`/api/v1/admin/users/${editingRow.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(body.error ?? "DELETE_FAILED"));
+      setEditingRow(null);
+      setEditMessage("");
+      onReload();
+    } catch (error) {
+      setEditMessage(
+        error instanceof Error && error.message === "DEFAULT_ADMIN_PROTECTED"
+          ? isArabic
+            ? "لا يمكن حذف admin@middar.com لأنه حساب أساسي."
+            : "admin@middar.com cannot be deleted because it is a core account."
+          : isArabic
+            ? "تعذر حذف الحساب"
+            : "Unable to delete user account",
+      );
+    }
+  }
+
   function openPasswordEditor(row: AdminRow) {
     setPasswordRow(row);
     setPasswordDraft("");
@@ -1196,7 +1245,7 @@ function AdminMetricList({
         body: JSON.stringify(createUserDraft),
       });
       const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error ?? "CREATE_FAILED");
+      if (!response.ok) throw new Error(String(body.error ?? "CREATE_FAILED"));
       closeCreateUserModal();
       onReload();
     } catch (error) {
@@ -1274,6 +1323,14 @@ function AdminMetricList({
                     ...tagTypeFilterOptions,
                   ]}
                   value={clientTagTypeFilter}
+                />
+              </div>
+              <div className="admin-user-status-filter admin-client-user-filter">
+                <DashboardSelect
+                  ariaLabel={isArabic ? "\u0641\u0644\u062a\u0631\u0629 \u062d\u0633\u0628 \u0627\u0644\u0648\u0633\u0645" : "Filter by tag"}
+                  onValueChange={setClientTagFilter}
+                  options={tagSelectOptions}
+                  value={clientTagFilter}
                 />
               </div>
             </>
@@ -1356,9 +1413,7 @@ function AdminMetricList({
                 <path d="M19 8v6" />
                 <path d="M16 11h6" />
               </svg>
-              <span>
-                {isArabic ? "إضافة مستخدم جديد" : "Add New User"}
-              </span>
+              <span>{isArabic ? "إضافة مستخدم جديد" : "Add New User"}</span>
             </button>
           ) : null}
         </div>
@@ -1533,7 +1588,7 @@ function AdminMetricList({
       </div>
       {isCreateUserOpen ? (
         <div
-          className="admin-create-user-overlay modal-overlay active"
+          className="admin-create-user-overlay"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeCreateUserModal();
           }}
@@ -1541,7 +1596,7 @@ function AdminMetricList({
         >
           <section
             aria-modal="true"
-            className="admin-create-user-modal modal-content-box"
+            className="admin-create-user-modal"
             role="dialog"
           >
             <div className="admin-create-user-head modal-header">
@@ -1596,29 +1651,43 @@ function AdminMetricList({
               <div className="admin-create-user-row form-row">
                 <label className="form-group">
                   <span>{isArabic ? "الصلاحية" : "Role"}</span>
-                  <DashboardSelect
-                    ariaLabel={isArabic ? "الصلاحية" : "Role"}
-                    menuClassName="admin-edit-select-menu"
-                    onValueChange={(role) =>
-                      setCreateUserDraft((current) => ({ ...current, role }))
-                    }
-                    options={userRoleOptions}
-                    portal
-                    value={createUserDraft.role}
-                  />
+                  <div className="admin-choice-grid" role="group">
+                    {userRoleOptions.map((option) => (
+                      <button
+                        className={createUserDraft.role === option.value ? "active" : ""}
+                        key={option.value}
+                        onClick={() =>
+                          setCreateUserDraft((current) => ({
+                            ...current,
+                            role: option.value,
+                          }))
+                        }
+                        type="button"
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </label>
                 <label className="form-group">
                   <span>{isArabic ? "حالة الحساب" : "Account Status"}</span>
-                  <DashboardSelect
-                    ariaLabel={isArabic ? "حالة الحساب" : "Account Status"}
-                    menuClassName="admin-edit-select-menu"
-                    onValueChange={(status) =>
-                      setCreateUserDraft((current) => ({ ...current, status }))
-                    }
-                    options={statusOptions.users}
-                    portal
-                    value={createUserDraft.status}
-                  />
+                  <div className="admin-choice-grid" role="group">
+                    {statusOptions.users.map((option) => (
+                      <button
+                        className={createUserDraft.status === option.value ? "active" : ""}
+                        key={option.value}
+                        onClick={() =>
+                          setCreateUserDraft((current) => ({
+                            ...current,
+                            status: option.value,
+                          }))
+                        }
+                        type="button"
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </label>
               </div>
               <label className="form-group">
@@ -1632,7 +1701,7 @@ function AdminMetricList({
                       password: event.target.value,
                     }))
                   }
-                  placeholder="••••••••"
+                  placeholder="********"
                   required
                   type="password"
                   value={createUserDraft.password}
@@ -1723,14 +1792,15 @@ function AdminMetricList({
                 ))}
                 <label>
                   <span>{isArabic ? "الصلاحية" : "Role"}</span>
-                  <DashboardSelect
-                    ariaLabel={isArabic ? "الصلاحية" : "Role"}
-                    menuClassName="admin-edit-select-menu"
-                    onValueChange={(role) =>
-                      setEditDraft((current) => ({ ...current, role }))
+                  <select
+                    className="admin-basic-select"
+                    onChange={(event) =>
+                      setEditDraft((current) => ({ ...current, role: event.target.value }))
                     }
-                    options={[
-                      ...(metricData.roles?.length
+                    value={editDraft.role ?? "affiliate"}
+                  >
+                    {(
+                      metricData.roles?.length
                         ? metricData.roles.map((role) => ({
                             value: String(role.slug),
                             label: `${isArabic ? role.name_ar : role.name_en} - ${
@@ -1748,11 +1818,13 @@ function AdminMetricList({
                             { value: "affiliate", label: "Affiliate" },
                             { value: "sales", label: "Sales" },
                             { value: "support", label: "Support" },
-                          ]),
-                    ]}
-                    portal
-                    value={editDraft.role ?? "affiliate"}
-                  />
+                          ]
+                    ).map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <label>
                   <span>{isArabic ? "اللغة المفضلة" : "Preferred Language"}</span>
@@ -1821,16 +1893,19 @@ function AdminMetricList({
                 </label>
                 <label>
                   <span>{isArabic ? "الحالة" : "Status"}</span>
-                  <DashboardSelect
-                    ariaLabel={isArabic ? "الحالة" : "Status"}
-                    menuClassName="admin-edit-select-menu"
-                    onValueChange={(status) =>
-                      setEditDraft((current) => ({ ...current, status }))
+                  <select
+                    className="admin-basic-select"
+                    onChange={(event) =>
+                      setEditDraft((current) => ({ ...current, status: event.target.value }))
                     }
-                    options={statusOptions.users}
-                    portal
                     value={editDraft.status ?? statusOptions.users[0].value}
-                  />
+                  >
+                    {statusOptions.users.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </label>
               </div>
             ) : null}
@@ -1999,6 +2074,31 @@ function AdminMetricList({
                 {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
+            {metric === "users" ? (
+              <div className="admin-user-delete-section">
+                <strong>{isArabic ? "حذف الحساب" : "Delete Account"}</strong>
+                <span>
+                  {isArabic
+                    ? "هذا الخيار يحذف حساب المستخدم من النظام."
+                    : "This option removes the user account from the system."}
+                </span>
+                <button
+                  className="admin-row-delete admin-user-delete-btn"
+                  disabled={String(editingRow.email ?? "").toLowerCase() === "admin@middar.com"}
+                  onClick={() => void deleteEditingUser()}
+                  type="button"
+                >
+                  {isArabic ? "حذف الحساب" : "Delete Account"}
+                </button>
+                {String(editingRow.email ?? "").toLowerCase() === "admin@middar.com" ? (
+                  <small>
+                    {isArabic
+                      ? "لا يمكن حذف admin@middar.com لأنه حساب أساسي."
+                      : "admin@middar.com cannot be deleted because it is a core account."}
+                  </small>
+                ) : null}
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}
@@ -2191,7 +2291,6 @@ function AdminTagsSection({
         });
       }),
     );
-    return tags;
   }
 
   async function saveTagSettings(type: {
@@ -2250,24 +2349,7 @@ function AdminTagsSection({
         });
         if (!response.ok) throw new Error("ADD_TAG_FAILED");
         const createdTag = await response.json().catch(() => null);
-        const gradientTags = await rebalanceTagGradient(
-          type.id,
-          createdTag?.data ?? createdTag,
-          typeDraft.color,
-        );
-        if (gradientTags?.length) {
-          setTagDrafts((current) => {
-            const next = {...current};
-            gradientTags.forEach((tag) => {
-              next[tag.id] = {
-                ...(next[tag.id] ?? {name: tag.name, color: tag.color}),
-                name: tag.name,
-                color: tag.color,
-              };
-            });
-            return next;
-          });
-        }
+        await rebalanceTagGradient(type.id, createdTag?.data ?? createdTag, typeDraft.color);
         setNewTagDrafts((current) => ({
           ...current,
           [type.id]: { name: "", color: "#00b4d8" },
@@ -2281,6 +2363,68 @@ function AdminTagsSection({
     } finally {
       setSavingKey("");
     }
+  }
+
+  function hexToRgb(hex: string) {
+    const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex.slice(1) : "00b4d8";
+    return {
+      r: Number.parseInt(normalized.slice(0, 2), 16),
+      g: Number.parseInt(normalized.slice(2, 4), 16),
+      b: Number.parseInt(normalized.slice(4, 6), 16),
+    };
+  }
+
+  function rgbToHex({ r, g, b }: { r: number; g: number; b: number }) {
+    return `#${[r, g, b]
+      .map((value) =>
+        Math.max(0, Math.min(255, Math.round(value)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")}`;
+  }
+
+  function mixHex(startHex: string, endHex: string, ratio: number) {
+    const start = hexToRgb(startHex);
+    const end = hexToRgb(endHex);
+    return rgbToHex({
+      r: start.r + (end.r - start.r) * ratio,
+      g: start.g + (end.g - start.g) * ratio,
+      b: start.b + (end.b - start.b) * ratio,
+    });
+  }
+
+  function createTagGradient(type: {
+    id: number;
+    color: string;
+    tags: Array<{ id: number; name: string; color: string; count: number }>;
+  }) {
+    if (!type.tags.length) {
+      setMessage(
+        isArabic
+          ? "لا توجد وسوم لإنشاء تدرج لها"
+          : "No tags available for a gradient",
+      );
+      return;
+    }
+    const baseColor = typeDrafts[type.id]?.color ?? type.color;
+    const gradientEnd = "#11293d";
+    setTagDrafts((current) => {
+      const next = { ...current };
+      type.tags.forEach((tag, index) => {
+        const ratio = type.tags.length === 1 ? 0 : index / (type.tags.length - 1);
+        next[tag.id] = {
+          ...(next[tag.id] ?? { name: tag.name, color: tag.color }),
+          color: mixHex(baseColor, gradientEnd, ratio),
+        };
+      });
+      return next;
+    });
+    setMessage(
+      isArabic
+        ? "تم إنشاء التدرج اللوني. اضغط حفظ التعديلات لتثبيت التغييرات."
+        : "Gradient created. Save changes to apply it.",
+    );
   }
 
   function pieBackground(
@@ -2557,6 +2701,13 @@ function AdminTagsSection({
                 <div className="admin-linked-tags-editor">
                   <div className="admin-linked-tags-head">
                     <strong>{isArabic ? "الوسوم المرتبطة" : "Linked tags"}</strong>
+                    <button
+                      className="admin-action-btn admin-gradient-btn"
+                      onClick={() => createTagGradient(type)}
+                      type="button"
+                    >
+                      {isArabic ? "إنشاء تدرج لوني" : "Create color gradient"}
+                    </button>
                   </div>
                   {type.tags.length ? (
                     type.tags.map((tag) => {
@@ -3152,12 +3303,14 @@ function AdminManagementSection({
   error,
   isArabic,
   onReload,
+  onRowUpdated,
 }: {
   section: Exclude<AdminSection, "dashboard">;
   data: ManagementData | null;
   error: string;
   isArabic: boolean;
   onReload: () => void;
+  onRowUpdated: (resource: "tickets", row: AdminRow) => void;
 }) {
   const [query, setQuery] = useState("");
   const [ticketStatusFilter, setTicketStatusFilter] = useState("all");
@@ -3166,6 +3319,7 @@ function AdminManagementSection({
   const [timelineTicket, setTimelineTicket] = useState<AdminRow | null>(null);
   const [ticketDraft, setTicketDraft] = useState({ status: "open", notes: "" });
   const [ticketEditMessage, setTicketEditMessage] = useState("");
+  const [isTicketSaving, setIsTicketSaving] = useState(false);
   const [editingTicketType, setEditingTicketType] = useState<AdminRow | null>(null);
   const [isTicketTypesMenuOpen, setIsTicketTypesMenuOpen] = useState(false);
   const [isTicketTypeModalOpen, setIsTicketTypeModalOpen] = useState(false);
@@ -3190,7 +3344,7 @@ function AdminManagementSection({
   });
   const [industryMessage, setIndustryMessage] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{
-    resource: "products" | "industries" | "marketing-assets";
+    resource: "products" | "industries" | "marketing-assets" | "users";
     row: AdminRow;
   } | null>(null);
   const [productDraft, setProductDraft] = useState({
@@ -3352,6 +3506,7 @@ function AdminManagementSection({
       ),
     [managementData.users],
   );
+
   if (section === "permissions") {
     return <AdminPermissionsSection isArabic={isArabic} />;
   }
@@ -3510,7 +3665,14 @@ function AdminManagementSection({
   }
 
   async function saveTicket() {
-    if (!editingTicket) return;
+    if (!editingTicket || isTicketSaving) return;
+    const nextNotes = ticketDraft.notes.trim() || null;
+    const fallbackTicket = {
+      ...editingTicket,
+      status: ticketDraft.status,
+      notes: nextNotes,
+    };
+    setIsTicketSaving(true);
     setTicketEditMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const response = await fetch(
@@ -3520,21 +3682,42 @@ function AdminManagementSection({
           headers: { "Content-Type": "application/json; charset=utf-8" },
           body: JSON.stringify({
             status: ticketDraft.status,
-            notes: ticketDraft.notes.trim() || null,
+            notes: nextNotes,
           }),
         },
       );
-      if (!response.ok) throw new Error("SAVE_FAILED");
-      setEditingTicket(null);
-      onReload();
-    } catch {
-      setTicketEditMessage(
-        isArabic ? "تعذر حفظ التذكرة" : "Unable to save ticket",
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
+      const updatedTicket = {
+        ...fallbackTicket,
+        ...(payload.data && typeof payload.data === "object" ? payload.data : {}),
+      };
+      onRowUpdated("tickets", updatedTicket);
+      setTimelineTicket((current) =>
+        current && Number(current.id) === Number(updatedTicket.id)
+          ? { ...current, ...updatedTicket }
+          : current,
       );
+      setEditingTicket(null);
+      setTicketEditMessage("");
+      window.setTimeout(() => onReload(), 200);
+    } catch (error) {
+      setTicketEditMessage(
+        error instanceof Error && error.message === "FORBIDDEN"
+          ? isArabic
+            ? "ليست لديك صلاحية تعديل التذكرة"
+            : "You do not have permission to edit this ticket"
+          : isArabic
+            ? "تعذر حفظ التذكرة"
+            : "Unable to save ticket",
+      );
+    } finally {
+      setIsTicketSaving(false);
     }
   }
 
   async function updateTicketStatus(ticket: AdminRow, status: string) {
+    const fallbackTicket = { ...ticket, status };
     try {
       const response = await fetch(`/api/v1/data/support-tickets/${ticket.id}`, {
         method: "PUT",
@@ -3544,8 +3727,19 @@ function AdminManagementSection({
           notes: ticket.notes ?? null,
         }),
       });
-      if (!response.ok) throw new Error("SAVE_FAILED");
-      onReload();
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
+      const updatedTicket = {
+        ...fallbackTicket,
+        ...(payload.data && typeof payload.data === "object" ? payload.data : {}),
+      };
+      onRowUpdated("tickets", updatedTicket);
+      setTimelineTicket((current) =>
+        current && Number(current.id) === Number(updatedTicket.id)
+          ? { ...current, ...updatedTicket }
+          : current,
+      );
+      window.setTimeout(() => onReload(), 200);
     } catch {
       setTicketEditMessage(
         isArabic ? "تعذر تحديث التذكرة" : "Unable to update ticket",
@@ -3620,11 +3814,17 @@ function AdminManagementSection({
     setDeleteTarget({ resource: "marketing-assets", row: asset });
   }
 
+  function requestUserDeletion(user: AdminRow) {
+    setDeleteTarget({ resource: "users", row: user });
+  }
+
   async function confirmDeletion() {
     if (!deleteTarget) return;
     try {
       const response = await fetch(
-        `/api/v1/data/${deleteTarget.resource}/${deleteTarget.row.id}`,
+        deleteTarget.resource === "users"
+          ? `/api/v1/admin/users/${deleteTarget.row.id}`
+          : `/api/v1/data/${deleteTarget.resource}/${deleteTarget.row.id}`,
         { method: "DELETE" },
       );
       if (!response.ok) {
@@ -3639,6 +3839,14 @@ function AdminManagementSection({
           isArabic
             ? "لا يمكن حذف المنتج لأنه مرتبط بطلبات تجريبية أو عروض أسعار أو مبيعات."
             : "This product cannot be deleted because it is linked to demos, quotes, or sales.",
+        );
+        return;
+      }
+      if (error instanceof Error && error.message === "DEFAULT_ADMIN_PROTECTED") {
+        window.alert(
+          isArabic
+            ? "لا يمكن حذف حساب admin@middar.com لأنه حساب أساسي."
+            : "You cannot delete admin@middar.com because it is a core account.",
         );
         return;
       }
@@ -3928,14 +4136,97 @@ function AdminManagementSection({
     window.setTimeout(() => setLandingBrochureMessage(""), 2600);
   }
 
+  async function toggleAccountStatus(row: AdminRow) {
+    const currentStatus = String(row.status ?? "inactive");
+    const nextStatus = currentStatus === "active" ? "inactive" : "active";
+    try {
+      const response = await fetch(`/api/v1/admin/users/${row.id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json; charset=utf-8"},
+        body: JSON.stringify({
+          ...row,
+          status: nextStatus,
+          is_active: nextStatus === "active" ? 1 : 0,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
+      onReload();
+    } catch {
+      window.alert(isArabic ? "طتعذر تحديث حالة الحساب" : "Unable to update account status");
+    }
+  }
+
   if (section === "accounts") {
     return (
-      <section className="admin-data-card admin-accounts-workspace">
-        <AdminAccountQuotes
-          data={data}
-          isArabic={isArabic}
-          onReload={onReload}
-        />
+      <section className="admin-data-card admin-accounts-workspace" dir={isArabic ? "rtl" : "ltr"}>
+        <div className="admin-data-head admin-accounts-head">
+          <div className="records-info">
+            <span>{isArabic ? "إدارة البيانات" : "Data Management"}</span>
+            <strong>
+              {visibleRows.length.toLocaleString(NUMBER_LOCALE)}{" "}
+              {isArabic ? "سجل" : "records"}
+            </strong>
+          </div>
+          <div className="admin-data-tools admin-accounts-tools">
+            <div className="admin-record-search-bar search-box">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="10.8" cy="10.8" r="6.2" />
+                <path d="m15.5 15.5 4 4" />
+              </svg>
+              <input
+                aria-label={isArabic ? "البحث" : "Search"}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={isArabic ? "ابحث بالاسم أو البريد الإلكتروني..." : "Search by name or email..."}
+                type="search"
+                value={query}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="admin-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>{isArabic ? "الاسم" : "Name"}</th>
+                <th>{isArabic ? "البريد الإلكتروني" : "Email"}</th>
+                <th>{isArabic ? "الصلاحية" : "Role"}</th>
+                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th>{isArabic ? "آخر دخول" : "Last Login"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleRows.map((row, index) => (
+                <tr key={`account-${row.id}-${index}`}>
+                  <td>{String(row.name ?? "—")}</td>
+                  <td>{String(row.email ?? "—")}</td>
+                  <td>
+                    <span className={`admin-status admin-status-${String(row.role ?? "affiliate")}`}>
+                      {displayAdminValue(row.role, isArabic)}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className={`admin-row-status-toggle ${String(row.status ?? "inactive") === "active" ? "is-active" : ""}`}
+                      onClick={() => void toggleAccountStatus(row)}
+                      type="button"
+                    >
+                      {displayAdminValue(row.status, isArabic)}
+                    </button>
+                  </td>
+                  <td>{String(row.last_login_at ?? "—").slice(0, 10)}</td>
+                </tr>
+              ))}
+              {visibleRows.length === 0 ? (
+                <tr>
+                  <td className="admin-empty" colSpan={5}>
+                    {isArabic ? "لا توجد حسابات مطابقة" : "No matching accounts"}
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
       </section>
     );
   }
@@ -4295,10 +4586,35 @@ function AdminManagementSection({
           </strong>
         </div>
         <div
-          className={`admin-data-tools ${section === "tickets" ? "admin-ticket-data-tools admin-ticket-toolbar" : ""} ${section === "products" ? "admin-product-data-tools" : ""} ${section === "activity" ? "admin-activity-data-tools" : ""} ${section === "content" ? "admin-content-data-tools" : ""}`}
+          className={`admin-data-tools ${section === "tickets" ? "admin-ticket-data-tools admin-ticket-toolbar service-ticket-toolbar-v2" : ""} ${section === "products" ? "admin-product-data-tools" : ""} ${section === "activity" ? "admin-activity-data-tools" : ""} ${section === "content" ? "admin-content-data-tools" : ""}`}
+          style={
+            section === "tickets"
+              ? {
+                  alignItems: "center",
+                  columnGap: 8,
+                  display: "flex",
+                  flexWrap: "nowrap",
+                  gap: 8,
+                  justifyContent: "flex-start",
+                  margin: 0,
+                  minWidth: 0,
+                }
+              : undefined
+          }
         >
           <div
-            className={`admin-record-search-bar${section === "tickets" ? " admin-ticket-search-wide search-box" : ""}`}
+            className={`admin-record-search-bar${section === "tickets" ? " admin-ticket-search-wide search-box service-ticket-search-v2" : ""}`}
+            style={
+              section === "tickets"
+                ? {
+                    flex: "0 1 320px",
+                    margin: 0,
+                    maxWidth: 320,
+                    minWidth: 260,
+                    width: 320,
+                  }
+                : undefined
+            }
           >
             <svg aria-hidden="true" viewBox="0 0 24 24">
               <circle cx="10.8" cy="10.8" r="6.2" />
@@ -4319,6 +4635,11 @@ function AdminManagementSection({
               type="search"
               value={query}
             />
+            {section === "tickets" ? (
+              <div className="admin-ticket-records-badge">
+                {filteredRows.length.toLocaleString(NUMBER_LOCALE)}
+              </div>
+            ) : null}
           </div>
           {section === "products" ? (
             <button
@@ -4365,20 +4686,14 @@ function AdminManagementSection({
           {section === "tickets" ? (
             <button
               aria-pressed={isTicketAdvancedFilter}
-              className={`admin-account-advanced-filter btn-advanced-filter${isTicketAdvancedFilter ? " active" : ""}`}
+              className={`admin-account-advanced-filter btn-advanced-filter service-ticket-filter-v2${isTicketAdvancedFilter ? " active" : ""}`}
               onClick={() => setIsTicketAdvancedFilter((current) => !current)}
               style={{
-                background: "#ffffff",
-                border: "1px solid #00afb9",
-                borderRadius: "12px",
-                boxShadow: "none",
-                color: "#007f89",
-                flex: "0 0 108px",
-                fontSize: "12px",
-                fontWeight: 800,
-                height: "44px",
-                padding: "0 14px",
-                width: "108px",
+                flex: "0 0 128px",
+                margin: 0,
+                maxWidth: 128,
+                minWidth: 128,
+                width: 128,
               }}
               type="button"
             >
@@ -4387,7 +4702,14 @@ function AdminManagementSection({
           ) : null}
           {section === "tickets" ? (
             <div
-              className="admin-ticket-status-filter status-select"
+              className="admin-ticket-status-filter status-select service-ticket-status-v2"
+              style={{
+                flex: "0 0 128px",
+                margin: 0,
+                maxWidth: 128,
+                minWidth: 128,
+                width: 128,
+              }}
             >
               <DashboardSelect
                 ariaLabel={
@@ -4418,26 +4740,24 @@ function AdminManagementSection({
           ) : null}
           {section === "tickets" ? (
             <div
-              className="admin-ticket-types-dropdown-wrap"
+              className="admin-ticket-types-dropdown-wrap service-ticket-types-v2"
+              style={{
+                flex: "0 0 128px",
+                margin: 0,
+                maxWidth: 128,
+                minWidth: 128,
+                width: 128,
+              }}
             >
               <button
                 aria-expanded={isTicketTypesMenuOpen}
                 className={`admin-ticket-types-toggle btn-types${isTicketTypesMenuOpen ? " active" : ""}`}
                 onClick={() => setIsTicketTypesMenuOpen((current) => !current)}
                 style={{
-                  alignItems: "center",
-                  background: "#ffffff",
-                  border: "1px solid #dbe7ef",
-                  borderRadius: "8px",
-                  boxShadow: "none",
-                  color: "#0f2240",
-                  display: "inline-flex",
-                  fontSize: "12px",
-                  fontWeight: 800,
-                  height: "44px",
-                  justifyContent: "center",
-                  padding: 0,
-                  width: "72px",
+                  margin: 0,
+                  maxWidth: 128,
+                  minWidth: 128,
+                  width: 128,
                 }}
                 type="button"
               >
@@ -4935,10 +5255,17 @@ function AdminManagementSection({
             <div className="admin-edit-actions">
               <button
                 className="primary"
+                disabled={isTicketSaving}
                 onClick={() => void saveTicket()}
                 type="button"
               >
-                {isArabic ? "حفظ التعديلات" : "Save Changes"}
+                {isTicketSaving
+                  ? isArabic
+                    ? "جاري الحفظ..."
+                    : "Saving..."
+                  : isArabic
+                    ? "حفظ التعديلات"
+                    : "Save Changes"}
               </button>
               <button onClick={() => setEditingTicket(null)} type="button">
                 {isArabic ? "إلغاء" : "Cancel"}

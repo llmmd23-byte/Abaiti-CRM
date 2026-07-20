@@ -2,10 +2,88 @@ import {redirect} from "next/navigation";
 import AdminDashboard from "@/components/AdminDashboard";
 import {getSession} from "@/lib/auth";
 
-export default async function AdminPage({params}: {params: Promise<{locale: string}>}) {
+const validAdminSections = new Set([
+  "dashboard",
+  "tickets",
+  "accounts",
+  "products",
+  "tags",
+  "activity",
+  "content",
+  "permissions",
+]);
+
+export default async function AdminPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{locale: string}>;
+  searchParams?: Promise<{section?: string}>;
+}) {
   const {locale} = await params;
   const session = await getSession();
   if (!session) redirect(`/${locale}/signin`);
   if (session.role !== "admin") redirect(`/${locale}/dashboard`);
-  return <AdminDashboard />;
+  const query = await searchParams;
+  const initialSection = validAdminSections.has(String(query?.section ?? "dashboard"))
+    ? (String(query?.section ?? "dashboard") as
+        | "dashboard"
+        | "tickets"
+        | "accounts"
+        | "products"
+        | "tags"
+        | "activity"
+        | "content"
+        | "permissions")
+    : "dashboard";
+  return (
+    <>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .admin-shell .service-ticket-toolbar-v2 {
+              display: flex !important;
+              align-items: center !important;
+              justify-content: flex-start !important;
+              flex-wrap: nowrap !important;
+              gap: 8px !important;
+              column-gap: 8px !important;
+              row-gap: 8px !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+
+            .admin-shell .service-ticket-toolbar-v2 > * {
+              margin: 0 !important;
+            }
+
+            .admin-shell .service-ticket-search-v2 {
+              flex: 0 1 320px !important;
+              width: 320px !important;
+              min-width: 260px !important;
+              max-width: 320px !important;
+              margin: 0 !important;
+            }
+
+            .admin-shell .service-ticket-filter-v2,
+            .admin-shell .service-ticket-status-v2,
+            .admin-shell .service-ticket-types-v2,
+            .admin-shell .service-ticket-types-v2 > .btn-types,
+            .admin-shell .service-ticket-status-v2 .dashboard-select-trigger {
+              flex: 0 0 128px !important;
+              width: 128px !important;
+              min-width: 128px !important;
+              max-width: 128px !important;
+              margin: 0 !important;
+            }
+
+            .admin-shell[dir="rtl"] .service-ticket-status-v2 {
+              margin-inline-start: auto !important;
+            }
+          `,
+        }}
+      />
+      <AdminDashboard initialSection={initialSection} />
+    </>
+  );
 }
