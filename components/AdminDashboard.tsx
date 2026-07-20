@@ -178,6 +178,26 @@ function externalUrl(value: unknown) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`;
 }
 
+function isLikelyWebsiteUrl(value: unknown) {
+  const url = String(value ?? "").trim();
+  if (!url) return false;
+  if (/\s/.test(url)) return false;
+  if (/[\u0600-\u06FF]/.test(url)) return false;
+  return /^https?:\/\//i.test(url) || /^[^\s@]+\.[^\s@]{2,}(?:\/[^\s]*)?$/i.test(url);
+}
+
+function isPlaceUrl(value: unknown) {
+  const url = String(value ?? "").trim();
+  return /google\.[^/]+\/maps|maps\.app\.goo\.gl|place_id:/i.test(url);
+}
+
+function customerWebsiteUrl(value: unknown) {
+  const website = String(value ?? "").trim();
+  return website && !isPlaceUrl(website) && isLikelyWebsiteUrl(website)
+    ? externalUrl(website)
+    : "";
+}
+
 function formatAdminDateTime(value: unknown, isArabic: boolean) {
   const raw = String(value ?? "").trim();
   if (!raw) return "—";
@@ -1514,6 +1534,9 @@ function AdminMetricList({
                 {config.columns.map(([key]) => {
                   const value =
                     metric === "clients" &&
+                    key === "company_name"
+                      ? row.name
+                      : metric === "clients" &&
                     key === "industry_name_en" &&
                     !row[key]
                       ? row.industry_name
@@ -1534,7 +1557,12 @@ function AdminMetricList({
                     key === "valid_until";
                   const isAmount = key === "amount" || key === "sale_amount";
                   const isWebsite = key === "website" || key === "place_url";
-                  const websiteUrl = isWebsite ? externalUrl(value) : "";
+                  const websiteUrl =
+                    key === "website"
+                      ? customerWebsiteUrl(value)
+                      : key === "place_url"
+                        ? externalUrl(value)
+                        : "";
                   return (
                     <td key={key}>
                       {isStatus ? (
