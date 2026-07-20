@@ -3420,6 +3420,28 @@ function AdminManagementSection({
     };
   }, [isLandingPreviewOpen]);
 
+  useEffect(() => {
+    if (section !== "tickets") return;
+    const controls = document.querySelectorAll<HTMLElement>(
+      [
+        ".service-ticket-filter-v2",
+        ".service-ticket-status-v2",
+        ".service-ticket-status-v2 .dashboard-select",
+        ".service-ticket-status-v2 .dashboard-select-trigger",
+        ".service-ticket-types-v2",
+        ".service-ticket-types-v2 > .btn-types",
+      ].join(", "),
+    );
+    controls.forEach((control) => {
+      control.style.setProperty("flex", "0 0 166px", "important");
+      control.style.setProperty("inline-size", "166px", "important");
+      control.style.setProperty("width", "166px", "important");
+      control.style.setProperty("min-width", "166px", "important");
+      control.style.setProperty("max-width", "166px", "important");
+      control.style.setProperty("box-sizing", "border-box", "important");
+    });
+  }, [section, ticketStatusFilter, isTicketTypesMenuOpen]);
+
   const configs = {
     tickets: {
       rows: managementData.tickets,
@@ -4717,11 +4739,11 @@ function AdminManagementSection({
               className={`admin-account-advanced-filter btn-advanced-filter service-ticket-filter-v2${isTicketAdvancedFilter ? " active" : ""}`}
               onClick={() => setIsTicketAdvancedFilter((current) => !current)}
               style={{
-                flex: "0 0 128px",
+                flex: "0 0 166px",
                 margin: 0,
-                maxWidth: 128,
-                minWidth: 128,
-                width: 128,
+                maxWidth: 166,
+                minWidth: 166,
+                width: 166,
               }}
               type="button"
             >
@@ -4732,11 +4754,11 @@ function AdminManagementSection({
             <div
               className="admin-ticket-status-filter status-select service-ticket-status-v2"
               style={{
-                flex: "0 0 128px",
+                flex: "0 0 166px",
                 margin: 0,
-                maxWidth: 128,
-                minWidth: 128,
-                width: 128,
+                maxWidth: 166,
+                minWidth: 166,
+                width: 166,
               }}
             >
               <DashboardSelect
@@ -4770,11 +4792,11 @@ function AdminManagementSection({
             <div
               className="admin-ticket-types-dropdown-wrap service-ticket-types-v2"
               style={{
-                flex: "0 0 128px",
+                flex: "0 0 166px",
                 margin: 0,
-                maxWidth: 128,
-                minWidth: 128,
-                width: 128,
+                maxWidth: 166,
+                minWidth: 166,
+                width: 166,
               }}
             >
               <button
@@ -4783,9 +4805,9 @@ function AdminManagementSection({
                 onClick={() => setIsTicketTypesMenuOpen((current) => !current)}
                 style={{
                   margin: 0,
-                  maxWidth: 128,
-                  minWidth: 128,
-                  width: 128,
+                  maxWidth: 166,
+                  minWidth: 166,
+                  width: 166,
                 }}
                 type="button"
               >

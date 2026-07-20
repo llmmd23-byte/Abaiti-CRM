@@ -80,6 +80,39 @@ export default async function AdminPage({
             .admin-shell[dir="rtl"] .service-ticket-status-v2 {
               margin-inline-start: auto !important;
             }
+
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-filter-v2,
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-status-v2,
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-types-v2 {
+              flex: 0 0 166px !important;
+              flex-basis: 166px !important;
+              inline-size: 166px !important;
+              width: 166px !important;
+              min-width: 166px !important;
+              max-width: 166px !important;
+            }
+
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-filter-v2,
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-status-v2 .dashboard-select,
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-status-v2 .dashboard-select-trigger,
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-types-v2 > .btn-types {
+              box-sizing: border-box !important;
+              flex: 0 0 166px !important;
+              flex-basis: 166px !important;
+              inline-size: 166px !important;
+              width: 166px !important;
+              min-width: 166px !important;
+              max-width: 166px !important;
+              justify-content: center !important;
+              text-align: center !important;
+            }
+
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-status-v2 .dashboard-select-value,
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-status-v2 .dashboard-select-placeholder,
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-types-v2 > .btn-types,
+            .admin-shell .service-ticket-toolbar-v2 .service-ticket-filter-v2 {
+              text-align: center !important;
+            }
           `,
         }}
       />
