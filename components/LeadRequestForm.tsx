@@ -2,6 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { useMemo, useRef, useState, type FormEvent } from "react";
+import * as XLSX from "xlsx";
 
 import DashboardSelect from "@/components/DashboardSelect";
 import { createBackend, useBackend } from "@/lib/client-backend";
@@ -58,6 +59,35 @@ function importedLeadValue(row: Record<string, string>, keys: string[]) {
   return "";
 }
 
+async function parseImportedLeadRows(file: File) {
+  const extension = file.name.split(".").pop()?.toLocaleLowerCase();
+  if (extension === "csv") return parseCsvRows(await file.text());
+  if (extension === "xlsx" || extension === "xls") {
+    const workbook = XLSX.read(await file.arrayBuffer(), {
+      cellDates: true,
+      type: "array",
+    });
+    const sheet = workbook.Sheets[workbook.SheetNames[0] ?? ""];
+    if (!sheet) return [];
+    return XLSX.utils.sheet_to_json<string[]>(sheet, {
+      blankrows: false,
+      defval: "",
+      header: 1,
+      raw: false,
+    });
+  }
+  throw new Error("UNSUPPORTED_FILE");
+}
+
+function importedLeadValueFromRow(
+  row: Record<string, string>,
+  keys: string[],
+  values: string[],
+  fallbackIndex: number,
+) {
+  return importedLeadValue(row, keys) || values[fallbackIndex]?.trim() || "";
+}
+
 export default function LeadRequestForm({
   onCreated,
 }: {
@@ -87,15 +117,15 @@ export default function LeadRequestForm({
         importExcel: "استيراد من إكسل",
         importTitle: "استيراد عملاء من ملف Excel",
         templatePrompt: "تحتاج للنموذج المعتمد؟",
-        templateDownload: "تحميل قالب CSV",
-        dropFile: "اسحب ملف CSV هنا أو تصفح جهازك",
-        csvSupport: "الاستيراد الفعلي يدعم CSV. يمكن حفظ Excel بصيغة CSV.",
+        templateDownload: "تحميل قالب Excel",
+        dropFile: "اسحب ملف Excel أو CSV هنا أو تصفح جهازك",
+        csvSupport: "يدعم الاستيراد ملفات Excel وCSV.",
         removeFile: "إزالة",
         cancel: "إلغاء",
         startImport: "بدء الاستيراد",
         importing: "جاري الاستيراد...",
-        csvOnly: "حالياً الاستيراد الفعلي يدعم CSV. احفظ ملف Excel بصيغة CSV ثم ارفعه.",
-        importFailed: "تعذر قراءة الملف. تأكد من استخدام قالب CSV المعتمد.",
+        csvOnly: "ارفع ملف Excel أو CSV فقط.",
+        importFailed: "تعذر قراءة الملف. تأكد أن أول صف يحتوي أسماء الأعمدة أو استخدم القالب المعتمد.",
         noRows: "لم يتم العثور على صفوف صالحة للاستيراد",
         imported: (count: number) =>
           `تم استيراد ${count.toLocaleString(NUMBER_LOCALE)} عميل`,
@@ -122,15 +152,15 @@ export default function LeadRequestForm({
         importExcel: "Import from Excel",
         importTitle: "Import Customers From Excel",
         templatePrompt: "Need the approved template?",
-        templateDownload: "Download CSV Template",
-        dropFile: "Drop a CSV file here or browse",
-        csvSupport: "Import supports CSV. Excel files can be saved as CSV.",
+        templateDownload: "Download Excel Template",
+        dropFile: "Drop an Excel or CSV file here or browse",
+        csvSupport: "Import supports Excel and CSV files.",
         removeFile: "Remove",
         cancel: "Cancel",
         startImport: "Start Import",
         importing: "Importing...",
-        csvOnly: "Import currently supports CSV. Save the Excel file as CSV, then upload it.",
-        importFailed: "Could not read the file. Make sure you are using the CSV template.",
+        csvOnly: "Upload an Excel or CSV file only.",
+        importFailed: "Could not read the file. Make sure the first row has column names or use the approved template.",
         noRows: "No valid rows were found to import",
         imported: (count: number) =>
           `Imported ${count.toLocaleString(NUMBER_LOCALE)} customers`,
@@ -154,11 +184,23 @@ export default function LeadRequestForm({
     "/api/v1/data/industries",
   );
   const leadTemplateHref = useMemo(() => {
-    const csv = [
-      "company_name,name,phone,email,website,place_url,address,requirements",
-      "Example Coffee,Ahmed Ali,+966500000000,lead@example.com,https://example.com,https://www.google.com/maps/place/?q=place_id:example,Riyadh,Interested in CRM",
-    ].join("\n");
-    return `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+    const sheet = XLSX.utils.aoa_to_sheet([
+      ["company_name", "name", "phone", "email", "website", "place_url", "address", "requirements"],
+      [
+        "Example Coffee",
+        "Ahmed Ali",
+        "+966500000000",
+        "lead@example.com",
+        "https://example.com",
+        "https://www.google.com/maps/place/?q=place_id:example",
+        "Riyadh",
+        "Interested in CRM",
+      ],
+    ]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, "Interested Customers");
+    const base64 = XLSX.write(workbook, { bookType: "xlsx", type: "base64" });
+    return `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`;
   }, []);
 
   function resetExcelImport() {
@@ -174,18 +216,68 @@ export default function LeadRequestForm({
 
   async function importExcelLeads() {
     if (!excelImportFile || excelImporting) return;
-    const extension = excelImportFile.name.split(".").pop()?.toLocaleLowerCase();
-    if (extension !== "csv") {
-      setExcelImportStatus(copy.csvOnly);
-      return;
-    }
 
     setExcelImporting(true);
     setExcelImportStatus(copy.importing);
     try {
-      const rows = parseCsvRows(await excelImportFile.text());
-      const [headers, ...dataRows] = rows;
-      const normalizedHeaders = (headers ?? []).map(normalizeImportHeader);
+      const rows = (await parseImportedLeadRows(excelImportFile))
+        .map((row) => row.map((value) => String(value ?? "").trim()))
+        .filter((row) => row.some(Boolean));
+      const firstRow = rows[0] ?? [];
+      const normalizedFirstRow = firstRow.map(normalizeImportHeader);
+      const knownHeaders = new Set([
+        "company_name",
+        "company",
+        "facility",
+        "business",
+        "business_name",
+        "name",
+        "full_name",
+        "contact_name",
+        "phone",
+        "mobile",
+        "email",
+        "website",
+        "place_url",
+        "store_location",
+        "location",
+        "address",
+        "city",
+        "requirements",
+        "notes",
+        "اسم_الشركة",
+        "اسم_المنشأة",
+        "الشركة",
+        "المنشأة",
+        "اسم_العميل",
+        "الاسم",
+        "رقم_الجوال",
+        "الجوال",
+        "البريد_الإلكتروني",
+        "الايميل",
+        "الموقع_الإلكتروني",
+        "موقع_المحل",
+        "العنوان",
+        "المدينة",
+        "المتطلبات",
+        "ملاحظات",
+      ]);
+      const hasHeaderRow = normalizedFirstRow.some((header) =>
+        knownHeaders.has(header),
+      );
+      const normalizedHeaders = hasHeaderRow
+        ? normalizedFirstRow
+        : [
+            "company_name",
+            "name",
+            "phone",
+            "email",
+            "website",
+            "place_url",
+            "address",
+            "requirements",
+          ];
+      const dataRows = hasHeaderRow ? rows.slice(1) : rows;
       let imported = 0;
 
       for (const values of dataRows) {
@@ -193,21 +285,36 @@ export default function LeadRequestForm({
           normalizedHeaders.map((header, index) => [header, values[index] ?? ""]),
         );
         const companyName =
-          importedLeadValue(row, ["company_name", "company", "facility", "اسم_الشركة"]) ||
-          importedLeadValue(row, ["name", "full_name", "اسم_العميل"]);
+          importedLeadValueFromRow(
+            row,
+            ["company_name", "company", "facility", "business", "business_name", "اسم_الشركة", "اسم_المنشأة", "الشركة", "المنشأة"],
+            values,
+            0,
+          ) ||
+          importedLeadValueFromRow(
+            row,
+            ["name", "full_name", "contact_name", "اسم_العميل", "الاسم"],
+            values,
+            1,
+          );
         if (!companyName) continue;
 
         await createBackend("leads", {
           company_name: companyName,
           name:
-            importedLeadValue(row, ["name", "full_name", "contact_name", "اسم_العميل"]) ||
+            importedLeadValueFromRow(
+              row,
+              ["name", "full_name", "contact_name", "اسم_العميل", "الاسم"],
+              values,
+              1,
+            ) ||
             companyName,
-          phone: importedLeadValue(row, ["phone", "mobile", "رقم_الجوال"]),
-          email: importedLeadValue(row, ["email", "البريد_الإلكتروني"]),
-          website: importedLeadValue(row, ["website", "الموقع_الإلكتروني"]),
-          place_url: importedLeadValue(row, ["place_url", "store_location", "location", "موقع_المحل"]),
-          address: importedLeadValue(row, ["address", "city", "العنوان", "المدينة"]),
-          requirements: importedLeadValue(row, ["requirements", "notes", "المتطلبات", "ملاحظات"]),
+          phone: importedLeadValueFromRow(row, ["phone", "mobile", "رقم_الجوال", "الجوال"], values, 2),
+          email: importedLeadValueFromRow(row, ["email", "البريد_الإلكتروني", "الايميل"], values, 3),
+          website: importedLeadValueFromRow(row, ["website", "الموقع_الإلكتروني"], values, 4),
+          place_url: importedLeadValueFromRow(row, ["place_url", "store_location", "location", "موقع_المحل"], values, 5),
+          address: importedLeadValueFromRow(row, ["address", "city", "العنوان", "المدينة"], values, 6),
+          requirements: importedLeadValueFromRow(row, ["requirements", "notes", "المتطلبات", "ملاحظات"], values, 7),
           source: "excel_import",
           stage: "interested",
         });
@@ -220,8 +327,12 @@ export default function LeadRequestForm({
         if (excelFileInputRef.current) excelFileInputRef.current.value = "";
         onCreated?.();
       }
-    } catch {
-      setExcelImportStatus(copy.importFailed);
+    } catch (error) {
+      setExcelImportStatus(
+        error instanceof Error && error.message === "UNSUPPORTED_FILE"
+          ? copy.csvOnly
+          : copy.importFailed,
+      );
     } finally {
       setExcelImporting(false);
     }
@@ -450,7 +561,7 @@ export default function LeadRequestForm({
             </div>
             <div className="download-template-box">
               <span>{copy.templatePrompt}</span>
-              <a download="interested-customers-template.csv" href={leadTemplateHref}>
+              <a download="interested-customers-template.xlsx" href={leadTemplateHref}>
                 {copy.templateDownload}
               </a>
             </div>
