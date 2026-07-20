@@ -2280,15 +2280,16 @@ function AdminTagsSection({
       (first, second) => first.id - second.id,
     );
     await Promise.all(
-      tags.map((tag, index) => {
+      tags.map(async (tag, index) => {
         const ratio = tags.length === 1 ? 0 : index / (tags.length - 1);
-        return fetch(`/api/v1/data/lead-tags/${tag.id}`, {
+        const response = await fetch(`/api/v1/data/lead-tags/${tag.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json; charset=utf-8" },
           body: JSON.stringify({
             tag_color: adminMixHex(baseColor, gradientEnd, ratio),
           }),
         });
+        if (!response.ok) throw new Error("SAVE_GRADIENT_FAILED");
       }),
     );
   }
@@ -2394,7 +2395,7 @@ function AdminTagsSection({
     });
   }
 
-  function createTagGradient(type: {
+  async function createTagGradient(type: {
     id: number;
     color: string;
     tags: Array<{ id: number; name: string; color: string; count: number }>;
@@ -2409,6 +2410,8 @@ function AdminTagsSection({
     }
     const baseColor = typeDrafts[type.id]?.color ?? type.color;
     const gradientEnd = "#11293d";
+    setSavingKey(`gradient-${type.id}`);
+    setMessage(isArabic ? "جاري حفظ التدرج اللوني..." : "Saving color gradient...");
     setTagDrafts((current) => {
       const next = { ...current };
       type.tags.forEach((tag, index) => {
@@ -2420,11 +2423,29 @@ function AdminTagsSection({
       });
       return next;
     });
-    setMessage(
-      isArabic
-        ? "تم إنشاء التدرج اللوني. اضغط حفظ التعديلات لتثبيت التغييرات."
-        : "Gradient created. Save changes to apply it.",
-    );
+    try {
+      await Promise.all(
+        type.tags.map(async (tag, index) => {
+          const tagDraft = tagDrafts[tag.id] ?? { name: tag.name, color: tag.color };
+          const ratio = type.tags.length === 1 ? 0 : index / (type.tags.length - 1);
+          const response = await fetch(`/api/v1/data/lead-tags/${tag.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify({
+              tag_name: tagDraft.name.trim(),
+              tag_color: mixHex(baseColor, gradientEnd, ratio),
+            }),
+          });
+          if (!response.ok) throw new Error("SAVE_GRADIENT_FAILED");
+        }),
+      );
+      setMessage(isArabic ? "تم حفظ التدرج اللوني" : "Color gradient saved");
+      onReload();
+    } catch {
+      setMessage(isArabic ? "تعذر حفظ التدرج اللوني" : "Could not save color gradient");
+    } finally {
+      setSavingKey("");
+    }
   }
 
   function pieBackground(
@@ -2703,10 +2724,17 @@ function AdminTagsSection({
                     <strong>{isArabic ? "الوسوم المرتبطة" : "Linked tags"}</strong>
                     <button
                       className="admin-action-btn admin-gradient-btn"
-                      onClick={() => createTagGradient(type)}
+                      disabled={savingKey === `gradient-${type.id}`}
+                      onClick={() => void createTagGradient(type)}
                       type="button"
                     >
-                      {isArabic ? "إنشاء تدرج لوني" : "Create color gradient"}
+                      {savingKey === `gradient-${type.id}`
+                        ? isArabic
+                          ? "جاري الحفظ..."
+                          : "Saving..."
+                        : isArabic
+                          ? "إنشاء تدرج لوني"
+                          : "Create color gradient"}
                     </button>
                   </div>
                   {type.tags.length ? (
