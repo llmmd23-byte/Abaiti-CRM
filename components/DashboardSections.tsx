@@ -3553,23 +3553,24 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     const leasePeriod = [leaseStart, leaseEnd].filter(Boolean).join(" - ") || "-";
     printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>عقد مشاركة</title><style>
       *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-      body{font-family:Tahoma,Arial,sans-serif;background:#f5f5f5;line-height:2;color:#000;padding:30px;font-size:14px;}
-      .page{background:#fff;width:216mm;min-height:279mm;margin:auto;padding:40mm 22mm 22mm;box-shadow:0 0 8px rgba(0,0,0,.15);position:relative;overflow:visible;}
+      body{font-family:Tahoma,Arial,sans-serif;background:#f5f5f5;line-height:1.75;color:#000;padding:30px;font-size:13px;}
+      .page{background:#fff;width:216mm;min-height:279mm;margin:auto;padding:36mm 18mm 20mm;box-shadow:0 0 8px rgba(0,0,0,.15);position:relative;overflow:visible;}
       .top-strip{position:absolute;top:0;left:0;right:0;height:7mm;background:#080333;}
-      .print-header{position:absolute;top:13mm;left:22mm;right:22mm;height:28mm;}
-      .event-logo{position:absolute;left:0;top:0;width:43mm;height:auto;}
-      .netaq-logo{position:absolute;right:0;top:0;width:69mm;height:auto;}
+      .print-header{position:absolute;top:11mm;left:18mm;right:18mm;height:24mm;}
+      .event-logo{position:absolute;left:0;top:0;width:38mm;height:auto;}
+      .netaq-logo{position:absolute;right:0;top:0;width:62mm;height:auto;}
       .watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:0;pointer-events:none;}
       .watermark span{font-family:Georgia,serif;font-size:86px;color:#000;opacity:.055;font-weight:bold;direction:ltr;}
       .content{position:relative;z-index:1;}
-      h1{text-align:center;font-size:26px;margin-bottom:10px;}
-      h2{font-size:18px;margin:25px 0 10px;}
-      h3{font-size:16px;margin-bottom:8px;}
-      p{margin:8px 0;}
+      h1{text-align:center;font-size:23px;margin-bottom:6px;}
+      h2{font-size:16px;margin:14px 0 7px;}
+      h3{font-size:15px;margin-bottom:5px;}
+      p{margin:5px 0;}
       table{width:100%;border-collapse:collapse;margin-top:15px;margin-bottom:20px;table-layout:fixed;}
       table th,table td{border:1px solid #000;padding:8px;text-align:center;font-size:14px;word-break:break-word;}
-      .section{margin-top:18px;page-break-inside:auto;break-inside:auto;}
-      .party{border:1px solid #000;padding:15px;margin-top:10px;}
+      .section{margin-top:12px;page-break-inside:auto;break-inside:auto;}
+      .parties-section,.party{page-break-inside:avoid;break-inside:avoid;}
+      .party{border:1px solid #000;padding:9px 12px;margin-top:7px;}
       ul,ol{padding-right:20px;}
       li{margin-bottom:6px;}
       .contract-number{display:block;text-align:center;font-weight:bold;margin:8px 0 14px;direction:ltr;}
@@ -3592,7 +3593,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <p style="text-align:center;font-weight:bold;">${escapePrintValue(displayValue(contract.event_dates ?? "خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "بفندق جدة هيلتون (القاعة الكبرى)"))}</p>
       <span class="contract-number">${escapePrintValue(contract.contract_number)}</span>
       <p>تم بعون الله وتوفيقه إبرام هذا العقد بتاريخ ${escapePrintValue(displayValue(contractDate))}، بين كل من:</p>
-      <div class="section">
+      <div class="section parties-section">
         <h2>أولاً: بيانات الأطراف</h2>
         <div class="party"><h3>الطرف الأول</h3><p>${escapePrintValue(displayValue(lessorName))}</p><p>رقم السجل التجاري: ${escapePrintValue(displayValue(contract.first_party_cr ?? "4030216503"))}</p><p>العنوان: ${escapePrintValue(displayValue(contract.event_location ?? rentalLocation ?? "جدة"))}</p><p>يمثلها: ${escapePrintValue(displayValue(contract.first_party_representative ?? "سهيل بن بكر الطيار"))}</p><p>الصفة: الرئيس التنفيذي</p></div>
         <br>
