@@ -3708,8 +3708,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.eventName}</span><input onChange={(event) => setEventName(event.target.value)} value={eventName} /></label>
           <label className="quote-field"><span>{text.eventDates}</span><input onChange={(event) => setEventDates(event.target.value)} value={eventDates} /></label>
           <label className="quote-field"><span>{text.eventLocation}</span><input onChange={(event) => setEventLocation(event.target.value)} value={eventLocation} /></label>
-          <label className="quote-field"><span>{text.firstPartyCr}</span><input inputMode="numeric" onChange={(event) => setFirstPartyCr(event.target.value)} value={firstPartyCr} /></label>
-          <label className="quote-field"><span>{text.firstPartyRepresentative}</span><input onChange={(event) => setFirstPartyRepresentative(event.target.value)} value={firstPartyRepresentative} /></label>
+          <label className="quote-field rental-compact-label"><span>{text.firstPartyCr}</span><input inputMode="numeric" onChange={(event) => setFirstPartyCr(event.target.value)} value={firstPartyCr} /></label>
+          <label className="quote-field rental-compact-label"><span>{text.firstPartyRepresentative}</span><input onChange={(event) => setFirstPartyRepresentative(event.target.value)} value={firstPartyRepresentative} /></label>
           <label className="quote-field quote-field-customer contract-lead-select-field">
             <span>{text.customer}</span>
             <DashboardSelect
@@ -3729,8 +3729,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           </label>
           <label className="quote-field"><span>{text.lessorName}</span><input onChange={(event) => setLessorName(event.target.value)} value={lessorName} /></label>
           <label className="quote-field"><span>{text.tenantName}</span><input onChange={(event) => setTenantName(event.target.value)} value={tenantName} /></label>
-          <label className="quote-field"><span>{text.secondPartyCr}</span><input inputMode="numeric" onChange={(event) => setSecondPartyCr(event.target.value)} value={secondPartyCr} /></label>
-          <label className="quote-field"><span>{text.secondPartyRepresentative}</span><input onChange={(event) => setSecondPartyRepresentative(event.target.value)} value={secondPartyRepresentative} /></label>
+          <label className="quote-field rental-compact-label"><span>{text.secondPartyCr}</span><input inputMode="numeric" onChange={(event) => setSecondPartyCr(event.target.value)} value={secondPartyCr} /></label>
+          <label className="quote-field rental-compact-label"><span>{text.secondPartyRepresentative}</span><input onChange={(event) => setSecondPartyRepresentative(event.target.value)} value={secondPartyRepresentative} /></label>
           <label className="quote-field"><span>{text.companyName} <b className="required-mark">*</b></span><input onChange={(event) => setCompanyName(event.target.value)} value={companyName} /></label>
           <label className="quote-field"><span>{text.contactName} <b className="required-mark">*</b></span><input onChange={(event) => setContactName(event.target.value)} value={contactName} /></label>
           <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>

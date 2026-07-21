@@ -8515,6 +8515,22 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
   font-weight: 700;
 }
 
+.dashboard-route-shell .dashboard-main .quote-form-card .rental-compact-label > span {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-route-shell .dashboard-main .quote-form-card .rental-compact-label input {
+  margin-top: 4px;
+}
+
 .dashboard-route-shell .dashboard-main .quote-history-card .responsive-table {
   width: 100%;
   overflow-x: visible;
