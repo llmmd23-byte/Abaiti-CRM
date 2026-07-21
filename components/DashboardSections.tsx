@@ -3551,69 +3551,46 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       return textValue || "-";
     };
     const leasePeriod = [leaseStart, leaseEnd].filter(Boolean).join(" - ") || "-";
-    printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>عقد تأجيري - ${escapePrintValue(contract.contract_number)}</title><style>
-      @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-      @page { size:A4 portrait; margin:0; }
-      * { box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-      body { font-family:"Cairo",Arial,sans-serif; background:#ececec; margin:0; padding:30px; color:#222; line-height:2; font-size:12px; }
-      .page { width:210mm; min-height:297mm; background:#fff; margin:auto auto 30px; padding:24mm 18mm; box-shadow:0 0 10px rgba(0,0,0,.12); }
-      h1,h2,h3 { text-align:center; margin:0 0 18px; color:#111827; line-height:1.55; }
-      h1 { font-size:22px; font-weight:800; }
-      h2 { font-size:16px; font-weight:800; border-bottom:1px solid #ddd; padding-bottom:8px; }
-      h3 { font-size:14px; font-weight:800; }
-      .event-title { text-align:center; font-weight:700; margin:0 0 14px; }
-      .contract-number { display:block; width:max-content; margin:0 auto 18px; padding:3px 14px; border:1px solid #444; border-radius:6px; direction:ltr; font-weight:800; }
-      hr { border:0; border-top:1px solid #444; margin:18px 0 22px; }
-      table { width:100%; border-collapse:collapse; margin:18px 0; table-layout:fixed; }
-      table th, table td { border:1px solid #444; padding:9px 7px; text-align:center; vertical-align:middle; word-break:break-word; }
-      table th { background:#f3f4f6; font-weight:800; }
-      .field { display:inline-block; border-bottom:1px dashed #999; min-width:180px; margin:0 5px; min-height:28px; padding:0 6px; font-weight:700; color:#111827; vertical-align:baseline; }
-      .field-wide { min-width:320px; }
-      .section { margin-top:30px; page-break-inside:avoid; break-inside:avoid; }
-      .party-grid { display:grid; grid-template-columns:1fr; gap:18px; }
-      .party-box { padding:0; }
-      ul,ol { padding-right:25px; margin-top:8px; }
-      li { margin-bottom:4px; text-align:justify; }
-      .muted-line { color:#555; }
-      .signatures { display:flex; justify-content:space-between; gap:40px; margin-top:70px; page-break-inside:avoid; break-inside:avoid; }
-      .signature { width:45%; text-align:center; }
-      .signature-line { height:38px; border-bottom:1px dashed #999; margin:6px 0 16px; }
-      @media print { body { background:#fff; padding:0; } .page { width:100%; min-height:auto; margin:0; box-shadow:none; } }
+    printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>عقد مشاركة</title><style>
+      *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      body{font-family:Tahoma,Arial,sans-serif;background:#f5f5f5;line-height:2;color:#000;padding:30px;font-size:14px;}
+      .page{background:#fff;width:210mm;min-height:297mm;margin:auto;padding:25mm;box-shadow:0 0 8px rgba(0,0,0,.15);}
+      h1{text-align:center;font-size:26px;margin-bottom:10px;}
+      h2{font-size:18px;margin:25px 0 10px;}
+      h3{font-size:16px;margin-bottom:8px;}
+      p{margin:8px 0;}
+      table{width:100%;border-collapse:collapse;margin-top:15px;margin-bottom:20px;table-layout:fixed;}
+      table th,table td{border:1px solid #000;padding:8px;text-align:center;font-size:14px;word-break:break-word;}
+      .section{margin-top:25px;page-break-inside:avoid;break-inside:avoid;}
+      .party{border:1px solid #000;padding:15px;margin-top:10px;}
+      ul,ol{padding-right:20px;}
+      li{margin-bottom:6px;}
+      .contract-number{display:block;text-align:center;font-weight:bold;margin:8px 0 14px;direction:ltr;}
+      .signatures{display:flex;justify-content:space-between;gap:45px;margin-top:60px;page-break-inside:avoid;break-inside:avoid;}
+      .signature{width:45%;text-align:center;border-top:1px solid #000;padding-top:12px;}
+      @media print{body{background:#fff;padding:0;}.page{box-shadow:none;margin:0;width:auto;min-height:auto;padding:18mm;}}
     </style></head><body><div class="page">
-      <h1>عقد تأجيري</h1>
-      <p class="event-title">${escapePrintValue(displayValue(contract.event_name ?? "المعرض الدولي لصناع القهوة والشوكولاتة"))}</p>
+      <h1>عقد مشاركة لصناع القهوة والشوكولاتة</h1>
+      <p style="text-align:center;">${escapePrintValue(displayValue(contract.event_dates ?? "خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "بفندق جدة هيلتون"))}</p>
       <span class="contract-number">${escapePrintValue(contract.contract_number)}</span>
-      <hr>
       <div class="section">
         <h2>أولاً: بيانات الأطراف</h2>
-        <div class="party-grid">
-          <p class="party-box"><strong>الطرف الأول</strong><br>
-            اسم المنشأة: <span class="field field-wide">${escapePrintValue(displayValue(lessorName))}</span><br>
-            رقم السجل التجاري: <span class="field">${escapePrintValue(displayValue(contract.first_party_cr))}</span><br>
-            العنوان: <span class="field field-wide">${escapePrintValue(displayValue(contract.event_location ?? rentalLocation))}</span><br>
-            يمثلها: <span class="field">${escapePrintValue(displayValue(contract.first_party_representative ?? "سهيل بن بكر الطيار"))}</span><br>
-            الصفة: <span class="field">الرئيس التنفيذي</span>
-          </p>
-          <p class="party-box"><strong>الطرف الثاني</strong><br>
-            اسم المنشأة: <span class="field field-wide">${escapePrintValue(displayValue(tenantName))}</span><br>
-            رقم السجل التجاري: <span class="field">${escapePrintValue(displayValue(contract.second_party_cr))}</span><br>
-            العنوان: <span class="field field-wide">${escapePrintValue(displayValue(contract.address))}</span><br>
-            يمثلها: <span class="field">${escapePrintValue(displayValue(contract.second_party_representative ?? representative))}</span><br>
-            الصفة: <span class="field">المفوض بالتوقيع / المدير</span>
-          </p>
-        </div>
+        <div class="party"><h3>الطرف الأول</h3><p>${escapePrintValue(displayValue(lessorName))}</p><p>رقم السجل التجاري: ${escapePrintValue(displayValue(contract.first_party_cr ?? "4030216503"))}</p><p>العنوان: ${escapePrintValue(displayValue(contract.event_location ?? rentalLocation ?? "جدة"))}</p><p>يمثلها: ${escapePrintValue(displayValue(contract.first_party_representative ?? "سهيل بن بكر الطيار"))}</p><p>الصفة: الرئيس التنفيذي</p></div>
+        <br>
+        <div class="party"><h3>الطرف الثاني</h3><p>${escapePrintValue(displayValue(tenantName))}</p><p>رقم السجل التجاري: ${escapePrintValue(displayValue(contract.second_party_cr))}</p><p>العنوان: ${escapePrintValue(displayValue(contract.address ?? contract.city))}</p><p>يمثلها: ${escapePrintValue(displayValue(contract.second_party_representative ?? representative))}</p><p>الصفة: المدير</p></div>
       </div>
-      <div class="section"><h2>التمهيد</h2><p>تم بعون الله وتوفيقه إبرام هذا العقد بتاريخ <span class="field">${escapePrintValue(displayValue(contractDate))}</span>، ويعد التمهيد أعلاه جزءاً لا يتجزأ من هذا العقد ومكملاً له.</p></div>
-      <div class="section"><h2>ثانياً: مدة العقد</h2><p>من <span class="field">${escapePrintValue(displayValue(leaseStart))}</span> إلى <span class="field">${escapePrintValue(displayValue(leaseEnd))}</span></p></div>
+      <div class="section"><h2>التمهيد</h2><p>حيث إن الطرف الأول يقوم بتنظيم المعرض الدولي لصناع القهوة والشوكولاتة بمحافظة جدة، وحيث إن الطرف الثاني لديه الرغبة بالمشاركة في المعرض، فقد اتفق الطرفان بكامل أهليتهما الشرعية والنظامية على ما يلي.</p><p>ويعد هذا التمهيد جزءاً لا يتجزأ من هذا العقد ومكملاً له.</p></div>
+      <div class="section"><h2>ثانياً: مدة العقد</h2><p>يسري هذا العقد من تاريخ توقيعه وحتى انتهاء المعرض بتاريخ ${escapePrintValue(displayValue(leaseEnd))}.</p></div>
       <div class="section"><h2>ثالثاً: قيمة المشاركة</h2>
-        <table><thead><tr><th>رقم البوث / الوصف</th><th>الفئة</th><th>المساحة</th><th>السعر شامل الضريبة</th><th>قبل الضريبة</th><th>الضريبة</th></tr></thead><tbody><tr><td>${escapePrintValue(displayValue(contract.booth_number ?? rentalItem))}</td><td>${escapePrintValue(displayValue(contract.participation_category))}</td><td>${escapePrintValue(displayValue(contract.booth_size))}</td><td>${money(grandTotal)}</td><td>${money(subtotal)}</td><td>${money(vat)}</td></tr></tbody></table>
+        <table><tbody><tr><th>رقم البوث</th><th>الفئة</th><th>المساحة</th><th>السعر</th><th>الضريبة</th><th>الإجمالي</th></tr><tr><td>${escapePrintValue(displayValue(contract.booth_number ?? rentalItem))}</td><td>${escapePrintValue(displayValue(contract.participation_category))}</td><td>${escapePrintValue(displayValue(contract.booth_size))}</td><td>${money(subtotal)}</td><td>${money(vat)}</td><td>${money(grandTotal)}</td></tr></tbody></table>
+        <p>* السعر غير شامل تنفيذ أو تجهيز البوث.</p>
       </div>
-      <div class="section"><h2>رابعاً: مميزات المشاركة</h2><ul><li>تخصيص المساحة أو الجناح المحدد للطرف الثاني داخل المعرض طوال مدة الفعالية.</li><li>يلتزم الطرف الثاني باستخدام المساحة في الغرض المتفق عليه وعدم التنازل عنها للغير إلا بموافقة خطية من الطرف الأول.</li><li>يلتزم الطرف الثاني بتزويد الطرف الأول بالشعار أو الاسم التجاري المراد طباعته قبل الموعد المحدد.</li><li>يلتزم الطرف الثاني بكافة الأنظمة والشروط الصادرة من إدارة المعرض والجهات التنظيمية.</li></ul></div>
-      <div class="section"><h2>خامساً: الفسخ</h2><ul><li>يحق للطرف الأول فسخ العقد عند إخلال الطرف الثاني بأي من التزاماته الجوهرية.</li><li>لا يحق للطرف الثاني المطالبة باسترداد أي مبالغ عند مخالفة شروط المشاركة أو التأجير.</li><li>تسري الأحكام النظامية ذات العلاقة في المملكة العربية السعودية على هذا العقد.</li></ul></div>
-      <div class="section"><h2>سادساً: آلية السداد</h2><p class="muted-line">يتم السداد وفق البيانات البنكية المعتمدة من الطرف الأول أو حسب الفاتورة الصادرة للطرف الثاني.</p><table><thead><tr><th>اسم الحساب</th><th>رقم الحساب</th><th>IBAN</th><th>SWIFT</th></tr></thead><tbody><tr><td>شركة نطاق الأعمال</td><td></td><td></td><td></td></tr></tbody></table></div>
-      <div class="section"><h2>سابعاً: القوة القاهرة</h2><p>لا يكون أي طرف مسؤولاً عن التأخير أو عدم التنفيذ الناتج عن ظروف قاهرة خارجة عن الإرادة.</p></div>
-      <div class="section"><h2>ثامناً: القانون المطبق</h2><p>يخضع هذا العقد للأنظمة واللوائح المعمول بها في المملكة العربية السعودية.</p></div>
-      <div class="section"><h2>تاسعاً: الإشعارات والمراسلات</h2><p>تتم المراسلات على بيانات التواصل المسجلة في هذا العقد، ويعد الإشعار منتجاً لآثاره عند إرساله إلى البريد الإلكتروني أو رقم الجوال المسجل.</p></div>
+      <div class="section"><h2>رابعاً: مميزات المشاركة</h2><ul><li>تخصيص مساحة ${escapePrintValue(displayValue(contract.booth_size ?? "3×3 متر"))} للطرف الثاني داخل المعرض.</li><li>إدراج شعار المشارك في المطبوعات والإعلانات الخاصة بالمعرض.</li><li>منح ثلاث بطاقات لدخول المعرض.</li><li>إبراز مشاركة الطرف الثاني ضمن الحملات التسويقية الخاصة بالفعالية.</li></ul></div>
+      <div class="section"><h2>خامساً: الفسخ</h2><p>يعتبر العقد مفسوخاً في الحالات الآتية:</p><ol><li>إخلال أحد الطرفين بأي بند من بنود العقد.</li><li>مخالفة الالتزامات أو الإقرارات الواردة في العقد.</li><li>اتفاق الطرفين على إنهاء العقد.</li><li>عدم الالتزام بسداد المستحقات المالية.</li><li>انسحاب الطرف الثاني بعد توقيع العقد، ويحق للطرف الأول تطبيق الشرط الجزائي وفق ما نص عليه العقد.</li><li>في حال إلغاء المعرض من قبل الطرف الأول يحق للطرف الثاني استعادة المبلغ أو قبول التأجيل.</li></ol></div>
+      <div class="section"><h2>سادساً: آلية السداد</h2><p>يتم سداد قيمة المشاركة كاملة عند توقيع العقد، وذلك بالتحويل البنكي إلى الحساب التالي:</p><table><tbody><tr><th>اسم الحساب</th><th>رقم الحساب</th><th>IBAN</th><th>SWIFT</th></tr><tr><td>شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات</td><td>79800001590310</td><td>SA1410000079800001590310</td><td>NCBKSAJE</td></tr></tbody></table><p>في حال عدم السداد يحق للطرف الأول إلغاء العقد دون إشعار مسبق.</p></div>
+      <div class="section"><h2>سابعاً: القوة القاهرة</h2><p>لا يكون أي من الطرفين مسؤولاً عن التأخير أو عدم تنفيذ التزاماته إذا كان ذلك نتيجة قوة قاهرة خارجة عن الإرادة، مثل الكوارث الطبيعية أو الحروب أو الأوبئة أو القرارات الحكومية أو أي ظرف يمنع تنفيذ العقد.</p></div>
+      <div class="section"><h2>ثامناً: القانون المطبق</h2><p>يخضع هذا العقد لأنظمة المملكة العربية السعودية، وتختص المحاكم السعودية بالنظر في أي نزاع ينشأ عنه.</p></div>
+      <div class="section"><h2>تاسعاً: الإشعارات والمراسلات</h2><p>تعد جميع الإشعارات المرسلة إلى العناوين أو البريد الإلكتروني أو وسائل التواصل المعتمدة بين الطرفين صحيحة ومنتجة لآثارها النظامية، ويلتزم كل طرف بإبلاغ الطرف الآخر بأي تغيير في بياناته.</p></div>
       <div class="section"><h2>عاشراً: التزامات الطرف الأول</h2><ol><li>تجهيز المساحة أو الجناح وفق البيانات المتفق عليها.</li><li>تنظيم دخول الطرف الثاني إلى موقع الفعالية حسب التعليمات.</li><li>توفير المعلومات التشغيلية اللازمة قبل الفعالية.</li></ol></div>
       <div class="section"><h2>الحادي عشر: التزامات الطرف الثاني</h2><ol><li>الالتزام بمواعيد السداد المتفق عليها.</li><li>الالتزام بالمساحة المحددة وعدم استخدامها في غير الغرض المتفق عليه.</li><li>الالتزام بإرشادات الأمن والسلامة وإدارة الموقع.</li><li>تسليم أي مستندات أو شعارات مطلوبة للطرف الأول في الوقت المحدد.</li></ol></div>
       <div class="section"><h2>الثاني عشر: أحكام عامة</h2><ul><li>حرر هذا العقد من نسختين أصليتين، لكل طرف نسخة للعمل بموجبها.</li><li>أي تعديل على هذا العقد لا يكون نافذاً إلا إذا كان مكتوباً وموقعاً من الطرفين.</li><li>ملاحظات إضافية: ${escapePrintValue(displayValue(contract.notes))}</li></ul></div>
