@@ -106,6 +106,10 @@ function formatMoney(value: unknown, currency = "SAR") {
   return `${Number(value ?? 0).toLocaleString(NUMBER_LOCALE)} ${currency}`;
 }
 
+function roundMoney(value: number) {
+  return Math.round((Number.isFinite(value) ? value : 0) * 100) / 100;
+}
+
 function cleanDate(value: unknown) {
   return String(value ?? "").slice(0, 10) || "-";
 }
@@ -2910,9 +2914,9 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
       };
 
   const amounts = useMemo(() => {
-    const subtotal = Number(unitPrice || 0) * Number(quantity || 0);
-    const vat = subtotal * 0.15;
-    return {subtotal, vat, grandTotal: subtotal + vat};
+    const subtotal = roundMoney(Number(unitPrice || 0) * Number(quantity || 0));
+    const vat = roundMoney(subtotal * 0.15);
+    return {subtotal, vat, grandTotal: roundMoney(subtotal + vat)};
   }, [quantity, unitPrice]);
   const selectedLead = (leads.data ?? []).find((lead) => String(lead.id) === leadId);
   const statusLabels: Record<string, string> = {
@@ -3423,10 +3427,21 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       };
 
   const amounts = useMemo(() => {
-    const subtotal = Number(unitPrice || 0) * Number(quantity || 0);
-    const vat = subtotal * 0.15;
-    return {subtotal, vat, grandTotal: subtotal + vat};
+    const subtotal = roundMoney(Number(unitPrice || 0) * Number(quantity || 0));
+    const vat = roundMoney(subtotal * 0.15);
+    return {subtotal, vat, grandTotal: roundMoney(subtotal + vat)};
   }, [quantity, unitPrice]);
+  const rentalContractAmounts = (contract: BackendRow) => {
+    const unit = Number(contract.unit_price ?? 0);
+    const qty = Number(contract.quantity ?? 1);
+    const subtotal = roundMoney(
+      Number.isFinite(unit) && Number.isFinite(qty)
+        ? unit * qty
+        : Number(contract.subtotal ?? 0),
+    );
+    const vat = roundMoney(subtotal * 0.15);
+    return {subtotal, vat, grandTotal: roundMoney(subtotal + vat)};
+  };
   const selectedLead = (leads.data ?? []).find((lead) => String(lead.id) === leadId);
   const statusLabels: Record<string, string> = {
     draft: text.draft,
@@ -3547,9 +3562,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     const printWindow = window.open("", "_blank", "width=900,height=1100");
     if (!printWindow) return;
     const currency = String(contract.currency ?? "SAR");
-    const subtotal = Number(contract.subtotal ?? 0);
-    const vat = Number(contract.vat_amount ?? subtotal * 0.15);
-    const grandTotal = Number(contract.grand_total ?? subtotal + vat);
+    const {subtotal, vat, grandTotal} = rentalContractAmounts(contract);
     const money = (value: number) => `${value.toLocaleString(NUMBER_LOCALE)} ${currency}`;
     const contractDate = cleanDate(contract.contract_date);
     const lessorName =
@@ -3692,9 +3705,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       lease_end_date: leaseEndDate || null,
       unit_price: unitPrice ? Number(unitPrice) : 0,
       quantity: quantity ? Number(quantity) : 1,
-      subtotal: amounts.subtotal,
-      vat_amount: amounts.vat,
-      grand_total: amounts.grandTotal,
+      subtotal: roundMoney(amounts.subtotal),
+      vat_amount: roundMoney(amounts.vat),
+      grand_total: roundMoney(amounts.grandTotal),
       contract_date: contractDate || null,
       notes: notes.trim() || null,
     };
@@ -3777,7 +3790,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.grandTotal}</th><th>{isArabic ? "\u0627\u0644\u062d\u0627\u0644\u0629" : "Status"}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
           {filteredContracts.map((contract) => {
             const statusValue = String(contract.status ?? "draft");
-            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "-")}</td><td>{String(contract.company_name ?? "-")}</td><td>{String(contract.rental_item ?? "-")}</td><td>{formatMoney(contract.grand_total, String(contract.currency ?? "SAR"))}</td><td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button><button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button></div></td></tr>;
+            const totals = rentalContractAmounts(contract);
+            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "-")}</td><td>{String(contract.company_name ?? "-")}</td><td>{String(contract.rental_item ?? "-")}</td><td>{formatMoney(totals.grandTotal, String(contract.currency ?? "SAR"))}</td><td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button><button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button></div></td></tr>;
           })}
           {!contracts.loading && !filteredContracts.length ? <tr><td className="quote-history-empty" colSpan={8}>{text.noContracts}</td></tr> : null}
           {contracts.loading ? <tr><td className="quote-history-empty" colSpan={8}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td></tr> : null}

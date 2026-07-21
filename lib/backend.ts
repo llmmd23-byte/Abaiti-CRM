@@ -49,6 +49,10 @@ type ResourceDefinition = {
 
 type SqlValue = string | number | boolean | Date | null;
 
+function roundMoney(value: number) {
+  return Math.round((Number.isFinite(value) ? value : 0) * 100) / 100;
+}
+
 const resources: Record<BackendResource, ResourceDefinition> = {
   products: {
     table: "products",
@@ -2142,12 +2146,11 @@ export async function createResource(
       if (data[numericColumn] !== undefined && data[numericColumn] !== null)
         data[numericColumn] = Number(data[numericColumn]);
     }
-    const subtotal = Number(data.subtotal ?? Number(data.unit_price ?? 0) * Number(data.quantity ?? 1));
+    const subtotal = roundMoney(Number(data.unit_price ?? 0) * Number(data.quantity ?? 1));
+    const vatAmount = roundMoney(subtotal * 0.15);
     data.subtotal = subtotal;
-    if (data.vat_amount === undefined || data.vat_amount === null) data.vat_amount = subtotal * 0.15;
-    if (data.grand_total === undefined || data.grand_total === null) {
-      data.grand_total = subtotal + Number(data.vat_amount ?? 0);
-    }
+    data.vat_amount = vatAmount;
+    data.grand_total = roundMoney(subtotal + vatAmount);
     if (!data.contract_number) data.contract_number = generatedReference(resource);
   }
   if (definition.ownerField) data[definition.ownerField] = Number(session.sub);
