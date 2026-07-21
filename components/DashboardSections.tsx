@@ -3265,11 +3265,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("Saudi Arabia");
   const [lessorName, setLessorName] = useState(isArabic ? "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات" : "Netaq Al Aamal Exhibitions & Conferences");
-  const [firstPartyCr, setFirstPartyCr] = useState("4030216503");
-  const [firstPartyRepresentative, setFirstPartyRepresentative] = useState(isArabic ? "سهيل بن بكر الطيار - الرئيس التنفيذي" : "Suhail bin Bakr Al Tayyar - CEO");
+  const [firstPartyCr, setFirstPartyCr] = useState("");
+  const [firstPartyRepresentative, setFirstPartyRepresentative] = useState("");
   const [tenantName, setTenantName] = useState("");
-  const [secondPartyCr, setSecondPartyCr] = useState("7036368012");
-  const [secondPartyRepresentative, setSecondPartyRepresentative] = useState(isArabic ? "سلطان بن محمد المطيري - المدير" : "Sultan bin Mohammed Al Mutairi - Manager");
+  const [secondPartyCr, setSecondPartyCr] = useState("");
+  const [secondPartyRepresentative, setSecondPartyRepresentative] = useState("");
   const [boothNumber, setBoothNumber] = useState("RL13");
   const [participationCategory, setParticipationCategory] = useState(isArabic ? "كلاسيك (Classic)" : "Classic");
   const [boothSize, setBoothSize] = useState(isArabic ? "3x3 متر" : "3x3 m");
@@ -3470,11 +3470,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setCity("");
     setCountry("Saudi Arabia");
     setLessorName(isArabic ? "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات" : "Netaq Al Aamal Exhibitions & Conferences");
-    setFirstPartyCr("4030216503");
-    setFirstPartyRepresentative(isArabic ? "سهيل بن بكر الطيار - الرئيس التنفيذي" : "Suhail bin Bakr Al Tayyar - CEO");
+    setFirstPartyCr("");
+    setFirstPartyRepresentative("");
     setTenantName("");
-    setSecondPartyCr("7036368012");
-    setSecondPartyRepresentative(isArabic ? "سلطان بن محمد المطيري - المدير" : "Sultan bin Mohammed Al Mutairi - Manager");
+    setSecondPartyCr("");
+    setSecondPartyRepresentative("");
     setBoothNumber("RL13");
     setParticipationCategory(isArabic ? "كلاسيك (Classic)" : "Classic");
     setBoothSize(isArabic ? "3x3 متر" : "3x3 m");
@@ -3503,11 +3503,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setCity(String(contract.city ?? ""));
     setCountry(String(contract.country ?? "Saudi Arabia"));
     setLessorName(String(contract.lessor_name ?? (isArabic ? "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات" : "Netaq Al Aamal Exhibitions & Conferences")));
-    setFirstPartyCr(String(contract.first_party_cr ?? "4030216503"));
-    setFirstPartyRepresentative(String(contract.first_party_representative ?? (isArabic ? "سهيل بن بكر الطيار - الرئيس التنفيذي" : "Suhail bin Bakr Al Tayyar - CEO")));
+    setFirstPartyCr(String(contract.first_party_cr ?? ""));
+    setFirstPartyRepresentative(String(contract.first_party_representative ?? ""));
     setTenantName(String(contract.tenant_name ?? contract.company_name ?? ""));
-    setSecondPartyCr(String(contract.second_party_cr ?? "7036368012"));
-    setSecondPartyRepresentative(String(contract.second_party_representative ?? contract.contact_name ?? ""));
+    setSecondPartyCr(String(contract.second_party_cr ?? ""));
+    setSecondPartyRepresentative(String(contract.second_party_representative ?? ""));
     setBoothNumber(String(contract.booth_number ?? "RL13"));
     setParticipationCategory(String(contract.participation_category ?? (isArabic ? "كلاسيك (Classic)" : "Classic")));
     setBoothSize(String(contract.booth_size ?? (isArabic ? "3x3 متر" : "3x3 m")));
@@ -3660,7 +3660,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       first_party_representative: firstPartyRepresentative.trim() || null,
       tenant_name: tenantName.trim() || companyName.trim(),
       second_party_cr: secondPartyCr.trim() || null,
-      second_party_representative: secondPartyRepresentative.trim() || contactName.trim() || null,
+      second_party_representative: secondPartyRepresentative.trim() || null,
       company_name: companyName.trim(),
       contact_name: contactName.trim(),
       email: email.trim() || null,
