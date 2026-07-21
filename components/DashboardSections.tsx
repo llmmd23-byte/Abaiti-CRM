@@ -3554,7 +3554,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>عقد مشاركة</title><style>
       *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       body{font-family:Tahoma,Arial,sans-serif;background:#f5f5f5;line-height:2;color:#000;padding:30px;font-size:14px;}
-      .page{background:#fff;width:216mm;min-height:279mm;margin:auto;padding:43mm 22mm 22mm;box-shadow:0 0 8px rgba(0,0,0,.15);position:relative;overflow:hidden;}
+      .page{background:#fff;width:216mm;min-height:279mm;margin:auto;padding:40mm 22mm 22mm;box-shadow:0 0 8px rgba(0,0,0,.15);position:relative;overflow:visible;}
       .top-strip{position:absolute;top:0;left:0;right:0;height:7mm;background:#080333;}
       .print-header{position:absolute;top:13mm;left:22mm;right:22mm;height:28mm;}
       .event-logo{position:absolute;left:0;top:0;width:43mm;height:auto;}
@@ -3568,7 +3568,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       p{margin:8px 0;}
       table{width:100%;border-collapse:collapse;margin-top:15px;margin-bottom:20px;table-layout:fixed;}
       table th,table td{border:1px solid #000;padding:8px;text-align:center;font-size:14px;word-break:break-word;}
-      .section{margin-top:25px;page-break-inside:avoid;break-inside:avoid;}
+      .section{margin-top:18px;page-break-inside:auto;break-inside:auto;}
       .party{border:1px solid #000;padding:15px;margin-top:10px;}
       ul,ol{padding-right:20px;}
       li{margin-bottom:6px;}
