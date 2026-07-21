@@ -4787,6 +4787,7 @@ html[dir="ltr"] .dashboard-main {
 .admin-tag-breakdown > div {
   display: inline-flex;
   min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 9px;
   padding: 10px 12px;
@@ -4802,24 +4803,28 @@ html[dir="ltr"] .dashboard-main {
 .admin-tag-breakdown i {
   width: 10px;
   height: 10px;
+  flex: 0 0 10px;
   border-radius: 50%;
 }
 
 .admin-tag-breakdown span {
-  overflow: hidden;
+  min-width: 0;
   color: #11293d;
   font-size: 13px;
   font-weight: 900;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .admin-tag-breakdown strong {
+  flex: 0 0 auto;
   color: #00a7a3;
   font-size: 13px;
 }
 
 .admin-tag-breakdown small {
+  flex: 0 0 auto;
   color: #8aa0b4;
   font-size: 12px;
   font-weight: 800;
@@ -4877,9 +4882,10 @@ html[dir="ltr"] .dashboard-main {
   color: #102a43;
   font-size: 0.9rem;
   font-weight: 900;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .admin-all-tag-row strong {
