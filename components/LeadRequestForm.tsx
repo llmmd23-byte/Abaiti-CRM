@@ -5,7 +5,7 @@ import { useMemo, useRef, useState, type FormEvent } from "react";
 import * as XLSX from "xlsx";
 
 import DashboardSelect from "@/components/DashboardSelect";
-import { createBackend, useBackend } from "@/lib/client-backend";
+import { createBackend, deleteBackend, useBackend } from "@/lib/client-backend";
 
 type IndustryRow = Record<string, unknown> & { id: number };
 const NUMBER_LOCALE = "en-US";
@@ -132,6 +132,9 @@ export default function LeadRequestForm({
           `تم معالجة ${processed.toLocaleString(NUMBER_LOCALE)} من أصل ${total.toLocaleString(NUMBER_LOCALE)} سجل`,
         imported: (count: number) =>
           `تم استيراد ${count.toLocaleString(NUMBER_LOCALE)} عميل`,
+        cancellingImport: "جاري إلغاء الاستيراد وحذف العملاء المضافين...",
+        cancelledImport: "تم إلغاء الاستيراد وحذف العملاء المضافين",
+        cancelFailed: "تعذر حذف بعض العملاء المضافين. حاول مرة أخرى.",
       }
     : {
         title: "Add Interested Customer",
@@ -170,6 +173,9 @@ export default function LeadRequestForm({
           `Processed ${processed.toLocaleString(NUMBER_LOCALE)} of ${total.toLocaleString(NUMBER_LOCALE)} records`,
         imported: (count: number) =>
           `Imported ${count.toLocaleString(NUMBER_LOCALE)} customers`,
+        cancellingImport: "Cancelling import and removing added customers...",
+        cancelledImport: "Import cancelled and added customers removed",
+        cancelFailed: "Could not remove some added customers. Please try again.",
       };
   const [leadRequest, setLeadRequest] = useState({
     companyName: "",
@@ -185,11 +191,14 @@ export default function LeadRequestForm({
   const [excelImportFile, setExcelImportFile] = useState<File | null>(null);
   const [excelImportStatus, setExcelImportStatus] = useState("");
   const [excelImporting, setExcelImporting] = useState(false);
+  const [excelImportCancelling, setExcelImportCancelling] = useState(false);
   const [excelImportProgress, setExcelImportProgress] = useState({
     processed: 0,
     total: 0,
   });
   const excelFileInputRef = useRef<HTMLInputElement | null>(null);
+  const excelImportCancelRequestedRef = useRef(false);
+  const excelImportedLeadIdsRef = useRef<number[]>([]);
   const { data: industries } = useBackend<IndustryRow[]>(
     "/api/v1/data/industries",
   );
@@ -226,10 +235,35 @@ export default function LeadRequestForm({
     setExcelImportFile(null);
     setExcelImportStatus("");
     setExcelImportProgress({ processed: 0, total: 0 });
+    excelImportCancelRequestedRef.current = false;
+    excelImportedLeadIdsRef.current = [];
     if (excelFileInputRef.current) excelFileInputRef.current.value = "";
   }
 
-  function closeExcelImport() {
+  async function rollbackExcelImport() {
+    const leadIds = [...excelImportedLeadIdsRef.current].reverse();
+    if (!leadIds.length) return true;
+    setExcelImportCancelling(true);
+    setExcelImportStatus(copy.cancellingImport);
+    const results = await Promise.allSettled(
+      leadIds.map((id) => deleteBackend("leads", id)),
+    );
+    const failed = results.some((result) => result.status === "rejected");
+    if (!failed) excelImportedLeadIdsRef.current = [];
+    setExcelImportStatus(failed ? copy.cancelFailed : copy.cancelledImport);
+    setExcelImportCancelling(false);
+    if (!failed) onCreated?.();
+    return !failed;
+  }
+
+  async function closeExcelImport() {
+    excelImportCancelRequestedRef.current = true;
+    if (excelImporting) {
+      setExcelImportStatus(copy.cancellingImport);
+      return;
+    }
+    const rolledBack = await rollbackExcelImport();
+    if (!rolledBack) return;
     setExcelImportOpen(false);
     resetExcelImport();
   }
@@ -239,6 +273,8 @@ export default function LeadRequestForm({
 
     setExcelImporting(true);
     setExcelImportStatus(copy.importing);
+    excelImportCancelRequestedRef.current = false;
+    excelImportedLeadIdsRef.current = [];
     try {
       const rows = (await parseImportedLeadRows(excelImportFile))
         .map((row) => row.map((value) => String(value ?? "").trim()))
@@ -302,6 +338,7 @@ export default function LeadRequestForm({
       let imported = 0;
 
       for (const values of dataRows) {
+        if (excelImportCancelRequestedRef.current) break;
         const row = Object.fromEntries(
           normalizedHeaders.map((header, index) => [header, values[index] ?? ""]),
         );
@@ -326,7 +363,7 @@ export default function LeadRequestForm({
           continue;
         }
 
-        await createBackend("leads", {
+        const createdLead = await createBackend<{ id?: number }>("leads", {
           company_name: companyName,
           name:
             importedLeadValueFromRow(
@@ -345,11 +382,21 @@ export default function LeadRequestForm({
           source: "excel_import",
           stage: "interested",
         });
+        if (createdLead?.id) {
+          excelImportedLeadIdsRef.current.push(Number(createdLead.id));
+        }
         imported += 1;
         setExcelImportProgress((current) => ({
           ...current,
           processed: current.processed + 1,
         }));
+      }
+
+      if (excelImportCancelRequestedRef.current) {
+        await rollbackExcelImport();
+        setExcelImportOpen(false);
+        resetExcelImport();
+        return;
       }
 
       setExcelImportStatus(imported ? copy.imported(imported) : copy.noRows);
@@ -577,7 +624,7 @@ export default function LeadRequestForm({
         <div
           className="excel-import-modal-overlay"
           onClick={(event) => {
-            if (event.target === event.currentTarget) closeExcelImport();
+            if (event.target === event.currentTarget) void closeExcelImport();
           }}
           role="dialog"
           aria-modal="true"
@@ -588,7 +635,8 @@ export default function LeadRequestForm({
               <h3>{copy.importTitle}</h3>
               <button
                 aria-label={isArabic ? "إغلاق" : "Close"}
-                onClick={closeExcelImport}
+                disabled={excelImportCancelling}
+                onClick={() => void closeExcelImport()}
                 type="button"
               >
                 ×
@@ -603,7 +651,7 @@ export default function LeadRequestForm({
             <button
               className={`file-drop-area ${excelImportFile ? "has-file" : ""}`}
               onClick={() => excelFileInputRef.current?.click()}
-              disabled={excelImporting}
+              disabled={excelImporting || excelImportCancelling}
               type="button"
             >
               <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -629,7 +677,7 @@ export default function LeadRequestForm({
               <div className="selected-file-info">
                 <span>{excelImportFile.name}</span>
                 <button
-                  disabled={excelImporting}
+                  disabled={excelImporting || excelImportCancelling}
                   onClick={resetExcelImport}
                   type="button"
                 >
@@ -667,12 +715,16 @@ export default function LeadRequestForm({
               </div>
             ) : null}
             <div className="excel-import-modal-actions">
-              <button onClick={closeExcelImport} type="button">
+              <button
+                disabled={excelImportCancelling}
+                onClick={() => void closeExcelImport()}
+                type="button"
+              >
                 {copy.cancel}
               </button>
               <button
                 className="btn-submit-excel"
-                disabled={!excelImportFile || excelImporting}
+                disabled={!excelImportFile || excelImporting || excelImportCancelling}
                 onClick={() => void importExcelLeads()}
                 type="button"
               >

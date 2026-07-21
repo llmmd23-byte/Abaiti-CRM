@@ -33,11 +33,21 @@ async function request<T>(path: string, method: "POST" | "PUT", body: Record<str
   return payload.data as T;
 }
 
+async function deleteRequest(path: string) {
+  const response = await fetch(path, {method: "DELETE"});
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error ?? "REQUEST_FAILED");
+  return payload as {success?: boolean};
+}
+
 export const createBackend = <T,>(resource: string, body: Record<string, unknown>) =>
   request<T>(`/api/v1/data/${resource}`, "POST", body);
 
 export const updateBackend = <T,>(resource: string, id: number | string, body: Record<string, unknown>) =>
   request<T>(`/api/v1/data/${resource}/${id}`, "PUT", body);
+
+export const deleteBackend = (resource: string, id: number | string) =>
+  deleteRequest(`/api/v1/data/${resource}/${id}`);
 
 export const updateProfileBackend = <T,>(body: Record<string, unknown>) => request<T>("/api/v1/profile", "PUT", body);
 
