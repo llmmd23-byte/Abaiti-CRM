@@ -5475,6 +5475,137 @@ html[dir="ltr"] .dashboard-main {
   gap: 14px;
 }
 
+.rental-booth-picker {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #dbe5ee;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.rental-booth-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rental-booth-picker-head div {
+  display: grid;
+  gap: 3px;
+}
+
+.rental-booth-picker-head strong {
+  color: #0f2d4a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.rental-booth-picker-head span,
+.rental-booth-legend span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rental-booth-picker-head b {
+  min-width: 96px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: #e6f7ff;
+  color: #0f2d4a;
+  font-size: 13px;
+  text-align: center;
+}
+
+.rental-booth-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rental-booth-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rental-booth-legend i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.rental-booth-legend i.available {
+  background: #28a745;
+}
+
+.rental-booth-legend i.booked {
+  background: #dc3545;
+}
+
+.rental-booth-legend i.selected {
+  background: #007bff;
+}
+
+.rental-booth-groups {
+  display: grid;
+  gap: 12px;
+}
+
+.rental-booth-group {
+  display: grid;
+  gap: 8px;
+}
+
+.rental-booth-group h4 {
+  margin: 0;
+  color: #1a748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rental-booth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 8px;
+}
+
+.rental-booth-tile {
+  height: 38px;
+  border: 1px solid #23313f;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.rental-booth-tile.available {
+  background: #28a745;
+}
+
+.rental-booth-tile.booked {
+  background: #dc3545;
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.rental-booth-tile.selected {
+  background: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.rental-booth-tile:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(15, 45, 74, 0.12);
+}
+
 .expanded-table-card table {
   min-width: 100%;
 }

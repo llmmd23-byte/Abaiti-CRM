@@ -10,6 +10,111 @@ const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
 type UserTrendPeriod = "week" | "month" | "year";
 type UserTrendGroup = "days" | "weeks" | "months" | "quarters";
+const RENTAL_BOOTH_GROUPS = [
+  {
+    label: "ST",
+    booths: ["ST01", "ST02", "ST03", "ST04"],
+  },
+  {
+    label: "RL",
+    booths: [
+      "RL1",
+      "RL2",
+      "RL3",
+      "RL4",
+      "RL5",
+      "RL6",
+      "RL7",
+      "RL8",
+      "RL9",
+      "RL10",
+      "RL13",
+      "RL14",
+      "RL15",
+      "RL16",
+      "RL19",
+      "RL20",
+      "RL21",
+      "RL22",
+      "RL23",
+      "RL24",
+      "RL25",
+      "RL26",
+      "RL27",
+      "RL28",
+      "RL29",
+      "RL30",
+      "RL31",
+      "RL32",
+      "RL33",
+      "RL34",
+      "RL35",
+      "RL36",
+    ],
+  },
+  {
+    label: "M",
+    booths: [
+      "M01",
+      "M02",
+      "M03",
+      "M04",
+      "M05",
+      "M06",
+      "M07",
+      "M08",
+      "M09",
+      "M10",
+      "M11",
+      "M12",
+      "M13",
+      "M14",
+      "M15",
+      "M16",
+      "M17",
+      "M18",
+      "M19",
+      "M20",
+      "M21",
+      "M22",
+      "M23",
+      "M24",
+      "M25",
+      "M26",
+      "M29",
+      "M30",
+      "M31",
+      "M32",
+      "M33",
+      "M34",
+    ],
+  },
+  {
+    label: "IN",
+    booths: [
+      "IN1",
+      "IN2",
+      "IN3",
+      "IN4",
+      "IN5",
+      "IN6",
+      "IN7",
+      "IN8",
+      "IN9",
+      "IN10",
+      "IN11",
+      "IN12",
+      "IN13",
+      "IN14",
+      "IN15",
+      "IN16",
+      "IN17",
+      "IN18",
+      "IN19",
+      "IN20",
+    ],
+  },
+] as const;
 
 function dateAfterDays(days: number) {
   const date = new Date();
@@ -3439,6 +3544,26 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     },
     [contracts.data, search],
   );
+  const bookedBooths = useMemo(() => {
+    const booths = new Set<string>();
+    for (const contract of contracts.data ?? []) {
+      if (editingContractId && Number(contract.id) === editingContractId) continue;
+      if (String(contract.status ?? "").toLowerCase() === "cancelled") continue;
+      const value = String(contract.booth_number ?? "").trim().toUpperCase();
+      if (value) booths.add(value);
+    }
+    return booths;
+  }, [contracts.data, editingContractId]);
+
+  function selectBooth(nextBooth: string) {
+    const normalizedBooth = nextBooth.trim().toUpperCase();
+    if (bookedBooths.has(normalizedBooth)) {
+      setSaveStatus(isArabic ? "هذا البوث محجوز مسبقاً" : "This booth is already booked");
+      window.setTimeout(() => setSaveStatus(""), 2200);
+      return;
+    }
+    setBoothNumber(normalizedBooth);
+  }
 
   function applyLeadData(nextLeadId: string) {
     setLeadId(nextLeadId);
@@ -3713,6 +3838,46 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>
           <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
           <label className="quote-field"><span>{text.boothNumber}</span><input onChange={(event) => setBoothNumber(event.target.value)} value={boothNumber} /></label>
+          <div className="rental-booth-picker">
+            <div className="rental-booth-picker-head">
+              <div>
+                <strong>{isArabic ? "خريطة اختيار بوث العقد" : "Contract booth map"}</strong>
+                <span>{isArabic ? "اختر بوثاً متاحاً ليتم تعبئته في العقد" : "Pick an available booth to fill the contract"}</span>
+              </div>
+              <b>{boothNumber || (isArabic ? "لم يتم الاختيار" : "Not selected")}</b>
+            </div>
+            <div className="rental-booth-legend">
+              <span><i className="available" />{isArabic ? "متاح" : "Available"}</span>
+              <span><i className="booked" />{isArabic ? "محجوز" : "Booked"}</span>
+              <span><i className="selected" />{isArabic ? "مختار" : "Selected"}</span>
+            </div>
+            <div className="rental-booth-groups">
+              {RENTAL_BOOTH_GROUPS.map((group) => (
+                <section className="rental-booth-group" key={group.label}>
+                  <h4>{group.label}</h4>
+                  <div className="rental-booth-grid">
+                    {group.booths.map((booth) => {
+                      const normalizedBooth = booth.toUpperCase();
+                      const isBooked = bookedBooths.has(normalizedBooth);
+                      const isSelected = boothNumber.trim().toUpperCase() === normalizedBooth;
+                      return (
+                        <button
+                          aria-pressed={isSelected}
+                          className={`rental-booth-tile ${isBooked ? "booked" : "available"} ${isSelected ? "selected" : ""}`}
+                          disabled={isBooked}
+                          key={booth}
+                          onClick={() => selectBooth(booth)}
+                          type="button"
+                        >
+                          {booth}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </div>
           <label className="quote-field"><span>{text.participationCategory}</span><input onChange={(event) => setParticipationCategory(event.target.value)} value={participationCategory} /></label>
           <label className="quote-field"><span>{text.boothSize}</span><input onChange={(event) => setBoothSize(event.target.value)} value={boothSize} /></label>
           <label className="quote-field"><span>{text.rentalItem} <b className="required-mark">*</b></span><input onChange={(event) => setRentalItem(event.target.value)} value={rentalItem} /></label>
