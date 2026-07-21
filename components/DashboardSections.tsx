@@ -3885,7 +3885,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                       }}
                       title={`${booth.id}${booth.area ? ` - ${booth.area}` : ""}${isBooked ? ` - ${isArabic ? "محجوز" : "Booked"}` : ""}`}
                       type="button"
-                    />
+                    >
+                      {booth.id}
+                    </button>
                   );
                 })}
               </div>
