@@ -3396,20 +3396,22 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       };
 
   const amounts = useMemo(() => {
-    const subtotal = roundMoney(Number(unitPrice || 0) * Number(quantity || 0));
-    const vat = roundMoney(subtotal * 0.15);
-    return {subtotal, vat, grandTotal: roundMoney(subtotal + vat)};
+    const grandTotal = roundMoney(Number(unitPrice || 0) * Number(quantity || 0));
+    const subtotal = roundMoney(grandTotal / 1.15);
+    const vat = roundMoney(grandTotal - subtotal);
+    return {subtotal, vat, grandTotal};
   }, [quantity, unitPrice]);
   const rentalContractAmounts = (contract: BackendRow) => {
     const unit = Number(contract.unit_price ?? 0);
     const qty = Number(contract.quantity ?? 1);
-    const subtotal = roundMoney(
+    const grandTotal = roundMoney(
       Number.isFinite(unit) && Number.isFinite(qty)
         ? unit * qty
-        : Number(contract.subtotal ?? 0),
+        : Number(contract.grand_total ?? 0),
     );
-    const vat = roundMoney(subtotal * 0.15);
-    return {subtotal, vat, grandTotal: roundMoney(subtotal + vat)};
+    const subtotal = roundMoney(grandTotal / 1.15);
+    const vat = roundMoney(grandTotal - subtotal);
+    return {subtotal, vat, grandTotal};
   };
   const selectedLead = (leads.data ?? []).find((lead) => String(lead.id) === leadId);
   const statusLabels: Record<string, string> = {

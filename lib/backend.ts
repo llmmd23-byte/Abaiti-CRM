@@ -2146,11 +2146,12 @@ export async function createResource(
       if (data[numericColumn] !== undefined && data[numericColumn] !== null)
         data[numericColumn] = Number(data[numericColumn]);
     }
-    const subtotal = roundMoney(Number(data.unit_price ?? 0) * Number(data.quantity ?? 1));
-    const vatAmount = roundMoney(subtotal * 0.15);
+    const grandTotal = roundMoney(Number(data.unit_price ?? 0) * Number(data.quantity ?? 1));
+    const subtotal = roundMoney(grandTotal / 1.15);
+    const vatAmount = roundMoney(grandTotal - subtotal);
     data.subtotal = subtotal;
     data.vat_amount = vatAmount;
-    data.grand_total = roundMoney(subtotal + vatAmount);
+    data.grand_total = grandTotal;
     if (!data.contract_number) data.contract_number = generatedReference(resource);
   }
   if (definition.ownerField) data[definition.ownerField] = Number(session.sub);
@@ -2595,12 +2596,12 @@ export async function updateResource(
     }
     const unitPrice = Number(data.unit_price ?? existing.unit_price ?? 0);
     const quantity = Number(data.quantity ?? existing.quantity ?? 1);
-    const subtotal = Number(data.subtotal ?? unitPrice * quantity);
+    const grandTotal = roundMoney(unitPrice * quantity);
+    const subtotal = roundMoney(grandTotal / 1.15);
+    const vatAmount = roundMoney(grandTotal - subtotal);
     data.subtotal = subtotal;
-    if (data.vat_amount === undefined || data.vat_amount === null) data.vat_amount = subtotal * 0.15;
-    if (data.grand_total === undefined || data.grand_total === null) {
-      data.grand_total = subtotal + Number(data.vat_amount ?? existing.vat_amount ?? 0);
-    }
+    data.vat_amount = vatAmount;
+    data.grand_total = grandTotal;
   }
   if (resource === "lead-tag-assignments" && data.tag_id) {
     const nextLeadId = Number(data.lead_id ?? existing.lead_id);
