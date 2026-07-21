@@ -3740,11 +3740,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.rentalLocation}</span><input onChange={(event) => setRentalLocation(event.target.value)} value={rentalLocation} /></label>
           <label className="quote-field"><span>{text.leaseStartDate}</span><input onChange={(event) => setLeaseStartDate(event.target.value)} type="date" value={leaseStartDate} /></label>
           <label className="quote-field"><span>{text.leaseEndDate}</span><input onChange={(event) => setLeaseEndDate(event.target.value)} type="date" value={leaseEndDate} /></label>
-          <label className="quote-field"><span>{text.unitPrice}</span><input inputMode="decimal" min="0" onChange={(event) => setUnitPrice(event.target.value)} type="number" value={unitPrice} /></label>
+          <label className="quote-field"><span>{text.contractDate}</span><input onChange={(event) => setContractDate(event.target.value)} type="date" value={contractDate} /></label>
           <label className="quote-field"><span>{text.quantity}</span><input inputMode="decimal" min="0" onChange={(event) => setQuantity(event.target.value)} type="number" value={quantity} /></label>
           <label className="quote-field"><span>{text.subtotal}</span><input readOnly value={amounts.subtotal.toLocaleString(NUMBER_LOCALE)} /></label>
           <label className="quote-field"><span>{text.vatAmount}</span><input readOnly value={amounts.vat.toLocaleString(NUMBER_LOCALE)} /></label>
-          <label className="quote-field"><span>{text.contractDate}</span><input onChange={(event) => setContractDate(event.target.value)} type="date" value={contractDate} /></label>
+          <label className="quote-field"><span>{text.unitPrice}</span><input inputMode="decimal" min="0" onChange={(event) => setUnitPrice(event.target.value)} type="number" value={unitPrice} /></label>
           <label className="quote-field"><span>{text.city}</span><input onChange={(event) => setCity(event.target.value)} value={city} /></label>
           <label className="quote-field"><span>{text.country}</span><input onChange={(event) => setCountry(event.target.value)} value={country} /></label>
         </div>
