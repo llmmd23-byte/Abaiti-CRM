@@ -3165,8 +3165,8 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
             />
             {!selectedLead ? <small className="quote-duration-hint">{text.noCustomerData}</small> : null}
           </label>
-          <label className="quote-field"><span>{text.companyName} <b className="required-mark">*</b></span><input onChange={(event) => setCompanyName(event.target.value)} value={companyName} /></label>
-          <label className="quote-field"><span>{text.contactName} <b className="required-mark">*</b></span><input onChange={(event) => setContactName(event.target.value)} value={contactName} /></label>
+          <label className="quote-field rental-compact-label"><span>{text.companyName} <b className="required-mark">*</b></span><input onChange={(event) => setCompanyName(event.target.value)} value={companyName} /></label>
+          <label className="quote-field rental-compact-label"><span>{text.contactName} <b className="required-mark">*</b></span><input onChange={(event) => setContactName(event.target.value)} value={contactName} /></label>
           <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>
           <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
           <label className="quote-field"><span>{text.exhibitionName}</span><input onChange={(event) => setExhibitionName(event.target.value)} value={exhibitionName} /></label>
