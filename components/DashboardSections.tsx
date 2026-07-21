@@ -1818,16 +1818,17 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
           <span>{text.formSubtitle}</span>
         </div>
         <div className="form-grid">
-          <label className="quote-field quote-field-customer">
+          <label className="quote-field quote-field-customer contract-lead-select-field">
             <span>{text.customer}</span>
             <DashboardSelect
               ariaLabel={text.customer}
+              menuClassName="contract-lead-select-menu"
               onValueChange={applyLeadData}
               options={(leads.data ?? []).map((lead) => ({
                 label: String(lead.company_name ?? lead.name ?? lead.id),
                 value: String(lead.id),
               }))}
-              placeholder={text.customerPlaceholder}
+              placeholder=""
               searchable
               searchPlaceholder={text.customerSearch}
               value={leadId}
@@ -2588,16 +2589,17 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
           <span>{text.formSubtitle}</span>
         </div>
         <div className="form-grid">
-          <label className="quote-field quote-field-customer">
+          <label className="quote-field quote-field-customer contract-lead-select-field">
             <span>{text.customer}</span>
             <DashboardSelect
               ariaLabel={text.customer}
+              menuClassName="contract-lead-select-menu"
               onValueChange={applyLeadData}
               options={(leads.data ?? []).map((lead) => ({
                 label: String(lead.company_name ?? lead.name ?? lead.id),
                 value: String(lead.id),
               }))}
-              placeholder={text.customerPlaceholder}
+              placeholder=""
               searchable
               searchPlaceholder={text.customerSearch}
               value={leadId}
@@ -3723,7 +3725,23 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.eventLocation}</span><input onChange={(event) => setEventLocation(event.target.value)} value={eventLocation} /></label>
           <label className="quote-field"><span>{text.firstPartyCr}</span><input inputMode="numeric" onChange={(event) => setFirstPartyCr(event.target.value)} value={firstPartyCr} /></label>
           <label className="quote-field"><span>{text.firstPartyRepresentative}</span><input onChange={(event) => setFirstPartyRepresentative(event.target.value)} value={firstPartyRepresentative} /></label>
-          <label className="quote-field quote-field-customer"><span>{text.customer}</span><DashboardSelect ariaLabel={text.customer} onValueChange={applyLeadData} options={(leads.data ?? []).map((lead) => ({label: String(lead.company_name ?? lead.name ?? lead.id), value: String(lead.id)}))} placeholder={text.customerPlaceholder} searchable searchPlaceholder={text.customerSearch} value={leadId} />{!selectedLead ? <small className="quote-duration-hint">{text.noCustomerData}</small> : null}</label>
+          <label className="quote-field quote-field-customer contract-lead-select-field">
+            <span>{text.customer}</span>
+            <DashboardSelect
+              ariaLabel={text.customer}
+              menuClassName="contract-lead-select-menu"
+              onValueChange={applyLeadData}
+              options={(leads.data ?? []).map((lead) => ({
+                label: String(lead.company_name ?? lead.name ?? lead.id),
+                value: String(lead.id),
+              }))}
+              placeholder=""
+              searchable
+              searchPlaceholder={text.customerSearch}
+              value={leadId}
+            />
+            {!selectedLead ? <small className="quote-duration-hint">{text.noCustomerData}</small> : null}
+          </label>
           <label className="quote-field"><span>{text.lessorName}</span><input onChange={(event) => setLessorName(event.target.value)} value={lessorName} /></label>
           <label className="quote-field"><span>{text.tenantName}</span><input onChange={(event) => setTenantName(event.target.value)} value={tenantName} /></label>
           <label className="quote-field"><span>{text.secondPartyCr}</span><input inputMode="numeric" onChange={(event) => setSecondPartyCr(event.target.value)} value={secondPartyCr} /></label>
