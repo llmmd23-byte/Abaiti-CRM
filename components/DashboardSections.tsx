@@ -3554,7 +3554,14 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>عقد مشاركة</title><style>
       *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       body{font-family:Tahoma,Arial,sans-serif;background:#f5f5f5;line-height:2;color:#000;padding:30px;font-size:14px;}
-      .page{background:#fff;width:210mm;min-height:297mm;margin:auto;padding:25mm;box-shadow:0 0 8px rgba(0,0,0,.15);}
+      .page{background:#fff;width:216mm;min-height:279mm;margin:auto;padding:43mm 22mm 22mm;box-shadow:0 0 8px rgba(0,0,0,.15);position:relative;overflow:hidden;}
+      .top-strip{position:absolute;top:0;left:0;right:0;height:7mm;background:#080333;}
+      .print-header{position:absolute;top:13mm;left:22mm;right:22mm;height:28mm;}
+      .event-logo{position:absolute;left:0;top:0;width:43mm;height:auto;}
+      .netaq-logo{position:absolute;right:0;top:0;width:69mm;height:auto;}
+      .watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:0;pointer-events:none;}
+      .watermark span{font-family:Georgia,serif;font-size:86px;color:#000;opacity:.055;font-weight:bold;direction:ltr;}
+      .content{position:relative;z-index:1;}
       h1{text-align:center;font-size:26px;margin-bottom:10px;}
       h2{font-size:18px;margin:25px 0 10px;}
       h3{font-size:16px;margin-bottom:8px;}
@@ -3566,13 +3573,25 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       ul,ol{padding-right:20px;}
       li{margin-bottom:6px;}
       .contract-number{display:block;text-align:center;font-weight:bold;margin:8px 0 14px;direction:ltr;}
+      .bottom-mark{position:absolute;left:15mm;bottom:14mm;width:20mm;height:20mm;z-index:1;}
+      .bottom-mark::before,.bottom-mark::after{content:"";position:absolute;width:12mm;height:12mm;background:#080333;transform:rotate(45deg);left:2mm;}
+      .bottom-mark::before{top:0;}
+      .bottom-mark::after{top:10mm;}
+      .print-footer{position:absolute;left:0;right:0;bottom:7mm;text-align:center;font-size:13px;color:#080333;direction:ltr;z-index:1;}
+      .print-footer span{margin:0 18px;}
       .signatures{display:flex;justify-content:space-between;gap:45px;margin-top:60px;page-break-inside:avoid;break-inside:avoid;}
       .signature{width:45%;text-align:center;border-top:1px solid #000;padding-top:12px;}
-      @media print{body{background:#fff;padding:0;}.page{box-shadow:none;margin:0;width:auto;min-height:auto;padding:18mm;}}
+      @media print{body{background:#fff;padding:0;}.page{box-shadow:none;margin:0;width:216mm;min-height:279mm;page-break-after:always;}.page:last-child{page-break-after:auto;}}
     </style></head><body><div class="page">
-      <h1>عقد مشاركة لصناع القهوة والشوكولاتة</h1>
-      <p style="text-align:center;">${escapePrintValue(displayValue(contract.event_dates ?? "خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "بفندق جدة هيلتون"))}</p>
+      <div class="top-strip"></div>
+      <div class="print-header"><img class="event-logo" src="/contract-assets/jazli-event-logo.png" alt="المعرض الدولي لصناع القهوة والشوكولاتة"><img class="netaq-logo" src="/contract-assets/jazli-netaq-logo.png" alt="netaq"></div>
+      <div class="watermark"><span>netaq</span></div>
+      <div class="bottom-mark"></div><div class="print-footer"><span>www.nco.sa</span><span>www.altayar-cgi.com</span></div>
+      <main class="content">
+      <h1>عقد مشاركة في المعرض الدولي لصناع القهوة والشوكولاتة</h1>
+      <p style="text-align:center;font-weight:bold;">${escapePrintValue(displayValue(contract.event_dates ?? "خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "بفندق جدة هيلتون (القاعة الكبرى)"))}</p>
       <span class="contract-number">${escapePrintValue(contract.contract_number)}</span>
+      <p>تم بعون الله وتوفيقه إبرام هذا العقد بتاريخ ${escapePrintValue(displayValue(contractDate))}، بين كل من:</p>
       <div class="section">
         <h2>أولاً: بيانات الأطراف</h2>
         <div class="party"><h3>الطرف الأول</h3><p>${escapePrintValue(displayValue(lessorName))}</p><p>رقم السجل التجاري: ${escapePrintValue(displayValue(contract.first_party_cr ?? "4030216503"))}</p><p>العنوان: ${escapePrintValue(displayValue(contract.event_location ?? rentalLocation ?? "جدة"))}</p><p>يمثلها: ${escapePrintValue(displayValue(contract.first_party_representative ?? "سهيل بن بكر الطيار"))}</p><p>الصفة: الرئيس التنفيذي</p></div>
@@ -3594,7 +3613,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <div class="section"><h2>عاشراً: التزامات الطرف الأول</h2><ol><li>تجهيز المساحة أو الجناح وفق البيانات المتفق عليها.</li><li>تنظيم دخول الطرف الثاني إلى موقع الفعالية حسب التعليمات.</li><li>توفير المعلومات التشغيلية اللازمة قبل الفعالية.</li></ol></div>
       <div class="section"><h2>الحادي عشر: التزامات الطرف الثاني</h2><ol><li>الالتزام بمواعيد السداد المتفق عليها.</li><li>الالتزام بالمساحة المحددة وعدم استخدامها في غير الغرض المتفق عليه.</li><li>الالتزام بإرشادات الأمن والسلامة وإدارة الموقع.</li><li>تسليم أي مستندات أو شعارات مطلوبة للطرف الأول في الوقت المحدد.</li></ol></div>
       <div class="section"><h2>الثاني عشر: أحكام عامة</h2><ul><li>حرر هذا العقد من نسختين أصليتين، لكل طرف نسخة للعمل بموجبها.</li><li>أي تعديل على هذا العقد لا يكون نافذاً إلا إذا كان مكتوباً وموقعاً من الطرفين.</li><li>ملاحظات إضافية: ${escapePrintValue(displayValue(contract.notes))}</li></ul></div>
-      <div class="signatures"><div class="signature"><h3>الطرف الأول</h3><p>الاسم</p><div class="signature-line"></div><p>التوقيع</p><div class="signature-line"></div><p>الختم</p></div><div class="signature"><h3>الطرف الثاني</h3><p>الاسم</p><div class="signature-line"></div><p>التوقيع</p><div class="signature-line"></div><p>الختم</p></div></div>
+      <div class="signatures"><div class="signature"><h3>الطرف الأول</h3><p>الاسم</p><br><br><p>التوقيع</p><br><br><p>الختم</p></div><div class="signature"><h3>الطرف الثاني</h3><p>الاسم</p><br><br><p>التوقيع</p><br><br><p>الختم</p></div></div>
+      </main>
     </div><script>window.onload = () => window.print();</script></body></html>`);
     printWindow.document.close();
   }
