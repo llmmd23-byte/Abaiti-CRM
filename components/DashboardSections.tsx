@@ -3533,7 +3533,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     const printWindow = window.open("", "_blank", "width=900,height=1100");
     if (!printWindow) return;
     const currency = String(contract.currency ?? "SAR");
-    const {subtotal, vat} = rentalContractAmounts(contract);
+    const {subtotal, vat, grandTotal} = rentalContractAmounts(contract);
     const money = (value: number) => `${value.toLocaleString(NUMBER_LOCALE)} ${currency}`;
     const contractDate = cleanDate(contract.contract_date);
     const lessorName =
@@ -3553,11 +3553,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     const leasePeriod = [leaseStart, leaseEnd].filter(Boolean).join(" - ") || "-";
     printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>عقد تأجيري - ${escapePrintValue(contract.contract_number)}</title><style>
       @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-      :root { --navy:#0F2027; --blue:#1E3A8A; --gold:#C59B27; --brown:#A55C1B; --border:#E5E7EB; --muted:#64748b; }
-      @page { size: A4 portrait; margin: 10mm; }
+      :root { --navy:#0F2027; --blue:#1E3A8A; --gold:#C59B27; --brown:#A55C1B; --border:#d9dee7; --muted:#64748b; --soft:#f8fafc; }
+      @page { size: A4 portrait; margin: 9mm; }
       * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      body { margin:0; background:#f3f4f6; color:var(--navy); font-family:"Cairo","Tajawal","Almarai",Arial,sans-serif; font-size:10.4px; line-height:1.6; }
-      .sheet { width:210mm; min-height:297mm; margin:0 auto; background:#fff; padding:11mm 12mm 13mm; position:relative; }
+      body { margin:0; background:#eef2f7; color:var(--navy); font-family:"Cairo","Tajawal","Almarai",Arial,sans-serif; font-size:10.2px; line-height:1.58; }
+      .sheet { width:210mm; min-height:297mm; margin:0 auto; background:#fff; padding:10mm 11mm 12mm; position:relative; box-shadow:0 8px 28px rgba(15,32,39,.10); }
       .contract-header { margin-bottom:12px; }
       .header-logos { direction:ltr; display:grid; grid-template-columns:1fr 1fr; align-items:start; gap:18px; margin-bottom:8px; width:100%; }
       .brand { direction:rtl; text-align:right; line-height:1.35; justify-self:end; min-width:280px; }
@@ -3568,21 +3568,23 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .exhibition-logo-svg { width:74px; height:auto; display:inline-block; }
       .event-logo-caption { margin-top:1px; color:var(--navy); font-size:6.5px; font-weight:800; text-align:left; }
       .event-logo-caption-en { color:#111827; font-family:Arial,sans-serif; font-size:4.8px; font-weight:700; text-align:left; direction:ltr; }
-      .title { text-align:center; margin:4px 0 10px; }
-      .title h2 { margin:0; color:#000; font-size:14.8px; font-weight:800; line-height:1.45; text-decoration:underline; }
-      .title p { margin:6px 0 0; color:#000; font-size:13.6px; font-weight:800; line-height:1.55; }
+      .title { text-align:center; margin:4px 0 10px; padding-bottom:8px; border-bottom:1.5px solid #111827; }
+      .title h2 { margin:0; color:#000; font-size:15.2px; font-weight:800; line-height:1.45; text-decoration:underline; }
+      .title p { margin:6px 0 0; color:#000; font-size:12.8px; font-weight:800; line-height:1.55; }
       .contract-no { display:inline-block; margin-top:7px; border:1px solid var(--navy); border-radius:6px; padding:3px 14px; direction:ltr; font-size:10px; font-weight:800; color:var(--navy); background:#fff; }
-      .section-card { border:0; border-radius:0; padding:0; margin:10px 0; background:#fff; }
+      .section-card { border:0; border-radius:0; padding:0; margin:9px 0; background:#fff; page-break-inside:avoid; break-inside:avoid; }
       .intro { text-align:justify; margin:0 0 9px; text-indent:16px; }
       .party { border:0; border-radius:0; padding:0; margin:7px 0; background:#fff; text-align:justify; }
       .party strong { color:var(--navy); font-weight:800; }
       .clause-title { margin:0 0 7px; color:var(--navy); font-size:11.5px; font-weight:800; }
-      table { width:100%; border-collapse:collapse; margin:10px 0 11px; font-size:10px; }
-      th, td { border:1px solid var(--border); padding:6px 7px; text-align:center; vertical-align:middle; }
+      table { width:100%; border-collapse:collapse; margin:9px 0 10px; font-size:9.8px; table-layout:fixed; }
+      th, td { border:1px solid var(--border); padding:6px 7px; text-align:center; vertical-align:middle; word-break:break-word; }
       th { background:var(--navy); color:#fff; font-weight:800; }
       td { color:#111827; font-weight:700; background:#fff; }
       .info-table th { width:18%; background:#f8fafc; color:var(--navy); text-align:right; }
       .info-table td { width:32%; text-align:right; }
+      .finance-table th { font-size:9.4px; }
+      .finance-table .inclusive-cell { background:#f8fafc; color:var(--navy); font-weight:800; }
       .total-text { margin:4px 0 0; font-weight:800; color:var(--navy); }
       ul { margin:5px 0 0; padding-right:18px; }
       li { margin-bottom:3px; text-align:justify; }
@@ -3593,7 +3595,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .stamp-circle { width:118px; height:58px; border:1px dashed #999; border-radius:0; margin-top:9px; display:flex; align-items:center; justify-content:center; color:#777; font-size:9px; font-weight:700; }
       .footer-bar { height:0; border-top:1.5px solid #000; margin:14px 0 7px; }
       .footer { display:flex; justify-content:space-between; color:var(--navy); font-size:9.5px; font-weight:800; }
-      @media print { body { background:#fff; } .sheet { width:100%; min-height:auto; margin:0; padding:0; border:0; } }
+      @media print { body { background:#fff; } .sheet { width:100%; min-height:auto; margin:0; padding:0; border:0; box-shadow:none; } a { color:inherit; text-decoration:none; } }
     </style></head><body><main class="sheet">
       <div class="contract-header">
         <div class="header-logos">
@@ -3613,7 +3615,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           </div>
         </div>
       </div>
-      <div class="title"><h2>عقد مشاركة في المعرض الدولي لصناع القهوة والشوكولاتة</h2><p>خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م<br>بفندق جدة هيلتون (القاعة الكبرى)</p><span class="contract-no">${escapePrintValue(contract.contract_number)}</span></div>
+      <div class="title"><h2>عقد تأجيري في المعرض الدولي لصناع القهوة والشوكولاتة</h2><p>${escapePrintValue(displayValue(contract.event_dates ?? "خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "فندق جدة هيلتون (القاعة الكبرى)"))}</p><span class="contract-no">${escapePrintValue(contract.contract_number)}</span></div>
       <section class="section-card">
         <p class="intro">تم بعون الله وتوفيقه إبرام هذا العقد بتاريخ <strong>${escapePrintValue(displayValue(contractDate))}</strong> بين كل من:</p>
         <div class="party"><strong>الطرف الأول:</strong> ${escapePrintValue(displayValue(lessorName))}، ويشار إليه لاحقاً بـ <strong>الطرف الأول / المنظم</strong>.</div>
@@ -3627,7 +3629,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <section class="section-card"><div class="clause-title">أولاً: التمهيد</div><p class="intro">يعد التمهيد أعلاه جزءاً لا يتجزأ من هذا العقد ومكملاً له، وقد اتفق الطرفان بكامل الأهلية المعتبرة شرعاً ونظاماً على البنود التالية.</p></section>
       <section class="section-card">
         <div class="clause-title">ثانياً: بيانات التأجير والقيمة المالية</div>
-        <table><thead><tr><th>رقم / وصف المساحة</th><th>الموقع</th><th>الكمية / المدة</th><th>القيمة</th><th>ضريبة القيمة المضافة</th></tr></thead><tbody><tr><td>${escapePrintValue(displayValue(rentalItem || "مساحة / جناح تأجيري"))}</td><td>${escapePrintValue(displayValue(rentalLocation))}</td><td>${quantity.toLocaleString(NUMBER_LOCALE)}</td><td>${money(subtotal)}</td><td>${money(vat)}</td></tr></tbody></table>
+        <table class="finance-table"><thead><tr><th>رقم / وصف المساحة</th><th>الموقع</th><th>الكمية / المدة</th><th>قيمة الإيجار مع الضريبة</th><th>القيمة قبل الضريبة</th><th>ضريبة القيمة المضافة</th></tr></thead><tbody><tr><td>${escapePrintValue(displayValue(rentalItem || "مساحة / جناح تأجيري"))}</td><td>${escapePrintValue(displayValue(rentalLocation))}</td><td>${quantity.toLocaleString(NUMBER_LOCALE)}</td><td class="inclusive-cell">${money(grandTotal)}</td><td>${money(subtotal)}</td><td>${money(vat)}</td></tr></tbody></table>
       </section>
       <section class="section-card"><div class="clause-title">ثالثاً: مميزات المشاركة والتزامات الطرف الثاني</div>
         <ul><li>تخصيص المساحة أو الجناح المحدد للطرف الثاني داخل المعرض طوال مدة الفعالية.</li><li>يلتزم الطرف الثاني باستخدام المساحة في الغرض المتفق عليه وعدم التنازل عنها أو تأجيرها للغير إلا بموافقة خطية من الطرف الأول.</li><li>يلتزم الطرف الثاني بتزويد الطرف الأول بالشعار أو الاسم التجاري المراد طباعته بجودة عالية قبل الموعد المحدد.</li><li>يلتزم الطرف الثاني بكافة الأنظمة والشروط الصادرة من إدارة المعرض والجهات التنظيمية في الموقع.</li></ul>
