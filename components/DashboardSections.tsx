@@ -12,6 +12,7 @@ type UserTrendPeriod = "week" | "month" | "year";
 type UserTrendGroup = "days" | "weeks" | "months" | "quarters";
 type RentalBoothPosition = {
   id: string;
+  area: string;
   left: number;
   top: number;
   width: number;
@@ -19,125 +20,125 @@ type RentalBoothPosition = {
 };
 
 const RENTAL_BOOTH_POSITIONS: RentalBoothPosition[] = [
-  {id: "ST04", left: 31.97, top: 19.89, width: 3.84, height: 7.32},
-  {id: "ST03", left: 39.66, top: 19.89, width: 3.84, height: 7.32},
-  {id: "TP01", left: 48.35, top: 19.89, width: 4.61, height: 8.79},
-  {id: "ST02", left: 57.34, top: 19.89, width: 3.84, height: 7.32},
-  {id: "ST01", left: 65.09, top: 19.89, width: 3.84, height: 7.32},
-  {id: "FL1", left: 67.7, top: 31.65, width: 1.65, height: 3.2},
-  {id: "FL24", left: 70.98, top: 31.65, width: 1.65, height: 3.2},
-  {id: "RL3", left: 65.97, top: 32.38, width: 2.31, height: 4.39},
-  {id: "M25", left: 31.49, top: 32.39, width: 2.31, height: 4.39},
-  {id: "M19", left: 33.79, top: 32.39, width: 2.31, height: 4.39},
-  {id: "M13", left: 38.4, top: 32.39, width: 2.31, height: 4.39},
-  {id: "M05", left: 40.71, top: 32.4, width: 2.31, height: 4.39},
-  {id: "RL1", left: 52.34, top: 32.47, width: 4.61, height: 4.39},
-  {id: "RL2", left: 60.8, top: 32.47, width: 4.61, height: 4.39},
-  {id: "M33", left: 27.47, top: 33.59, width: 3.07, height: 4.39},
-  {id: "M01", left: 45.81, top: 34.56, width: 2.31, height: 8.71},
-  {id: "FL2", left: 67.7, top: 34.59, width: 1.65, height: 3.2},
-  {id: "FL23", left: 70.98, top: 34.59, width: 1.65, height: 3.2},
-  {id: "M26", left: 31.49, top: 36.79, width: 2.31, height: 4.39},
-  {id: "M20", left: 33.79, top: 36.79, width: 2.31, height: 4.39},
-  {id: "M14", left: 38.4, top: 36.79, width: 2.31, height: 4.39},
-  {id: "M06", left: 40.71, top: 36.79, width: 2.31, height: 4.39},
-  {id: "RL4", left: 65.97, top: 36.79, width: 2.31, height: 4.39},
-  {id: "FL3", left: 67.7, top: 37.52, width: 1.65, height: 3.2},
-  {id: "FL22", left: 70.98, top: 37.52, width: 1.65, height: 3.2},
-  {id: "M34", left: 27.47, top: 39.45, width: 3.07, height: 4.39},
-  {id: "FL4", left: 67.7, top: 40.46, width: 1.65, height: 3.2},
-  {id: "FL21", left: 70.98, top: 40.46, width: 1.65, height: 3.2},
-  {id: "RL34", left: 55.8, top: 40.91, width: 2.34, height: 4.39},
-  {id: "M29", left: 31.49, top: 41.17, width: 2.31, height: 4.39},
-  {id: "M07", left: 40.71, top: 41.17, width: 2.31, height: 4.39},
-  {id: "M21", left: 33.79, top: 41.18, width: 2.31, height: 4.39},
-  {id: "M15", left: 38.4, top: 41.18, width: 2.31, height: 4.39},
-  {id: "RL5", left: 65.97, top: 41.19, width: 2.31, height: 4.39},
-  {id: "FL5", left: 67.7, top: 43.4, width: 1.65, height: 3.2},
-  {id: "FL20", left: 70.98, top: 43.4, width: 1.65, height: 3.2},
-  {id: "RL6", left: 65.97, top: 45.6, width: 2.31, height: 4.39},
-  {id: "RL35", left: 55.8, top: 46.06, width: 3.07, height: 4.39},
-  {id: "RL32", left: 51.19, top: 46.2, width: 3.07, height: 4.39},
-  {id: "FL6", left: 67.7, top: 46.33, width: 1.65, height: 3.2},
-  {id: "FL19", left: 70.98, top: 46.33, width: 1.65, height: 3.2},
-  {id: "M02", left: 45.81, top: 47.28, width: 2.31, height: 8.71},
-  {id: "SB1", left: 26.88, top: 47.31, width: 1.65, height: 3.2},
-  {id: "FL7", left: 67.7, top: 49.27, width: 1.65, height: 3.2},
-  {id: "FL18", left: 70.98, top: 49.27, width: 1.65, height: 3.2},
-  {id: "RL7", left: 65.97, top: 50.01, width: 2.31, height: 4.39},
-  {id: "M08", left: 40.71, top: 50.7, width: 3.07, height: 4.39},
-  {id: "SB2", left: 26.88, top: 50.78, width: 1.65, height: 3.2},
-  {id: "RL36", left: 55.8, top: 51.18, width: 2.29, height: 4.39},
-  {id: "RL31", left: 51.19, top: 51.32, width: 2.29, height: 4.39},
-  {id: "FL8", left: 67.7, top: 52.21, width: 1.65, height: 3.2},
-  {id: "FL17", left: 70.98, top: 52.21, width: 1.65, height: 3.2},
-  {id: "SB3", left: 26.88, top: 53.88, width: 1.65, height: 3.2},
-  {id: "RL8", left: 65.97, top: 54.41, width: 2.31, height: 4.39},
-  {id: "FL9", left: 67.7, top: 55.15, width: 1.65, height: 3.2},
-  {id: "FL16", left: 70.98, top: 55.15, width: 1.65, height: 3.2},
-  {id: "M09", left: 40.71, top: 56.57, width: 3.07, height: 4.39},
-  {id: "SB4", left: 26.88, top: 56.98, width: 1.65, height: 3.2},
-  {id: "FL10", left: 67.7, top: 58.08, width: 1.65, height: 3.2},
-  {id: "FL15", left: 70.98, top: 58.08, width: 1.65, height: 3.2},
-  {id: "RL9", left: 65.97, top: 58.82, width: 2.31, height: 4.39},
-  {id: "RL29", left: 54.26, top: 58.83, width: 2.31, height: 4.39},
-  {id: "RL15", left: 59.36, top: 58.83, width: 2.31, height: 4.39},
-  {id: "RL13", left: 61.72, top: 58.83, width: 2.31, height: 4.39},
-  {id: "M03", left: 45.81, top: 60.0, width: 4.57, height: 4.39},
-  {id: "SB5", left: 26.88, top: 60.09, width: 1.65, height: 3.2},
-  {id: "FL11", left: 67.7, top: 61.02, width: 1.65, height: 3.2},
-  {id: "FL14", left: 70.98, top: 61.02, width: 1.65, height: 3.2},
-  {id: "SB6", left: 26.88, top: 63.19, width: 1.65, height: 3.2},
-  {id: "RL26", left: 51.57, top: 63.23, width: 2.31, height: 5.86},
-  {id: "RL25", left: 54.26, top: 63.23, width: 2.31, height: 4.39},
-  {id: "RL16", left: 59.36, top: 63.23, width: 2.31, height: 4.39},
-  {id: "RL14", left: 61.72, top: 63.23, width: 2.31, height: 4.39},
-  {id: "RL10", left: 65.97, top: 63.23, width: 2.31, height: 4.39},
-  {id: "FL12", left: 67.7, top: 63.96, width: 1.65, height: 3.2},
-  {id: "FL13", left: 70.98, top: 63.96, width: 1.65, height: 3.2},
-  {id: "M30", left: 31.49, top: 66.28, width: 2.31, height: 4.39},
-  {id: "M22", left: 33.79, top: 66.28, width: 2.31, height: 4.39},
-  {id: "M16", left: 38.4, top: 66.28, width: 2.31, height: 4.39},
-  {id: "M10", left: 40.71, top: 66.28, width: 2.31, height: 4.39},
-  {id: "SB7", left: 26.88, top: 66.3, width: 1.65, height: 3.2},
-  {id: "SB8", left: 26.88, top: 69.4, width: 1.65, height: 3.2},
-  {id: "M31", left: 31.49, top: 70.47, width: 2.31, height: 4.39},
-  {id: "M23", left: 33.79, top: 70.47, width: 2.31, height: 4.39},
-  {id: "M17", left: 38.4, top: 70.47, width: 2.31, height: 4.39},
-  {id: "M11", left: 40.71, top: 70.47, width: 2.31, height: 4.39},
-  {id: "RL21", left: 51.19, top: 70.48, width: 2.31, height: 4.39},
-  {id: "RL19", left: 53.49, top: 70.48, width: 2.31, height: 4.39},
-  {id: "RL27", left: 62.85, top: 70.52, width: 2.31, height: 5.86},
-  {id: "SB9", left: 26.88, top: 72.5, width: 1.65, height: 3.2},
-  {id: "M04", left: 45.81, top: 72.71, width: 4.57, height: 4.39},
-  {id: "RL22", left: 51.19, top: 74.84, width: 2.31, height: 4.39},
-  {id: "RL20", left: 53.49, top: 74.84, width: 2.31, height: 4.39},
-  {id: "M32", left: 31.49, top: 74.86, width: 2.31, height: 4.39},
-  {id: "M24", left: 33.79, top: 74.86, width: 2.31, height: 4.39},
-  {id: "M18", left: 38.4, top: 74.86, width: 2.31, height: 4.39},
-  {id: "M12", left: 40.71, top: 74.87, width: 2.31, height: 4.39},
-  {id: "RL24", left: 59.74, top: 74.91, width: 2.31, height: 5.86},
-  {id: "RL23", left: 62.85, top: 74.91, width: 2.31, height: 5.86},
-  {id: "IN2", left: 55.39, top: 83.66, width: 3.07, height: 4.39},
-  {id: "IN3", left: 58.48, top: 83.66, width: 3.07, height: 4.39},
-  {id: "IN4", left: 63.09, top: 83.66, width: 3.07, height: 4.39},
-  {id: "IN5", left: 66.16, top: 83.66, width: 3.07, height: 4.39},
-  {id: "IN6", left: 69.24, top: 83.66, width: 3.07, height: 4.39},
-  {id: "IN1", left: 51.19, top: 85.89, width: 2.31, height: 8.71},
-  {id: "IN11", left: 55.39, top: 88.04, width: 3.07, height: 4.39},
-  {id: "IN10", left: 58.48, top: 88.04, width: 3.07, height: 4.39},
-  {id: "IN9", left: 63.09, top: 88.04, width: 3.07, height: 4.39},
-  {id: "IN8", left: 66.16, top: 88.04, width: 3.07, height: 4.39},
-  {id: "IN7", left: 69.24, top: 88.04, width: 3.07, height: 4.39},
-  {id: "IN12", left: 51.19, top: 95.37, width: 2.31, height: 4.39},
-  {id: "IN13", left: 53.49, top: 95.37, width: 2.31, height: 4.39},
-  {id: "IN14", left: 55.8, top: 95.37, width: 2.31, height: 4.39},
-  {id: "IN15", left: 58.11, top: 95.37, width: 2.31, height: 4.39},
-  {id: "IN16", left: 60.41, top: 95.37, width: 2.31, height: 4.39},
-  {id: "IN17", left: 62.72, top: 95.37, width: 2.31, height: 4.39},
-  {id: "IN18", left: 65.02, top: 95.37, width: 2.31, height: 4.39},
-  {id: "IN19", left: 67.33, top: 95.37, width: 2.31, height: 4.39},
-  {id: "IN20", left: 69.64, top: 95.37, width: 2.31, height: 4.39},
+  {id: "ST04", area: "25m?", left: 31.97, top: 19.89, width: 3.84, height: 7.32},
+  {id: "ST03", area: "25m?", left: 39.66, top: 19.89, width: 3.84, height: 7.32},
+  {id: "TP01", area: "36m?", left: 48.35, top: 19.89, width: 4.61, height: 8.79},
+  {id: "ST02", area: "25m?", left: 57.34, top: 19.89, width: 3.84, height: 7.32},
+  {id: "ST01", area: "25m?", left: 65.09, top: 19.89, width: 3.84, height: 7.32},
+  {id: "FL1", area: "", left: 67.7, top: 31.65, width: 1.15, height: 2.93},
+  {id: "FL24", area: "", left: 70.98, top: 31.65, width: 1.15, height: 2.93},
+  {id: "RL3", area: "9m?", left: 65.97, top: 32.38, width: 2.31, height: 4.39},
+  {id: "M25", area: "9m?", left: 31.49, top: 32.39, width: 2.31, height: 4.39},
+  {id: "M19", area: "9m?", left: 33.79, top: 32.39, width: 2.31, height: 4.39},
+  {id: "M13", area: "9m?", left: 38.4, top: 32.39, width: 2.31, height: 4.39},
+  {id: "M05", area: "9m?", left: 40.71, top: 32.4, width: 2.31, height: 4.39},
+  {id: "RL1", area: "18m?", left: 52.34, top: 32.47, width: 4.61, height: 4.39},
+  {id: "RL2", area: "18m?", left: 60.8, top: 32.47, width: 4.61, height: 4.39},
+  {id: "M33", area: "12m?", left: 27.47, top: 33.59, width: 3.07, height: 4.39},
+  {id: "M01", area: "18m?", left: 45.81, top: 34.56, width: 2.31, height: 8.71},
+  {id: "FL2", area: "", left: 67.7, top: 34.59, width: 1.15, height: 2.93},
+  {id: "FL23", area: "", left: 70.98, top: 34.59, width: 1.15, height: 2.93},
+  {id: "M26", area: "9m?", left: 31.49, top: 36.79, width: 2.31, height: 4.39},
+  {id: "M20", area: "9m?", left: 33.79, top: 36.79, width: 2.31, height: 4.39},
+  {id: "M14", area: "9m?", left: 38.4, top: 36.79, width: 2.31, height: 4.39},
+  {id: "M06", area: "9m?", left: 40.71, top: 36.79, width: 2.31, height: 4.39},
+  {id: "RL4", area: "9m?", left: 65.97, top: 36.79, width: 2.31, height: 4.39},
+  {id: "FL3", area: "", left: 67.7, top: 37.52, width: 1.15, height: 2.93},
+  {id: "FL22", area: "", left: 70.98, top: 37.52, width: 1.15, height: 2.93},
+  {id: "M34", area: "12m?", left: 27.47, top: 39.45, width: 3.07, height: 4.39},
+  {id: "FL4", area: "", left: 67.7, top: 40.46, width: 1.15, height: 2.93},
+  {id: "FL21", area: "", left: 70.98, top: 40.46, width: 1.15, height: 2.93},
+  {id: "RL34", area: "9m?", left: 55.8, top: 40.91, width: 2.34, height: 4.39},
+  {id: "M29", area: "9m?", left: 31.49, top: 41.17, width: 2.31, height: 4.39},
+  {id: "M07", area: "9m?", left: 40.71, top: 41.17, width: 2.31, height: 4.39},
+  {id: "M21", area: "9m?", left: 33.79, top: 41.18, width: 2.31, height: 4.39},
+  {id: "M15", area: "9m?", left: 38.4, top: 41.18, width: 2.31, height: 4.39},
+  {id: "RL5", area: "9m?", left: 65.97, top: 41.19, width: 2.31, height: 4.39},
+  {id: "FL5", area: "", left: 67.7, top: 43.4, width: 1.15, height: 2.93},
+  {id: "FL20", area: "", left: 70.98, top: 43.4, width: 1.15, height: 2.93},
+  {id: "RL6", area: "9m?", left: 65.97, top: 45.6, width: 2.31, height: 4.39},
+  {id: "RL35", area: "12m?", left: 55.8, top: 46.06, width: 3.07, height: 4.39},
+  {id: "RL32", area: "12m?", left: 51.19, top: 46.2, width: 3.07, height: 4.39},
+  {id: "FL6", area: "", left: 67.7, top: 46.33, width: 1.15, height: 2.93},
+  {id: "FL19", area: "", left: 70.98, top: 46.33, width: 1.15, height: 2.93},
+  {id: "M02", area: "18m?", left: 45.81, top: 47.28, width: 2.31, height: 8.71},
+  {id: "SB1", area: "", left: 26.88, top: 47.31, width: 1.15, height: 2.86},
+  {id: "FL7", area: "", left: 67.7, top: 49.27, width: 1.15, height: 2.93},
+  {id: "FL18", area: "", left: 70.98, top: 49.27, width: 1.15, height: 2.93},
+  {id: "RL7", area: "9m?", left: 65.97, top: 50.01, width: 2.31, height: 4.39},
+  {id: "M08", area: "12m?", left: 40.71, top: 50.7, width: 3.07, height: 4.39},
+  {id: "SB2", area: "", left: 26.88, top: 50.78, width: 1.15, height: 2.86},
+  {id: "RL36", area: "9m?", left: 55.8, top: 51.18, width: 2.29, height: 4.39},
+  {id: "RL31", area: "9m?", left: 51.19, top: 51.32, width: 2.29, height: 4.39},
+  {id: "FL8", area: "", left: 67.7, top: 52.21, width: 1.15, height: 2.93},
+  {id: "FL17", area: "", left: 70.98, top: 52.21, width: 1.15, height: 2.93},
+  {id: "SB3", area: "", left: 26.88, top: 53.88, width: 1.15, height: 2.86},
+  {id: "RL8", area: "9m?", left: 65.97, top: 54.41, width: 2.31, height: 4.39},
+  {id: "FL9", area: "", left: 67.7, top: 55.15, width: 1.15, height: 2.93},
+  {id: "FL16", area: "", left: 70.98, top: 55.15, width: 1.15, height: 2.93},
+  {id: "M09", area: "12m?", left: 40.71, top: 56.57, width: 3.07, height: 4.39},
+  {id: "SB4", area: "", left: 26.88, top: 56.98, width: 1.15, height: 2.86},
+  {id: "FL10", area: "", left: 67.7, top: 58.08, width: 1.15, height: 2.93},
+  {id: "FL15", area: "", left: 70.98, top: 58.08, width: 1.15, height: 2.93},
+  {id: "RL9", area: "9m?", left: 65.97, top: 58.82, width: 2.31, height: 4.39},
+  {id: "RL29", area: "9m?", left: 54.26, top: 58.83, width: 2.31, height: 4.39},
+  {id: "RL15", area: "9m?", left: 59.36, top: 58.83, width: 2.31, height: 4.39},
+  {id: "RL13", area: "9m?", left: 61.72, top: 58.83, width: 2.31, height: 4.39},
+  {id: "M03", area: "18m?", left: 45.81, top: 60.0, width: 4.57, height: 4.39},
+  {id: "SB5", area: "", left: 26.88, top: 60.09, width: 1.15, height: 2.86},
+  {id: "FL11", area: "", left: 67.7, top: 61.02, width: 1.15, height: 2.93},
+  {id: "FL14", area: "", left: 70.98, top: 61.02, width: 1.15, height: 2.93},
+  {id: "SB6", area: "", left: 26.88, top: 63.19, width: 1.15, height: 2.86},
+  {id: "RL26", area: "12m?", left: 51.57, top: 63.23, width: 2.31, height: 5.86},
+  {id: "RL25", area: "9m?", left: 54.26, top: 63.23, width: 2.31, height: 4.39},
+  {id: "RL16", area: "9m?", left: 59.36, top: 63.23, width: 2.31, height: 4.39},
+  {id: "RL14", area: "9m?", left: 61.72, top: 63.23, width: 2.31, height: 4.39},
+  {id: "RL10", area: "9m?", left: 65.97, top: 63.23, width: 2.31, height: 4.39},
+  {id: "FL12", area: "", left: 67.7, top: 63.96, width: 1.15, height: 2.93},
+  {id: "FL13", area: "", left: 70.98, top: 63.96, width: 1.15, height: 2.93},
+  {id: "M30", area: "9m?", left: 31.49, top: 66.28, width: 2.31, height: 4.39},
+  {id: "M22", area: "9m?", left: 33.79, top: 66.28, width: 2.31, height: 4.39},
+  {id: "M16", area: "9m?", left: 38.4, top: 66.28, width: 2.31, height: 4.39},
+  {id: "M10", area: "9m?", left: 40.71, top: 66.28, width: 2.31, height: 4.39},
+  {id: "SB7", area: "", left: 26.88, top: 66.3, width: 1.15, height: 2.86},
+  {id: "SB8", area: "", left: 26.88, top: 69.4, width: 1.15, height: 2.86},
+  {id: "M31", area: "9m?", left: 31.49, top: 70.47, width: 2.31, height: 4.39},
+  {id: "M23", area: "9m?", left: 33.79, top: 70.47, width: 2.31, height: 4.39},
+  {id: "M17", area: "9m?", left: 38.4, top: 70.47, width: 2.31, height: 4.39},
+  {id: "M11", area: "9m?", left: 40.71, top: 70.47, width: 2.31, height: 4.39},
+  {id: "RL21", area: "9m?", left: 51.19, top: 70.48, width: 2.31, height: 4.39},
+  {id: "RL19", area: "9m?", left: 53.49, top: 70.48, width: 2.31, height: 4.39},
+  {id: "RL27", area: "9m?", left: 62.85, top: 70.52, width: 2.31, height: 5.86},
+  {id: "SB9", area: "", left: 26.88, top: 72.5, width: 1.15, height: 2.86},
+  {id: "M04", area: "18m?", left: 45.81, top: 72.71, width: 4.57, height: 4.39},
+  {id: "RL22", area: "9m?", left: 51.19, top: 74.84, width: 2.31, height: 4.39},
+  {id: "RL20", area: "9m?", left: 53.49, top: 74.84, width: 2.31, height: 4.39},
+  {id: "M32", area: "9m?", left: 31.49, top: 74.86, width: 2.31, height: 4.39},
+  {id: "M24", area: "9m?", left: 33.79, top: 74.86, width: 2.31, height: 4.39},
+  {id: "M18", area: "9m?", left: 38.4, top: 74.86, width: 2.31, height: 4.39},
+  {id: "M12", area: "9m?", left: 40.71, top: 74.87, width: 2.31, height: 4.39},
+  {id: "RL24", area: "12m?", left: 59.74, top: 74.91, width: 2.31, height: 5.86},
+  {id: "RL23", area: "9m?", left: 62.85, top: 74.91, width: 2.31, height: 5.86},
+  {id: "IN2", area: "12m?", left: 55.39, top: 83.66, width: 3.07, height: 4.39},
+  {id: "IN3", area: "12m?", left: 58.48, top: 83.66, width: 3.07, height: 4.39},
+  {id: "IN4", area: "12m?", left: 63.09, top: 83.66, width: 3.07, height: 4.39},
+  {id: "IN5", area: "12m?", left: 66.16, top: 83.66, width: 3.07, height: 4.39},
+  {id: "IN6", area: "12m?", left: 69.24, top: 83.66, width: 3.07, height: 4.39},
+  {id: "IN1", area: "18m?", left: 51.19, top: 85.89, width: 2.31, height: 8.71},
+  {id: "IN11", area: "12m?", left: 55.39, top: 88.04, width: 3.07, height: 4.39},
+  {id: "IN10", area: "12m?", left: 58.48, top: 88.04, width: 3.07, height: 4.39},
+  {id: "IN9", area: "12m?", left: 63.09, top: 88.04, width: 3.07, height: 4.39},
+  {id: "IN8", area: "12m?", left: 66.16, top: 88.04, width: 3.07, height: 4.39},
+  {id: "IN7", area: "9m?", left: 69.24, top: 88.04, width: 3.07, height: 4.39},
+  {id: "IN12", area: "9m?", left: 51.19, top: 95.37, width: 2.31, height: 4.39},
+  {id: "IN13", area: "9m?", left: 53.49, top: 95.37, width: 2.31, height: 4.39},
+  {id: "IN14", area: "9m?", left: 55.8, top: 95.37, width: 2.31, height: 4.39},
+  {id: "IN15", area: "9m?", left: 58.11, top: 95.37, width: 2.31, height: 4.39},
+  {id: "IN16", area: "9m?", left: 60.41, top: 95.37, width: 2.31, height: 4.39},
+  {id: "IN17", area: "9m?", left: 62.72, top: 95.37, width: 2.31, height: 4.39},
+  {id: "IN18", area: "9m?", left: 65.02, top: 95.37, width: 2.31, height: 4.39},
+  {id: "IN19", area: "9m?", left: 67.33, top: 95.37, width: 2.31, height: 4.39},
+  {id: "IN20", area: "9m?", left: 69.64, top: 95.37, width: 2.31, height: 4.39},
 ] as const;
 
 function dateAfterDays(days: number) {
@@ -3412,6 +3413,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [search, setSearch] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
+  const [boothMapZoom, setBoothMapZoom] = useState(1);
 
   const text = isArabic
     ? {
@@ -3578,6 +3580,10 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     }
     return booths;
   }, [contracts.data, editingContractId]);
+  const selectedBooth = useMemo(() => {
+    const normalizedBooth = boothNumber.trim().toUpperCase();
+    return RENTAL_BOOTH_POSITIONS.find((booth) => booth.id.toUpperCase() === normalizedBooth) ?? null;
+  }, [boothNumber]);
 
   function selectBooth(nextBooth: string) {
     const normalizedBooth = nextBooth.trim().toUpperCase();
@@ -3586,7 +3592,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       window.setTimeout(() => setSaveStatus(""), 2200);
       return;
     }
+    const booth = RENTAL_BOOTH_POSITIONS.find((item) => item.id.toUpperCase() === normalizedBooth);
     setBoothNumber(normalizedBooth);
+    if (booth?.area) setBoothSize(booth.area);
   }
 
   function applyLeadData(nextLeadId: string) {
@@ -3826,7 +3834,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
             <div className="rental-booth-picker-head">
               <div>
                 <strong>{isArabic ? "خريطة اختيار بوث العقد" : "Contract booth map"}</strong>
-                <span>{isArabic ? "اختر بوثاً متاحاً ليتم تعبئته في العقد" : "Pick an available booth to fill the contract"}</span>
+                <span>{isArabic ? "اضغط على موقع البوث داخل الخريطة لتعبئته في بيانات العقد" : "Click a booth position on the floor map to fill the contract"}</span>
               </div>
               <b>{boothNumber || (isArabic ? "لم يتم الاختيار" : "Not selected")}</b>
             </div>
@@ -3835,8 +3843,23 @@ export function RentalContractsPanel({locale}: {locale: string}) {
               <span><i className="booked" />{isArabic ? "محجوز" : "Booked"}</span>
               <span><i className="selected" />{isArabic ? "مختار" : "Selected"}</span>
             </div>
+            <div className="rental-map-toolbar">
+              {selectedBooth ? (
+                <div className="rental-selected-booth-card">
+                  <strong>{selectedBooth.id}</strong>
+                  <span>{isArabic ? "المساحة" : "Area"}: {selectedBooth.area || (isArabic ? "غير محددة" : "Not set")}</span>
+                </div>
+              ) : (
+                <span className="rental-selected-booth-empty">{isArabic ? "اختر بوثاً من الخريطة" : "Choose a booth from the map"}</span>
+              )}
+              <div className="rental-map-zoom-controls" aria-label={isArabic ? "تكبير وتصغير الخريطة" : "Map zoom controls"}>
+                <button onClick={() => setBoothMapZoom((value) => Math.max(0.8, Number((value - 0.1).toFixed(1))))} type="button">-</button>
+                <span>{Math.round(boothMapZoom * 100)}%</span>
+                <button onClick={() => setBoothMapZoom((value) => Math.min(1.8, Number((value + 0.1).toFixed(1))))} type="button">+</button>
+              </div>
+            </div>
             <div className="rental-floor-map-shell">
-              <div className="rental-floor-map-wrap">
+              <div className="rental-floor-map-wrap" style={{width: `${boothMapZoom * 100}%`}}>
                 <img
                   alt={isArabic ? "خريطة المعرض لاختيار البوث" : "Exhibition floor map for booth selection"}
                   className="rental-floor-map"
@@ -3860,11 +3883,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                         width: `${booth.width}%`,
                         height: `${booth.height}%`,
                       }}
-                      title={isBooked ? (isArabic ? "هذا البوث محجوز" : "This booth is booked") : booth.id}
+                      title={`${booth.id}${booth.area ? ` - ${booth.area}` : ""}${isBooked ? ` - ${isArabic ? "محجوز" : "Booked"}` : ""}`}
                       type="button"
-                    >
-                      {booth.id}
-                    </button>
+                    />
                   );
                 })}
               </div>
