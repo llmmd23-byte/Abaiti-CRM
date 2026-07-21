@@ -5577,7 +5577,7 @@ html[dir="ltr"] .dashboard-main {
 
 .rental-map-booth {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0.86);
   display: grid;
   min-width: 0;
   min-height: 0;
@@ -5614,7 +5614,7 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .rental-map-booth:not(:disabled):hover {
-  transform: translate(-50%, -54%);
+  transform: translate(-50%, -54%) scale(0.92);
   box-shadow: 0 12px 22px rgba(15, 45, 74, 0.18);
 }
 
