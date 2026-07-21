@@ -560,7 +560,7 @@ export async function GET() {
   const [clients] = await db.execute<RowDataPacket[]>(
     `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.website,l.place_url,l.stage,l.industry_id,l.address,l.requirements,l.created_at,l.affiliate_user_id,
               i.name industry_name,i.name_en industry_name_en,
-              COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name,
+              COALESCE(NULLIF(u.name, ''), NULLIF(u.email, ''), 'Admin') affiliate_user_name,
               (SELECT GROUP_CONCAT(DISTINCT t.tag_type_id)
                  FROM lead_tag_assignments lta
                  JOIN tags t ON t.id = lta.tag_id
@@ -574,10 +574,10 @@ export async function GET() {
                 WHERE lta.lead_id = l.id) tag_names
          FROM leads l
          LEFT JOIN industries i ON i.id=l.industry_id
-         JOIN users u ON u.id=l.affiliate_user_id
-        WHERE ${userScopeClause("u")}
-        ORDER BY l.created_at DESC LIMIT 250`,
-    userScopeParams,
+         LEFT JOIN users u ON u.id=l.affiliate_user_id
+        WHERE ${userScopeClause("u")} OR l.affiliate_user_id = ?
+        ORDER BY l.created_at DESC`,
+    [...userScopeParams, adminUserId],
   );
   const [demos] = await db.execute<RowDataPacket[]>(
     `SELECT d.id,d.contact_name,d.company_name,d.phone,d.status,d.created_at,d.affiliate_user_id,
