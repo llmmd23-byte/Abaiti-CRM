@@ -141,6 +141,11 @@ const RENTAL_BOOTH_POSITIONS: RentalBoothPosition[] = [
   {id: "IN20", area: "9m?", left: 69.64, top: 95.37, width: 2.31, height: 4.39},
 ] as const;
 
+const RENTAL_BOOTH_GROUPS = ["ST", "RL", "M", "IN", "FL", "SB", "TP"].map((label) => ({
+  label,
+  booths: RENTAL_BOOTH_POSITIONS.filter((booth) => booth.id.match(/^[A-Z]+/)?.[0] === label),
+}));
+
 function dateAfterDays(days: number) {
   const date = new Date();
   date.setHours(12, 0, 0, 0);
@@ -3413,7 +3418,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [search, setSearch] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
-  const [boothMapZoom, setBoothMapZoom] = useState(1);
 
   const text = isArabic
     ? {
@@ -3580,11 +3584,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     }
     return booths;
   }, [contracts.data, editingContractId]);
-  const selectedBooth = useMemo(() => {
-    const normalizedBooth = boothNumber.trim().toUpperCase();
-    return RENTAL_BOOTH_POSITIONS.find((booth) => booth.id.toUpperCase() === normalizedBooth) ?? null;
-  }, [boothNumber]);
-
   function selectBooth(nextBooth: string) {
     const normalizedBooth = nextBooth.trim().toUpperCase();
     if (bookedBooths.has(normalizedBooth)) {
@@ -3834,7 +3833,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
             <div className="rental-booth-picker-head">
               <div>
                 <strong>{isArabic ? "خريطة اختيار بوث العقد" : "Contract booth map"}</strong>
-                <span>{isArabic ? "اضغط على موقع البوث داخل الخريطة لتعبئته في بيانات العقد" : "Click a booth position on the floor map to fill the contract"}</span>
+                <span>{isArabic ? "اختر بوثاً متاحاً من الأزرار ليتم تعبئته في العقد" : "Pick an available booth button to fill the contract"}</span>
               </div>
               <b>{boothNumber || (isArabic ? "لم يتم الاختيار" : "Not selected")}</b>
             </div>
@@ -3843,54 +3842,32 @@ export function RentalContractsPanel({locale}: {locale: string}) {
               <span><i className="booked" />{isArabic ? "محجوز" : "Booked"}</span>
               <span><i className="selected" />{isArabic ? "مختار" : "Selected"}</span>
             </div>
-            <div className="rental-map-toolbar">
-              {selectedBooth ? (
-                <div className="rental-selected-booth-card">
-                  <strong>{selectedBooth.id}</strong>
-                  <span>{isArabic ? "المساحة" : "Area"}: {selectedBooth.area || (isArabic ? "غير محددة" : "Not set")}</span>
-                </div>
-              ) : (
-                <span className="rental-selected-booth-empty">{isArabic ? "اختر بوثاً من الخريطة" : "Choose a booth from the map"}</span>
-              )}
-              <div className="rental-map-zoom-controls" aria-label={isArabic ? "تكبير وتصغير الخريطة" : "Map zoom controls"}>
-                <button onClick={() => setBoothMapZoom((value) => Math.max(0.8, Number((value - 0.1).toFixed(1))))} type="button">-</button>
-                <span>{Math.round(boothMapZoom * 100)}%</span>
-                <button onClick={() => setBoothMapZoom((value) => Math.min(1.8, Number((value + 0.1).toFixed(1))))} type="button">+</button>
-              </div>
-            </div>
-            <div className="rental-floor-map-shell">
-              <div className="rental-floor-map-wrap" style={{width: `${boothMapZoom * 100}%`}}>
-                <img
-                  alt={isArabic ? "خريطة المعرض لاختيار البوث" : "Exhibition floor map for booth selection"}
-                  className="rental-floor-map"
-                  src="/contract-assets/floor-map.svg"
-                />
-                {RENTAL_BOOTH_POSITIONS.map((booth) => {
-                  const normalizedBooth = booth.id.toUpperCase();
-                  const isBooked = bookedBooths.has(normalizedBooth);
-                  const isSelected = boothNumber.trim().toUpperCase() === normalizedBooth;
-                  return (
-                    <button
-                      aria-label={isArabic ? `اختيار البوث ${booth.id}` : `Select booth ${booth.id}`}
-                      aria-pressed={isSelected}
-                      className={`rental-map-booth ${isBooked ? "booked" : "available"} ${isSelected ? "selected" : ""}`}
-                      disabled={isBooked}
-                      key={booth.id}
-                      onClick={() => selectBooth(booth.id)}
-                      style={{
-                        left: `${booth.left}%`,
-                        top: `${booth.top}%`,
-                        width: `${booth.width}%`,
-                        height: `${booth.height}%`,
-                      }}
-                      title={`${booth.id}${booth.area ? ` - ${booth.area}` : ""}${isBooked ? ` - ${isArabic ? "محجوز" : "Booked"}` : ""}`}
-                      type="button"
-                    >
-                      {booth.id}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="rental-booth-groups">
+              {RENTAL_BOOTH_GROUPS.map((group) => (
+                <section className="rental-booth-group" key={group.label}>
+                  <h4>{group.label}</h4>
+                  <div className="rental-booth-grid">
+                    {group.booths.map((booth) => {
+                      const normalizedBooth = booth.id.toUpperCase();
+                      const isBooked = bookedBooths.has(normalizedBooth);
+                      const isSelected = boothNumber.trim().toUpperCase() === normalizedBooth;
+                      return (
+                        <button
+                          aria-pressed={isSelected}
+                          className={`rental-booth-tile ${isBooked ? "booked" : "available"} ${isSelected ? "selected" : ""}`}
+                          disabled={isBooked}
+                          key={booth.id}
+                          onClick={() => selectBooth(booth.id)}
+                          title={`${booth.id}${booth.area ? ` - ${booth.area}` : ""}${isBooked ? ` - ${isArabic ? "محجوز" : "Booked"}` : ""}`}
+                          type="button"
+                        >
+                          {booth.id}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
           </div>
           <label className="quote-field"><span>{text.participationCategory}</span><input onChange={(event) => setParticipationCategory(event.target.value)} value={participationCategory} /></label>
