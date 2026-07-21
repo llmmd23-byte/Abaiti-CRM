@@ -6125,6 +6125,10 @@ html[dir="ltr"] .analytics-filters-bar {
   box-shadow: 0 2px 4px rgba(26, 116, 139, 0.08);
 }
 
+.dashboard-route-shell .user-select-box {
+  display: none !important;
+}
+
 .select-icon {
   display: inline-flex;
   width: 16px;
