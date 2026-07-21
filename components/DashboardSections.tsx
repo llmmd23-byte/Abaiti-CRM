@@ -3310,7 +3310,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         quantity: "\u0627\u0644\u0643\u0645\u064a\u0629 / \u0627\u0644\u0645\u062f\u0629",
         subtotal: "\u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a \u0642\u0628\u0644 \u0627\u0644\u0636\u0631\u064a\u0628\u0629",
         vatAmount: "\u0636\u0631\u064a\u0628\u0629 \u0627\u0644\u0642\u064a\u0645\u0629 \u0627\u0644\u0645\u0636\u0627\u0641\u0629 15%",
-        grandTotal: "\u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a \u0634\u0627\u0645\u0644 \u0627\u0644\u0636\u0631\u064a\u0628\u0629",
         contractDate: "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0639\u0642\u062f",
         notes: "\u0645\u0644\u0627\u062d\u0638\u0627\u062a \u0648\u0634\u0631\u0648\u0637",
         save: "\u062d\u0641\u0638 \u0627\u0644\u0639\u0642\u062f",
@@ -3365,7 +3364,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         quantity: "Quantity / period",
         subtotal: "Total before VAT",
         vatAmount: "VAT 15%",
-        grandTotal: "Grand total with VAT",
         contractDate: "Contract date",
         notes: "Notes and terms",
         save: "Save contract",
@@ -3533,7 +3531,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     const printWindow = window.open("", "_blank", "width=900,height=1100");
     if (!printWindow) return;
     const currency = String(contract.currency ?? "SAR");
-    const {subtotal, vat, grandTotal} = rentalContractAmounts(contract);
+    const {subtotal, vat} = rentalContractAmounts(contract);
     const money = (value: number) => `${value.toLocaleString(NUMBER_LOCALE)} ${currency}`;
     const contractDate = cleanDate(contract.contract_date);
     const lessorName =
@@ -3627,8 +3625,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <section class="section-card"><div class="clause-title">أولاً: التمهيد</div><p class="intro">يعد التمهيد أعلاه جزءاً لا يتجزأ من هذا العقد ومكملاً له، وقد اتفق الطرفان بكامل الأهلية المعتبرة شرعاً ونظاماً على البنود التالية.</p></section>
       <section class="section-card">
         <div class="clause-title">ثانياً: بيانات التأجير والقيمة المالية</div>
-        <table><thead><tr><th>رقم / وصف المساحة</th><th>الموقع</th><th>الكمية / المدة</th><th>القيمة</th><th>ضريبة القيمة المضافة</th><th>الإجمالي شامل الضريبة</th></tr></thead><tbody><tr><td>${escapePrintValue(displayValue(rentalItem || "مساحة / جناح تأجيري"))}</td><td>${escapePrintValue(displayValue(rentalLocation))}</td><td>${quantity.toLocaleString(NUMBER_LOCALE)}</td><td>${money(subtotal)}</td><td>${money(vat)}</td><td><strong>${money(grandTotal)}</strong></td></tr></tbody></table>
-        <p class="total-text">الإجمالي شامل ضريبة القيمة المضافة: ${money(grandTotal)}</p>
+        <table><thead><tr><th>رقم / وصف المساحة</th><th>الموقع</th><th>الكمية / المدة</th><th>القيمة</th><th>ضريبة القيمة المضافة</th></tr></thead><tbody><tr><td>${escapePrintValue(displayValue(rentalItem || "مساحة / جناح تأجيري"))}</td><td>${escapePrintValue(displayValue(rentalLocation))}</td><td>${quantity.toLocaleString(NUMBER_LOCALE)}</td><td>${money(subtotal)}</td><td>${money(vat)}</td></tr></tbody></table>
       </section>
       <section class="section-card"><div class="clause-title">ثالثاً: مميزات المشاركة والتزامات الطرف الثاني</div>
         <ul><li>تخصيص المساحة أو الجناح المحدد للطرف الثاني داخل المعرض طوال مدة الفعالية.</li><li>يلتزم الطرف الثاني باستخدام المساحة في الغرض المتفق عليه وعدم التنازل عنها أو تأجيرها للغير إلا بموافقة خطية من الطرف الأول.</li><li>يلتزم الطرف الثاني بتزويد الطرف الأول بالشعار أو الاسم التجاري المراد طباعته بجودة عالية قبل الموعد المحدد.</li><li>يلتزم الطرف الثاني بكافة الأنظمة والشروط الصادرة من إدارة المعرض والجهات التنظيمية في الموقع.</li></ul>
@@ -3745,7 +3742,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.quantity}</span><input inputMode="decimal" min="0" onChange={(event) => setQuantity(event.target.value)} type="number" value={quantity} /></label>
           <label className="quote-field"><span>{text.subtotal}</span><input readOnly value={amounts.subtotal.toLocaleString(NUMBER_LOCALE)} /></label>
           <label className="quote-field"><span>{text.vatAmount}</span><input readOnly value={amounts.vat.toLocaleString(NUMBER_LOCALE)} /></label>
-          <label className="quote-field"><span>{text.grandTotal}</span><input readOnly value={amounts.grandTotal.toLocaleString(NUMBER_LOCALE)} /></label>
           <label className="quote-field"><span>{text.contractDate}</span><input onChange={(event) => setContractDate(event.target.value)} type="date" value={contractDate} /></label>
           <label className="quote-field"><span>{text.city}</span><input onChange={(event) => setCity(event.target.value)} value={city} /></label>
           <label className="quote-field"><span>{text.country}</span><input onChange={(event) => setCountry(event.target.value)} value={country} /></label>
@@ -3758,14 +3754,13 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <article className="quote-card quote-history-card">
         <div className="card-title"><div><h3>{text.listTitle}</h3><span>{text.listSubtitle}</span></div></div>
         <div className="contract-smart-filter-row"><div className="contract-smart-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" /><path d="m15.5 15.5 4 4" /></svg><input onChange={(event) => setSearch(event.target.value)} placeholder={isArabic ? "\u0627\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645\u060c \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u062c\u0648\u0627\u0644..." : "Search by name, company, mobile..."} type="search" value={search} /><strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong></div></div>
-        <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.grandTotal}</th><th>{isArabic ? "\u0627\u0644\u062d\u0627\u0644\u0629" : "Status"}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
+        <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{isArabic ? "\u0627\u0644\u062d\u0627\u0644\u0629" : "Status"}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
           {filteredContracts.map((contract) => {
             const statusValue = String(contract.status ?? "draft");
-            const totals = rentalContractAmounts(contract);
-            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "-")}</td><td>{String(contract.company_name ?? "-")}</td><td>{String(contract.rental_item ?? "-")}</td><td>{formatMoney(totals.grandTotal, String(contract.currency ?? "SAR"))}</td><td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button><button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button></div></td></tr>;
+            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "-")}</td><td>{String(contract.company_name ?? "-")}</td><td>{String(contract.rental_item ?? "-")}</td><td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button><button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button></div></td></tr>;
           })}
-          {!contracts.loading && !filteredContracts.length ? <tr><td className="quote-history-empty" colSpan={8}>{text.noContracts}</td></tr> : null}
-          {contracts.loading ? <tr><td className="quote-history-empty" colSpan={8}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td></tr> : null}
+          {!contracts.loading && !filteredContracts.length ? <tr><td className="quote-history-empty" colSpan={7}>{text.noContracts}</td></tr> : null}
+          {contracts.loading ? <tr><td className="quote-history-empty" colSpan={7}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td></tr> : null}
         </tbody></table></div>
       </article>
     </div>
