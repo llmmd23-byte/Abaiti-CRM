@@ -2626,7 +2626,6 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.registrationFee}</span><input inputMode="decimal" min="0" onChange={(event) => setRegistrationFee(event.target.value)} type="number" value={registrationFee} /></label>
           <label className="quote-field"><span>{text.otherServicesAmount}</span><input inputMode="decimal" min="0" onChange={(event) => setOtherServicesAmount(event.target.value)} type="number" value={otherServicesAmount} /></label>
           <label className="quote-field"><span>{text.vatAmount}</span><input readOnly value={amounts.vat.toLocaleString(NUMBER_LOCALE)} /></label>
-          <label className="quote-field"><span>{text.grandTotal}</span><input readOnly value={amounts.grandTotal.toLocaleString(NUMBER_LOCALE)} /></label>
           <label className="quote-field"><span>{text.contractDate}</span><input onChange={(event) => setContractDate(event.target.value)} type="date" value={contractDate} /></label>
           <label className="quote-field"><span>{text.city}</span><input onChange={(event) => setCity(event.target.value)} value={city} /></label>
           <label className="quote-field"><span>{text.country}</span><input onChange={(event) => setCountry(event.target.value)} value={country} /></label>
