@@ -10,110 +10,29 @@ const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
 type UserTrendPeriod = "week" | "month" | "year";
 type UserTrendGroup = "days" | "weeks" | "months" | "quarters";
-const RENTAL_BOOTH_GROUPS = [
-  {
-    label: "ST",
-    booths: ["ST01", "ST02", "ST03", "ST04"],
-  },
-  {
-    label: "RL",
-    booths: [
-      "RL1",
-      "RL2",
-      "RL3",
-      "RL4",
-      "RL5",
-      "RL6",
-      "RL7",
-      "RL8",
-      "RL9",
-      "RL10",
-      "RL13",
-      "RL14",
-      "RL15",
-      "RL16",
-      "RL19",
-      "RL20",
-      "RL21",
-      "RL22",
-      "RL23",
-      "RL24",
-      "RL25",
-      "RL26",
-      "RL27",
-      "RL28",
-      "RL29",
-      "RL30",
-      "RL31",
-      "RL32",
-      "RL33",
-      "RL34",
-      "RL35",
-      "RL36",
-    ],
-  },
-  {
-    label: "M",
-    booths: [
-      "M01",
-      "M02",
-      "M03",
-      "M04",
-      "M05",
-      "M06",
-      "M07",
-      "M08",
-      "M09",
-      "M10",
-      "M11",
-      "M12",
-      "M13",
-      "M14",
-      "M15",
-      "M16",
-      "M17",
-      "M18",
-      "M19",
-      "M20",
-      "M21",
-      "M22",
-      "M23",
-      "M24",
-      "M25",
-      "M26",
-      "M29",
-      "M30",
-      "M31",
-      "M32",
-      "M33",
-      "M34",
-    ],
-  },
-  {
-    label: "IN",
-    booths: [
-      "IN1",
-      "IN2",
-      "IN3",
-      "IN4",
-      "IN5",
-      "IN6",
-      "IN7",
-      "IN8",
-      "IN9",
-      "IN10",
-      "IN11",
-      "IN12",
-      "IN13",
-      "IN14",
-      "IN15",
-      "IN16",
-      "IN17",
-      "IN18",
-      "IN19",
-      "IN20",
-    ],
-  },
+type RentalBoothPosition = {
+  id: string;
+  left: number;
+  top: number;
+  width?: number;
+};
+
+function boothRow(ids: string[], top: number, leftStart: number, gap: number, width?: number): RentalBoothPosition[] {
+  return ids.map((id, index) => ({id, left: leftStart + index * gap, top, width}));
+}
+
+const RENTAL_BOOTH_POSITIONS: RentalBoothPosition[] = [
+  ...boothRow(["ST01", "ST02", "ST03", "ST04"], 16, 28, 12, 8),
+  ...boothRow(["RL1", "RL2", "RL3", "RL4", "RL5", "RL6", "RL7", "RL8", "RL9", "RL10"], 29, 17, 7.1, 5.2),
+  ...boothRow(["RL13", "RL14", "RL15", "RL16"], 40, 31, 9.2, 6.4),
+  ...boothRow(["M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08"], 52, 19, 8.3, 5.8),
+  ...boothRow(["M09", "M10", "M11", "M12", "M13", "M14", "M15", "M16"], 63, 19, 8.3, 5.8),
+  ...boothRow(["IN1", "IN2", "IN3", "IN4", "IN5", "IN6", "IN7", "IN8", "IN9", "IN10"], 75, 15, 7.8, 5.6),
+  ...boothRow(["IN11", "IN12", "IN13", "IN14", "IN15", "IN16", "IN17", "IN18", "IN19", "IN20"], 86, 15, 7.8, 5.6),
+  ...boothRow(["RL19", "RL20", "RL21", "RL22", "RL23", "RL24", "RL25", "RL26", "RL27"], 36, 14, 7.9, 5.5),
+  ...boothRow(["RL28", "RL29", "RL30", "RL31", "RL32", "RL33", "RL34", "RL35", "RL36"], 47, 14, 7.9, 5.5),
+  ...boothRow(["M17", "M18", "M19", "M20", "M21", "M22", "M23", "M24", "M25", "M26"], 58, 11, 7.7, 5.5),
+  ...boothRow(["M29", "M30", "M31", "M32", "M33", "M34"], 69, 26, 8.3, 5.8),
 ] as const;
 
 function dateAfterDays(days: number) {
@@ -3811,31 +3730,38 @@ export function RentalContractsPanel({locale}: {locale: string}) {
               <span><i className="booked" />{isArabic ? "محجوز" : "Booked"}</span>
               <span><i className="selected" />{isArabic ? "مختار" : "Selected"}</span>
             </div>
-            <div className="rental-booth-groups">
-              {RENTAL_BOOTH_GROUPS.map((group) => (
-                <section className="rental-booth-group" key={group.label}>
-                  <h4>{group.label}</h4>
-                  <div className="rental-booth-grid">
-                    {group.booths.map((booth) => {
-                      const normalizedBooth = booth.toUpperCase();
-                      const isBooked = bookedBooths.has(normalizedBooth);
-                      const isSelected = boothNumber.trim().toUpperCase() === normalizedBooth;
-                      return (
-                        <button
-                          aria-pressed={isSelected}
-                          className={`rental-booth-tile ${isBooked ? "booked" : "available"} ${isSelected ? "selected" : ""}`}
-                          disabled={isBooked}
-                          key={booth}
-                          onClick={() => selectBooth(booth)}
-                          type="button"
-                        >
-                          {booth}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
+            <div className="rental-floor-map-shell">
+              <div className="rental-floor-map-wrap">
+                <img
+                  alt={isArabic ? "خريطة المعرض لاختيار البوث" : "Exhibition floor map for booth selection"}
+                  className="rental-floor-map"
+                  src="/contract-assets/floor-map.svg"
+                />
+                {RENTAL_BOOTH_POSITIONS.map((booth) => {
+                  const normalizedBooth = booth.id.toUpperCase();
+                  const isBooked = bookedBooths.has(normalizedBooth);
+                  const isSelected = boothNumber.trim().toUpperCase() === normalizedBooth;
+                  return (
+                    <button
+                      aria-label={isArabic ? `اختيار البوث ${booth.id}` : `Select booth ${booth.id}`}
+                      aria-pressed={isSelected}
+                      className={`rental-map-booth ${isBooked ? "booked" : "available"} ${isSelected ? "selected" : ""}`}
+                      disabled={isBooked}
+                      key={booth.id}
+                      onClick={() => selectBooth(booth.id)}
+                      style={{
+                        left: `${booth.left}%`,
+                        top: `${booth.top}%`,
+                        width: booth.width ? `${booth.width}%` : undefined,
+                      }}
+                      title={isBooked ? (isArabic ? "هذا البوث محجوز" : "This booth is booked") : booth.id}
+                      type="button"
+                    >
+                      {booth.id}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
           <label className="quote-field"><span>{text.participationCategory}</span><input onChange={(event) => setParticipationCategory(event.target.value)} value={participationCategory} /></label>

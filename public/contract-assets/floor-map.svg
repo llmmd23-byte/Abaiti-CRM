@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="Exhibition floor map">
+  <rect width="1200" height="720" fill="#eef4f7"/>
+  <rect x="42" y="38" width="1116" height="644" rx="34" fill="#ffffff" stroke="#17344f" stroke-width="10"/>
+  <path d="M92 640h1016" stroke="#17344f" stroke-width="12" stroke-linecap="round"/>
+  <path d="M92 85h1016" stroke="#17344f" stroke-width="12" stroke-linecap="round"/>
+  <path d="M92 85v555M1108 85v555" stroke="#17344f" stroke-width="12" stroke-linecap="round"/>
+
+  <rect x="88" y="122" width="1024" height="90" rx="18" fill="#e6eef3" stroke="#bed1dc" stroke-width="3"/>
+  <text x="600" y="176" text-anchor="middle" font-family="Arial, Tahoma, sans-serif" font-size="24" font-weight="700" fill="#0f2d4a">منطقة الدخول والفعاليات</text>
+
+  <rect x="132" y="245" width="936" height="86" rx="14" fill="#f8fafc" stroke="#c9d8e1" stroke-width="3"/>
+  <rect x="132" y="380" width="936" height="86" rx="14" fill="#f8fafc" stroke="#c9d8e1" stroke-width="3"/>
+  <rect x="132" y="515" width="936" height="86" rx="14" fill="#f8fafc" stroke="#c9d8e1" stroke-width="3"/>
+
+  <path d="M600 212v426" stroke="#d7e2e8" stroke-width="12" stroke-linecap="round"/>
+  <path d="M132 355h936M132 490h936" stroke="#d7e2e8" stroke-width="12" stroke-linecap="round"/>
+
+  <rect x="72" y="260" width="46" height="326" rx="18" fill="#f1f6f9" stroke="#cad8e1" stroke-width="3"/>
+  <rect x="1082" y="260" width="46" height="326" rx="18" fill="#f1f6f9" stroke="#cad8e1" stroke-width="3"/>
+  <text x="96" y="430" text-anchor="middle" transform="rotate(-90 96 430)" font-family="Arial, Tahoma, sans-serif" font-size="18" font-weight="700" fill="#7590a0">ممر</text>
+  <text x="1105" y="430" text-anchor="middle" transform="rotate(90 1105 430)" font-family="Arial, Tahoma, sans-serif" font-size="18" font-weight="700" fill="#7590a0">ممر</text>
+
+  <text x="600" y="700" text-anchor="middle" font-family="Arial, Tahoma, sans-serif" font-size="20" font-weight="700" fill="#7893a2">خريطة المعرض الدولي لصناع القهوة والشوكولاتة</text>
+</svg>
