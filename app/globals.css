@@ -5478,8 +5478,8 @@ html[dir="ltr"] .dashboard-main {
 .rental-booth-picker {
   grid-column: 1 / -1;
   display: grid;
-  gap: 12px;
-  padding: 14px;
+  gap: 8px;
+  padding: 10px;
   border: 1px solid #dbe5ee;
   border-radius: 12px;
   background: #f8fafc;
@@ -5489,7 +5489,7 @@ html[dir="ltr"] .dashboard-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .rental-booth-picker-head div {
@@ -5499,31 +5499,31 @@ html[dir="ltr"] .dashboard-main {
 
 .rental-booth-picker-head strong {
   color: #0f2d4a;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
 }
 
 .rental-booth-picker-head span,
 .rental-booth-legend span {
   color: #64748b;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .rental-booth-picker-head b {
-  min-width: 96px;
-  padding: 7px 10px;
-  border-radius: 10px;
+  min-width: 78px;
+  padding: 5px 8px;
+  border-radius: 8px;
   background: #e6f7ff;
   color: #0f2d4a;
-  font-size: 13px;
+  font-size: 12px;
   text-align: center;
 }
 
 .rental-booth-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 
 .rental-booth-legend span {
@@ -5686,33 +5686,33 @@ html[dir="ltr"] .dashboard-main {
 
 .rental-booth-groups {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .rental-booth-group {
   display: grid;
-  gap: 8px;
+  gap: 5px;
 }
 
 .rental-booth-group h4 {
   margin: 0;
   color: #1a748b;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
 }
 
 .rental-booth-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 5px;
 }
 
 .rental-booth-tile {
-  height: 38px;
+  height: 30px;
   border: 1px solid #23313f;
-  border-radius: 8px;
+  border-radius: 7px;
   color: #fff;
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
