@@ -3569,6 +3569,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .event-logo-caption { margin-top:1px; color:var(--navy); font-size:6.5px; font-weight:800; text-align:left; }
       .event-logo-caption-en { color:#111827; font-family:Arial,sans-serif; font-size:4.8px; font-weight:700; text-align:left; direction:ltr; }
       .title { text-align:center; margin:4px 0 10px; padding-bottom:8px; border-bottom:1.5px solid #111827; }
+      .print-version-badge { display:inline-flex; align-items:center; justify-content:center; margin:0 auto 7px; padding:3px 12px; border-radius:999px; background:#e6f7ff; color:#0f2d4a; border:1px solid #bae7ff; font-size:9px; font-weight:800; }
       .title h2 { margin:0; color:#000; font-size:15.2px; font-weight:800; line-height:1.45; text-decoration:underline; }
       .title p { margin:6px 0 0; color:#000; font-size:12.8px; font-weight:800; line-height:1.55; }
       .contract-no { display:inline-block; margin-top:7px; border:1px solid var(--navy); border-radius:6px; padding:3px 14px; direction:ltr; font-size:10px; font-weight:800; color:var(--navy); background:#fff; }
@@ -3615,7 +3616,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           </div>
         </div>
       </div>
-      <div class="title"><h2>عقد تأجيري في المعرض الدولي لصناع القهوة والشوكولاتة</h2><p>${escapePrintValue(displayValue(contract.event_dates ?? "خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "فندق جدة هيلتون (القاعة الكبرى)"))}</p><span class="contract-no">${escapePrintValue(contract.contract_number)}</span></div>
+      <div class="title"><span class="print-version-badge">عقد تأجيري محدث</span><h2>عقد تأجيري في المعرض الدولي لصناع القهوة والشوكولاتة</h2><p>${escapePrintValue(displayValue(contract.event_dates ?? "خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "فندق جدة هيلتون (القاعة الكبرى)"))}</p><span class="contract-no">${escapePrintValue(contract.contract_number)}</span></div>
       <section class="section-card">
         <p class="intro">تم بعون الله وتوفيقه إبرام هذا العقد بتاريخ <strong>${escapePrintValue(displayValue(contractDate))}</strong> بين كل من:</p>
         <div class="party"><strong>الطرف الأول:</strong> ${escapePrintValue(displayValue(lessorName))}، ويشار إليه لاحقاً بـ <strong>الطرف الأول / المنظم</strong>.</div>
