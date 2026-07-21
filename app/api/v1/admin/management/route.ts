@@ -514,6 +514,18 @@ export async function GET() {
         ORDER BY u.created_at DESC`,
     userScopeParams,
   );
+  const [userStats] = await db.execute<RowDataPacket[]>(
+    `SELECT
+        u.id user_id,
+        COUNT(DISTINCT l.id) clients_count,
+        COUNT(DISTINCT q.id) quotes_count
+       FROM users u
+       LEFT JOIN leads l ON l.affiliate_user_id = u.id
+       LEFT JOIN quotes q ON q.affiliate_user_id = u.id
+      WHERE ${userScopeClause("u")}
+      GROUP BY u.id`,
+    userScopeParams,
+  );
   const [roles] = await db.execute<RowDataPacket[]>(
     "SELECT id,slug,name_ar,name_en,role_type,is_system,is_active FROM roles WHERE is_active = 1 ORDER BY role_type ASC,id ASC",
   );
@@ -546,7 +558,7 @@ export async function GET() {
     "SELECT id,name,name_en,slug,landing_url,external_url,description,status,created_at FROM industries ORDER BY created_at DESC LIMIT 250",
   );
   const [clients] = await db.execute<RowDataPacket[]>(
-    `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.website,l.place_url,l.stage,l.industry_id,l.address,l.requirements,l.created_at,
+    `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.website,l.place_url,l.stage,l.industry_id,l.address,l.requirements,l.created_at,l.affiliate_user_id,
               i.name industry_name,i.name_en industry_name_en,
               COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name,
               (SELECT GROUP_CONCAT(DISTINCT t.tag_type_id)
@@ -642,6 +654,7 @@ export async function GET() {
   return NextResponse.json({
     data: {
       users,
+      userStats,
       roles,
       tickets,
       ticketTypes,

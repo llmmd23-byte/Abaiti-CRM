@@ -75,6 +75,7 @@ type LandingBrochure = {
 };
 type ManagementData = {
   users: AdminRow[];
+  userStats: AdminRow[];
   roles: Array<{
     id: number;
     slug: string;
@@ -98,6 +99,7 @@ type ManagementData = {
 
 const EMPTY_MANAGEMENT_DATA: ManagementData = {
   users: [],
+  userStats: [],
   roles: [],
   tickets: [],
   ticketTypes: [],
@@ -472,6 +474,25 @@ export default function AdminDashboard({
     : isArabic
       ? "الآن"
       : "Now";
+  const selectedAnalyticsStats = selectedAnalyticsUser
+    ? (management?.userStats ?? []).find(
+        (row) => String(row.user_id) === String(selectedAnalyticsUser.id),
+      ) ?? null
+    : null;
+  const allAnalyticsStats = (management?.userStats ?? []).reduce(
+    (totals, row) => ({
+      clients:
+        totals.clients + Number(row.clients_count ?? row.leads_count ?? 0),
+      quotes: totals.quotes + Number(row.quotes_count ?? 0),
+    }),
+    { clients: 0, quotes: 0 },
+  );
+  const analyticsAddedCustomers = selectedAnalyticsUser
+    ? Number(selectedAnalyticsStats?.clients_count ?? selectedAnalyticsStats?.leads_count ?? 0)
+    : allAnalyticsStats.clients || Number(summary?.totals.clients ?? 0);
+  const analyticsAddedQuotes = selectedAnalyticsUser
+    ? Number(selectedAnalyticsStats?.quotes_count ?? 0)
+    : allAnalyticsStats.quotes || Number(summary?.totals.quotes ?? 0);
   const subFilterOptions =
     period === "month"
       ? [
@@ -730,13 +751,13 @@ export default function AdminDashboard({
                   <div>
                     <span>{isArabic ? "العملاء المضافون" : "Added customers"}</span>
                     <strong>
-                      {(summary?.totals.clients ?? 0).toLocaleString(NUMBER_LOCALE)}
+                      {analyticsAddedCustomers.toLocaleString(NUMBER_LOCALE)}
                     </strong>
                   </div>
                   <div>
                     <span>{isArabic ? "العروض" : "Quotes"}</span>
                     <strong>
-                      {(summary?.totals.quotes ?? 0).toLocaleString(NUMBER_LOCALE)}
+                      {analyticsAddedQuotes.toLocaleString(NUMBER_LOCALE)}
                     </strong>
                   </div>
                   <div>
