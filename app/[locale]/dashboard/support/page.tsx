@@ -1,5 +1,5 @@
-import {getTranslations, setRequestLocale} from "next-intl/server";
-import {DashboardHeader} from "@/components/DashboardSections";
+import {setRequestLocale} from "next-intl/server";
+import DashboardHeaderBanner from "@/components/DashboardHeaderBanner";
 import {HelpDeskPanel} from "@/components/DashboardSections";
 import {requireUserPageAccess} from "@/lib/user-page-access";
 
@@ -11,11 +11,10 @@ export default async function DashboardSupportPage({
   const {locale} = await params;
   await requireUserPageAccess("page.user.support", locale);
   setRequestLocale(locale);
-  const t = await getTranslations();
 
   return (
     <>
-      <DashboardHeader eyebrow={t("dashboardPages.support.eyebrow")} title={t("dashboardPages.support.title")} />
+      <DashboardHeaderBanner section="support" />
       <div className="w-full">
         <HelpDeskPanel expanded />
       </div>

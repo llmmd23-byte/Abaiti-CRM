@@ -1667,7 +1667,38 @@ html[dir="ltr"] .dashboard-main {
   min-height: 42px;
   border-color: #1a748b;
   background: #fff;
+  color: #0f2d4a;
   box-shadow: 0 8px 18px rgba(26, 116, 139, 0.08);
+}
+
+.admin-analytics-user-filter .dashboard-select-trigger.open,
+.admin-analytics-user-filter .dashboard-select-trigger:hover,
+.admin-analytics-user-filter .dashboard-select-trigger:focus-visible {
+  background: #fff !important;
+  color: #0f2d4a !important;
+}
+
+.admin-analytics-user-filter
+  .dashboard-select-trigger
+  :is(.dashboard-select-value, .dashboard-select-placeholder, .dashboard-select-chevron) {
+  color: #0f2d4a !important;
+  opacity: 1 !important;
+}
+
+.admin-tags-page :is(.admin-stat-card, .admin-tag-type-card, .admin-tag-type-list-item, .admin-tag-manager-card),
+.admin-analytics-user-card,
+.dashboard-header-banner-copy {
+  min-width: 0;
+}
+
+.admin-tags-page :is(h2, h3, h4, strong, p, span),
+.admin-analytics-user-card :is(h4, strong, span),
+.dashboard-header-banner-title,
+.dashboard-header-banner-subtitle {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  white-space: normal;
 }
 
 .admin-analytics-user-card {
@@ -20354,13 +20385,17 @@ html[dir="rtl"]
 
 .admin-shell .admin-client-added-by-filter {
   border: 1px solid #1a748b !important;
-  background: #f0fdfa !important;
+  overflow: hidden !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
 }
 
 .admin-shell .admin-client-added-by-filter .dashboard-select-trigger {
   min-height: 56px !important;
   border: 0 !important;
-  background: transparent !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
   color: #1a748b !important;
   font-weight: 800 !important;
 }
@@ -20368,7 +20403,7 @@ html[dir="rtl"]
 .admin-shell .admin-client-added-by-filter .dashboard-select-trigger:hover,
 .admin-shell .admin-client-added-by-filter .dashboard-select-trigger.open,
 .admin-shell .admin-client-added-by-filter .dashboard-select-trigger:focus-visible {
-  background: transparent !important;
+  background: #ffffff !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
@@ -20825,4 +20860,30 @@ html[dir="rtl"]
 .admin-shell .service-ticket-toolbar-v2 .service-ticket-types-v2 > .btn-types,
 .admin-shell .service-ticket-toolbar-v2 .service-ticket-filter-v2 {
   text-align: center !important;
+}
+/* Keep the admin "added by" filter clean with no dark corner artifacts. */
+.admin-shell .admin-client-added-by-filter {
+  overflow: hidden !important;
+  border: 1px solid #1a748b !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-client-added-by-filter .dashboard-select-trigger {
+  min-height: 56px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  color: #1a748b !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
+}
+
+.admin-shell .admin-client-added-by-filter .dashboard-select-trigger:hover,
+.admin-shell .admin-client-added-by-filter .dashboard-select-trigger.open,
+.admin-shell .admin-client-added-by-filter .dashboard-select-trigger:focus-visible {
+  background: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }

@@ -4,7 +4,6 @@ import path from "node:path";
 import type {RowDataPacket} from "mysql2";
 import {NextResponse} from "next/server";
 
-import {apiError, apiSession} from "@/lib/api-auth";
 import {db} from "@/lib/db";
 
 const INDUSTRY_SLUG = "events-exhibitions";
@@ -23,6 +22,23 @@ function assetIdFromUrl(value: unknown) {
 function publicAssetNameFromUrl(value: unknown) {
   const match = String(value ?? "").match(/\/marketing-library\/([^#?]+)/);
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function ensureLandingUrlColumn() {
+  const [columns] = await db.execute<RowDataPacket[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'industries' AND COLUMN_NAME IN ('landing_url','external_url')",
+  );
+  const existing = new Set(columns.map((column) => String(column.COLUMN_NAME)));
+  if (!existing.has("landing_url")) {
+    await db.execute(
+      "ALTER TABLE industries ADD COLUMN landing_url VARCHAR(500) NULL AFTER slug",
+    );
+  }
+  if (!existing.has("external_url")) {
+    await db.execute(
+      "ALTER TABLE industries ADD COLUMN external_url VARCHAR(500) NULL AFTER landing_url",
+    );
+  }
 }
 
 async function activeAssetFromLandingUrl(landingUrl: string) {
@@ -85,10 +101,8 @@ function encodedContentDispositionName(value: unknown) {
 }
 
 export async function GET() {
-  const session = await apiSession();
-  if (session instanceof NextResponse) return session;
-
   try {
+    await ensureLandingUrlColumn();
     const [industries] = await db.execute<RowDataPacket[]>(
       "SELECT landing_url FROM industries WHERE slug = ? LIMIT 1",
       [INDUSTRY_SLUG],
@@ -112,6 +126,7 @@ export async function GET() {
 
     return new NextResponse(new Uint8Array(buffer), {headers});
   } catch (error) {
-    return apiError(error);
+    console.error("Unable to load landing brochure", error);
+    return NextResponse.json({error: "BROCHURE_NOT_AVAILABLE"}, {status: 500});
   }
 }

@@ -1582,8 +1582,11 @@ export async function listResource(resource: string, session: MiddarSession) {
   if (resource === "marketing-assets") {
     await ensureResourceTable(resource);
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT id,user_id,title,asset_type,original_name,mime_type,file_size,file_path,description,status,created_at,updated_at
+      `SELECT id,user_id,title,asset_type,original_name,mime_type,file_size,file_path,
+              IF(file_data IS NULL, 0, OCTET_LENGTH(file_data)) AS file_data_size,
+              description,status,created_at,updated_at
          FROM marketing_assets
+        WHERE status = 'active'
         ORDER BY created_at DESC
         LIMIT 250`,
     );

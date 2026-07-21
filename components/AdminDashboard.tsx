@@ -466,7 +466,9 @@ export default function AdminDashboard({
       ? "تقرير شامل"
       : "Comprehensive report";
   const analyticsLastLogin = selectedAnalyticsUser
-    ? String(selectedAnalyticsUser.last_login_at ?? "—")
+    ? selectedAnalyticsUser.last_login_at
+      ? String(selectedAnalyticsUser.last_login_at).slice(0, 10)
+      : "—"
     : isArabic
       ? "الآن"
       : "Now";
@@ -1654,6 +1656,7 @@ function AdminMetricList({
                     key === "valid_until";
                   const isAmount = key === "amount" || key === "sale_amount";
                   const isWebsite = key === "website" || key === "place_url";
+                  const isPhone = key === "phone";
                   const websiteUrl =
                     key === "website"
                       ? customerWebsiteUrl(value)
@@ -1709,6 +1712,8 @@ function AdminMetricList({
                         ) : (
                           ""
                         )
+                      ) : isPhone ? (
+                        <bdi dir="ltr">{String(value ?? "—")}</bdi>
                       ) : (
                         String(value ?? "—")
                       )}

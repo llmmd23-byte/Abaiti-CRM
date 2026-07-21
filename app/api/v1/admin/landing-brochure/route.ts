@@ -11,6 +11,7 @@ import {db} from "@/lib/db";
 const INDUSTRY_SLUG = "events-exhibitions";
 const DEFAULT_BROCHURE_URL =
   "/landing-pages/coffee-chocolate-expo-2026-v2.pdf#toolbar=0&navpanes=0";
+const PUBLIC_BROCHURE_URL = "/api/v1/landing-brochure#toolbar=0&navpanes=0";
 const DEFAULT_BROCHURE_PATH = path.join(
   process.cwd(),
   "public",
@@ -99,7 +100,7 @@ async function defaultBrochureData() {
   return {
     isDefault: true,
     isActive: true,
-    url: DEFAULT_BROCHURE_URL,
+    url: PUBLIC_BROCHURE_URL,
     name: "المعرض الدولي لصناع القهوة والشوكولاتة 2026.pdf",
     size: fileStat?.size ?? 0,
     updatedAt: fileStat?.mtime?.toISOString() ?? null,
@@ -134,7 +135,7 @@ async function activeBrochureData() {
     return {
       isDefault: false,
       isActive: true,
-      url: `/api/v1/marketing-assets/view/${Number(latestAsset.id)}#toolbar=0&navpanes=0`,
+      url: PUBLIC_BROCHURE_URL,
       id: Number(latestAsset.id),
       name: String(latestAsset.original_name ?? latestAsset.title ?? "landing-brochure.pdf"),
       size: Number(latestAsset.file_size ?? 0),
@@ -168,7 +169,7 @@ async function activeBrochureData() {
     return {
       isDefault: false,
       isActive: true,
-      url: `/api/v1/marketing-assets/view/${Number(latestAsset.id)}#toolbar=0&navpanes=0`,
+      url: PUBLIC_BROCHURE_URL,
       id: Number(latestAsset.id),
       name: String(latestAsset.original_name ?? latestAsset.title ?? "landing-brochure.pdf"),
       size: Number(latestAsset.file_size ?? 0),
@@ -181,7 +182,7 @@ async function activeBrochureData() {
   return {
     isDefault: false,
     isActive: String(asset.status ?? "active") === "active",
-    url: `/api/v1/marketing-assets/view/${Number(asset.id)}#toolbar=0&navpanes=0`,
+    url: PUBLIC_BROCHURE_URL,
     id: Number(asset.id),
     name: String(asset.original_name ?? asset.title ?? "landing-brochure.pdf"),
     size: Number(asset.file_size ?? 0),

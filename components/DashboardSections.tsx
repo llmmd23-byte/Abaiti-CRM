@@ -332,7 +332,6 @@ export function PerformanceChart() {
   const lastLoginLabel = selectedUser?.last_login_at
     ? new Intl.DateTimeFormat(isArabic ? ARABIC_DATE_LOCALE : "en-US", {
         dateStyle: "medium",
-        timeStyle: "short",
       }).format(new Date(selectedUser.last_login_at))
     : isArabic
       ? "غير متاح"

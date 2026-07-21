@@ -361,6 +361,8 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
   const primaryExternalUrl = primaryIndustry.externalUrl;
   const visibleMarketingAssets = (marketingAssets.data ?? []).filter((asset) => {
+    if (Number(asset.file_data_size ?? 0) <= 0) return false;
+    if (String(asset.status ?? "active") !== "active") return false;
     if (activeAssetFilter === "all") return true;
     if (activeAssetFilter === "images") return String(asset.asset_type) === "image";
     return String(asset.asset_type) === "video";
@@ -604,7 +606,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                         </td>
                       </tr>
                     ))}
-                  {!marketingAssets.loading && !(marketingAssets.data ?? []).length ? (
+                  {!marketingAssets.loading && !visibleMarketingAssets.length ? (
                     <tr>
                       <td colSpan={5}>{isArabic ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0644\u0641\u0627\u062a \u0641\u064a \u0627\u0644\u0645\u0643\u062a\u0628\u0629 \u062d\u062a\u0649 \u0627\u0644\u0622\u0646" : "No files in the library yet"}</td>
                     </tr>

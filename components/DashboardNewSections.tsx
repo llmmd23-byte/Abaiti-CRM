@@ -3146,12 +3146,6 @@ export function DemoView() {
 
   return (
     <section className="demo-form-view">
-      <div className="demo-form-head">
-        <p className="eyebrow">{t("dashboardPages.demo.eyebrow")}</p>
-        <h2>{t("dashboardPages.demo.title")}</h2>
-        <p>{t("dashboardPages.demo.cardSubtitle")}</p>
-      </div>
-
       <article className="quote-card demo-launch-card">
         <div className="card-title">
           <h3>{t("dashboardPages.demo.cardTitle")}</h3>

@@ -11,7 +11,9 @@ export type DashboardHeaderSection =
   | "rentalContracts"
   | "sales"
   | "accounts"
-  | "activation";
+  | "activation"
+  | "support"
+  | "settings";
 
 type HeaderContent = {
   badge: string;
@@ -158,6 +160,34 @@ const headerContent: Record<
       subtitle:
         "Manage system licenses across sectors and monitor core configuration efficiency.",
       badge: "Core System",
+    },
+  },
+  support: {
+    ar: {
+      label: "مركز الدعم",
+      title: "إدارة تذاكر الدعم مع شركة ميدار",
+      subtitle: "متابعة تذاكر الدعم وحالات المعالجة والردود في واجهة واحدة.",
+      badge: "مركز الدعم",
+    },
+    en: {
+      label: "Support center",
+      title: "Manage Middar support tickets",
+      subtitle: "Track support tickets, processing statuses, and replies in one interface.",
+      badge: "Support Hub",
+    },
+  },
+  settings: {
+    ar: {
+      label: "إعدادات المسوق",
+      title: "إدارة الملف الشخصي والصرف والتنبيهات",
+      subtitle: "تحكم في بيانات الحساب، روابط التسويق، والتنبيهات المالية.",
+      badge: "مركز الإعدادات",
+    },
+    en: {
+      label: "Affiliate settings",
+      title: "Manage profile, payouts, and notifications",
+      subtitle: "Control account details, marketing links, and financial notifications.",
+      badge: "Settings Hub",
     },
   },
 };
