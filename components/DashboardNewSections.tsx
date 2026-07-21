@@ -2301,7 +2301,7 @@ export function CustomersView() {
                               color: "#1a748b",
                             }}
                           >
-                            {isArabic ? `المدينة: ${cityName}` : `City: ${cityName}`}
+                            {cityName}
                           </span>
                         ) : null}
                         {rowTags.length ? (
