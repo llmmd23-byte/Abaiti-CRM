@@ -1472,6 +1472,7 @@ function AdminMetricList({
               <div className="admin-user-status-filter admin-client-user-filter admin-client-added-by-filter highlight-user-filter">
                 <DashboardSelect
                   ariaLabel={isArabic ? "\u0641\u0644\u062a\u0631\u0629 \u062d\u0633\u0628 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u0630\u064a \u0623\u0636\u0627\u0641 \u0627\u0644\u0639\u0645\u064a\u0644" : "Filter by added user"}
+                  menuClassName="admin-client-added-by-menu"
                   onValueChange={setClientUserFilter}
                   options={[
                     {
@@ -1485,6 +1486,7 @@ function AdminMetricList({
                         : `Added by: ${option.label}`,
                     })),
                   ]}
+                  portal
                   value={clientUserFilter}
                 />
               </div>

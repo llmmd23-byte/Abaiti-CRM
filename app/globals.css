@@ -20390,14 +20390,37 @@ html[dir="rtl"]
 }
 
 .admin-shell .admin-client-added-by-filter {
+  position: relative !important;
   border: 1px solid #1a748b !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   border-radius: 14px !important;
   background: #ffffff !important;
+  background-image: none !important;
   box-shadow: none !important;
+  isolation: isolate !important;
+}
+
+.admin-shell .admin-client-added-by-filter.highlight-user-filter {
+  border: 1px solid #1a748b !important;
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+.admin-shell .admin-client-added-by-filter::before,
+.admin-shell .admin-client-added-by-filter::after {
+  display: none !important;
+  content: none !important;
+}
+
+.admin-shell .admin-client-added-by-filter .dashboard-select {
+  width: 100% !important;
+  border-radius: inherit !important;
+  background: #ffffff !important;
 }
 
 .admin-shell .admin-client-added-by-filter .dashboard-select-trigger {
+  position: relative !important;
+  z-index: 1 !important;
   min-height: 56px !important;
   border: 0 !important;
   border-radius: 14px !important;
@@ -20412,6 +20435,28 @@ html[dir="rtl"]
   background: #ffffff !important;
   border-color: transparent !important;
   box-shadow: none !important;
+}
+
+.admin-shell
+  .admin-client-added-by-filter
+  .dashboard-select-trigger
+  :is(.dashboard-select-value, .dashboard-select-placeholder, .dashboard-select-chevron) {
+  color: #1a748b !important;
+  opacity: 1 !important;
+}
+
+.admin-shell .admin-client-added-by-filter .dashboard-select-chevron {
+  flex: 0 0 auto !important;
+  width: 18px !important;
+  height: 18px !important;
+  stroke: #94a3b8 !important;
+}
+
+.admin-client-added-by-menu {
+  border: 1px solid #dbe5ec !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  box-shadow: 0 18px 45px rgba(15, 35, 52, 0.16) !important;
 }
 
 .admin-shell .admin-user-status-filter .dashboard-select-trigger {
