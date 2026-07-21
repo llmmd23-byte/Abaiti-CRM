@@ -3676,71 +3676,31 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       return textValue || "-";
     };
     const leasePeriod = [leaseStart, leaseEnd].filter(Boolean).join(" - ") || "-";
-    printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>عقد مشاركة</title><style>
-      *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-      body{font-family:Tahoma,Arial,sans-serif;background:#f5f5f5;line-height:1.75;color:#000;padding:30px;font-size:13px;}
-      .page{background:#fff;width:216mm;min-height:279mm;margin:auto;padding:36mm 18mm 20mm;box-shadow:0 0 8px rgba(0,0,0,.15);position:relative;overflow:visible;}
-      .top-strip{position:absolute;top:0;left:0;right:0;height:7mm;background:#080333;}
-      .print-header{position:absolute;top:11mm;left:18mm;right:18mm;height:24mm;}
-      .event-logo{position:absolute;left:0;top:0;width:38mm;height:auto;}
-      .netaq-logo{position:absolute;right:0;top:0;width:62mm;height:auto;}
-      .watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:0;pointer-events:none;}
-      .watermark span{font-family:Georgia,serif;font-size:86px;color:#000;opacity:.055;font-weight:bold;direction:ltr;}
-      .content{position:relative;z-index:1;}
-      h1{text-align:center;font-size:23px;margin-bottom:6px;}
-      h2{font-size:16px;margin:14px 0 7px;}
-      h3{font-size:15px;margin-bottom:5px;}
-      p{margin:5px 0;}
-      table{width:100%;border-collapse:collapse;margin-top:15px;margin-bottom:20px;table-layout:fixed;}
-      table th,table td{border:1px solid #000;padding:8px;text-align:center;font-size:14px;word-break:break-word;}
-      .section{margin-top:12px;page-break-inside:auto;break-inside:auto;}
-      .parties-section,.party{page-break-inside:avoid;break-inside:avoid;}
-      .party{border:1px solid #000;padding:9px 12px;margin-top:7px;}
-      ul,ol{padding-right:20px;}
-      li{margin-bottom:6px;}
-      .contract-number{display:block;text-align:center;font-weight:bold;margin:8px 0 14px;direction:ltr;}
-      .bottom-mark{position:absolute;left:15mm;bottom:14mm;width:20mm;height:20mm;z-index:1;}
-      .bottom-mark::before,.bottom-mark::after{content:"";position:absolute;width:12mm;height:12mm;background:#080333;transform:rotate(45deg);left:2mm;}
-      .bottom-mark::before{top:0;}
-      .bottom-mark::after{top:10mm;}
-      .print-footer{position:absolute;left:0;right:0;bottom:7mm;text-align:center;font-size:13px;color:#080333;direction:ltr;z-index:1;}
-      .print-footer span{margin:0 18px;}
-      .signatures{display:flex;justify-content:space-between;gap:45px;margin-top:60px;page-break-inside:avoid;break-inside:avoid;}
-      .signature{width:45%;text-align:center;border-top:1px solid #000;padding-top:12px;}
-      @media print{body{background:#fff;padding:0;}.page{box-shadow:none;margin:0;width:216mm;min-height:279mm;page-break-after:always;}.page:last-child{page-break-after:auto;}}
+    printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>عقد مشاركة</title><style>
+      body{direction:rtl;font-family:Arial,Tahoma,sans-serif;text-align:right;margin:40px;background:white;color:#000;}
+      .page{width:210mm;min-height:297mm;margin:auto;padding:20mm;box-sizing:border-box;}
+      .title{text-align:center;font-size:24px;font-weight:bold;margin-bottom:10px;}
+      .subtitle{text-align:center;font-size:16px;}
+      .section-title{font-size:18px;font-weight:bold;border-bottom:2px solid #000;padding-bottom:8px;margin-top:25px;}
+      .box{border:1px solid #555;padding:15px;margin-top:10px;text-align:right;}
+      table{width:100%;border-collapse:collapse;margin-top:15px;}
+      td,th{border:1px solid #000;padding:10px;text-align:center;}
+      .signature{display:flex;justify-content:space-between;margin-top:80px;text-align:center;}
+      .signature div{width:40%;}
+      .ltr{direction:ltr;text-align:left;}
+      @media print{body{margin:0;}.page{width:210mm;min-height:297mm;padding:20mm;}}
     </style></head><body><div class="page">
-      <div class="top-strip"></div>
-      <div class="print-header"><img class="event-logo" src="/contract-assets/jazli-event-logo.png" alt="المعرض الدولي لصناع القهوة والشوكولاتة"><img class="netaq-logo" src="/contract-assets/jazli-netaq-logo.png" alt="netaq"></div>
-      <div class="watermark"><span>netaq</span></div>
-      <div class="bottom-mark"></div><div class="print-footer"><span>www.nco.sa</span><span>www.altayar-cgi.com</span></div>
-      <main class="content">
-      <h1>عقد مشاركة في المعرض الدولي لصناع القهوة والشوكولاتة</h1>
-      <p style="text-align:center;font-weight:bold;">${escapePrintValue(displayValue(contract.event_dates ?? "خلال الفترة 27 - 29 ربيع الآخر 1448هـ الموافق 08 - 10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "بفندق جدة هيلتون (القاعة الكبرى)"))}</p>
-      <span class="contract-number">${escapePrintValue(contract.contract_number)}</span>
-      <p>تم بعون الله وتوفيقه إبرام هذا العقد بتاريخ ${escapePrintValue(displayValue(contractDate))}، بين كل من:</p>
-      <div class="section parties-section">
-        <h2>أولاً: بيانات الأطراف</h2>
-        <div class="party"><h3>الطرف الأول</h3><p>${escapePrintValue(displayValue(lessorName))}</p><p>رقم السجل التجاري: ${escapePrintValue(displayValue(contract.first_party_cr ?? "4030216503"))}</p><p>العنوان: ${escapePrintValue(displayValue(contract.event_location ?? rentalLocation ?? "جدة"))}</p><p>يمثلها: ${escapePrintValue(displayValue(contract.first_party_representative ?? "سهيل بن بكر الطيار"))}</p><p>الصفة: الرئيس التنفيذي</p></div>
-        <br>
-        <div class="party"><h3>الطرف الثاني</h3><p>${escapePrintValue(displayValue(tenantName))}</p><p>رقم السجل التجاري: ${escapePrintValue(displayValue(contract.second_party_cr))}</p><p>العنوان: ${escapePrintValue(displayValue(contract.address ?? contract.city))}</p><p>يمثلها: ${escapePrintValue(displayValue(contract.second_party_representative ?? representative))}</p><p>الصفة: المدير</p></div>
-      </div>
-      <div class="section"><h2>التمهيد</h2><p>حيث إن الطرف الأول يقوم بتنظيم المعرض الدولي لصناع القهوة والشوكولاتة بمحافظة جدة، وحيث إن الطرف الثاني لديه الرغبة بالمشاركة في المعرض، فقد اتفق الطرفان بكامل أهليتهما الشرعية والنظامية على ما يلي.</p><p>ويعد هذا التمهيد جزءاً لا يتجزأ من هذا العقد ومكملاً له.</p></div>
-      <div class="section"><h2>ثانياً: مدة العقد</h2><p>يسري هذا العقد من تاريخ توقيعه وحتى انتهاء المعرض بتاريخ ${escapePrintValue(displayValue(leaseEnd))}.</p></div>
-      <div class="section"><h2>ثالثاً: قيمة المشاركة</h2>
-        <table><tbody><tr><th>رقم البوث</th><th>الفئة</th><th>المساحة</th><th>السعر</th><th>الضريبة</th><th>الإجمالي</th></tr><tr><td>${escapePrintValue(displayValue(contract.booth_number ?? rentalItem))}</td><td>${escapePrintValue(displayValue(contract.participation_category))}</td><td>${escapePrintValue(displayValue(contract.booth_size))}</td><td>${money(subtotal)}</td><td>${money(vat)}</td><td>${money(grandTotal)}</td></tr></tbody></table>
-        <p>* السعر غير شامل تنفيذ أو تجهيز البوث.</p>
-      </div>
-      <div class="section"><h2>رابعاً: مميزات المشاركة</h2><ul><li>تخصيص مساحة ${escapePrintValue(displayValue(contract.booth_size ?? "3×3 متر"))} للطرف الثاني داخل المعرض.</li><li>إدراج شعار المشارك في المطبوعات والإعلانات الخاصة بالمعرض.</li><li>منح ثلاث بطاقات لدخول المعرض.</li><li>إبراز مشاركة الطرف الثاني ضمن الحملات التسويقية الخاصة بالفعالية.</li></ul></div>
-      <div class="section"><h2>خامساً: الفسخ</h2><p>يعتبر العقد مفسوخاً في الحالات الآتية:</p><ol><li>إخلال أحد الطرفين بأي بند من بنود العقد.</li><li>مخالفة الالتزامات أو الإقرارات الواردة في العقد.</li><li>اتفاق الطرفين على إنهاء العقد.</li><li>عدم الالتزام بسداد المستحقات المالية.</li><li>انسحاب الطرف الثاني بعد توقيع العقد، ويحق للطرف الأول تطبيق الشرط الجزائي وفق ما نص عليه العقد.</li><li>في حال إلغاء المعرض من قبل الطرف الأول يحق للطرف الثاني استعادة المبلغ أو قبول التأجيل.</li></ol></div>
-      <div class="section"><h2>سادساً: آلية السداد</h2><p>يتم سداد قيمة المشاركة كاملة عند توقيع العقد، وذلك بالتحويل البنكي إلى الحساب التالي:</p><table><tbody><tr><th>اسم الحساب</th><th>رقم الحساب</th><th>IBAN</th><th>SWIFT</th></tr><tr><td>شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات</td><td>79800001590310</td><td>SA1410000079800001590310</td><td>NCBKSAJE</td></tr></tbody></table><p>في حال عدم السداد يحق للطرف الأول إلغاء العقد دون إشعار مسبق.</p></div>
-      <div class="section"><h2>سابعاً: القوة القاهرة</h2><p>لا يكون أي من الطرفين مسؤولاً عن التأخير أو عدم تنفيذ التزاماته إذا كان ذلك نتيجة قوة قاهرة خارجة عن الإرادة، مثل الكوارث الطبيعية أو الحروب أو الأوبئة أو القرارات الحكومية أو أي ظرف يمنع تنفيذ العقد.</p></div>
-      <div class="section"><h2>ثامناً: القانون المطبق</h2><p>يخضع هذا العقد لأنظمة المملكة العربية السعودية، وتختص المحاكم السعودية بالنظر في أي نزاع ينشأ عنه.</p></div>
-      <div class="section"><h2>تاسعاً: الإشعارات والمراسلات</h2><p>تعد جميع الإشعارات المرسلة إلى العناوين أو البريد الإلكتروني أو وسائل التواصل المعتمدة بين الطرفين صحيحة ومنتجة لآثارها النظامية، ويلتزم كل طرف بإبلاغ الطرف الآخر بأي تغيير في بياناته.</p></div>
-      <div class="section"><h2>عاشراً: التزامات الطرف الأول</h2><ol><li>تجهيز المساحة أو الجناح وفق البيانات المتفق عليها.</li><li>تنظيم دخول الطرف الثاني إلى موقع الفعالية حسب التعليمات.</li><li>توفير المعلومات التشغيلية اللازمة قبل الفعالية.</li></ol></div>
-      <div class="section"><h2>الحادي عشر: التزامات الطرف الثاني</h2><ol><li>الالتزام بمواعيد السداد المتفق عليها.</li><li>الالتزام بالمساحة المحددة وعدم استخدامها في غير الغرض المتفق عليه.</li><li>الالتزام بإرشادات الأمن والسلامة وإدارة الموقع.</li><li>تسليم أي مستندات أو شعارات مطلوبة للطرف الأول في الوقت المحدد.</li></ol></div>
-      <div class="section"><h2>الثاني عشر: أحكام عامة</h2><ul><li>حرر هذا العقد من نسختين أصليتين، لكل طرف نسخة للعمل بموجبها.</li><li>أي تعديل على هذا العقد لا يكون نافذاً إلا إذا كان مكتوباً وموقعاً من الطرفين.</li><li>ملاحظات إضافية: ${escapePrintValue(displayValue(contract.notes))}</li></ul></div>
-      <div class="signatures"><div class="signature"><h3>الطرف الأول</h3><p>الاسم</p><br><br><p>التوقيع</p><br><br><p>الختم</p></div><div class="signature"><h3>الطرف الثاني</h3><p>الاسم</p><br><br><p>التوقيع</p><br><br><p>الختم</p></div></div>
-      </main>
+      <div class="title">عقد مشاركة في المعرض الدولي لصناع القهوة والشوكولاتة</div>
+      <div class="subtitle">${escapePrintValue(displayValue(contract.event_dates ?? "8-10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "فندق جدة هيلتون - القاعة الكبرى"))}</div>
+      <br>
+      <div class="section-title">أولاً: بيانات الأطراف</div>
+      <div class="box"><h3>الطرف الأول</h3>${escapePrintValue(displayValue(lessorName))}<br>رقم السجل التجاري: ${escapePrintValue(displayValue(contract.first_party_cr ?? "4030216503"))}<br>العنوان: ${escapePrintValue(displayValue(contract.event_location ?? rentalLocation ?? "فندق جدة هيلتون - القاعة الكبرى"))}<br>يمثلها: ${escapePrintValue(displayValue(contract.first_party_representative ?? "سهيل بن بكر الطيار"))}<br>الصفة: الرئيس التنفيذي</div>
+      <div class="box"><h3>الطرف الثاني</h3>${escapePrintValue(displayValue(tenantName))}<br>رقم السجل التجاري: ${escapePrintValue(displayValue(contract.second_party_cr))}<br>العنوان: ${escapePrintValue(displayValue(contract.address ?? contract.city))}<br>يمثلها: ${escapePrintValue(displayValue(contract.second_party_representative ?? representative))}<br>الصفة: المدير</div>
+      <div class="section-title">ثالثاً: قيمة المشاركة</div>
+      <table><tbody><tr><th>رقم البوث</th><th>الفئة</th><th>المساحة</th><th>السعر</th><th>الضريبة</th><th>الإجمالي</th></tr><tr><td>${escapePrintValue(displayValue(contract.booth_number ?? rentalItem))}</td><td>${escapePrintValue(displayValue(contract.participation_category ?? "---"))}</td><td>${escapePrintValue(displayValue(contract.booth_size))}</td><td>${subtotal.toLocaleString(NUMBER_LOCALE)}</td><td>${vat.toLocaleString(NUMBER_LOCALE)}</td><td>${grandTotal.toLocaleString(NUMBER_LOCALE)}</td></tr></tbody></table>
+      <div class="section-title">رابعاً: مميزات المشاركة</div>
+      <ul><li>تخصيص مساحة الطرف الثاني داخل المعرض.</li><li>إدراج شعار المشارك في المطبوعات والإعلانات.</li><li>منح بطاقات دخول للمعرض.</li><li>إبراز مشاركة الطرف الثاني ضمن الحملات التسويقية.</li></ul>
+      <div class="signature"><div>_________________<br>الطرف الأول<br>الاسم<br>التوقيع<br>الختم</div><div>_________________<br>الطرف الثاني<br>الاسم<br>التوقيع<br>الختم</div></div>
     </div><script>window.onload = () => window.print();</script></body></html>`);
     printWindow.document.close();
   }
