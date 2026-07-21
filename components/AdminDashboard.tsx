@@ -334,8 +334,10 @@ function AdminIcon({ name }: { name: string }) {
 }
 
 export default function AdminDashboard({
+  currentUserId,
   initialSection = "dashboard",
 }: {
+  currentUserId?: number;
   initialSection?: AdminSection;
 } = {}) {
   const locale = useLocale();
@@ -344,7 +346,6 @@ export default function AdminDashboard({
   const pathname = usePathname() || "/admin";
   const [summary, setSummary] = useState<Summary | null>(null);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("users");
-  const [analyticsUserFilter, setAnalyticsUserFilter] = useState("all");
   const [period, setPeriod] = useState<DashboardPeriod>("month");
   const [subFilter, setSubFilter] = useState<DashboardSubFilter>("weeks");
   const [periodAnchor, setPeriodAnchor] = useState(() => new Date());
@@ -385,8 +386,8 @@ export default function AdminDashboard({
       group: subFilter,
       anchor: periodAnchor.toISOString().slice(0, 10),
     });
-    if (analyticsUserFilter !== "all") {
-      params.set("user_id", analyticsUserFilter);
+    if (currentUserId) {
+      params.set("user_id", String(currentUserId));
     }
     fetch(`/api/v1/admin/summary?${params.toString()}`, { cache: "no-store" })
       .then((response) => response.json())
@@ -413,7 +414,7 @@ export default function AdminDashboard({
   useEffect(() => {
     if (activeSection !== "dashboard") return;
     loadSummary();
-  }, [activeSection, period, subFilter, periodAnchor, analyticsUserFilter]);
+  }, [activeSection, period, subFilter, periodAnchor, currentUserId]);
 
   useEffect(() => {
     loadManagement();
@@ -431,27 +432,10 @@ export default function AdminDashboard({
   const series = summary?.series[activeMetric] ?? [];
   const maxValue = Math.max(1, ...series.map((item) => item.value));
   const periodLabel = formatAdminPeriodLabel(periodAnchor, period, isArabic);
-  const analyticsUserOptions = [
-    {
-      value: "all",
-      label: isArabic ? "كل المستخدمين (الكل)" : "All users",
-    },
-    ...(management?.users ?? []).map((user) => ({
-      value: String(user.id),
-      label: String(
-        user.name ??
-          user.full_name ??
-          user.email ??
-          `${isArabic ? "مستخدم" : "User"} #${user.id}`,
-      ),
-    })),
-  ];
   const selectedAnalyticsUser =
-    analyticsUserFilter === "all"
-      ? null
-      : (management?.users ?? []).find(
-          (user) => String(user.id) === analyticsUserFilter,
-        ) ?? null;
+    (management?.users ?? []).find(
+      (user) => String(user.id) === String(currentUserId ?? ""),
+    ) ?? null;
   const analyticsUserName = selectedAnalyticsUser
     ? String(
         selectedAnalyticsUser.name ??
@@ -460,13 +444,13 @@ export default function AdminDashboard({
           `${isArabic ? "مستخدم" : "User"} #${selectedAnalyticsUser.id}`,
       )
     : isArabic
-      ? "كل المستخدمين"
-      : "All users";
+      ? "المستخدم الحالي"
+      : "Current user";
   const analyticsUserRole = selectedAnalyticsUser
     ? String(selectedAnalyticsUser.role_name ?? selectedAnalyticsUser.role ?? "—")
     : isArabic
-      ? "تقرير شامل"
-      : "Comprehensive report";
+      ? "أداء المستخدم الحالي"
+      : "Current user performance";
   const analyticsLastLogin = selectedAnalyticsUser
     ? selectedAnalyticsUser.last_login_at
       ? String(selectedAnalyticsUser.last_login_at).slice(0, 10)
@@ -474,9 +458,9 @@ export default function AdminDashboard({
     : isArabic
       ? "الآن"
       : "Now";
-  const selectedAnalyticsStats = selectedAnalyticsUser
+  const selectedAnalyticsStats = currentUserId
     ? (management?.userStats ?? []).find(
-        (row) => String(row.user_id) === String(selectedAnalyticsUser.id),
+        (row) => String(row.user_id) === String(currentUserId),
       ) ?? null
     : null;
   const allAnalyticsStats = (management?.userStats ?? []).reduce(
@@ -487,10 +471,10 @@ export default function AdminDashboard({
     }),
     { clients: 0, quotes: 0 },
   );
-  const analyticsAddedCustomers = selectedAnalyticsUser
+  const analyticsAddedCustomers = currentUserId
     ? Number(selectedAnalyticsStats?.clients_count ?? selectedAnalyticsStats?.leads_count ?? 0)
     : allAnalyticsStats.clients || Number(summary?.totals.clients ?? 0);
-  const analyticsAddedQuotes = selectedAnalyticsUser
+  const analyticsAddedQuotes = currentUserId
     ? Number(selectedAnalyticsStats?.quotes_count ?? 0)
     : allAnalyticsStats.quotes || Number(summary?.totals.quotes ?? 0);
   const subFilterOptions =
@@ -644,22 +628,6 @@ export default function AdminDashboard({
                   </h2>
                 </div>
                 <div className="admin-period-controls">
-                  <div className="admin-analytics-user-filter">
-                    <DashboardSelect
-                      ariaLabel={
-                        isArabic
-                          ? "اختيار المستخدم لتحليلات المنصة"
-                          : "Select user for platform analytics"
-                      }
-                      onValueChange={setAnalyticsUserFilter}
-                      options={analyticsUserOptions}
-                      searchable
-                      searchPlaceholder={
-                        isArabic ? "ابحث عن مستخدم..." : "Search users..."
-                      }
-                      value={analyticsUserFilter}
-                    />
-                  </div>
                   <div className="admin-period-segment" aria-label={isArabic ? "الفترة الرئيسية" : "Main period"}>
                     {(["week", "month", "year"] as DashboardPeriod[]).map((item) => (
                       <button
