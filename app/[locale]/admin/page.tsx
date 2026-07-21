@@ -116,7 +116,7 @@ export default async function AdminPage({
           `,
         }}
       />
-      <AdminDashboard currentUserId={Number(session.sub)} initialSection={initialSection} />
+      <AdminDashboard initialSection={initialSection} />
     </>
   );
 }

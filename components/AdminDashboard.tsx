@@ -334,10 +334,8 @@ function AdminIcon({ name }: { name: string }) {
 }
 
 export default function AdminDashboard({
-  currentUserId,
   initialSection = "dashboard",
 }: {
-  currentUserId?: number;
   initialSection?: AdminSection;
 } = {}) {
   const locale = useLocale();
@@ -386,9 +384,6 @@ export default function AdminDashboard({
       group: subFilter,
       anchor: periodAnchor.toISOString().slice(0, 10),
     });
-    if (currentUserId) {
-      params.set("user_id", String(currentUserId));
-    }
     fetch(`/api/v1/admin/summary?${params.toString()}`, { cache: "no-store" })
       .then((response) => response.json())
       .then((body) => setSummary(body.data ?? null))
@@ -414,7 +409,7 @@ export default function AdminDashboard({
   useEffect(() => {
     if (activeSection !== "dashboard") return;
     loadSummary();
-  }, [activeSection, period, subFilter, periodAnchor, currentUserId]);
+  }, [activeSection, period, subFilter, periodAnchor]);
 
   useEffect(() => {
     loadManagement();
@@ -432,37 +427,9 @@ export default function AdminDashboard({
   const series = summary?.series[activeMetric] ?? [];
   const maxValue = Math.max(1, ...series.map((item) => item.value));
   const periodLabel = formatAdminPeriodLabel(periodAnchor, period, isArabic);
-  const selectedAnalyticsUser =
-    (management?.users ?? []).find(
-      (user) => String(user.id) === String(currentUserId ?? ""),
-    ) ?? null;
-  const analyticsUserName = selectedAnalyticsUser
-    ? String(
-        selectedAnalyticsUser.name ??
-          selectedAnalyticsUser.full_name ??
-          selectedAnalyticsUser.email ??
-          `${isArabic ? "مستخدم" : "User"} #${selectedAnalyticsUser.id}`,
-      )
-    : isArabic
-      ? "المستخدم الحالي"
-      : "Current user";
-  const analyticsUserRole = selectedAnalyticsUser
-    ? String(selectedAnalyticsUser.role_name ?? selectedAnalyticsUser.role ?? "—")
-    : isArabic
-      ? "أداء المستخدم الحالي"
-      : "Current user performance";
-  const analyticsLastLogin = selectedAnalyticsUser
-    ? selectedAnalyticsUser.last_login_at
-      ? String(selectedAnalyticsUser.last_login_at).slice(0, 10)
-      : "—"
-    : isArabic
-      ? "الآن"
-      : "Now";
-  const selectedAnalyticsStats = currentUserId
-    ? (management?.userStats ?? []).find(
-        (row) => String(row.user_id) === String(currentUserId),
-      ) ?? null
-    : null;
+  const analyticsUserName = isArabic ? "كل المستخدمين" : "All users";
+  const analyticsUserRole = isArabic ? "تقرير شامل" : "Comprehensive report";
+  const analyticsLastLogin = isArabic ? "الآن" : "Now";
   const allAnalyticsStats = (management?.userStats ?? []).reduce(
     (totals, row) => ({
       clients:
@@ -471,12 +438,10 @@ export default function AdminDashboard({
     }),
     { clients: 0, quotes: 0 },
   );
-  const analyticsAddedCustomers = currentUserId
-    ? Number(selectedAnalyticsStats?.clients_count ?? selectedAnalyticsStats?.leads_count ?? 0)
-    : allAnalyticsStats.clients || Number(summary?.totals.clients ?? 0);
-  const analyticsAddedQuotes = currentUserId
-    ? Number(selectedAnalyticsStats?.quotes_count ?? 0)
-    : allAnalyticsStats.quotes || Number(summary?.totals.quotes ?? 0);
+  const analyticsAddedCustomers =
+    allAnalyticsStats.clients || Number(summary?.totals.clients ?? 0);
+  const analyticsAddedQuotes =
+    allAnalyticsStats.quotes || Number(summary?.totals.quotes ?? 0);
   const subFilterOptions =
     period === "month"
       ? [

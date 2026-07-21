@@ -28,7 +28,9 @@ export async function GET(request: Request) {
         trendPeriod,
         anchor ?? undefined,
         trendGroup,
-        Number.isFinite(selectedUserId) && selectedUserId > 0 ? selectedUserId : null,
+        Number.isFinite(selectedUserId) && selectedUserId > 0
+          ? selectedUserId
+          : Number(session.sub),
       ),
     });
   } catch (error) {
