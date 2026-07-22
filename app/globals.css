@@ -21374,6 +21374,47 @@ html[dir="rtl"]
   color: #1a748b;
 }
 
+.admin-booth-map-legend {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.admin-booth-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.admin-booth-map-legend i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.admin-booth-map-legend i.available {
+  background: #16a34a;
+}
+
+.admin-booth-map-legend i.booked {
+  background: #dc3545;
+}
+
+.admin-booth-map-legend i.selected {
+  background: #0d6efd;
+}
+
 .admin-booths-workspace {
   align-items: stretch;
   gap: 18px;
