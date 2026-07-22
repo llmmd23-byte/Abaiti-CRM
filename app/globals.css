@@ -21492,7 +21492,7 @@ html[dir="rtl"]
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
   box-shadow: none;
-  transform: scale(0.97);
+  transform: scale(0.99);
   transform-origin: center;
   transition: opacity 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
