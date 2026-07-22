@@ -365,6 +365,7 @@ CREATE TABLE IF NOT EXISTS demo_requests (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     booth_number VARCHAR(80) NOT NULL,
     booth_size VARCHAR(80) NULL,
+    booth_dimensions VARCHAR(120) NULL,
     booth_category VARCHAR(120) NULL,
     hall VARCHAR(120) NULL,
     location_zone VARCHAR(120) NULL,

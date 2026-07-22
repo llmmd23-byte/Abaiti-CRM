@@ -311,6 +311,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     writable: [
       "booth_number",
       "booth_size",
+      "booth_dimensions",
       "booth_category",
       "hall",
       "location_zone",
@@ -959,6 +960,7 @@ async function ensureBoothTable() {
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       booth_number VARCHAR(80) NOT NULL,
       booth_size VARCHAR(80) NULL,
+      booth_dimensions VARCHAR(120) NULL,
       booth_category VARCHAR(120) NULL,
       hall VARCHAR(120) NULL,
       location_zone VARCHAR(120) NULL,
@@ -972,20 +974,29 @@ async function ensureBoothTable() {
       KEY idx_booth_category (booth_category)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+  if (!(await columnExists("booth", "booth_dimensions"))) {
+    await db.execute(
+      "ALTER TABLE booth ADD COLUMN booth_dimensions VARCHAR(120) NULL AFTER booth_size",
+    );
+  }
+  await db.execute(
+    "UPDATE booth SET booth_size = REPLACE(booth_size, '?', '') WHERE booth_size LIKE '%?%'",
+  );
 }
 
 async function syncBoothCatalogFromRentalBooths() {
   await ensureBoothTable();
   await ensureRentalBoothsTable();
   await db.execute(
-    `INSERT INTO booth (booth_number, booth_size, status)
-      SELECT rb.booth_number, MAX(rb.booth_size), 'available'
+    `INSERT INTO booth (booth_number, booth_size, booth_dimensions, status)
+      SELECT rb.booth_number, REPLACE(MAX(rb.booth_size), '?', ''), REPLACE(MAX(rb.booth_size), '?', ''), 'available'
         FROM rental_booths rb
        WHERE rb.booth_number IS NOT NULL
          AND TRIM(rb.booth_number) <> ''
        GROUP BY rb.booth_number
       ON DUPLICATE KEY UPDATE
-        booth_size = COALESCE(booth.booth_size, VALUES(booth_size))`,
+        booth_size = REPLACE(COALESCE(booth.booth_size, VALUES(booth_size)), '?', ''),
+        booth_dimensions = COALESCE(booth.booth_dimensions, VALUES(booth_dimensions))`,
   );
 }
 
@@ -1016,11 +1027,12 @@ async function seedDefaultBoothCatalog() {
   await Promise.all(
     defaultBoothCatalog.map((booth) =>
       db.execute(
-        `INSERT INTO booth (booth_number, booth_size, status)
-          VALUES (?, ?, 'available')
+        `INSERT INTO booth (booth_number, booth_size, booth_dimensions, status)
+          VALUES (?, ?, ?, 'available')
           ON DUPLICATE KEY UPDATE
-            booth_size = COALESCE(booth.booth_size, VALUES(booth_size))`,
-        [booth.number, booth.size || null],
+            booth_size = REPLACE(COALESCE(booth.booth_size, VALUES(booth_size)), '?', ''),
+            booth_dimensions = COALESCE(booth.booth_dimensions, VALUES(booth_dimensions))`,
+        [booth.number, booth.size.replace("?", "") || null, booth.size.replace("?", "") || null],
       ),
     ),
   );
@@ -2448,9 +2460,9 @@ export async function createResource(
   }
   if (resource === "booths") {
     data.booth_number = normalizedBoothNumber(data.booth_number);
-    for (const column of ["booth_size", "booth_category", "hall", "location_zone"]) {
+    for (const column of ["booth_size", "booth_dimensions", "booth_category", "hall", "location_zone"]) {
       if (data[column] !== undefined && data[column] !== null)
-        data[column] = String(data[column]).trim() || null;
+        data[column] = String(data[column]).replaceAll("?", "").trim() || null;
     }
     if (!["available", "inactive"].includes(String(data.status ?? "available"))) {
       data.status = "available";
@@ -2915,9 +2927,9 @@ export async function updateResource(
   if (resource === "booths") {
     if (data.booth_number !== undefined && data.booth_number !== null)
       data.booth_number = normalizedBoothNumber(data.booth_number);
-    for (const column of ["booth_size", "booth_category", "hall", "location_zone"]) {
+    for (const column of ["booth_size", "booth_dimensions", "booth_category", "hall", "location_zone"]) {
       if (data[column] !== undefined && data[column] !== null)
-        data[column] = String(data[column]).trim() || null;
+        data[column] = String(data[column]).replaceAll("?", "").trim() || null;
     }
     if (
       data.status !== undefined &&
