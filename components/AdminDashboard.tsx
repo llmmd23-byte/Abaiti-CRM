@@ -3522,6 +3522,126 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   );
 }
 
+const PPT_BOOTH_LAYOUT = [
+  { id: "FL1", left: 86.905, top: 20.73, width: 2.315, height: 3.254 },
+  { id: "FL2", left: 86.905, top: 23.992, width: 2.315, height: 3.254 },
+  { id: "FL3", left: 86.905, top: 27.255, width: 2.315, height: 3.254 },
+  { id: "FL4", left: 86.905, top: 30.518, width: 2.315, height: 3.254 },
+  { id: "FL5", left: 86.905, top: 33.781, width: 2.315, height: 3.254 },
+  { id: "FL6", left: 86.905, top: 37.043, width: 2.315, height: 3.254 },
+  { id: "FL7", left: 86.905, top: 40.306, width: 2.315, height: 3.254 },
+  { id: "FL8", left: 86.905, top: 43.569, width: 2.315, height: 3.254 },
+  { id: "FL9", left: 86.905, top: 46.832, width: 2.315, height: 3.254 },
+  { id: "FL10", left: 86.905, top: 50.094, width: 2.315, height: 3.254 },
+  { id: "FL11", left: 86.905, top: 53.357, width: 2.315, height: 3.254 },
+  { id: "FL12", left: 86.905, top: 56.62, width: 2.315, height: 3.254 },
+  { id: "FL13", left: 93.495, top: 56.62, width: 2.315, height: 3.254 },
+  { id: "FL14", left: 93.495, top: 53.357, width: 2.315, height: 3.254 },
+  { id: "FL15", left: 93.495, top: 50.094, width: 2.315, height: 3.254 },
+  { id: "FL16", left: 93.495, top: 46.832, width: 2.315, height: 3.254 },
+  { id: "FL17", left: 93.495, top: 43.569, width: 2.315, height: 3.254 },
+  { id: "FL18", left: 93.495, top: 40.306, width: 2.315, height: 3.254 },
+  { id: "FL19", left: 93.495, top: 37.043, width: 2.315, height: 3.254 },
+  { id: "FL20", left: 93.495, top: 33.781, width: 2.315, height: 3.254 },
+  { id: "FL21", left: 93.495, top: 30.518, width: 2.315, height: 3.254 },
+  { id: "FL22", left: 93.495, top: 27.255, width: 2.315, height: 3.254 },
+  { id: "FL23", left: 93.495, top: 23.992, width: 2.315, height: 3.254 },
+  { id: "FL24", left: 93.495, top: 20.729, width: 2.315, height: 3.254 },
+  { id: "IN1", left: 52.591, top: 77.768, width: 4.631, height: 9.674 },
+  { id: "IN2", left: 60.255, top: 77.69, width: 6.174, height: 4.88 },
+  { id: "IN3", left: 66.456, top: 77.69, width: 6.174, height: 4.88 },
+  { id: "IN4", left: 75.717, top: 77.69, width: 6.174, height: 4.88 },
+  { id: "IN5", left: 81.892, top: 77.69, width: 6.174, height: 4.88 },
+  { id: "IN6", left: 88.066, top: 77.69, width: 6.174, height: 4.88 },
+  { id: "IN7", left: 88.066, top: 82.561, width: 6.174, height: 4.88 },
+  { id: "IN8", left: 81.892, top: 82.561, width: 6.174, height: 4.88 },
+  { id: "IN9", left: 75.717, top: 82.561, width: 6.174, height: 4.88 },
+  { id: "IN10", left: 66.456, top: 82.561, width: 6.174, height: 4.88 },
+  { id: "IN11", left: 60.255, top: 82.561, width: 6.174, height: 4.88 },
+  { id: "IN12", left: 52.591, top: 90.704, width: 4.631, height: 4.88 },
+  { id: "IN13", left: 57.221, top: 90.704, width: 4.631, height: 4.88 },
+  { id: "IN14", left: 61.852, top: 90.704, width: 4.631, height: 4.88 },
+  { id: "IN15", left: 66.483, top: 90.704, width: 4.631, height: 4.88 },
+  { id: "IN16", left: 71.113, top: 90.704, width: 4.631, height: 4.88 },
+  { id: "IN17", left: 75.744, top: 90.704, width: 4.631, height: 4.88 },
+  { id: "IN18", left: 80.375, top: 90.704, width: 4.631, height: 4.88 },
+  { id: "IN19", left: 85.005, top: 90.704, width: 4.631, height: 4.88 },
+  { id: "IN20", left: 89.643, top: 90.704, width: 4.631, height: 4.88 },
+  { id: "M01", left: 41.786, top: 20.754, width: 4.631, height: 9.674 },
+  { id: "M02", left: 41.786, top: 34.881, width: 4.631, height: 9.674 },
+  { id: "M03", left: 39.512, top: 51.405, width: 9.179, height: 4.88 },
+  { id: "M04", left: 39.512, top: 65.533, width: 9.179, height: 4.88 },
+  { id: "M05", left: 31.543, top: 20.75, width: 4.638, height: 4.88 },
+  { id: "M06", left: 31.546, top: 25.634, width: 4.631, height: 4.88 },
+  { id: "M07", left: 31.546, top: 30.493, width: 4.631, height: 4.88 },
+  { id: "M08", left: 30.774, top: 41.078, width: 6.174, height: 4.88 },
+  { id: "M09", left: 30.775, top: 47.595, width: 6.174, height: 4.88 },
+  { id: "M10", left: 31.54, top: 58.381, width: 4.631, height: 4.88 },
+  { id: "M11", left: 31.54, top: 63.041, width: 4.631, height: 4.88 },
+  { id: "M12", left: 31.54, top: 67.93, width: 4.631, height: 4.88 },
+  { id: "M13", left: 26.916, top: 20.746, width: 4.631, height: 4.88 },
+  { id: "M14", left: 26.913, top: 25.626, width: 4.631, height: 4.88 },
+  { id: "M15", left: 26.916, top: 30.506, width: 4.631, height: 4.88 },
+  { id: "M16", left: 26.916, top: 58.381, width: 4.631, height: 4.88 },
+  { id: "M17", left: 26.916, top: 63.041, width: 4.631, height: 4.88 },
+  { id: "M18", left: 26.91, top: 67.922, width: 4.631, height: 4.88 },
+  { id: "M19", left: 17.654, top: 20.746, width: 4.631, height: 4.88 },
+  { id: "M20", left: 17.652, top: 25.626, width: 4.631, height: 4.88 },
+  { id: "M21", left: 17.654, top: 30.506, width: 4.631, height: 4.88 },
+  { id: "M22", left: 17.654, top: 58.381, width: 4.631, height: 4.88 },
+  { id: "M23", left: 17.652, top: 63.041, width: 4.631, height: 4.88 },
+  { id: "M24", left: 17.652, top: 67.922, width: 4.631, height: 4.88 },
+  { id: "M25", left: 13.035, top: 20.746, width: 4.631, height: 4.88 },
+  { id: "M26", left: 13.035, top: 25.626, width: 4.631, height: 4.88 },
+  { id: "M29", left: 13.035, top: 30.496, width: 4.631, height: 4.88 },
+  { id: "M30", left: 13.035, top: 58.381, width: 4.631, height: 4.88 },
+  { id: "M31", left: 13.035, top: 63.041, width: 4.631, height: 4.88 },
+  { id: "M32", left: 13.035, top: 67.922, width: 4.631, height: 4.88 },
+  { id: "M33", left: 4.19, top: 22.07, width: 6.174, height: 4.88 },
+  { id: "M34", left: 4.19, top: 28.586, width: 6.174, height: 4.88 },
+  { id: "RL1", left: 52.591, top: 20.831, width: 9.261, height: 4.88 },
+  { id: "RL2", left: 69.57, top: 20.831, width: 9.261, height: 4.88 },
+  { id: "RL3", left: 82.274, top: 20.73, width: 4.631, height: 4.88 },
+  { id: "RL4", left: 82.274, top: 25.624, width: 4.631, height: 4.88 },
+  { id: "RL5", left: 82.274, top: 30.519, width: 4.631, height: 4.88 },
+  { id: "RL6", left: 82.274, top: 35.414, width: 4.631, height: 4.88 },
+  { id: "RL7", left: 82.274, top: 40.309, width: 4.631, height: 4.88 },
+  { id: "RL8", left: 82.274, top: 45.204, width: 4.631, height: 4.88 },
+  { id: "RL9", left: 82.274, top: 50.098, width: 4.631, height: 4.88 },
+  { id: "RL10", left: 82.274, top: 54.993, width: 4.631, height: 4.88 },
+  { id: "RL13", left: 73.73, top: 50.113, width: 4.631, height: 4.88 },
+  { id: "RL14", left: 73.73, top: 54.993, width: 4.631, height: 4.88 },
+  { id: "RL15", left: 68.995, top: 50.113, width: 4.631, height: 4.88 },
+  { id: "RL16", left: 68.995, top: 54.993, width: 4.631, height: 4.88 },
+  { id: "RL19", left: 57.221, top: 63.049, width: 4.631, height: 4.88 },
+  { id: "RL20", left: 57.221, top: 67.894, width: 4.631, height: 4.88 },
+  { id: "RL21", left: 52.591, top: 63.049, width: 4.631, height: 4.88 },
+  { id: "RL22", left: 52.591, top: 67.894, width: 4.631, height: 4.88 },
+  { id: "RL23", left: 76.018, top: 67.164, width: 4.631, height: 6.507 },
+  { id: "RL24", left: 69.767, top: 67.163, width: 4.631, height: 6.507 },
+  { id: "RL25", left: 58.765, top: 54.993, width: 4.631, height: 4.88 },
+  { id: "RL26", left: 53.362, top: 54.18, width: 4.631, height: 6.507 },
+  { id: "RL27", left: 76.018, top: 62.283, width: 4.631, height: 6.507 },
+  { id: "RL29", left: 58.765, top: 50.113, width: 4.631, height: 4.88 },
+  { id: "RL32", left: 51.824, top: 36.085, width: 6.164, height: 4.88 },
+  { id: "RL34", left: 61.816, top: 30.203, width: 4.703, height: 4.88 },
+  { id: "RL35", left: 61.086, top: 35.929, width: 6.164, height: 4.88 },
+  { id: "RL36", left: 61.87, top: 41.609, width: 4.595, height: 4.88 },
+  { id: "SB2", left: 4.962, top: 42.017, width: 2.26, height: 3.176 },
+  { id: "SB3", left: 4.962, top: 45.465, width: 2.26, height: 3.176 },
+  { id: "SB4", left: 4.962, top: 48.913, width: 2.26, height: 3.176 },
+  { id: "SB5", left: 4.962, top: 52.36, width: 2.26, height: 3.176 },
+  { id: "SB6", left: 4.962, top: 55.808, width: 2.26, height: 3.176 },
+  { id: "SB7", left: 4.962, top: 59.256, width: 2.26, height: 3.176 },
+  { id: "SB8", left: 4.962, top: 62.703, width: 2.26, height: 3.176 },
+  { id: "SB9", left: 4.962, top: 66.151, width: 2.26, height: 3.176 },
+  { id: "ST01", left: 78.957, top: 5.229, width: 7.718, height: 8.134 },
+  { id: "ST02", left: 63.396, top: 5.229, width: 7.718, height: 8.134 },
+  { id: "ST03", left: 27.894, top: 5.229, width: 7.718, height: 8.134 },
+  { id: "ST04", left: 12.458, top: 5.229, width: 7.718, height: 8.134 },
+  { id: "TP01", left: 44.582, top: 4.416, width: 9.261, height: 9.761 },
+] as const;
+
 function boothPrefix(value: unknown) {
   return String(value ?? "").trim().toUpperCase().match(/^[A-Z]+/)?.[0] ?? "OTHER";
 }
@@ -3608,26 +3728,42 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
       .sort(boothSort);
   }, [booths, query]);
 
-  const boothGroups = useMemo(() => {
-    const groups = new Map<string, AdminRow[]>();
-    for (const booth of filteredBooths) {
-      const prefix = boothPrefix(booth.booth_number);
-      const group = groups.get(prefix) ?? [];
-      group.push(booth);
-      groups.set(prefix, group);
+  const boothsByNumber = useMemo(() => {
+    const map = new Map<string, AdminRow>();
+    for (const booth of booths) {
+      const boothNumber = String(booth.booth_number ?? "").trim().toUpperCase();
+      if (boothNumber) map.set(boothNumber, booth);
     }
-    const preferredOrder = ["RL", "M", "IN", "ST", "FL", "SB", "TP", "OTHER"];
-    return Array.from(groups.entries())
-      .sort(([first], [second]) => {
-        const firstIndex = preferredOrder.indexOf(first);
-        const secondIndex = preferredOrder.indexOf(second);
-        if (firstIndex !== -1 || secondIndex !== -1) {
-          return (firstIndex === -1 ? 999 : firstIndex) - (secondIndex === -1 ? 999 : secondIndex);
-        }
-        return first.localeCompare(second);
-      })
-      .map(([label, rows]) => ({ label, rows: rows.sort(boothSort) }));
-  }, [filteredBooths]);
+    return map;
+  }, [booths]);
+  const filteredBoothNumbers = useMemo(
+    () =>
+      new Set(
+        filteredBooths.map((booth) =>
+          String(booth.booth_number ?? "").trim().toUpperCase(),
+        ),
+      ),
+    [filteredBooths],
+  );
+  const layoutBoothIds = useMemo(
+    () => new Set<string>(PPT_BOOTH_LAYOUT.map((booth) => booth.id)),
+    [],
+  );
+  const visibleLayoutBooths = useMemo(
+    () =>
+      PPT_BOOTH_LAYOUT.filter((layoutBooth) =>
+        query.trim() ? filteredBoothNumbers.has(layoutBooth.id) : true,
+      ),
+    [filteredBoothNumbers, query],
+  );
+  const unplacedBooths = useMemo(
+    () =>
+      filteredBooths.filter((booth) => {
+        const boothNumber = String(booth.booth_number ?? "").trim().toUpperCase();
+        return boothNumber && !layoutBoothIds.has(boothNumber);
+      }),
+    [filteredBooths, layoutBoothIds],
+  );
 
   const selectedBooking = selectedBooth
     ? bookedByNumber.get(String(selectedBooth.booth_number ?? "").trim().toUpperCase())
@@ -3734,34 +3870,69 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
         <div className="admin-booths-layout" aria-busy={isLoading}>
           {isLoading ? (
             <div className="admin-booths-empty">{isArabic ? "جاري تحميل الخريطة..." : "Loading layout..."}</div>
-          ) : boothGroups.length ? (
-            boothGroups.map((group) => (
-              <section className="admin-booth-zone" key={group.label}>
-                <div className="admin-booth-zone-title">
-                  <strong>{group.label}</strong>
-                  <span>{group.rows.length.toLocaleString(NUMBER_LOCALE)}</span>
-                </div>
-                <div className="admin-booth-buttons">
-                  {group.rows.map((booth) => {
-                    const boothNumber = String(booth.booth_number ?? "").trim().toUpperCase();
-                    const isBooked = bookedByNumber.has(boothNumber);
-                    const isInactive = String(booth.status ?? "available") === "inactive";
-                    const isSelected = Number(selectedBooth?.id) === Number(booth.id);
-                    return (
-                      <button
-                        className={`admin-booth-tile ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""}`}
-                        key={booth.id}
-                        onClick={() => selectBooth(booth)}
-                        type="button"
-                      >
-                        <strong>{boothNumber}</strong>
-                        <span>{String(booth.booth_dimensions ?? booth.booth_size ?? "")}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-            ))
+          ) : visibleLayoutBooths.length ? (
+            <>
+              <div className="admin-floor-map-canvas">
+                <div className="admin-floor-map-label top">Pre-Function Hall</div>
+                <div className="admin-floor-map-label left">{isArabic ? "المدخل" : "Entrance"}</div>
+                <div className="admin-floor-map-label right">Floor Map</div>
+                <div className="admin-floor-map-zone m-zone">M</div>
+                <div className="admin-floor-map-zone rl-zone">RL</div>
+                <div className="admin-floor-map-zone in-zone">IN</div>
+                {visibleLayoutBooths.map((layoutBooth) => {
+                  const booth = boothsByNumber.get(layoutBooth.id);
+                  const isMissing = !booth;
+                  const isBooked = bookedByNumber.has(layoutBooth.id);
+                  const isInactive = String(booth?.status ?? "available") === "inactive";
+                  const isSelected = booth && Number(selectedBooth?.id) === Number(booth.id);
+                  return (
+                    <button
+                      className={`admin-booth-map-tile ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
+                      disabled={isMissing}
+                      key={layoutBooth.id}
+                      onClick={() => booth && selectBooth(booth)}
+                      style={{
+                        left: `${layoutBooth.left}%`,
+                        top: `${layoutBooth.top}%`,
+                        width: `${layoutBooth.width}%`,
+                        height: `${layoutBooth.height}%`,
+                      }}
+                      title={layoutBooth.id}
+                      type="button"
+                    >
+                      <strong>{layoutBooth.id}</strong>
+                    </button>
+                  );
+                })}
+              </div>
+              {unplacedBooths.length ? (
+                <section className="admin-unplaced-booths">
+                  <div className="admin-booth-zone-title">
+                    <strong>{isArabic ? "بوثات خارج الخريطة" : "Unplaced booths"}</strong>
+                    <span>{unplacedBooths.length.toLocaleString(NUMBER_LOCALE)}</span>
+                  </div>
+                  <div className="admin-booth-buttons">
+                    {unplacedBooths.map((booth) => {
+                      const boothNumber = String(booth.booth_number ?? "").trim().toUpperCase();
+                      const isBooked = bookedByNumber.has(boothNumber);
+                      const isInactive = String(booth.status ?? "available") === "inactive";
+                      const isSelected = Number(selectedBooth?.id) === Number(booth.id);
+                      return (
+                        <button
+                          className={`admin-booth-tile ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""}`}
+                          key={booth.id}
+                          onClick={() => selectBooth(booth)}
+                          type="button"
+                        >
+                          <strong>{boothNumber}</strong>
+                          <span>{String(booth.booth_dimensions ?? booth.booth_size ?? "")}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+            </>
           ) : (
             <div className="admin-booths-empty">{isArabic ? "لا توجد بوثات مطابقة" : "No matching booths"}</div>
           )}
