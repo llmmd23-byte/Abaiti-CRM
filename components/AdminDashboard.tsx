@@ -3522,7 +3522,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   );
 }
 
-const PPT_BOOTH_LAYOUT = [
+export const PPT_BOOTH_LAYOUT = [
   { id: "FL1", left: 86.905, top: 20.73, width: 2.315, height: 3.254 },
   { id: "FL2", left: 86.905, top: 23.992, width: 2.315, height: 3.254 },
   { id: "FL3", left: 86.905, top: 27.255, width: 2.315, height: 3.254 },
@@ -3650,7 +3650,7 @@ const PPT_BOOTH_LAYOUT = [
   { id: "TP01", left: 44.582, top: 4.416, width: 9.261, height: 9.761 },
 ] as const;
 
-const FLOOR_MAP_AREA_LABELS = [
+export const FLOOR_MAP_AREA_LABELS = [
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.235, top: 16.719, width: 43.18, height: 4.486 },
   { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 49.8, top: 16.719, width: 37.6, height: 4.237 },
   { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 86.906, top: 19.21, width: 8.812, height: 42.352 },
@@ -3659,7 +3659,7 @@ const FLOOR_MAP_AREA_LABELS = [
   { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.235, top: 75.199, width: 43.355, height: 22.454 },
 ] as const;
 
-const FLOOR_MAP_ZONES = [
+export const FLOOR_MAP_ZONES = [
   { key: "all", labelAr: "كل الأقسام", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
   { key: "prefunction", labelAr: "قاعة ما قبل الفعالية", labelEn: "Pre-Function Hall", left: 11.2, top: 4.6, width: 76.4, height: 9.2 },
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.0, top: 17.0, width: 47.8, height: 56.8 },
@@ -3669,7 +3669,7 @@ const FLOOR_MAP_ZONES = [
   { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.8, top: 75.6, width: 41.8, height: 21.0 },
 ] as const;
 
-function floorMapZoneForBooth(boothId: string) {
+export function floorMapZoneForBooth(boothId: string) {
   if (boothId.startsWith("ST") || boothId.startsWith("TP")) return "prefunction";
   if (boothId.startsWith("M") || boothId === "ACADEMY" || boothId.startsWith("SB") || boothId.endsWith("SB")) return "traders";
   if (boothId.startsWith("RL") || boothId === "GLASS HOUSE") return "roasting";

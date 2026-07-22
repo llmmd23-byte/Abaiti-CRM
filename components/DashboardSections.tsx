@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FLOOR_MAP_AREA_LABELS, FLOOR_MAP_ZONES, PPT_BOOTH_LAYOUT } from "@/components/AdminDashboard";
 import DashboardSelect from "@/components/DashboardSelect";
 import { createBackend, updateBackend, useBackend } from "@/lib/client-backend";
 
@@ -3421,6 +3422,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [contractDate, setContractDate] = useState(() => dateAfterDays(0));
   const [notes, setNotes] = useState("");
   const [search, setSearch] = useState("");
+  const [boothPickerOpen, setBoothPickerOpen] = useState(false);
+  const [boothMapQuery, setBoothMapQuery] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
 
@@ -3626,6 +3629,27 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       }))
       .filter((group) => group.booths.length > 0);
   }, [boothCatalog.data]);
+  const boothCatalogByNumber = useMemo(() => {
+    const boothMap = new Map<string, BackendRow>();
+    for (const booth of boothCatalog.data ?? []) {
+      const id = String(booth.booth_number ?? "").trim().toUpperCase();
+      if (id) boothMap.set(id, booth);
+    }
+    return boothMap;
+  }, [boothCatalog.data]);
+  const visibleBoothMapLayout = useMemo(() => {
+    const queryValue = boothMapQuery.trim().toUpperCase();
+    if (!queryValue) return PPT_BOOTH_LAYOUT;
+    return PPT_BOOTH_LAYOUT.filter((booth) => {
+      const boothId = booth.id.toUpperCase();
+      const catalogBooth = boothCatalogByNumber.get(boothId);
+      return [
+        boothId,
+        String(catalogBooth?.booth_size ?? ""),
+        String(catalogBooth?.booth_dimensions ?? ""),
+      ].some((value) => value.toUpperCase().includes(queryValue));
+    });
+  }, [boothCatalogByNumber, boothMapQuery]);
   function selectBooth(nextBooth: string) {
     const normalizedBooth = nextBooth.trim().toUpperCase();
     if (bookedBooths.has(normalizedBooth)) {
@@ -3941,48 +3965,123 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.contactName} <b className="required-mark">*</b></span><input onChange={(event) => setContactName(event.target.value)} value={contactName} /></label>
           <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>
           <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
-          <label className="quote-field"><span>{text.boothNumber}</span><input onChange={(event) => setBoothNumber(event.target.value)} value={boothNumber} /></label>
-          <div className="rental-booth-picker">
-            <div className="rental-booth-picker-head">
-              <div>
-                <strong>{isArabic ? "خريطة اختيار بوث العقد" : "Contract booth map"}</strong>
-                <span>{isArabic ? "اختر بوثاً متاحاً من الأزرار ليتم تعبئته في العقد" : "Pick an available booth button to fill the contract"}</span>
-              </div>
-              <b>{boothNumber || (isArabic ? "لم يتم الاختيار" : "Not selected")}</b>
-            </div>
-            <div className="rental-booth-legend">
-              <span><i className="available" />{isArabic ? "متاح" : "Available"}</span>
-              <span><i className="booked" />{isArabic ? "محجوز" : "Booked"}</span>
-              <span><i className="selected" />{isArabic ? "مختار" : "Selected"}</span>
-            </div>
-            <div className="rental-booth-groups">
-              {boothGroups.map((group) => (
-                <section className="rental-booth-group" key={group.label}>
-                  <h4>{group.label}</h4>
-                  <div className="rental-booth-grid">
-                    {group.booths.map((booth) => {
-                      const normalizedBooth = booth.id.toUpperCase();
+          <label className="quote-field rental-booth-number-field">
+            <span>{text.boothNumber}</span>
+            <button className="rental-booth-open-map" onClick={() => setBoothPickerOpen(true)} type="button">
+              <strong>{boothNumber || (isArabic ? "اختيار البوث" : "Choose booth")}</strong>
+              <span>{isArabic ? "اضغط لفتح خريطة البوثات" : "Open booth layout"}</span>
+            </button>
+          </label>
+          {boothPickerOpen ? (
+            <div className="rental-booth-modal-backdrop" role="presentation">
+              <section className="rental-booth-modal" aria-modal="true" role="dialog">
+                <div className="rental-booth-modal-head">
+                  <div>
+                    <span>{isArabic ? "اختيار بوث العقد" : "Contract booth selection"}</span>
+                    <h3>{isArabic ? "خريطة البوثات" : "Booth Layout"}</h3>
+                  </div>
+                  <button aria-label={isArabic ? "إغلاق" : "Close"} onClick={() => setBoothPickerOpen(false)} type="button">
+                    ×
+                  </button>
+                </div>
+                <div className="rental-booth-modal-toolbar">
+                  <div className="admin-record-search-bar search-box">
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                      <circle cx="10.8" cy="10.8" r="6.2" />
+                      <path d="m15.5 15.5 4 4" />
+                    </svg>
+                    <input
+                      onChange={(event) => setBoothMapQuery(event.target.value)}
+                      placeholder={isArabic ? "ابحث برقم البوث أو المساحة..." : "Search booth number or size..."}
+                      type="search"
+                      value={boothMapQuery}
+                    />
+                  </div>
+                  <div className="admin-booth-map-legend" aria-label={isArabic ? "دليل ألوان البوثات" : "Booth color legend"}>
+                    <span>{isArabic ? "متاح" : "Available"}<i className="available" aria-hidden="true" /></span>
+                    <span>{isArabic ? "محجوز" : "Booked"}<i className="booked" aria-hidden="true" /></span>
+                    <span>{isArabic ? "مختار" : "Selected"}<i className="selected" aria-hidden="true" /></span>
+                  </div>
+                </div>
+                <div className="rental-booth-modal-map">
+                  <div className="admin-floor-map-canvas">
+                    <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
+                      {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}
+                    </div>
+                    <div className="admin-floor-map-label entrance">{isArabic ? "بوابة الدخول" : "Entrance"}</div>
+                    <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
+                    {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "all").map((zone) => (
+                      <div
+                        className={`admin-floor-zone-container ${zone.key}`}
+                        key={zone.key}
+                        style={{
+                          left: `${zone.left}%`,
+                          top: `${zone.top}%`,
+                          width: `${zone.width}%`,
+                          height: `${zone.height}%`,
+                        }}
+                      />
+                    ))}
+                    {FLOOR_MAP_AREA_LABELS.map((area) => (
+                      <div
+                        className={`admin-floor-map-area-label ${area.key}`}
+                        dir={isArabic ? "rtl" : "ltr"}
+                        key={area.key}
+                        style={{
+                          left: `${area.left}%`,
+                          top: `${area.top}%`,
+                          width: `${area.width}%`,
+                          height: `${area.height}%`,
+                        }}
+                      >
+                        {isArabic ? area.labelAr : area.labelEn}
+                      </div>
+                    ))}
+                    {visibleBoothMapLayout.map((layoutBooth) => {
+                      const normalizedBooth = layoutBooth.id.toUpperCase();
+                      const catalogBooth = boothCatalogByNumber.get(normalizedBooth);
                       const isBooked = bookedBooths.has(normalizedBooth);
                       const isSelected = boothNumber.trim().toUpperCase() === normalizedBooth;
+                      const boothSizeText = String(
+                        catalogBooth?.booth_size ??
+                        (layoutBooth.id === "ACADEMY" ? "100m" : layoutBooth.id === "GLASS HOUSE" ? "60m" : ""),
+                      ).trim();
+                      const isFeatureArea = layoutBooth.id === "ACADEMY" || layoutBooth.id === "GLASS HOUSE";
+                      const boothMapLabel =
+                        layoutBooth.id === "ACADEMY"
+                          ? isArabic ? "الأكاديمية" : "Academy"
+                          : layoutBooth.id === "GLASS HOUSE"
+                            ? isArabic ? "جلاس هاوس" : "Glass House"
+                            : layoutBooth.id;
                       return (
                         <button
                           aria-pressed={isSelected}
-                          className={`rental-booth-tile ${isBooked ? "booked" : "available"} ${isSelected ? "selected" : ""}`}
+                          className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${isBooked ? "is-booked" : ""} ${isSelected ? "is-selected" : ""}`}
                           disabled={isBooked}
-                          key={booth.id}
-                          onClick={() => selectBooth(booth.id)}
-                          title={`${booth.id}${booth.area ? ` - ${booth.area}` : ""}${isBooked ? ` - ${isArabic ? "محجوز" : "Booked"}` : ""}`}
+                          dir="ltr"
+                          key={layoutBooth.id}
+                          onClick={() => {
+                            selectBooth(layoutBooth.id);
+                            if (!isBooked) setBoothPickerOpen(false);
+                          }}
+                          style={{
+                            left: `${layoutBooth.left}%`,
+                            top: `${layoutBooth.top}%`,
+                            width: `${layoutBooth.width}%`,
+                            height: `${layoutBooth.height}%`,
+                          }}
                           type="button"
                         >
-                          {booth.id}
+                          <strong>{boothMapLabel}</strong>
+                          {boothSizeText ? <span>{boothSizeText}</span> : null}
                         </button>
                       );
                     })}
                   </div>
-                </section>
-              ))}
+                </div>
+              </section>
             </div>
-          </div>
+          ) : null}
           <label className="quote-field"><span>{text.participationCategory}</span><input onChange={(event) => setParticipationCategory(event.target.value)} value={participationCategory} /></label>
           <label className="quote-field"><span>{text.boothSize}</span><input onChange={(event) => setBoothSize(event.target.value)} value={boothSize} /></label>
           <label className="quote-field"><span>{text.rentalItem} <b className="required-mark">*</b></span><input onChange={(event) => setRentalItem(event.target.value)} value={rentalItem} /></label>

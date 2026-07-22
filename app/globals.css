@@ -5551,6 +5551,119 @@ html[dir="ltr"] .dashboard-main {
   background: #007bff;
 }
 
+.rental-booth-number-field {
+  position: relative;
+}
+
+.rental-booth-open-map {
+  width: 100%;
+  min-height: 48px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f2d4a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  text-align: start;
+}
+
+.rental-booth-open-map strong {
+  color: #000000;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.rental-booth-open-map span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rental-booth-open-map:hover,
+.rental-booth-open-map:focus-visible {
+  border-color: #1a748b;
+  box-shadow: 0 0 0 4px rgba(26, 116, 139, 0.12);
+  outline: none;
+}
+
+.rental-booth-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(15, 23, 42, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.rental-booth-modal {
+  width: min(1180px, 96vw);
+  max-height: 94vh;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 45, 74, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  padding: 14px;
+}
+
+.rental-booth-modal-head,
+.rental-booth-modal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rental-booth-modal-head span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rental-booth-modal-head h3 {
+  color: #0f2d4a;
+  font-size: 22px;
+  font-weight: 900;
+  margin: 2px 0 0;
+}
+
+.rental-booth-modal-head button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  cursor: pointer;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.rental-booth-modal-toolbar .admin-record-search-bar {
+  max-width: 420px;
+}
+
+.rental-booth-modal-map {
+  overflow: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 12px;
+}
+
+.rental-booth-modal-map .admin-floor-map-canvas {
+  margin: 0 auto;
+}
+
 .rental-floor-map-shell {
   overflow: auto;
   max-height: 72vh;
