@@ -3727,7 +3727,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .party-box h3{font-size:16px;font-weight:800;margin:0 0 3mm;}
       .party-box p{margin:1.7mm 0;font-size:12.5px;line-height:1.45;}
       .center-section{text-align:center;margin-top:8mm;}
-      .section-title{font-size:17px;font-weight:800;margin:6mm 0 3mm;text-align:right;}
+      .section-title{font-size:17px;font-weight:800;margin:6mm 0 3mm;text-align:right;break-after:avoid;page-break-after:avoid;}
       .preamble{font-size:12.5px;text-align:justify;text-align-last:right;line-height:1.9;margin:0 2mm 4mm;}
       table{width:100%;border-collapse:collapse;margin:4mm 0 6mm;}
       th,td{border:1px solid #111;padding:2.8mm 2mm;text-align:center;font-size:12px;line-height:1.45;}
@@ -3737,10 +3737,10 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .signature{display:grid;grid-template-columns:1fr 1fr;gap:26mm;margin-top:18mm;text-align:center;font-size:12px;}
       .signature div{min-height:35mm;}
       .ltr{direction:ltr;text-align:left;}
-      .footer-page{position:absolute;left:0;right:0;bottom:6mm;text-align:center;color:#777;font-size:10px;}
-      .page-break{break-before:page;page-break-before:always;}
+      .footer-page{display:none;}
+      .page-break{break-before:auto;page-break-before:auto;}
       p,li,td,th,.party-box{overflow-wrap:anywhere;}
-      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:279mm;margin:0;padding:0;break-after:page;}.top-strip{width:216mm;margin-inline:0;}.contract-inner{padding:11mm 13mm 15mm;}.party-box{break-inside:avoid;page-break-inside:avoid;}.page:last-child{break-after:auto;}}
+      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:auto;margin:0;padding:0;break-after:auto;}.top-strip{width:216mm;margin-inline:0;}.contract-inner{padding:11mm 13mm 8mm;}.section-title{break-after:avoid;page-break-after:avoid;}.preamble,table,ul,ol{break-before:avoid;page-break-before:avoid;}.party-box{break-inside:avoid;page-break-inside:avoid;}.page-break{break-before:auto;page-break-before:auto;}}
     </style></head><body>
     <div class="page">
       <div class="top-strip"></div>
