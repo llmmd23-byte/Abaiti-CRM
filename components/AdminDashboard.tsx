@@ -3714,21 +3714,27 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
     setIsLoading(true);
     setMessage("");
     try {
-      const [boothResponse, bookingResponse] = await Promise.all([
-        fetch("/api/v1/data/booths", { cache: "no-store" }),
-        fetch("/api/v1/data/rental-booths", { cache: "no-store" }),
-      ]);
-      const [boothPayload, bookingPayload] = await Promise.all([
-        boothResponse.json().catch(() => ({})),
-        bookingResponse.json().catch(() => ({})),
-      ]);
+      const boothResponse = await fetch("/api/v1/data/booths", { cache: "no-store" });
+      const boothPayload = await boothResponse.json().catch(() => ({}));
       if (!boothResponse.ok) throw new Error("LOAD_FAILED");
       setBooths(Array.isArray(boothPayload.data) ? boothPayload.data : []);
-      setBookings(Array.isArray(bookingPayload.data) ? bookingPayload.data : []);
+      void loadBoothBookings();
     } catch {
       setMessage(isArabic ? "تعذر تحميل بيانات البوثات" : "Unable to load booths");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function loadBoothBookings() {
+    try {
+      const bookingResponse = await fetch("/api/v1/data/rental-booths", { cache: "no-store" });
+      const bookingPayload = await bookingResponse.json().catch(() => ({}));
+      if (bookingResponse.ok) {
+        setBookings(Array.isArray(bookingPayload.data) ? bookingPayload.data : []);
+      }
+    } catch {
+      setBookings([]);
     }
   }
 
