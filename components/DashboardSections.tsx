@@ -3716,7 +3716,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .contract-inner{padding:clamp(12px,2vw,28px);}
       .top-strip{width:100vw;height:12mm;margin-inline:calc(50% - 50vw);margin-bottom:10mm;background:#0b0537;}
       .logos{display:flex;align-items:flex-start;justify-content:space-between;margin:0 4mm 5mm;}
-      .event-logo{width:38mm;height:auto;object-fit:contain;}
+      .event-logo{width:52mm;height:auto;object-fit:contain;}
       .netaq-logo{width:72mm;height:auto;object-fit:contain;}
       .title{text-align:center;font-size:28px;font-weight:900;line-height:1.35;margin:2mm 0 2.5mm;}
       .subtitle{text-align:center;font-size:16px;font-weight:800;line-height:1.7;margin-bottom:4.5mm;}
