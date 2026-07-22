@@ -3654,7 +3654,6 @@ const FLOOR_MAP_AREA_LABELS = [
   { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 52.463, top: 16.719, width: 43.18, height: 4.237 },
   { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 86.906, top: 19.21, width: 8.812, height: 42.352 },
   { key: "corridor-top", labelAr: "ممر 4m", labelEn: "Corridor 4m", left: 46.1, top: 15.4, width: 5.9, height: 4.7 },
-  { key: "corridor", labelAr: "ممر 4m", labelEn: "Corridor 4m", left: 46.25, top: 48.2, width: 5.9, height: 6.7 },
   { key: "innovation", labelAr: "ساحة الابتكار", labelEn: "Innovation Area", left: 52.464, top: 73.895, width: 43.309, height: 4.486 },
   { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.235, top: 75.199, width: 43.355, height: 22.454 },
 ] as const;
