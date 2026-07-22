@@ -3660,6 +3660,25 @@ const FLOOR_MAP_AREA_LABELS = [
   { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.235, top: 75.199, width: 43.355, height: 22.454 },
 ] as const;
 
+const FLOOR_MAP_ZONES = [
+  { key: "all", labelAr: "كل الأقسام", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
+  { key: "prefunction", labelAr: "قاعة ما قبل الفعالية", labelEn: "Pre-Function Hall", left: 3.2, top: 4.2, width: 84.2, height: 10.4 },
+  { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.2, top: 16.4, width: 43.4, height: 55.8 },
+  { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 52.2, top: 16.4, width: 43.6, height: 56.4 },
+  { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 86.4, top: 16.4, width: 9.9, height: 48.2 },
+  { key: "innovation", labelAr: "ساحة الابتكار", labelEn: "Innovation Area", left: 52.2, top: 73.2, width: 43.8, height: 23.6 },
+  { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.2, top: 74.4, width: 43.6, height: 23.4 },
+] as const;
+
+function floorMapZoneForBooth(boothId: string) {
+  if (boothId.startsWith("ST") || boothId.startsWith("TP")) return "prefunction";
+  if (boothId.startsWith("M") || boothId === "ACADEMY" || boothId.startsWith("SB")) return "traders";
+  if (boothId.startsWith("RL") || boothId === "GLASS HOUSE") return "roasting";
+  if (boothId.startsWith("FL")) return "farmers";
+  if (boothId.startsWith("IN")) return "innovation";
+  return "stage";
+}
+
 function boothPrefix(value: unknown) {
   return String(value ?? "").trim().toUpperCase().match(/^[A-Z]+/)?.[0] ?? "OTHER";
 }
@@ -3687,6 +3706,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
     notes: "",
   });
   const [query, setQuery] = useState("");
+  const [activeZone, setActiveZone] = useState("all");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -3879,6 +3899,19 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
             value={query}
           />
         </div>
+        <div className="admin-booth-zone-filter" role="listbox" aria-label={isArabic ? "فلترة الأقسام" : "Zone filter"}>
+          {FLOOR_MAP_ZONES.map((zone) => (
+            <button
+              aria-selected={activeZone === zone.key}
+              className={activeZone === zone.key ? "active" : ""}
+              key={zone.key}
+              onClick={() => setActiveZone(zone.key)}
+              type="button"
+            >
+              {isArabic ? zone.labelAr : zone.labelEn}
+            </button>
+          ))}
+        </div>
         <button className="admin-action-btn" onClick={() => void loadBooths()} type="button">
           {isArabic ? "تحديث" : "Refresh"}
         </button>
@@ -3899,6 +3932,18 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                 <div className="admin-floor-map-label right" dir={isArabic ? "rtl" : "ltr"}>
                   {isArabic ? "خريطة المعرض" : "Floor Map"}
                 </div>
+                {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "all").map((zone) => (
+                  <div
+                    className={`admin-floor-zone-container ${zone.key} ${activeZone === zone.key ? "is-focused" : ""} ${activeZone !== "all" && activeZone !== zone.key ? "is-dimmed" : ""}`}
+                    key={zone.key}
+                    style={{
+                      left: `${zone.left}%`,
+                      top: `${zone.top}%`,
+                      width: `${zone.width}%`,
+                      height: `${zone.height}%`,
+                    }}
+                  />
+                ))}
                 {FLOOR_MAP_AREA_LABELS.map((area) => (
                   <div
                     className={`admin-floor-map-area-label ${area.key}`}
@@ -3915,6 +3960,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   </div>
                 ))}
                 {visibleLayoutBooths.map((layoutBooth) => {
+                  const layoutZone = floorMapZoneForBooth(layoutBooth.id);
                   const booth = boothsByNumber.get(layoutBooth.id);
                   const isMissing = !booth;
                   const isBooked = bookedByNumber.has(layoutBooth.id);
@@ -3936,7 +3982,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   ).trim();
                   return (
                     <button
-                      className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
+                      className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${activeZone !== "all" && activeZone !== layoutZone ? "is-zone-dimmed" : ""} ${activeZone === layoutZone ? "is-zone-focused" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
                       disabled={isMissing}
                       dir="ltr"
                       key={layoutBooth.id}

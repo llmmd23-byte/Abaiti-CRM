@@ -21347,6 +21347,33 @@ html[dir="rtl"]
   max-width: 420px;
 }
 
+.admin-booth-zone-filter {
+  display: flex;
+  flex: 1 1 360px;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.admin-booth-zone-filter button {
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f2d4a;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 7px 10px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-booth-zone-filter button:hover,
+.admin-booth-zone-filter button.active {
+  border-color: #1a748b;
+  background: #e6f7ff;
+  color: #1a748b;
+}
+
 .admin-booths-workspace {
   align-items: stretch;
   gap: 18px;
@@ -21395,7 +21422,7 @@ html[dir="rtl"]
 .admin-floor-map-label,
 .admin-floor-map-zone {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   pointer-events: none;
   color: #64748b;
   font-size: 12px;
@@ -21457,9 +21484,47 @@ html[dir="rtl"]
   color: #1a748b;
 }
 
-.admin-floor-map-area-label {
+.admin-floor-zone-container {
   position: absolute;
   z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgba(15, 45, 74, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  transition: opacity 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.admin-floor-zone-container.prefunction {
+  background: rgba(226, 232, 240, 0.32);
+}
+
+.admin-floor-zone-container.traders,
+.admin-floor-zone-container.stage {
+  background: rgba(196, 167, 251, 0.13);
+  border-color: rgba(124, 58, 237, 0.16);
+}
+
+.admin-floor-zone-container.roasting,
+.admin-floor-zone-container.farmers,
+.admin-floor-zone-container.innovation {
+  background: rgba(204, 251, 241, 0.13);
+  border-color: rgba(26, 116, 139, 0.16);
+}
+
+.admin-floor-zone-container.is-focused {
+  background: rgba(219, 234, 254, 0.34);
+  border-color: rgba(26, 116, 139, 0.52);
+  box-shadow: inset 0 0 0 1px rgba(26, 116, 139, 0.22), 0 0 0 3px rgba(26, 116, 139, 0.1);
+}
+
+.admin-floor-zone-container.is-dimmed {
+  opacity: 0.34;
+}
+
+.admin-floor-map-area-label {
+  position: absolute;
+  z-index: 2;
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -21532,6 +21597,14 @@ html[dir="rtl"]
 .admin-booth-map-tile.is-feature-area:hover {
   z-index: 4;
   background: rgba(219, 234, 254, 0.82);
+}
+
+.admin-booth-map-tile.is-zone-focused {
+  box-shadow: 0 0 0 2px rgba(26, 116, 139, 0.22);
+}
+
+.admin-booth-map-tile.is-zone-dimmed {
+  opacity: 0.3;
 }
 
 .admin-booth-map-tile strong {
