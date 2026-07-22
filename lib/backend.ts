@@ -28,6 +28,7 @@ export type BackendResource =
   | "sponsorship-contracts"
   | "rental-contracts"
   | "rental-booths"
+  | "booths"
   | "sales-orders"
   | "sales"
   | "commissions"
@@ -303,6 +304,20 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     table: "rental_booths",
     permissionKey: "table.quotes",
     writable: [],
+  },
+  booths: {
+    table: "booth",
+    permissionKey: "table.quotes",
+    writable: [
+      "booth_number",
+      "booth_size",
+      "booth_category",
+      "hall",
+      "location_zone",
+      "status",
+      "notes",
+    ],
+    defaults: { status: "available" },
   },
   "sales-orders": {
     table: "sales_orders",
@@ -714,6 +729,10 @@ async function ensureResourceTable(resource: string) {
   if (resource === "rental-booths") {
     await ensureRentalContractsTable();
   }
+  if (resource === "booths") {
+    await ensureBoothTable();
+    await syncBoothCatalogFromRentalBooths();
+  }
   if (resource === "sales-orders") {
     await ensureSalesOrdersTable();
   }
@@ -930,6 +949,42 @@ async function ensureRentalBoothsTable() {
       KEY idx_rental_booths_contract (rental_contract_id),
       KEY idx_rental_booths_affiliate (affiliate_user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
+async function ensureBoothTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS booth (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      booth_number VARCHAR(80) NOT NULL,
+      booth_size VARCHAR(80) NULL,
+      booth_category VARCHAR(120) NULL,
+      hall VARCHAR(120) NULL,
+      location_zone VARCHAR(120) NULL,
+      status ENUM('available', 'inactive') NOT NULL DEFAULT 'available',
+      notes TEXT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_booth_number (booth_number),
+      KEY idx_booth_status (status),
+      KEY idx_booth_category (booth_category)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
+async function syncBoothCatalogFromRentalBooths() {
+  await ensureBoothTable();
+  await ensureRentalBoothsTable();
+  await db.execute(
+    `INSERT INTO booth (booth_number, booth_size, status)
+      SELECT rb.booth_number, MAX(rb.booth_size), 'available'
+        FROM rental_booths rb
+       WHERE rb.booth_number IS NOT NULL
+         AND TRIM(rb.booth_number) <> ''
+       GROUP BY rb.booth_number
+      ON DUPLICATE KEY UPDATE
+        booth_size = COALESCE(booth.booth_size, VALUES(booth_size))`,
   );
 }
 
@@ -2137,6 +2192,7 @@ const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   "participation-contracts": ["company_name", "contact_name", "package_type"],
   "sponsorship-contracts": ["company_name", "contact_name", "sponsorship_category"],
   "rental-contracts": ["company_name", "contact_name", "rental_item"],
+  booths: ["booth_number"],
   "sales-orders": ["company_name", "contact_name", "item_description"],
   "support-tickets": ["category", "subject", "details"],
   "team-members": ["name", "phone"],
@@ -2351,6 +2407,16 @@ export async function createResource(
       await assertRentalBoothAvailable(data.booth_number);
     }
     if (!data.contract_number) data.contract_number = generatedReference(resource);
+  }
+  if (resource === "booths") {
+    data.booth_number = normalizedBoothNumber(data.booth_number);
+    for (const column of ["booth_size", "booth_category", "hall", "location_zone"]) {
+      if (data[column] !== undefined && data[column] !== null)
+        data[column] = String(data[column]).trim() || null;
+    }
+    if (!["available", "inactive"].includes(String(data.status ?? "available"))) {
+      data.status = "available";
+    }
   }
   if (definition.ownerField) data[definition.ownerField] = Number(session.sub);
   if (resource === "stock") {
@@ -2806,6 +2872,20 @@ export async function updateResource(
     if (data.booth_number !== undefined && data.booth_number !== null) {
       data.booth_number = normalizedBoothNumber(data.booth_number);
       await assertRentalBoothAvailable(data.booth_number, id);
+    }
+  }
+  if (resource === "booths") {
+    if (data.booth_number !== undefined && data.booth_number !== null)
+      data.booth_number = normalizedBoothNumber(data.booth_number);
+    for (const column of ["booth_size", "booth_category", "hall", "location_zone"]) {
+      if (data[column] !== undefined && data[column] !== null)
+        data[column] = String(data[column]).trim() || null;
+    }
+    if (
+      data.status !== undefined &&
+      !["available", "inactive"].includes(String(data.status ?? "available"))
+    ) {
+      data.status = "available";
     }
   }
   if (resource === "lead-tag-assignments" && data.tag_id) {
