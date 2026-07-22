@@ -27,6 +27,7 @@ type AdminSection =
   | "tickets"
   | "accounts"
   | "products"
+  | "booths"
   | "tags"
   | "activity"
   | "content"
@@ -131,6 +132,7 @@ const navItems = [
   [{ ar: "تذاكر الخدمة", en: "Service Tickets" }, "tickets"],
   [{ ar: "الحسابات", en: "Accounts" }, "accounts"],
   [{ ar: "المنتجات", en: "Products" }, "products"],
+  [{ ar: "البوثات", en: "Booths" }, "booths"],
   [{ ar: "الوسوم", en: "Tags" }, "tags"],
   [{ ar: "الأنشطة", en: "Industries" }, "activity"],
   [{ ar: "المحتوى", en: "Content" }, "content"],
@@ -306,6 +308,12 @@ function AdminIcon({ name }: { name: string }) {
         <>
           <path d="m4 8 8-4 8 4-8 4-8-4Z" />
           <path d="M4 8v8l8 4 8-4V8M12 12v8" />
+        </>
+      ) : name === "booths" ? (
+        <>
+          <rect x="4" y="5" width="16" height="14" rx="2" />
+          <path d="M8 5v14M16 5v14M4 12h16" />
+          <path d="M8 8h8M8 16h8" />
         </>
       ) : name === "tags" ? (
         <>
@@ -3514,6 +3522,341 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   );
 }
 
+function boothPrefix(value: unknown) {
+  return String(value ?? "").trim().toUpperCase().match(/^[A-Z]+/)?.[0] ?? "OTHER";
+}
+
+function boothSort(first: AdminRow, second: AdminRow) {
+  return String(first.booth_number ?? "").localeCompare(
+    String(second.booth_number ?? ""),
+    "en",
+    { numeric: true },
+  );
+}
+
+function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
+  const [booths, setBooths] = useState<AdminRow[]>([]);
+  const [bookings, setBookings] = useState<AdminRow[]>([]);
+  const [selectedBooth, setSelectedBooth] = useState<AdminRow | null>(null);
+  const [draft, setDraft] = useState({
+    booth_number: "",
+    booth_size: "",
+    booth_dimensions: "",
+    booth_category: "",
+    hall: "",
+    location_zone: "",
+    status: "available",
+    notes: "",
+  });
+  const [query, setQuery] = useState("");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  async function loadBooths() {
+    setIsLoading(true);
+    setMessage("");
+    try {
+      const [boothResponse, bookingResponse] = await Promise.all([
+        fetch("/api/v1/data/booths", { cache: "no-store" }),
+        fetch("/api/v1/data/rental-booths", { cache: "no-store" }),
+      ]);
+      const [boothPayload, bookingPayload] = await Promise.all([
+        boothResponse.json().catch(() => ({})),
+        bookingResponse.json().catch(() => ({})),
+      ]);
+      if (!boothResponse.ok) throw new Error("LOAD_FAILED");
+      setBooths(Array.isArray(boothPayload.data) ? boothPayload.data : []);
+      setBookings(Array.isArray(bookingPayload.data) ? bookingPayload.data : []);
+    } catch {
+      setMessage(isArabic ? "تعذر تحميل بيانات البوثات" : "Unable to load booths");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadBooths();
+  }, []);
+
+  const bookedByNumber = useMemo(() => {
+    const map = new Map<string, AdminRow>();
+    for (const booking of bookings) {
+      const boothNumber = String(booking.booth_number ?? "").trim().toUpperCase();
+      if (boothNumber) map.set(boothNumber, booking);
+    }
+    return map;
+  }, [bookings]);
+
+  const filteredBooths = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    return booths
+      .filter((booth) => {
+        if (!normalizedQuery) return true;
+        return [
+          booth.booth_number,
+          booth.booth_size,
+          booth.booth_dimensions,
+          booth.booth_category,
+          booth.hall,
+          booth.location_zone,
+          booth.notes,
+        ].some((value) =>
+          String(value ?? "").toLocaleLowerCase().includes(normalizedQuery),
+        );
+      })
+      .sort(boothSort);
+  }, [booths, query]);
+
+  const boothGroups = useMemo(() => {
+    const groups = new Map<string, AdminRow[]>();
+    for (const booth of filteredBooths) {
+      const prefix = boothPrefix(booth.booth_number);
+      const group = groups.get(prefix) ?? [];
+      group.push(booth);
+      groups.set(prefix, group);
+    }
+    const preferredOrder = ["RL", "M", "IN", "ST", "FL", "SB", "TP", "OTHER"];
+    return Array.from(groups.entries())
+      .sort(([first], [second]) => {
+        const firstIndex = preferredOrder.indexOf(first);
+        const secondIndex = preferredOrder.indexOf(second);
+        if (firstIndex !== -1 || secondIndex !== -1) {
+          return (firstIndex === -1 ? 999 : firstIndex) - (secondIndex === -1 ? 999 : secondIndex);
+        }
+        return first.localeCompare(second);
+      })
+      .map(([label, rows]) => ({ label, rows: rows.sort(boothSort) }));
+  }, [filteredBooths]);
+
+  const selectedBooking = selectedBooth
+    ? bookedByNumber.get(String(selectedBooth.booth_number ?? "").trim().toUpperCase())
+    : null;
+  const totalBooked = bookedByNumber.size;
+  const totalInactive = booths.filter((booth) => String(booth.status ?? "available") === "inactive").length;
+
+  function selectBooth(booth: AdminRow) {
+    setSelectedBooth(booth);
+    setDraft({
+      booth_number: String(booth.booth_number ?? ""),
+      booth_size: String(booth.booth_size ?? ""),
+      booth_dimensions: String(booth.booth_dimensions ?? ""),
+      booth_category: String(booth.booth_category ?? ""),
+      hall: String(booth.hall ?? ""),
+      location_zone: String(booth.location_zone ?? ""),
+      status: String(booth.status ?? "available"),
+      notes: String(booth.notes ?? ""),
+    });
+    setMessage("");
+  }
+
+  async function saveBooth() {
+    if (!selectedBooth || isSaving) return;
+    if (!draft.booth_number.trim()) {
+      setMessage(isArabic ? "رقم البوث مطلوب" : "Booth number is required");
+      return;
+    }
+    setIsSaving(true);
+    setMessage(isArabic ? "جاري الحفظ..." : "Saving...");
+    try {
+      const response = await fetch(`/api/v1/data/booths/${selectedBooth.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          booth_number: draft.booth_number.trim().toUpperCase(),
+          booth_size: draft.booth_size.trim() || null,
+          booth_dimensions: draft.booth_dimensions.trim() || null,
+          booth_category: draft.booth_category.trim() || null,
+          hall: draft.hall.trim() || null,
+          location_zone: draft.location_zone.trim() || null,
+          status: draft.status,
+          notes: draft.notes.trim() || null,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
+      const nextBooth = {
+        ...selectedBooth,
+        ...(payload.data && typeof payload.data === "object" ? payload.data : {}),
+      };
+      setBooths((current) =>
+        current.map((booth) => (Number(booth.id) === Number(nextBooth.id) ? nextBooth : booth)),
+      );
+      setSelectedBooth(nextBooth);
+      setMessage(isArabic ? "تم حفظ بيانات البوث" : "Booth saved");
+      window.setTimeout(() => setMessage(""), 2200);
+    } catch {
+      setMessage(isArabic ? "تعذر حفظ بيانات البوث" : "Unable to save booth");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="admin-data-card admin-booths-page">
+      <div className="admin-booths-head">
+        <div>
+          <span>{isArabic ? "إدارة البوثات" : "Booth Management"}</span>
+          <h2>{isArabic ? "خريطة البوثات" : "Booth Layout"}</h2>
+          <p>
+            {isArabic
+              ? "اختر أي بوث من المخطط لتعديل رقمه، مقاسه، أبعاده، موقعه أو حالته."
+              : "Select any booth from the layout to edit its number, size, dimensions, location, or status."}
+          </p>
+        </div>
+        <div className="admin-booth-stats">
+          <span>{booths.length.toLocaleString(NUMBER_LOCALE)} {isArabic ? "بوث" : "booths"}</span>
+          <span className="booked">{totalBooked.toLocaleString(NUMBER_LOCALE)} {isArabic ? "محجوز" : "booked"}</span>
+          <span className="inactive">{totalInactive.toLocaleString(NUMBER_LOCALE)} {isArabic ? "غير نشط" : "inactive"}</span>
+        </div>
+      </div>
+
+      <div className="admin-booths-toolbar">
+        <div className="admin-record-search-bar search-box">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="10.8" cy="10.8" r="6.2" />
+            <path d="m15.5 15.5 4 4" />
+          </svg>
+          <input
+            aria-label={isArabic ? "البحث في البوثات" : "Search booths"}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={isArabic ? "ابحث برقم البوث أو المنطقة..." : "Search booth number or zone..."}
+            type="search"
+            value={query}
+          />
+        </div>
+        <button className="admin-action-btn" onClick={() => void loadBooths()} type="button">
+          {isArabic ? "تحديث" : "Refresh"}
+        </button>
+      </div>
+
+      <div className="admin-booths-workspace">
+        <div className="admin-booths-layout" aria-busy={isLoading}>
+          {isLoading ? (
+            <div className="admin-booths-empty">{isArabic ? "جاري تحميل الخريطة..." : "Loading layout..."}</div>
+          ) : boothGroups.length ? (
+            boothGroups.map((group) => (
+              <section className="admin-booth-zone" key={group.label}>
+                <div className="admin-booth-zone-title">
+                  <strong>{group.label}</strong>
+                  <span>{group.rows.length.toLocaleString(NUMBER_LOCALE)}</span>
+                </div>
+                <div className="admin-booth-buttons">
+                  {group.rows.map((booth) => {
+                    const boothNumber = String(booth.booth_number ?? "").trim().toUpperCase();
+                    const isBooked = bookedByNumber.has(boothNumber);
+                    const isInactive = String(booth.status ?? "available") === "inactive";
+                    const isSelected = Number(selectedBooth?.id) === Number(booth.id);
+                    return (
+                      <button
+                        className={`admin-booth-tile ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""}`}
+                        key={booth.id}
+                        onClick={() => selectBooth(booth)}
+                        type="button"
+                      >
+                        <strong>{boothNumber}</strong>
+                        <span>{String(booth.booth_dimensions ?? booth.booth_size ?? "")}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ))
+          ) : (
+            <div className="admin-booths-empty">{isArabic ? "لا توجد بوثات مطابقة" : "No matching booths"}</div>
+          )}
+        </div>
+
+        <aside className="admin-booth-editor">
+          {selectedBooth ? (
+            <>
+              <div className="admin-booth-editor-head">
+                <div>
+                  <span>{isArabic ? "بيانات البوث" : "Booth Details"}</span>
+                  <h3>{String(selectedBooth.booth_number ?? "")}</h3>
+                </div>
+                <span className={`admin-booth-status ${selectedBooking ? "booked" : String(draft.status)}`}>
+                  {selectedBooking
+                    ? isArabic ? "محجوز" : "Booked"
+                    : draft.status === "inactive"
+                      ? isArabic ? "غير نشط" : "Inactive"
+                      : isArabic ? "متاح" : "Available"}
+                </span>
+              </div>
+              {selectedBooking ? (
+                <div className="admin-booth-booking-note">
+                  <strong>{isArabic ? "مرتبط بعقد" : "Linked contract"}</strong>
+                  <span>
+                    {String(selectedBooking.contract_number ?? selectedBooking.company_name ?? selectedBooking.rental_contract_id ?? "—")}
+                  </span>
+                </div>
+              ) : null}
+              <div className="admin-booth-form">
+                {[
+                  ["booth_number", isArabic ? "رقم البوث" : "Booth number"],
+                  ["booth_size", isArabic ? "المساحة" : "Size"],
+                  ["booth_dimensions", isArabic ? "أبعاد البوث" : "Dimensions"],
+                  ["booth_category", isArabic ? "الفئة" : "Category"],
+                  ["hall", isArabic ? "القاعة" : "Hall"],
+                  ["location_zone", isArabic ? "المنطقة" : "Zone"],
+                ].map(([field, label]) => (
+                  <label key={field}>
+                    <span>{label}</span>
+                    <input
+                      dir={field === "booth_number" || field === "booth_size" || field === "booth_dimensions" ? "ltr" : undefined}
+                      onChange={(event) =>
+                        setDraft((current) => ({ ...current, [field]: event.target.value }))
+                      }
+                      value={draft[field as keyof typeof draft]}
+                    />
+                  </label>
+                ))}
+                <label>
+                  <span>{isArabic ? "الحالة" : "Status"}</span>
+                  <select
+                    className="admin-basic-select"
+                    onChange={(event) =>
+                      setDraft((current) => ({ ...current, status: event.target.value }))
+                    }
+                    value={draft.status}
+                  >
+                    <option value="available">{isArabic ? "متاح" : "Available"}</option>
+                    <option value="inactive">{isArabic ? "غير نشط" : "Inactive"}</option>
+                  </select>
+                </label>
+                <label className="admin-booth-notes">
+                  <span>{isArabic ? "ملاحظات" : "Notes"}</span>
+                  <textarea
+                    onChange={(event) =>
+                      setDraft((current) => ({ ...current, notes: event.target.value }))
+                    }
+                    value={draft.notes}
+                  />
+                </label>
+              </div>
+              {message ? <p className="admin-booth-message">{message}</p> : null}
+              <div className="admin-edit-actions">
+                <button className="secondary" onClick={() => selectBooth(selectedBooth)} type="button">
+                  {isArabic ? "إلغاء التعديل" : "Reset"}
+                </button>
+                <button className="primary" disabled={isSaving} onClick={() => void saveBooth()} type="button">
+                  {isSaving ? (isArabic ? "جاري الحفظ..." : "Saving...") : (isArabic ? "حفظ بيانات البوث" : "Save booth")}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="admin-booth-editor-empty">
+              <strong>{isArabic ? "اختر بوث من الخريطة" : "Select a booth"}</strong>
+              <span>{isArabic ? "ستظهر بياناته هنا للتعديل." : "Its details will appear here for editing."}</span>
+              {message ? <p className="admin-booth-message">{message}</p> : null}
+            </div>
+          )}
+        </aside>
+      </div>
+    </section>
+  );
+}
+
 function AdminManagementSection({
   section,
   data,
@@ -3687,7 +4030,7 @@ function AdminManagementSection({
       ],
     },
   } satisfies Record<
-    Exclude<AdminSection, "dashboard" | "permissions" | "tags">,
+    Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths">,
     { rows: AdminRow[]; columns: string[][] }
   >;
   const config =
@@ -3703,7 +4046,7 @@ function AdminManagementSection({
             ["created_at", isArabic ? "تاريخ الرفع" : "Upload Date"],
           ],
         }
-      : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags">] ?? {
+      : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths">] ?? {
           rows: [],
           columns: [],
         };
@@ -3754,6 +4097,10 @@ function AdminManagementSection({
 
   if (section === "tags") {
     return <AdminTagsSection data={managementData} isArabic={isArabic} onReload={onReload} />;
+  }
+
+  if (section === "booths") {
+    return <AdminBoothsSection isArabic={isArabic} />;
   }
 
   if (!data)

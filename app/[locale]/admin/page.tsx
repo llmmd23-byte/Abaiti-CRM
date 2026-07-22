@@ -7,6 +7,7 @@ const validAdminSections = new Set([
   "tickets",
   "accounts",
   "products",
+  "booths",
   "tags",
   "activity",
   "content",
@@ -31,6 +32,7 @@ export default async function AdminPage({
         | "tickets"
         | "accounts"
         | "products"
+        | "booths"
         | "tags"
         | "activity"
         | "content"
