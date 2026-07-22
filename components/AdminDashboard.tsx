@@ -3664,7 +3664,7 @@ const FLOOR_MAP_ZONES = [
   { key: "all", labelAr: "كل الأقسام", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
   { key: "prefunction", labelAr: "قاعة ما قبل الفعالية", labelEn: "Pre-Function Hall", left: 11.2, top: 4.6, width: 76.4, height: 9.2 },
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.2, top: 17.0, width: 46.4, height: 55.4 },
-  { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 49.8, top: 17.0, width: 37.6, height: 72.0 },
+  { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 49.8, top: 17.0, width: 37.6, height: 55.8 },
   { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 88.8, top: 17.2, width: 6.8, height: 46.4 },
   { key: "innovation", labelAr: "ساحة الابتكار", labelEn: "Innovation Area", left: 51.8, top: 74.2, width: 44.2, height: 22.4 },
   { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.8, top: 75.6, width: 41.8, height: 21.0 },
