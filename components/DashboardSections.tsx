@@ -3404,7 +3404,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [tenantName, setTenantName] = useState("");
   const [secondPartyCr, setSecondPartyCr] = useState("");
   const [secondPartyRepresentative, setSecondPartyRepresentative] = useState("");
-  const [boothNumber, setBoothNumber] = useState("RL13");
+  const [boothNumber, setBoothNumber] = useState("");
   const [participationCategory, setParticipationCategory] = useState(isArabic ? "كلاسيك (Classic)" : "Classic");
   const [boothSize, setBoothSize] = useState(isArabic ? "3x3 متر" : "3x3 m");
   const [rentalItem, setRentalItem] = useState(isArabic ? "\u0645\u0633\u0627\u062d\u0629 / \u062c\u0646\u0627\u062d \u062a\u0623\u062c\u064a\u0631\u064a" : "Rental space / booth");
@@ -3630,7 +3630,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setTenantName("");
     setSecondPartyCr("");
     setSecondPartyRepresentative("");
-    setBoothNumber("RL13");
+    setBoothNumber("");
     setParticipationCategory(isArabic ? "كلاسيك (Classic)" : "Classic");
     setBoothSize(isArabic ? "3x3 متر" : "3x3 m");
     setRentalItem(isArabic ? "\u0645\u0633\u0627\u062d\u0629 / \u062c\u0646\u0627\u062d \u062a\u0623\u062c\u064a\u0631\u064a" : "Rental space / booth");
@@ -3801,6 +3801,12 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   async function saveContract() {
     if (!companyName.trim() || !contactName.trim() || !rentalItem.trim()) {
       setSaveStatus(text.validation);
+      return;
+    }
+    const normalizedBooth = boothNumber.trim().toUpperCase();
+    if (normalizedBooth && bookedBooths.has(normalizedBooth)) {
+      setSaveStatus(isArabic ? "هذا البوث محجوز مسبقاً" : "This booth is already booked");
+      window.setTimeout(() => setSaveStatus(""), 2200);
       return;
     }
     setSaveStatus(text.saving);
