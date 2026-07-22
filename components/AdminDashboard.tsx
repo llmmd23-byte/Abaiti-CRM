@@ -3881,7 +3881,8 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
             <>
               <div className="admin-floor-map-canvas">
                 <div className="admin-floor-map-label top">Pre-Function Hall</div>
-                <div className="admin-floor-map-label left">{isArabic ? "المدخل" : "Entrance"}</div>
+                <div className="admin-floor-map-label entrance">{isArabic ? "بوابة الدخول" : "Entrance"}</div>
+                <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
                 <div className="admin-floor-map-label right">Floor Map</div>
                 <div className="admin-floor-map-zone m-zone">M</div>
                 <div className="admin-floor-map-zone rl-zone">RL</div>

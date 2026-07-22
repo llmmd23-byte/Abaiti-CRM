@@ -21419,10 +21419,23 @@ html[dir="rtl"]
   text-align: center;
 }
 
-.admin-floor-map-label.left {
-  left: 1.4%;
-  top: 74%;
-  writing-mode: vertical-rl;
+.admin-floor-map-label.entrance,
+.admin-floor-map-label.exit {
+  top: 11.2%;
+  min-width: 13%;
+  border: 1px solid rgba(15, 45, 74, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 3px 10px;
+  text-align: center;
+}
+
+.admin-floor-map-label.entrance {
+  left: 18%;
+}
+
+.admin-floor-map-label.exit {
+  left: 36%;
 }
 
 .admin-floor-map-label.right {
