@@ -3712,7 +3712,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       @page{size:Letter portrait;margin:0;}
       html,body{width:100%;min-height:100%;margin:0;padding:0;background:#fff;}
       body{direction:rtl;font-family:Arial,Tahoma,sans-serif;text-align:right;color:#000;font-size:13px;line-height:1.75;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-      .page{position:relative;width:216mm;min-height:279mm;margin:0 auto;padding:13mm 13mm 15mm;background:#fff;overflow:hidden;}
+      .page{position:relative;width:100%;max-width:none;min-height:100vh;margin:0;padding:0;background:#fff;overflow:hidden;box-shadow:none;}
+      .contract-inner{padding:clamp(12px,2vw,28px);}
       .top-strip{height:10mm;background:#0b0537;margin-bottom:9mm;}
       .logos{display:flex;align-items:flex-start;justify-content:space-between;margin:0 4mm 5mm;}
       .event-logo{width:38mm;height:auto;object-fit:contain;}
@@ -3739,10 +3740,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .footer-page{position:absolute;left:0;right:0;bottom:6mm;text-align:center;color:#777;font-size:10px;}
       .page-break{break-before:page;page-break-before:always;}
       p,li,td,th,.party-box{overflow-wrap:anywhere;}
-      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:279mm;margin:0;padding:13mm 13mm 15mm;break-after:page;}.page:last-child{break-after:auto;}}
+      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:279mm;margin:0;padding:0;break-after:page;}.contract-inner{padding:13mm 13mm 15mm;}.page:last-child{break-after:auto;}}
     </style></head><body>
     <div class="page">
       <div class="top-strip"></div>
+      <div class="contract-inner">
       <div class="logos">
         <img class="event-logo" src="/contract-assets/jazli-event-logo.png" alt="">
         <img class="netaq-logo" src="/contract-assets/jazli-netaq-logo.png" alt="">
@@ -3759,10 +3761,12 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <p class="preamble">ويعد هذا التمهيد جزءاً لا يتجزأ من هذا العقد ومكملاً له.</p>
       <div class="section-title">ثانياً: مدة العقد</div>
       <p class="preamble">يسري هذا العقد من تاريخ توقيعه وحتى انتهاء المعرض بتاريخ ${escapePrintValue(displayValue(leaseEnd || contract.event_dates))}.</p>
+      </div>
       <div class="footer-page">1</div>
     </div>
     <div class="page page-break">
       <div class="top-strip"></div>
+      <div class="contract-inner">
       <div class="section-title">ثالثاً: قيمة المشاركة</div>
       <table><tbody><tr><th>رقم البوث</th><th>الفئة</th><th>المساحة</th><th>السعر</th><th>الضريبة</th><th>الإجمالي</th></tr><tr><td>${escapePrintValue(displayValue(contract.booth_number ?? rentalItem))}</td><td>${escapePrintValue(displayValue(contract.participation_category ?? "---"))}</td><td>${escapePrintValue(displayValue(contract.booth_size))}</td><td>${escapePrintValue(money(subtotal))}</td><td>${escapePrintValue(money(vat))}</td><td>${escapePrintValue(money(grandTotal))}</td></tr></tbody></table>
       <p class="preamble">* السعر غير شامل تنفيذ أو تجهيز البوث.</p>
@@ -3774,10 +3778,12 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <p class="preamble">يتم سداد قيمة المشاركة كاملة عند توقيع العقد، وذلك بالتحويل البنكي إلى الحساب التالي:</p>
       <table><tbody><tr><th>اسم الحساب</th><th>رقم الحساب</th><th>IBAN</th><th>SWIFT</th></tr><tr><td>شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات</td><td>79800001590310</td><td class="ltr">SA1410000079800001590310</td><td class="ltr">NCBKSAJE</td></tr></tbody></table>
       <p class="preamble">في حال عدم السداد يحق للطرف الأول إلغاء العقد دون إشعار مسبق.</p>
+      </div>
       <div class="footer-page">2</div>
     </div>
     <div class="page page-break">
       <div class="top-strip"></div>
+      <div class="contract-inner">
       <div class="section-title">سابعاً: القوة القاهرة</div>
       <p class="preamble">لا يكون أي من الطرفين مسؤولاً عن التأخير أو عدم تنفيذ التزاماته إذا كان ذلك نتيجة قوة قاهرة خارجة عن الإرادة، مثل الكوارث الطبيعية أو الحروب أو الأوبئة أو القرارات الحكومية أو أي ظرف يمنع تنفيذ العقد.</p>
       <div class="section-title">ثامناً: القانون المطبق</div>
@@ -3785,6 +3791,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <div class="section-title">تاسعاً: الإشعارات والمراسلات</div>
       <p class="preamble">تعد جميع الإشعارات المرسلة إلى العناوين أو البريد الإلكتروني أو وسائل التواصل المعتمدة بين الطرفين صحيحة ومنتجة لآثارها النظامية، ويلتزم كل طرف بإبلاغ الطرف الآخر بأي تغيير في بياناته.</p>
       <div class="signature"><div>_________________<br>الطرف الأول<br>الاسم<br>التوقيع<br>الختم</div><div>_________________<br>الطرف الثاني<br>الاسم<br>التوقيع<br>الختم</div></div>
+      </div>
       <div class="footer-page">3</div>
     </div>
     <script>window.onload = () => window.print();</script></body></html>`);
