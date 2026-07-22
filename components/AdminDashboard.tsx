@@ -3649,6 +3649,17 @@ const PPT_BOOTH_LAYOUT = [
   { id: "TP01", left: 44.582, top: 4.416, width: 9.261, height: 9.761 },
 ] as const;
 
+const FLOOR_MAP_AREA_LABELS = [
+  { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.235, top: 16.719, width: 43.18, height: 4.486 },
+  { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 52.463, top: 16.719, width: 43.18, height: 4.237 },
+  { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 86.906, top: 19.21, width: 8.812, height: 42.352 },
+  { key: "glass", labelAr: "جلاس هاوس 10x6m", labelEn: "Glass House 10x6m", left: 69.57, top: 30.165, width: 9.262, height: 16.267 },
+  { key: "academy", labelAr: "الأكاديمية 10x10m", labelEn: "Academy 10x10m", left: 13.021, top: 38.648, width: 15.437, height: 16.267 },
+  { key: "corridor", labelAr: "ممر 4m", labelEn: "Corridor 4m", left: 45.016, top: 48.18, width: 9.315, height: 6.979 },
+  { key: "innovation", labelAr: "ساحة الابتكار", labelEn: "Innovation Area", left: 52.464, top: 73.895, width: 43.309, height: 4.486 },
+  { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.235, top: 75.199, width: 43.355, height: 22.454 },
+] as const;
+
 function boothPrefix(value: unknown) {
   return String(value ?? "").trim().toUpperCase().match(/^[A-Z]+/)?.[0] ?? "OTHER";
 }
@@ -3887,6 +3898,20 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                 <div className="admin-floor-map-zone m-zone">M</div>
                 <div className="admin-floor-map-zone rl-zone">RL</div>
                 <div className="admin-floor-map-zone in-zone">IN</div>
+                {FLOOR_MAP_AREA_LABELS.map((area) => (
+                  <div
+                    className={`admin-floor-map-area-label ${area.key}`}
+                    key={area.key}
+                    style={{
+                      left: `${area.left}%`,
+                      top: `${area.top}%`,
+                      width: `${area.width}%`,
+                      height: `${area.height}%`,
+                    }}
+                  >
+                    {isArabic ? area.labelAr : area.labelEn}
+                  </div>
+                ))}
                 {visibleLayoutBooths.map((layoutBooth) => {
                   const booth = boothsByNumber.get(layoutBooth.id);
                   const isMissing = !booth;
