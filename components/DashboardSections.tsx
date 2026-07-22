@@ -3708,18 +3708,22 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     };
     const leasePeriod = [leaseStart, leaseEnd].filter(Boolean).join(" - ") || "-";
     printWindow.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>عقد مشاركة</title><style>
-      body{direction:rtl;font-family:Arial,Tahoma,sans-serif;text-align:right;margin:40px;background:white;color:#000;}
-      .page{width:210mm;min-height:297mm;margin:auto;padding:20mm;box-sizing:border-box;}
+      *{box-sizing:border-box;}
+      @page{size:A4 portrait;margin:0;}
+      html,body{width:100%;min-height:100%;margin:0;padding:0;background:#fff;}
+      body{direction:rtl;font-family:Arial,Tahoma,sans-serif;text-align:right;color:#000;font-size:14px;line-height:1.8;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      .page{width:210mm;min-height:297mm;margin:0 auto;padding:16mm 18mm 14mm;box-sizing:border-box;overflow:visible;}
       .title{text-align:center;font-size:24px;font-weight:bold;margin-bottom:10px;}
       .subtitle{text-align:center;font-size:16px;}
       .section-title{font-size:18px;font-weight:bold;border-bottom:2px solid #000;padding-bottom:8px;margin-top:25px;}
       .box{border:1px solid #555;padding:15px;margin-top:10px;text-align:right;}
       table{width:100%;border-collapse:collapse;margin-top:15px;}
       td,th{border:1px solid #000;padding:10px;text-align:center;}
+      p,li,td,th,.box{overflow-wrap:anywhere;}
       .signature{display:flex;justify-content:space-between;margin-top:80px;text-align:center;}
       .signature div{width:40%;}
       .ltr{direction:ltr;text-align:left;}
-      @media print{body{margin:0;}.page{width:210mm;min-height:297mm;padding:20mm;}}
+      @media print{html,body{width:210mm;height:auto;}.page{width:210mm;min-height:297mm;margin:0;padding:16mm 18mm 14mm;}}
     </style></head><body><div class="page">
       <div class="title">عقد مشاركة في المعرض الدولي لصناع القهوة والشوكولاتة</div>
       <div class="subtitle">${escapePrintValue(displayValue(contract.event_dates ?? "8-10 أكتوبر 2026م"))}<br>${escapePrintValue(displayValue(contract.event_location ?? "فندق جدة هيلتون - القاعة الكبرى"))}</div>
