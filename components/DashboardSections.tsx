@@ -141,7 +141,9 @@ const RENTAL_BOOTH_POSITIONS: RentalBoothPosition[] = [
   {id: "IN20", area: "9m?", left: 69.64, top: 95.37, width: 2.31, height: 4.39},
 ] as const;
 
-const RENTAL_BOOTH_GROUPS = ["ST", "RL", "M", "IN", "FL", "SB", "TP"].map((label) => ({
+const RENTAL_BOOTH_GROUP_LABELS = ["ST", "RL", "M", "IN", "FL", "SB", "TP"] as const;
+
+const RENTAL_BOOTH_GROUPS = RENTAL_BOOTH_GROUP_LABELS.map((label) => ({
   label,
   booths: RENTAL_BOOTH_POSITIONS.filter((booth) => booth.id.match(/^[A-Z]+/)?.[0] === label),
 }));
@@ -3386,6 +3388,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
   const contracts = useBackend<BackendRow[]>("/api/v1/data/rental-contracts");
   const rentalBooths = useBackend<BackendRow[]>("/api/v1/data/rental-booths");
+  const boothCatalog = useBackend<BackendRow[]>("/api/v1/data/booths");
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
   const [contractNumber, setContractNumber] = useState("");
   const [leadId, setLeadId] = useState("");
@@ -3591,6 +3594,37 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     }
     return booths;
   }, [contracts.data, editingContractId, rentalBooths.data]);
+  const boothGroups = useMemo(() => {
+    const boothMap = new Map<string, {id: string; area: string}>();
+    for (const booth of RENTAL_BOOTH_POSITIONS) {
+      boothMap.set(booth.id.toUpperCase(), {id: booth.id.toUpperCase(), area: booth.area});
+    }
+    for (const booth of boothCatalog.data ?? []) {
+      if (String(booth.status ?? "available").toLowerCase() === "inactive") continue;
+      const id = String(booth.booth_number ?? "").trim().toUpperCase();
+      if (!id) continue;
+      boothMap.set(id, {id, area: String(booth.booth_size ?? boothMap.get(id)?.area ?? "")});
+    }
+    const grouped = new Map<string, Array<{id: string; area: string}>>();
+    for (const booth of boothMap.values()) {
+      const label = booth.id.match(/^[A-Z]+/)?.[0] ?? "OTHER";
+      const group = grouped.get(label) ?? [];
+      group.push(booth);
+      grouped.set(label, group);
+    }
+    const labels = [
+      ...RENTAL_BOOTH_GROUP_LABELS,
+      ...Array.from(grouped.keys()).filter((label) => !RENTAL_BOOTH_GROUP_LABELS.includes(label as (typeof RENTAL_BOOTH_GROUP_LABELS)[number])),
+    ];
+    return labels
+      .map((label) => ({
+        label,
+        booths: (grouped.get(label) ?? []).sort((first, second) =>
+          first.id.localeCompare(second.id, "en", {numeric: true}),
+        ),
+      }))
+      .filter((group) => group.booths.length > 0);
+  }, [boothCatalog.data]);
   function selectBooth(nextBooth: string) {
     const normalizedBooth = nextBooth.trim().toUpperCase();
     if (bookedBooths.has(normalizedBooth)) {
@@ -3598,7 +3632,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       window.setTimeout(() => setSaveStatus(""), 2200);
       return;
     }
-    const booth = RENTAL_BOOTH_POSITIONS.find((item) => item.id.toUpperCase() === normalizedBooth);
+    const booth =
+      boothGroups.flatMap((group) => group.booths).find((item) => item.id.toUpperCase() === normalizedBooth) ??
+      RENTAL_BOOTH_POSITIONS.find((item) => item.id.toUpperCase() === normalizedBooth);
     setBoothNumber(normalizedBooth);
     if (booth?.area) setBoothSize(booth.area);
   }
@@ -3919,7 +3955,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
               <span><i className="selected" />{isArabic ? "مختار" : "Selected"}</span>
             </div>
             <div className="rental-booth-groups">
-              {RENTAL_BOOTH_GROUPS.map((group) => (
+              {boothGroups.map((group) => (
                 <section className="rental-booth-group" key={group.label}>
                   <h4>{group.label}</h4>
                   <div className="rental-booth-grid">

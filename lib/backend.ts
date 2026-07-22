@@ -731,6 +731,7 @@ async function ensureResourceTable(resource: string) {
   }
   if (resource === "booths") {
     await ensureBoothTable();
+    await seedDefaultBoothCatalog();
     await syncBoothCatalogFromRentalBooths();
   }
   if (resource === "sales-orders") {
@@ -985,6 +986,43 @@ async function syncBoothCatalogFromRentalBooths() {
        GROUP BY rb.booth_number
       ON DUPLICATE KEY UPDATE
         booth_size = COALESCE(booth.booth_size, VALUES(booth_size))`,
+  );
+}
+
+const defaultBoothCatalog: Array<{number: string; size: string}> = [
+  ["ST04", "25m?"], ["ST03", "25m?"], ["TP01", "36m?"], ["ST02", "25m?"], ["ST01", "25m?"],
+  ["FL1", ""], ["FL24", ""], ["RL3", "9m?"], ["M25", "9m?"], ["M19", "9m?"], ["M13", "9m?"], ["M05", "9m?"],
+  ["RL1", "18m?"], ["RL2", "18m?"], ["M33", "12m?"], ["M01", "18m?"], ["FL2", ""], ["FL23", ""],
+  ["M26", "9m?"], ["M20", "9m?"], ["M14", "9m?"], ["M06", "9m?"], ["RL4", "9m?"], ["FL3", ""], ["FL22", ""],
+  ["M34", "12m?"], ["FL4", ""], ["FL21", ""], ["RL34", "9m?"], ["M29", "9m?"], ["M07", "9m?"], ["M21", "9m?"],
+  ["M15", "9m?"], ["RL5", "9m?"], ["FL5", ""], ["FL20", ""], ["RL6", "9m?"], ["RL35", "12m?"], ["RL32", "12m?"],
+  ["FL6", ""], ["FL19", ""], ["M02", "18m?"], ["SB1", ""], ["FL7", ""], ["FL18", ""], ["RL7", "9m?"],
+  ["M08", "12m?"], ["SB2", ""], ["RL36", "9m?"], ["RL31", "9m?"], ["FL8", ""], ["FL17", ""], ["SB3", ""],
+  ["RL8", "9m?"], ["FL9", ""], ["FL16", ""], ["M09", "12m?"], ["SB4", ""], ["FL10", ""], ["FL15", ""],
+  ["RL9", "9m?"], ["RL29", "9m?"], ["RL15", "9m?"], ["RL13", "9m?"], ["M03", "18m?"], ["SB5", ""],
+  ["FL11", ""], ["FL14", ""], ["SB6", ""], ["RL26", "12m?"], ["RL25", "9m?"], ["RL16", "9m?"], ["RL14", "9m?"],
+  ["RL10", "9m?"], ["FL12", ""], ["FL13", ""], ["M30", "9m?"], ["M22", "9m?"], ["M16", "9m?"], ["M10", "9m?"],
+  ["SB7", ""], ["SB8", ""], ["M31", "9m?"], ["M23", "9m?"], ["M17", "9m?"], ["M11", "9m?"], ["RL21", "9m?"],
+  ["RL19", "9m?"], ["RL27", "9m?"], ["SB9", ""], ["M04", "18m?"], ["RL22", "9m?"], ["RL20", "9m?"],
+  ["M32", "9m?"], ["M24", "9m?"], ["M18", "9m?"], ["M12", "9m?"], ["RL24", "12m?"], ["RL23", "9m?"],
+  ["IN2", "12m?"], ["IN3", "12m?"], ["IN4", "12m?"], ["IN5", "12m?"], ["IN6", "12m?"], ["IN1", "18m?"],
+  ["IN11", "12m?"], ["IN10", "12m?"], ["IN9", "12m?"], ["IN8", "12m?"], ["IN7", "9m?"], ["IN12", "9m?"],
+  ["IN13", "9m?"], ["IN14", "9m?"], ["IN15", "9m?"], ["IN16", "9m?"], ["IN17", "9m?"], ["IN18", "9m?"],
+  ["IN19", "9m?"], ["IN20", "9m?"],
+].map(([number, size]) => ({number, size}));
+
+async function seedDefaultBoothCatalog() {
+  await ensureBoothTable();
+  await Promise.all(
+    defaultBoothCatalog.map((booth) =>
+      db.execute(
+        `INSERT INTO booth (booth_number, booth_size, status)
+          VALUES (?, ?, 'available')
+          ON DUPLICATE KEY UPDATE
+            booth_size = COALESCE(booth.booth_size, VALUES(booth_size))`,
+        [booth.number, booth.size || null],
+      ),
+    ),
   );
 }
 
