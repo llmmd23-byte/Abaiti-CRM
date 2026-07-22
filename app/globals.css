@@ -21456,7 +21456,7 @@ html[dir="rtl"]
 
 .admin-booth-map-tile {
   position: absolute;
-  z-index: 2;
+  z-index: 3;
   border: 1px solid rgba(22, 101, 52, 0.62);
   border-radius: 3px;
   background: rgba(34, 197, 94, 0.56);
@@ -21469,6 +21469,26 @@ html[dir="rtl"]
   padding: 1px;
   text-align: center;
   transition: box-shadow 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+
+.admin-booth-map-tile.is-feature-area {
+  z-index: 2;
+  border: 1.5px solid rgba(15, 45, 74, 0.36);
+  border-radius: 7px;
+  background: rgba(224, 242, 254, 0.62);
+  color: #0f2d4a;
+}
+
+.admin-booth-map-tile.is-feature-area strong {
+  font-size: clamp(8px, 0.78vw, 12px);
+  line-height: 1.15;
+  transform: none;
+  white-space: normal;
+}
+
+.admin-booth-map-tile.is-feature-area:hover {
+  z-index: 4;
+  background: rgba(219, 234, 254, 0.82);
 }
 
 .admin-booth-map-tile strong {

@@ -3892,9 +3892,10 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   const isBooked = bookedByNumber.has(layoutBooth.id);
                   const isInactive = String(booth?.status ?? "available") === "inactive";
                   const isSelected = booth && Number(selectedBooth?.id) === Number(booth.id);
+                  const isFeatureArea = layoutBooth.id === "ACADEMY" || layoutBooth.id === "GLASS HOUSE";
                   return (
                     <button
-                      className={`admin-booth-map-tile ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
+                      className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
                       disabled={isMissing}
                       key={layoutBooth.id}
                       onClick={() => booth && selectBooth(booth)}
