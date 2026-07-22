@@ -3721,11 +3721,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .title{text-align:center;font-size:28px;font-weight:900;line-height:1.35;margin:2mm 0 2.5mm;}
       .subtitle{text-align:center;font-size:16px;font-weight:800;line-height:1.7;margin-bottom:4.5mm;}
       .contract-number{text-align:center;font-weight:900;font-size:15px;margin-bottom:7mm;direction:ltr;}
-      .intro{text-align:right;font-size:16px;font-weight:700;margin:0 18mm 7mm 0;}
-      h2.section-heading{font-size:16px;font-weight:800;text-align:right;margin:0 0 4mm;}
-      .party-box{border:1px solid #111;min-height:43mm;padding:6mm 5mm;margin-bottom:8mm;text-align:right;}
-      .party-box h3{font-size:16px;font-weight:800;margin:0 0 5mm;}
-      .party-box p{margin:2.5mm 0;font-size:12.5px;line-height:1.55;}
+      .intro{text-align:right;font-size:16px;font-weight:700;margin:0 12mm 5mm 0;}
+      h2.section-heading{font-size:16px;font-weight:800;text-align:right;margin:0 0 3mm;}
+      .party-box{border:1px solid #111;min-height:auto;padding:4mm 5mm;margin-bottom:5mm;text-align:right;break-inside:avoid;page-break-inside:avoid;}
+      .party-box h3{font-size:16px;font-weight:800;margin:0 0 3mm;}
+      .party-box p{margin:1.7mm 0;font-size:12.5px;line-height:1.45;}
       .center-section{text-align:center;margin-top:8mm;}
       .section-title{font-size:17px;font-weight:800;margin:6mm 0 3mm;text-align:right;}
       .preamble{font-size:12.5px;text-align:justify;text-align-last:right;line-height:1.9;margin:0 2mm 4mm;}
@@ -3740,7 +3740,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .footer-page{position:absolute;left:0;right:0;bottom:6mm;text-align:center;color:#777;font-size:10px;}
       .page-break{break-before:page;page-break-before:always;}
       p,li,td,th,.party-box{overflow-wrap:anywhere;}
-      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:279mm;margin:0;padding:0;break-after:page;}.top-strip{width:216mm;margin-inline:0;}.contract-inner{padding:13mm 13mm 15mm;}.page:last-child{break-after:auto;}}
+      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:279mm;margin:0;padding:0;break-after:page;}.top-strip{width:216mm;margin-inline:0;}.contract-inner{padding:11mm 13mm 15mm;}.party-box{break-inside:avoid;page-break-inside:avoid;}.page:last-child{break-after:auto;}}
     </style></head><body>
     <div class="page">
       <div class="top-strip"></div>
