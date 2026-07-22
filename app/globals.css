@@ -7174,8 +7174,8 @@ html[dir="ltr"] .user-stats-card {
 
 .customer-date-filter .dashboard-select-trigger.open,
 .customer-date-filter .dashboard-select-trigger:focus-visible {
-  border-color: #22b8b5;
-  box-shadow: 0 0 0 4px rgba(34, 184, 181, 0.1);
+  border-color: #dbe4ec;
+  box-shadow: none;
 }
 
 .customer-tag-filters {
@@ -7208,8 +7208,8 @@ html[dir="ltr"] .user-stats-card {
 
 .customer-tag-filter .dashboard-select-trigger.open,
 .customer-tag-filter .dashboard-select-trigger:focus-visible {
-  border-color: #22b8b5;
-  box-shadow: 0 0 0 4px rgba(34, 184, 181, 0.1);
+  border-color: #dbe4ec;
+  box-shadow: none;
 }
 
 @media (max-width: 720px) {
