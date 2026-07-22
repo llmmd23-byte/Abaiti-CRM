@@ -3899,9 +3899,6 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                 <div className="admin-floor-map-label right" dir={isArabic ? "rtl" : "ltr"}>
                   {isArabic ? "خريطة المعرض" : "Floor Map"}
                 </div>
-                <div className="admin-floor-map-zone m-zone">M</div>
-                <div className="admin-floor-map-zone rl-zone">RL</div>
-                <div className="admin-floor-map-zone in-zone">IN</div>
                 {FLOOR_MAP_AREA_LABELS.map((area) => (
                   <div
                     className={`admin-floor-map-area-label ${area.key}`}
