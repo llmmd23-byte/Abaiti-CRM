@@ -3642,6 +3642,7 @@ const PPT_BOOTH_LAYOUT = [
   { id: "SB7", left: 4.962, top: 59.256, width: 2.26, height: 3.176 },
   { id: "SB8", left: 4.962, top: 62.703, width: 2.26, height: 3.176 },
   { id: "SB9", left: 4.962, top: 66.151, width: 2.26, height: 3.176 },
+  { id: "1SB", left: 4.962, top: 69.599, width: 2.26, height: 3.176 },
   { id: "ST01", left: 78.957, top: 5.229, width: 7.718, height: 8.134 },
   { id: "ST02", left: 63.396, top: 5.229, width: 7.718, height: 8.134 },
   { id: "ST03", left: 27.894, top: 5.229, width: 7.718, height: 8.134 },
@@ -3670,7 +3671,7 @@ const FLOOR_MAP_ZONES = [
 
 function floorMapZoneForBooth(boothId: string) {
   if (boothId.startsWith("ST") || boothId.startsWith("TP")) return "prefunction";
-  if (boothId.startsWith("M") || boothId === "ACADEMY" || boothId.startsWith("SB")) return "traders";
+  if (boothId.startsWith("M") || boothId === "ACADEMY" || boothId.startsWith("SB") || boothId.endsWith("SB")) return "traders";
   if (boothId.startsWith("RL") || boothId === "GLASS HOUSE") return "roasting";
   if (boothId.startsWith("FL")) return "farmers";
   if (boothId.startsWith("IN")) return "innovation";

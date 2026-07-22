@@ -110,6 +110,7 @@ const RENTAL_BOOTH_POSITIONS: RentalBoothPosition[] = [
   {id: "RL19", area: "9m?", left: 53.49, top: 70.48, width: 2.31, height: 4.39},
   {id: "RL27", area: "9m?", left: 62.85, top: 70.52, width: 2.31, height: 5.86},
   {id: "SB9", area: "", left: 26.88, top: 72.5, width: 1.15, height: 2.86},
+  {id: "1SB", area: "", left: 26.88, top: 75.6, width: 1.15, height: 2.86},
   {id: "M04", area: "18m?", left: 45.81, top: 72.71, width: 4.57, height: 4.39},
   {id: "RL22", area: "9m?", left: 51.19, top: 74.84, width: 2.31, height: 4.39},
   {id: "RL20", area: "9m?", left: 53.49, top: 74.84, width: 2.31, height: 4.39},
