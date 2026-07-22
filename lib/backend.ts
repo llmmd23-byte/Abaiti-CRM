@@ -27,6 +27,7 @@ export type BackendResource =
   | "participation-contracts"
   | "sponsorship-contracts"
   | "rental-contracts"
+  | "rental-booths"
   | "sales-orders"
   | "sales"
   | "commissions"
@@ -298,6 +299,11 @@ const resources: Record<BackendResource, ResourceDefinition> = {
     ],
     defaults: { status: "draft", currency: "SAR", payment_method: "bank_transfer" },
   },
+  "rental-booths": {
+    table: "rental_booths",
+    permissionKey: "table.quotes",
+    writable: [],
+  },
   "sales-orders": {
     table: "sales_orders",
     ownerField: "affiliate_user_id",
@@ -498,6 +504,18 @@ async function columnExists(tableName: string, columnName: string) {
   return rows.length > 0;
 }
 
+async function tableExists(tableName: string) {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT TABLE_NAME
+       FROM INFORMATION_SCHEMA.TABLES
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = ?
+      LIMIT 1`,
+    [tableName],
+  );
+  return rows.length > 0;
+}
+
 async function ensureUserTeamColumns() {
   if (!(await columnExists("users", "manager_id"))) {
     await db.execute(
@@ -678,6 +696,10 @@ async function ensureResourceTable(resource: string) {
   }
   if (resource === "rental-contracts") {
     await ensureRentalContractsTable();
+  }
+  if (resource === "rental-booths") {
+    await ensureRentalBoothsTable();
+    await syncRentalBoothsFromContracts();
   }
   if (resource === "sales-orders") {
     await ensureSalesOrdersTable();
@@ -867,6 +889,128 @@ async function ensureRentalContractsTable() {
       await db.execute(statement);
     }
   }
+  await ensureRentalBoothsTable();
+  await syncRentalBoothsFromContracts();
+}
+
+function normalizedBoothNumber(value: unknown) {
+  return String(value ?? "").trim().toUpperCase();
+}
+
+async function ensureRentalBoothsTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS rental_booths (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      booth_number VARCHAR(80) NOT NULL,
+      booth_size VARCHAR(80) NULL,
+      status ENUM('available', 'booked') NOT NULL DEFAULT 'available',
+      rental_contract_id BIGINT UNSIGNED NULL,
+      affiliate_user_id BIGINT UNSIGNED NULL,
+      booked_at DATETIME NULL,
+      released_at DATETIME NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_rental_booths_number (booth_number),
+      KEY idx_rental_booths_status (status),
+      KEY idx_rental_booths_contract (rental_contract_id),
+      KEY idx_rental_booths_affiliate (affiliate_user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
+async function syncRentalBoothsFromContracts() {
+  await ensureRentalBoothsTable();
+  if (!(await tableExists("rental_contracts"))) return;
+  await db.execute(
+    `INSERT INTO rental_booths (
+        booth_number,
+        booth_size,
+        status,
+        rental_contract_id,
+        affiliate_user_id,
+        booked_at
+      )
+      SELECT
+        UPPER(TRIM(rc.booth_number)),
+        MAX(rc.booth_size),
+        'booked',
+        MAX(rc.id),
+        MAX(rc.affiliate_user_id),
+        COALESCE(MAX(rc.contract_date), MAX(DATE(rc.created_at)), CURDATE())
+      FROM rental_contracts rc
+      WHERE rc.booth_number IS NOT NULL
+        AND TRIM(rc.booth_number) <> ''
+        AND COALESCE(rc.status, 'draft') <> 'cancelled'
+      GROUP BY UPPER(TRIM(rc.booth_number))
+      ON DUPLICATE KEY UPDATE
+        booth_size = VALUES(booth_size),
+        status = 'booked',
+        rental_contract_id = VALUES(rental_contract_id),
+        affiliate_user_id = VALUES(affiliate_user_id),
+        booked_at = COALESCE(rental_booths.booked_at, VALUES(booked_at)),
+        released_at = NULL`,
+  );
+  await db.execute(
+    `UPDATE rental_booths rb
+      LEFT JOIN rental_contracts rc
+        ON UPPER(TRIM(rc.booth_number)) = rb.booth_number
+       AND COALESCE(rc.status, 'draft') <> 'cancelled'
+       SET rb.status = 'available',
+           rb.rental_contract_id = NULL,
+           rb.affiliate_user_id = NULL,
+           rb.released_at = COALESCE(rb.released_at, NOW())
+     WHERE rb.status = 'booked'
+       AND rc.id IS NULL`,
+  );
+}
+
+async function assertRentalBoothAvailable(
+  boothNumber: unknown,
+  currentContractId?: number,
+) {
+  const normalized = normalizedBoothNumber(boothNumber);
+  if (!normalized) return;
+  await syncRentalBoothsFromContracts();
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT booth_number, status, rental_contract_id
+       FROM rental_booths
+      WHERE booth_number = ?
+        AND status = 'booked'
+      LIMIT 1`,
+    [normalized],
+  );
+  const booking = rows[0];
+  if (
+    booking &&
+    (!currentContractId ||
+      Number(booking.rental_contract_id ?? 0) !== Number(currentContractId))
+  ) {
+    throw new Error("BOOTH_ALREADY_BOOKED");
+  }
+}
+
+async function syncRentalBoothForContract(contractId: number) {
+  await syncRentalBoothsFromContracts();
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT booth_number
+       FROM rental_contracts
+      WHERE id = ?
+        AND booth_number IS NOT NULL
+        AND TRIM(booth_number) <> ''
+      LIMIT 1`,
+    [contractId],
+  );
+  const boothNumber = normalizedBoothNumber(rows[0]?.booth_number);
+  if (!boothNumber) return;
+  await db.execute(
+    `UPDATE rental_booths
+        SET status = 'booked',
+            rental_contract_id = ?,
+            released_at = NULL
+      WHERE booth_number = ?`,
+    [contractId, boothNumber],
+  );
 }
 
 async function ensureSalesOrdersTable() {
@@ -1765,6 +1909,17 @@ export async function listResource(resource: string, session: MiddarSession) {
     return rows;
   }
 
+  if (resource === "rental-booths") {
+    await syncRentalBoothsFromContracts();
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT rb.*, rc.contract_number, rc.company_name, rc.contact_name
+         FROM rental_booths rb
+         LEFT JOIN rental_contracts rc ON rc.id = rb.rental_contract_id
+        ORDER BY rb.booth_number ASC LIMIT 500`,
+    );
+    return rows;
+  }
+
   if (resource === "leads") {
     const { clause: scopedWhere, params: scopedParams } = await ownerFilter(
       definition,
@@ -2152,6 +2307,10 @@ export async function createResource(
     data.subtotal = subtotal;
     data.vat_amount = vatAmount;
     data.grand_total = grandTotal;
+    if (data.booth_number) {
+      data.booth_number = normalizedBoothNumber(data.booth_number);
+      await assertRentalBoothAvailable(data.booth_number);
+    }
     if (!data.contract_number) data.contract_number = generatedReference(resource);
   }
   if (definition.ownerField) data[definition.ownerField] = Number(session.sub);
@@ -2294,6 +2453,9 @@ export async function createResource(
   }
   if (resource === "quotes") {
     await closeExpiredQuotes();
+  }
+  if (resource === "rental-contracts") {
+    await syncRentalBoothForContract(Number(result.insertId));
   }
   return getResource(resource, result.insertId, session);
 }
@@ -2602,6 +2764,10 @@ export async function updateResource(
     data.subtotal = subtotal;
     data.vat_amount = vatAmount;
     data.grand_total = grandTotal;
+    if (data.booth_number !== undefined && data.booth_number !== null) {
+      data.booth_number = normalizedBoothNumber(data.booth_number);
+      await assertRentalBoothAvailable(data.booth_number, id);
+    }
   }
   if (resource === "lead-tag-assignments" && data.tag_id) {
     const nextLeadId = Number(data.lead_id ?? existing.lead_id);
@@ -2664,6 +2830,9 @@ export async function updateResource(
   }
   if (resource === "quotes") {
     await closeExpiredQuotes();
+  }
+  if (resource === "rental-contracts") {
+    await syncRentalBoothForContract(id);
   }
   return getResource(resource, id, session);
 }
@@ -2754,6 +2923,9 @@ export async function deleteResource(
   }
 
   await db.execute(`DELETE FROM ${definition.table} WHERE id = ?`, [id]);
+  if (resource === "rental-contracts") {
+    await syncRentalBoothsFromContracts();
+  }
 }
 
 export async function getDashboardSummary(

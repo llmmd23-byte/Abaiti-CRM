@@ -22,6 +22,7 @@ export function apiError(error: unknown) {
     "VALIDATION_ERROR",
     "DUPLICATE_PHONE",
     "DUPLICATE_CUSTOMER_QUOTE",
+    "BOOTH_ALREADY_BOOKED",
     "PRODUCT_IN_USE",
     "INDUSTRY_IN_USE",
   ];
@@ -32,6 +33,8 @@ export function apiError(error: unknown) {
       : code === "FORBIDDEN"
         ? 403
         : ["PRODUCT_IN_USE", "INDUSTRY_IN_USE"].includes(code)
+        ? 409
+        : code === "BOOTH_ALREADY_BOOKED"
           ? 409
           : [
                 "UNKNOWN_RESOURCE",

@@ -3385,6 +3385,7 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
 export function RentalContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
   const contracts = useBackend<BackendRow[]>("/api/v1/data/rental-contracts");
+  const rentalBooths = useBackend<BackendRow[]>("/api/v1/data/rental-booths");
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
   const [contractNumber, setContractNumber] = useState("");
   const [leadId, setLeadId] = useState("");
@@ -3576,6 +3577,12 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   );
   const bookedBooths = useMemo(() => {
     const booths = new Set<string>();
+    for (const booth of rentalBooths.data ?? []) {
+      if (String(booth.status ?? "").toLowerCase() !== "booked") continue;
+      if (editingContractId && Number(booth.rental_contract_id) === editingContractId) continue;
+      const value = String(booth.booth_number ?? "").trim().toUpperCase();
+      if (value) booths.add(value);
+    }
     for (const contract of contracts.data ?? []) {
       if (editingContractId && Number(contract.id) === editingContractId) continue;
       if (String(contract.status ?? "").toLowerCase() === "cancelled") continue;
@@ -3583,7 +3590,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       if (value) booths.add(value);
     }
     return booths;
-  }, [contracts.data, editingContractId]);
+  }, [contracts.data, editingContractId, rentalBooths.data]);
   function selectBooth(nextBooth: string) {
     const normalizedBooth = nextBooth.trim().toUpperCase();
     if (bookedBooths.has(normalizedBooth)) {
@@ -3854,6 +3861,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       }
       resetContractForm();
       await contracts.reload();
+      await rentalBooths.reload();
     } catch {
       setSaveStatus(text.failed);
     }

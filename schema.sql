@@ -340,6 +340,24 @@ CREATE TABLE IF NOT EXISTS demo_requests (
       ON DELETE SET NULL ON UPDATE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+  CREATE TABLE IF NOT EXISTS rental_booths (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    booth_number VARCHAR(80) NOT NULL,
+    booth_size VARCHAR(80) NULL,
+    status ENUM('available', 'booked') NOT NULL DEFAULT 'available',
+    rental_contract_id BIGINT UNSIGNED NULL,
+    affiliate_user_id BIGINT UNSIGNED NULL,
+    booked_at DATETIME NULL,
+    released_at DATETIME NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_rental_booths_number (booth_number),
+    KEY idx_rental_booths_status (status),
+    KEY idx_rental_booths_contract (rental_contract_id),
+    KEY idx_rental_booths_affiliate (affiliate_user_id)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
   CREATE TABLE IF NOT EXISTS sales_orders (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     order_number VARCHAR(80) NOT NULL,
