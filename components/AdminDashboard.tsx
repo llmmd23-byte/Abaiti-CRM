@@ -3894,6 +3894,9 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   const isInactive = String(booth?.status ?? "available") === "inactive";
                   const isSelected = booth && Number(selectedBooth?.id) === Number(booth.id);
                   const isFeatureArea = layoutBooth.id === "ACADEMY" || layoutBooth.id === "GLASS HOUSE";
+                  const boothMapSize = String(
+                    booth?.booth_size ?? booth?.booth_dimensions ?? "",
+                  ).trim();
                   return (
                     <button
                       className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
@@ -3910,6 +3913,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                       type="button"
                     >
                       <strong>{layoutBooth.id}</strong>
+                      {boothMapSize ? <span>{boothMapSize}</span> : null}
                     </button>
                   );
                 })}

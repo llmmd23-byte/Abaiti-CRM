@@ -21476,8 +21476,10 @@ html[dir="rtl"]
   color: #052e16;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1px;
   overflow: hidden;
   padding: 1px;
   text-align: center;
@@ -21509,6 +21511,15 @@ html[dir="rtl"]
   font-size: clamp(6px, 0.64vw, 10px);
   line-height: 1;
   transform: scale(0.92);
+  white-space: nowrap;
+}
+
+.admin-booth-map-tile span {
+  display: block;
+  font-size: clamp(5px, 0.5vw, 7px);
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0.86;
   white-space: nowrap;
 }
 
