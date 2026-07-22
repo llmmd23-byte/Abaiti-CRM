@@ -21492,9 +21492,7 @@ html[dir="rtl"]
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
   box-shadow: none;
-  transform: scale(0.99);
-  transform-origin: center;
-  transition: opacity 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 .admin-floor-zone-container.prefunction {
@@ -21518,7 +21516,6 @@ html[dir="rtl"]
   background: rgba(219, 234, 254, 0.34);
   border-color: rgba(26, 116, 139, 0.52);
   box-shadow: inset 0 0 0 1px rgba(26, 116, 139, 0.22), 0 0 0 3px rgba(26, 116, 139, 0.1);
-  transform: scale(1);
 }
 
 .admin-floor-zone-container.is-dimmed {
