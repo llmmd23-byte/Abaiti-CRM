@@ -3752,10 +3752,15 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
 
   const filteredBooths = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
+    if (!normalizedQuery) return [...booths].sort(boothSort);
+    const exactQuery = query.trim().toUpperCase();
+    const exactMatches = booths.filter(
+      (booth) => String(booth.booth_number ?? "").trim().toUpperCase() === exactQuery,
+    );
+    if (exactMatches.length) return exactMatches.sort(boothSort);
     return booths
-      .filter((booth) => {
-        if (!normalizedQuery) return true;
-        return [
+      .filter((booth) =>
+        [
           booth.booth_number,
           booth.booth_size,
           booth.booth_dimensions,
@@ -3765,8 +3770,8 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
           booth.notes,
         ].some((value) =>
           String(value ?? "").toLocaleLowerCase().includes(normalizedQuery),
-        );
-      })
+        ),
+      )
       .sort(boothSort);
   }, [booths, query]);
 
@@ -3792,11 +3797,8 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
     [],
   );
   const visibleLayoutBooths = useMemo(
-    () =>
-      PPT_BOOTH_LAYOUT.filter((layoutBooth) =>
-        query.trim() ? filteredBoothNumbers.has(layoutBooth.id) : true,
-      ),
-    [filteredBoothNumbers, query],
+    () => PPT_BOOTH_LAYOUT,
+    [],
   );
   const unplacedBooths = useMemo(
     () =>
@@ -3984,6 +3986,8 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                 ))}
                 {visibleLayoutBooths.map((layoutBooth) => {
                   const layoutZone = floorMapZoneForBooth(layoutBooth.id);
+                  const hasSearch = Boolean(query.trim());
+                  const isSearchMatch = filteredBoothNumbers.has(layoutBooth.id);
                   const booth = boothsByNumber.get(layoutBooth.id);
                   const isMissing = !booth;
                   const isBooked = bookedByNumber.has(layoutBooth.id);
@@ -4005,7 +4009,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   ).trim();
                   return (
                     <button
-                      className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${activeZone !== "all" && activeZone !== layoutZone ? "is-zone-dimmed" : ""} ${activeZone === layoutZone ? "is-zone-focused" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
+                      className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${hasSearch && !isSearchMatch ? "is-search-dimmed" : ""} ${hasSearch && isSearchMatch ? "is-search-match" : ""} ${activeZone !== "all" && activeZone !== layoutZone ? "is-zone-dimmed" : ""} ${activeZone === layoutZone ? "is-zone-focused" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
                       disabled={isMissing}
                       dir="ltr"
                       key={layoutBooth.id}

@@ -21611,6 +21611,17 @@ html[dir="rtl"]
   opacity: 0.3;
 }
 
+.admin-booth-map-tile.is-search-match {
+  z-index: 6;
+  border-color: #0f2d4a;
+  box-shadow: 0 0 0 3px rgba(15, 45, 74, 0.2), 0 8px 16px rgba(15, 45, 74, 0.16);
+  transform: scale(1.05);
+}
+
+.admin-booth-map-tile.is-search-dimmed {
+  opacity: 0.22;
+}
+
 .admin-booth-map-tile strong {
   display: block;
   font-size: clamp(6px, 0.64vw, 10px);
