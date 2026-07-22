@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FLOOR_MAP_AREA_LABELS, FLOOR_MAP_ZONES, PPT_BOOTH_LAYOUT } from "@/components/AdminDashboard";
+import { FLOOR_MAP_AREA_LABELS, FLOOR_MAP_ZONES, PPT_BOOTH_LAYOUT, floorMapZoneForBooth } from "@/components/AdminDashboard";
 import DashboardSelect from "@/components/DashboardSelect";
 import { createBackend, updateBackend, useBackend } from "@/lib/client-backend";
 
@@ -3424,6 +3424,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [search, setSearch] = useState("");
   const [boothPickerOpen, setBoothPickerOpen] = useState(false);
   const [boothMapQuery, setBoothMapQuery] = useState("");
+  const [boothMapZone, setBoothMapZone] = useState("all");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
 
@@ -3639,8 +3640,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   }, [boothCatalog.data]);
   const visibleBoothMapLayout = useMemo(() => {
     const queryValue = boothMapQuery.trim().toUpperCase();
-    if (!queryValue) return PPT_BOOTH_LAYOUT;
     return PPT_BOOTH_LAYOUT.filter((booth) => {
+      if (boothMapZone !== "all" && floorMapZoneForBooth(booth.id) !== boothMapZone) return false;
+      if (!queryValue) return true;
       const boothId = booth.id.toUpperCase();
       const catalogBooth = boothCatalogByNumber.get(boothId);
       return [
@@ -3649,7 +3651,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         String(catalogBooth?.booth_dimensions ?? ""),
       ].some((value) => value.toUpperCase().includes(queryValue));
     });
-  }, [boothCatalogByNumber, boothMapQuery]);
+  }, [boothCatalogByNumber, boothMapQuery, boothMapZone]);
   function selectBooth(nextBooth: string) {
     const normalizedBooth = nextBooth.trim().toUpperCase();
     if (bookedBooths.has(normalizedBooth)) {
@@ -4002,6 +4004,19 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                     <span>{isArabic ? "محجوز" : "Booked"}<i className="booked" aria-hidden="true" /></span>
                     <span>{isArabic ? "مختار" : "Selected"}<i className="selected" aria-hidden="true" /></span>
                   </div>
+                </div>
+                <div className="admin-booth-zone-filter rental-booth-modal-zone-filter" role="listbox" aria-label={isArabic ? "فلترة الأقسام" : "Zone filter"}>
+                  {FLOOR_MAP_ZONES.map((zone) => (
+                    <button
+                      aria-selected={boothMapZone === zone.key}
+                      className={boothMapZone === zone.key ? "active" : ""}
+                      key={zone.key}
+                      onClick={() => setBoothMapZone(zone.key)}
+                      type="button"
+                    >
+                      {isArabic ? zone.labelAr : zone.labelEn}
+                    </button>
+                  ))}
                 </div>
                 <div className="rental-booth-modal-map">
                   <div className="admin-floor-map-canvas">

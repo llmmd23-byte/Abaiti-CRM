@@ -5659,6 +5659,19 @@ html[dir="ltr"] .dashboard-main {
   max-width: 420px;
 }
 
+.rental-booth-modal-zone-filter {
+  flex: 0 0 auto;
+  justify-content: center;
+  order: 0;
+  width: 100%;
+}
+
+.rental-booth-modal-zone-filter button {
+  min-height: 52px;
+  padding: 11px 18px;
+  font-size: 14px;
+}
+
 .rental-booth-modal-map {
   overflow: auto;
   border: 1px solid #e2e8f0;
