@@ -3925,7 +3925,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
           />
         </div>
         <div className="admin-booth-zone-filter" role="listbox" aria-label={isArabic ? "فلترة الأقسام" : "Zone filter"}>
-          {FLOOR_MAP_ZONES.map((zone) => (
+          {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "stage").map((zone) => (
             <button
               aria-selected={activeZone === zone.key}
               className={activeZone === zone.key ? "active" : ""}
