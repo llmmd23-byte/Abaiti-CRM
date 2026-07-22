@@ -516,6 +516,20 @@ async function tableExists(tableName: string) {
   return rows.length > 0;
 }
 
+async function foreignKeyExists(tableName: string, constraintName: string) {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT CONSTRAINT_NAME
+       FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = ?
+        AND CONSTRAINT_NAME = ?
+        AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+      LIMIT 1`,
+    [tableName, constraintName],
+  );
+  return rows.length > 0;
+}
+
 async function ensureUserTeamColumns() {
   if (!(await columnExists("users", "manager_id"))) {
     await db.execute(
@@ -698,8 +712,7 @@ async function ensureResourceTable(resource: string) {
     await ensureRentalContractsTable();
   }
   if (resource === "rental-booths") {
-    await ensureRentalBoothsTable();
-    await syncRentalBoothsFromContracts();
+    await ensureRentalContractsTable();
   }
   if (resource === "sales-orders") {
     await ensureSalesOrdersTable();
@@ -890,6 +903,7 @@ async function ensureRentalContractsTable() {
     }
   }
   await ensureRentalBoothsTable();
+  await ensureRentalBoothContractRelation();
   await syncRentalBoothsFromContracts();
 }
 
@@ -916,6 +930,31 @@ async function ensureRentalBoothsTable() {
       KEY idx_rental_booths_contract (rental_contract_id),
       KEY idx_rental_booths_affiliate (affiliate_user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
+async function ensureRentalBoothContractRelation() {
+  if (
+    !(await tableExists("rental_contracts")) ||
+    !(await tableExists("rental_booths")) ||
+    (await foreignKeyExists("rental_booths", "fk_rental_booths_contract"))
+  ) {
+    return;
+  }
+  await db.execute(
+    `UPDATE rental_booths rb
+      LEFT JOIN rental_contracts rc ON rc.id = rb.rental_contract_id
+       SET rb.rental_contract_id = NULL,
+           rb.status = 'available',
+           rb.released_at = COALESCE(rb.released_at, NOW())
+     WHERE rb.rental_contract_id IS NOT NULL
+       AND rc.id IS NULL`,
+  );
+  await db.execute(
+    `ALTER TABLE rental_booths
+      ADD CONSTRAINT fk_rental_booths_contract
+      FOREIGN KEY (rental_contract_id) REFERENCES rental_contracts(id)
+      ON DELETE SET NULL ON UPDATE CASCADE`,
   );
 }
 

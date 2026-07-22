@@ -355,7 +355,10 @@ CREATE TABLE IF NOT EXISTS demo_requests (
     UNIQUE KEY uq_rental_booths_number (booth_number),
     KEY idx_rental_booths_status (status),
     KEY idx_rental_booths_contract (rental_contract_id),
-    KEY idx_rental_booths_affiliate (affiliate_user_id)
+    KEY idx_rental_booths_affiliate (affiliate_user_id),
+    CONSTRAINT fk_rental_booths_contract
+      FOREIGN KEY (rental_contract_id) REFERENCES rental_contracts(id)
+      ON DELETE SET NULL ON UPDATE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
   CREATE TABLE IF NOT EXISTS sales_orders (
