@@ -51,6 +51,9 @@ type ResourceDefinition = {
 
 type SqlValue = string | number | boolean | Date | null;
 
+let boothResourceReadyPromise: Promise<void> | null = null;
+let rentalBoothsListReadyPromise: Promise<void> | null = null;
+
 function roundMoney(value: number) {
   return Math.round((Number.isFinite(value) ? value : 0) * 100) / 100;
 }
@@ -731,9 +734,7 @@ async function ensureResourceTable(resource: string) {
     await ensureRentalContractsTable();
   }
   if (resource === "booths") {
-    await ensureBoothTable();
-    await seedDefaultBoothCatalog();
-    await syncBoothCatalogFromRentalBooths();
+    await ensureBoothResourceReady();
   }
   if (resource === "sales-orders") {
     await ensureSalesOrdersTable();
@@ -928,6 +929,26 @@ async function ensureRentalContractsTable() {
   await syncRentalBoothsFromContracts();
 }
 
+async function ensureBoothResourceReady() {
+  boothResourceReadyPromise ??= (async () => {
+    await ensureBoothTable();
+    await seedDefaultBoothCatalog();
+    await syncBoothCatalogFromRentalBooths();
+  })().catch((error) => {
+    boothResourceReadyPromise = null;
+    throw error;
+  });
+  await boothResourceReadyPromise;
+}
+
+async function ensureRentalBoothsListReady() {
+  rentalBoothsListReadyPromise ??= syncRentalBoothsFromContracts().catch((error) => {
+    rentalBoothsListReadyPromise = null;
+    throw error;
+  });
+  await rentalBoothsListReadyPromise;
+}
+
 function normalizedBoothNumber(value: unknown) {
   return String(value ?? "").trim().toUpperCase();
 }
@@ -1073,17 +1094,18 @@ const defaultBoothCatalog: Array<{number: string; size: string}> = [
 
 async function seedDefaultBoothCatalog() {
   await ensureBoothTable();
-  await Promise.all(
-    defaultBoothCatalog.map((booth) =>
-      db.execute(
-        `INSERT INTO booth (booth_number, booth_size, booth_dimensions, status)
-          VALUES (?, ?, ?, 'available')
-          ON DUPLICATE KEY UPDATE
-            booth_size = REPLACE(COALESCE(booth.booth_size, VALUES(booth_size)), '?', ''),
-            booth_dimensions = COALESCE(booth.booth_dimensions, VALUES(booth_dimensions))`,
-        [booth.number, booth.size.replace("?", "") || null, booth.size.replace("?", "") || null],
-      ),
-    ),
+  const placeholders = defaultBoothCatalog.map(() => "(?, ?, ?, 'available')").join(", ");
+  const values = defaultBoothCatalog.flatMap((booth) => {
+    const size = booth.size.replace("?", "") || null;
+    return [booth.number, size, size];
+  });
+  await db.execute(
+    `INSERT INTO booth (booth_number, booth_size, booth_dimensions, status)
+      VALUES ${placeholders}
+      ON DUPLICATE KEY UPDATE
+        booth_size = REPLACE(COALESCE(booth.booth_size, VALUES(booth_size)), '?', ''),
+        booth_dimensions = COALESCE(booth.booth_dimensions, VALUES(booth_dimensions))`,
+    values,
   );
 }
 
@@ -2084,7 +2106,7 @@ export async function listResource(resource: string, session: MiddarSession) {
   }
 
   if (resource === "rental-booths") {
-    await syncRentalBoothsFromContracts();
+    await ensureRentalBoothsListReady();
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT rb.id,
               rb.rental_contract_id,
