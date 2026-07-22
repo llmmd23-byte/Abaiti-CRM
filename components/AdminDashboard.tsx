@@ -3954,9 +3954,6 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                 </div>
                 <div className="admin-floor-map-label entrance">{isArabic ? "بوابة الدخول" : "Entrance"}</div>
                 <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
-                <div className="admin-floor-map-label right" dir={isArabic ? "rtl" : "ltr"}>
-                  {isArabic ? "خريطة المعرض" : "Floor Map"}
-                </div>
                 {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "all").map((zone) => (
                   <div
                     className={`admin-floor-zone-container ${zone.key} ${activeZone === zone.key ? "is-focused" : ""} ${activeZone !== "all" && activeZone !== zone.key ? "is-dimmed" : ""}`}
