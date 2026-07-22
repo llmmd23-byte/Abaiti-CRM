@@ -21556,9 +21556,9 @@ html[dir="rtl"]
 .admin-floor-map-area-label.corridor-top {
   border: 1px dashed rgba(100, 116, 139, 0.32);
   border-radius: 6px;
-  background: rgba(241, 245, 249, 0.72);
+  background: rgba(241, 245, 249, 0.42);
   color: #475569;
-  font-size: clamp(7px, 0.72vw, 12px);
+  font-size: clamp(7px, 0.66vw, 11px);
   letter-spacing: 0;
 }
 
