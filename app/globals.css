@@ -5557,8 +5557,9 @@ html[dir="ltr"] .dashboard-main {
 
 .rental-booth-open-map {
   width: 100%;
-  min-height: 48px;
-  border: 1.5px solid #cbd5e1;
+  height: 42px;
+  min-height: 42px;
+  border: 1px solid #cbd5e1;
   border-radius: 10px;
   background: #ffffff;
   color: #0f2d4a;
@@ -5566,21 +5567,27 @@ html[dir="ltr"] .dashboard-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 14px;
+  gap: 10px;
+  padding: 0 14px;
   text-align: start;
 }
 
 .rental-booth-open-map strong {
   color: #000000;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .rental-booth-open-map span {
   color: #64748b;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rental-booth-open-map:hover,
