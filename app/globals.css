@@ -21398,9 +21398,7 @@ html[dir="rtl"]
   aspect-ratio: 5967 / 5662;
   border: 1px solid #cbd5e1;
   border-radius: 12px;
-  background:
-    linear-gradient(90deg, transparent 0 7.4%, rgba(15, 45, 74, 0.08) 7.4% 9.6%, transparent 9.6%),
-    linear-gradient(180deg, #f4f7fb 0 15%, #ffffff 15% 74%, #eff6ff 74% 100%);
+  background: linear-gradient(180deg, #f4f7fb 0 15%, #ffffff 15% 74%, #eff6ff 74% 100%);
   box-shadow: inset 0 0 0 8px #ffffff;
 }
 
