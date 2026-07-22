@@ -21527,7 +21527,7 @@ html[dir="rtl"]
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0f2d4a;
+  color: #000000;
   font-size: clamp(6px, 0.58vw, 10px);
   font-weight: 900;
   line-height: 1.1;
@@ -21540,19 +21540,19 @@ html[dir="rtl"]
 .admin-floor-map-area-label.traders,
 .admin-floor-map-area-label.stage,
 .admin-floor-map-area-label.academy {
-  color: #4c1d95;
+  color: #000000;
 }
 
 .admin-floor-map-area-label.roasting,
 .admin-floor-map-area-label.farmers,
 .admin-floor-map-area-label.innovation,
 .admin-floor-map-area-label.glass {
-  color: #0f2d4a;
+  color: #000000;
 }
 
 .admin-floor-map-area-label.corridor,
 .admin-floor-map-area-label.corridor-top {
-  color: #475569;
+  color: #000000;
   font-size: clamp(7px, 0.66vw, 11px);
   letter-spacing: 0;
 }
@@ -21567,7 +21567,7 @@ html[dir="rtl"]
   border: 1px solid rgba(22, 101, 52, 0.62);
   border-radius: 3px;
   background: rgba(34, 197, 94, 0.56);
-  color: #052e16;
+  color: #000000;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -21585,7 +21585,7 @@ html[dir="rtl"]
   border: 1.5px solid rgba(26, 116, 139, 0.42);
   border-radius: 7px;
   background: rgba(224, 242, 254, 0.78);
-  color: #0f2d4a;
+  color: #000000;
 }
 
 .admin-booth-map-tile.is-feature-area strong {
@@ -21645,21 +21645,28 @@ html[dir="rtl"]
 .admin-booth-map-tile.is-booked {
   border-color: rgba(153, 27, 27, 0.8);
   background: rgba(239, 68, 68, 0.74);
-  color: #ffffff;
+  color: #000000;
 }
 
 .admin-booth-map-tile.is-inactive {
   border-color: rgba(100, 116, 139, 0.66);
   background: rgba(203, 213, 225, 0.74);
-  color: #334155;
+  color: #000000;
 }
 
 .admin-booth-map-tile.is-selected {
   z-index: 5;
   border-color: #0066ff;
   background: rgba(0, 102, 255, 0.82);
-  color: #ffffff;
+  color: #000000;
   box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.18);
+}
+
+.admin-floor-map-canvas .admin-floor-map-area-label,
+.admin-floor-map-canvas .admin-booth-map-tile,
+.admin-floor-map-canvas .admin-booth-map-tile strong,
+.admin-floor-map-canvas .admin-booth-map-tile span {
+  color: #000000 !important;
 }
 
 .admin-booth-map-tile.is-missing {
