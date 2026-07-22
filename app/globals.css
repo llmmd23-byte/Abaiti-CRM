@@ -21345,14 +21345,21 @@ html[dir="rtl"]
 
 .admin-booths-toolbar .admin-record-search-bar {
   max-width: 420px;
+  order: 0;
+}
+
+.admin-booths-toolbar .admin-action-btn {
+  min-height: 48px;
+  order: 3;
 }
 
 .admin-booth-zone-filter {
   display: flex;
   flex: 1 1 360px;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   justify-content: center;
+  order: 2;
 }
 
 .admin-booth-zone-filter button {
@@ -21361,9 +21368,10 @@ html[dir="rtl"]
   background: #ffffff;
   color: #0f2d4a;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
-  padding: 7px 10px;
+  min-height: 48px;
+  padding: 10px 16px;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
@@ -21378,14 +21386,15 @@ html[dir="rtl"]
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 42px;
-  padding: 8px 12px;
+  gap: 12px;
+  min-height: 48px;
+  order: 1;
+  padding: 10px 16px;
   border: 1px solid #e2e8f0;
   border-radius: 999px;
   background: #ffffff;
   color: #000000;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
 }
