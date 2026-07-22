@@ -3653,8 +3653,6 @@ const FLOOR_MAP_AREA_LABELS = [
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.235, top: 16.719, width: 43.18, height: 4.486 },
   { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 52.463, top: 16.719, width: 43.18, height: 4.237 },
   { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 86.906, top: 19.21, width: 8.812, height: 42.352 },
-  { key: "glass", labelAr: "جلاس هاوس 10x6m", labelEn: "Glass House 10x6m", left: 69.57, top: 30.165, width: 9.262, height: 16.267 },
-  { key: "academy", labelAr: "الأكاديمية 10x10m", labelEn: "Academy 10x10m", left: 13.021, top: 38.648, width: 15.437, height: 16.267 },
   { key: "corridor-top", labelAr: "ممر 4m", labelEn: "Corridor 4m", left: 44.543, top: 15.053, width: 9.315, height: 5.344 },
   { key: "corridor", labelAr: "ممر 4m", labelEn: "Corridor 4m", left: 44.7, top: 47.5, width: 9.95, height: 8.1 },
   { key: "innovation", labelAr: "ساحة الابتكار", labelEn: "Innovation Area", left: 52.464, top: 73.895, width: 43.309, height: 4.486 },
