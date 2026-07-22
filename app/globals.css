@@ -21464,7 +21464,6 @@ html[dir="rtl"]
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
   color: #0f2d4a;
   font-size: clamp(6px, 0.58vw, 10px);
   font-weight: 900;
@@ -21472,13 +21471,12 @@ html[dir="rtl"]
   padding: 2px 4px;
   text-align: center;
   text-wrap: balance;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92), 0 0 6px rgba(255, 255, 255, 0.78);
 }
 
 .admin-floor-map-area-label.traders,
 .admin-floor-map-area-label.stage,
 .admin-floor-map-area-label.academy {
-  background: rgba(196, 167, 251, 0.16);
-  border: 1px solid rgba(124, 58, 237, 0.18);
   color: #4c1d95;
 }
 
@@ -21486,14 +21484,10 @@ html[dir="rtl"]
 .admin-floor-map-area-label.farmers,
 .admin-floor-map-area-label.innovation,
 .admin-floor-map-area-label.glass {
-  background: rgba(204, 251, 241, 0.2);
-  border: 1px solid rgba(26, 116, 139, 0.18);
   color: #0f2d4a;
 }
 
 .admin-floor-map-area-label.corridor {
-  background: rgba(241, 245, 249, 0.8);
-  border: 1px dashed rgba(100, 116, 139, 0.22);
   color: #64748b;
 }
 
