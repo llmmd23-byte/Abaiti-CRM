@@ -21552,8 +21552,14 @@ html[dir="rtl"]
   color: #0f2d4a;
 }
 
-.admin-floor-map-area-label.corridor {
-  color: #64748b;
+.admin-floor-map-area-label.corridor,
+.admin-floor-map-area-label.corridor-top {
+  border: 1px dashed rgba(100, 116, 139, 0.32);
+  border-radius: 6px;
+  background: rgba(241, 245, 249, 0.72);
+  color: #475569;
+  font-size: clamp(7px, 0.72vw, 12px);
+  letter-spacing: 0;
 }
 
 .admin-floor-map-area-label.farmers {
