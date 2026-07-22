@@ -3714,13 +3714,13 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       body{direction:rtl;font-family:Arial,Tahoma,sans-serif;text-align:right;color:#000;font-size:13px;line-height:1.75;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       .page{position:relative;width:100%;max-width:none;min-height:100vh;margin:0;padding:0;background:#fff;overflow:hidden;box-shadow:none;}
       .contract-inner{padding:clamp(12px,2vw,28px);}
-      .top-strip{height:10mm;background:#0b0537;margin-bottom:9mm;}
+      .top-strip{width:100vw;height:12mm;margin-inline:calc(50% - 50vw);margin-bottom:10mm;background:#0b0537;}
       .logos{display:flex;align-items:flex-start;justify-content:space-between;margin:0 4mm 5mm;}
       .event-logo{width:38mm;height:auto;object-fit:contain;}
       .netaq-logo{width:72mm;height:auto;object-fit:contain;}
-      .title{text-align:center;font-size:23px;font-weight:800;line-height:1.35;margin:2mm 0 2mm;}
-      .subtitle{text-align:center;font-size:14px;font-weight:700;line-height:1.7;margin-bottom:4mm;}
-      .contract-number{text-align:center;font-weight:800;font-size:13px;margin-bottom:7mm;direction:ltr;}
+      .title{text-align:center;font-size:28px;font-weight:900;line-height:1.35;margin:2mm 0 2.5mm;}
+      .subtitle{text-align:center;font-size:16px;font-weight:800;line-height:1.7;margin-bottom:4.5mm;}
+      .contract-number{text-align:center;font-weight:900;font-size:15px;margin-bottom:7mm;direction:ltr;}
       .intro{text-align:right;font-size:12.5px;margin:0 18mm 7mm 0;}
       h2.section-heading{font-size:16px;font-weight:800;text-align:right;margin:0 0 4mm;}
       .party-box{border:1px solid #111;min-height:43mm;padding:6mm 5mm;margin-bottom:8mm;text-align:right;}
@@ -3740,7 +3740,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .footer-page{position:absolute;left:0;right:0;bottom:6mm;text-align:center;color:#777;font-size:10px;}
       .page-break{break-before:page;page-break-before:always;}
       p,li,td,th,.party-box{overflow-wrap:anywhere;}
-      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:279mm;margin:0;padding:0;break-after:page;}.contract-inner{padding:13mm 13mm 15mm;}.page:last-child{break-after:auto;}}
+      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:279mm;margin:0;padding:0;break-after:page;}.top-strip{width:216mm;margin-inline:0;}.contract-inner{padding:13mm 13mm 15mm;}.page:last-child{break-after:auto;}}
     </style></head><body>
     <div class="page">
       <div class="top-strip"></div>
