@@ -20074,10 +20074,10 @@ html[dir="rtl"]
   height: 42px !important;
   min-height: 42px !important;
   padding: 0 20px !important;
-  border: 1px solid #1a748b !important;
+  border: 1px solid #dbe4ec !important;
   border-radius: 8px !important;
   background: #ffffff !important;
-  color: #1a748b !important;
+  color: #556987 !important;
   cursor: pointer !important;
   font-family: inherit !important;
   font-size: 14px !important;
@@ -20120,7 +20120,8 @@ html[dir="rtl"]
 .admin-shell .admin-ticket-data-tools .btn-advanced-filter:hover,
 .admin-shell .admin-ticket-status-filter .dashboard-select-trigger:hover,
 .admin-shell .admin-ticket-data-tools .btn-types:hover {
-  background: #f0f9fa !important;
+  border-color: #dbe4ec !important;
+  background: #ffffff !important;
 }
 
 .admin-shell[dir="rtl"] .admin-data-head.admin-ticket-data-head.toolbar-container,
