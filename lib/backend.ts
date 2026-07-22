@@ -933,25 +933,73 @@ function normalizedBoothNumber(value: unknown) {
 }
 
 async function ensureRentalBoothsTable() {
+  await ensureBoothTable();
   await db.execute(
     `CREATE TABLE IF NOT EXISTS rental_booths (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      booth_number VARCHAR(80) NOT NULL,
-      booth_size VARCHAR(80) NULL,
-      status ENUM('available', 'booked') NOT NULL DEFAULT 'available',
-      rental_contract_id BIGINT UNSIGNED NULL,
-      affiliate_user_id BIGINT UNSIGNED NULL,
-      booked_at DATETIME NULL,
-      released_at DATETIME NULL,
+      rental_contract_id BIGINT UNSIGNED NOT NULL,
+      booth_id BIGINT UNSIGNED NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
-      UNIQUE KEY uq_rental_booths_number (booth_number),
-      KEY idx_rental_booths_status (status),
+      UNIQUE KEY uq_rental_booths_booth (booth_id),
+      UNIQUE KEY uq_rental_booths_contract_booth (rental_contract_id, booth_id),
       KEY idx_rental_booths_contract (rental_contract_id),
-      KEY idx_rental_booths_affiliate (affiliate_user_id)
+      CONSTRAINT fk_rental_booths_contract
+        FOREIGN KEY (rental_contract_id) REFERENCES rental_contracts(id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+      CONSTRAINT fk_rental_booths_booth
+        FOREIGN KEY (booth_id) REFERENCES booth(id)
+        ON DELETE RESTRICT ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+  if (await columnExists("rental_booths", "booth_number")) {
+    await db.execute("DROP TABLE IF EXISTS rental_booths_next");
+    await db.execute(
+      `CREATE TABLE rental_booths_next (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        rental_contract_id BIGINT UNSIGNED NOT NULL,
+        booth_id BIGINT UNSIGNED NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uq_rental_booths_next_booth (booth_id),
+        UNIQUE KEY uq_rental_booths_next_contract_booth (rental_contract_id, booth_id),
+        KEY idx_rental_booths_next_contract (rental_contract_id),
+        CONSTRAINT fk_rental_booths_next_contract
+          FOREIGN KEY (rental_contract_id) REFERENCES rental_contracts(id)
+          ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT fk_rental_booths_next_booth
+          FOREIGN KEY (booth_id) REFERENCES booth(id)
+          ON DELETE RESTRICT ON UPDATE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    );
+    await db.execute(
+      `INSERT INTO booth (booth_number, booth_size, booth_dimensions, status)
+        SELECT UPPER(TRIM(rb.booth_number)),
+               REPLACE(MAX(rb.booth_size), '?', ''),
+               REPLACE(MAX(rb.booth_size), '?', ''),
+               'available'
+          FROM rental_booths rb
+         WHERE rb.booth_number IS NOT NULL
+           AND TRIM(rb.booth_number) <> ''
+         GROUP BY UPPER(TRIM(rb.booth_number))
+        ON DUPLICATE KEY UPDATE
+          booth_size = REPLACE(COALESCE(booth.booth_size, VALUES(booth_size)), '?', ''),
+          booth_dimensions = COALESCE(booth.booth_dimensions, VALUES(booth_dimensions))`,
+    );
+    await db.execute(
+      `INSERT IGNORE INTO rental_booths_next (rental_contract_id, booth_id, created_at)
+        SELECT rb.rental_contract_id, b.id, COALESCE(rb.created_at, CURRENT_TIMESTAMP)
+          FROM rental_booths rb
+          JOIN booth b ON b.booth_number = UPPER(TRIM(rb.booth_number))
+          JOIN rental_contracts rc ON rc.id = rb.rental_contract_id
+         WHERE rb.rental_contract_id IS NOT NULL
+           AND rb.booth_number IS NOT NULL
+           AND TRIM(rb.booth_number) <> ''
+           AND COALESCE(rc.status, 'draft') <> 'cancelled'`,
+    );
+    await db.execute("DROP TABLE rental_booths");
+    await db.execute("RENAME TABLE rental_booths_next TO rental_booths");
+  }
 }
 
 async function ensureBoothTable() {
@@ -987,6 +1035,7 @@ async function ensureBoothTable() {
 async function syncBoothCatalogFromRentalBooths() {
   await ensureBoothTable();
   await ensureRentalBoothsTable();
+  if (!(await columnExists("rental_booths", "booth_number"))) return;
   await db.execute(
     `INSERT INTO booth (booth_number, booth_size, booth_dimensions, status)
       SELECT rb.booth_number, REPLACE(MAX(rb.booth_size), '?', ''), REPLACE(MAX(rb.booth_size), '?', ''), 'available'
@@ -1039,73 +1088,44 @@ async function seedDefaultBoothCatalog() {
 }
 
 async function ensureRentalBoothContractRelation() {
-  if (
-    !(await tableExists("rental_contracts")) ||
-    !(await tableExists("rental_booths")) ||
-    (await foreignKeyExists("rental_booths", "fk_rental_booths_contract"))
-  ) {
-    return;
-  }
-  await db.execute(
-    `UPDATE rental_booths rb
-      LEFT JOIN rental_contracts rc ON rc.id = rb.rental_contract_id
-       SET rb.rental_contract_id = NULL,
-           rb.status = 'available',
-           rb.released_at = COALESCE(rb.released_at, NOW())
-     WHERE rb.rental_contract_id IS NOT NULL
-       AND rc.id IS NULL`,
-  );
-  await db.execute(
-    `ALTER TABLE rental_booths
-      ADD CONSTRAINT fk_rental_booths_contract
-      FOREIGN KEY (rental_contract_id) REFERENCES rental_contracts(id)
-      ON DELETE SET NULL ON UPDATE CASCADE`,
-  );
+  await ensureRentalBoothsTable();
 }
 
 async function syncRentalBoothsFromContracts() {
   await ensureRentalBoothsTable();
   if (!(await tableExists("rental_contracts"))) return;
   await db.execute(
-    `INSERT INTO rental_booths (
-        booth_number,
-        booth_size,
-        status,
-        rental_contract_id,
-        affiliate_user_id,
-        booked_at
-      )
-      SELECT
-        UPPER(TRIM(rc.booth_number)),
-        MAX(rc.booth_size),
-        'booked',
-        MAX(rc.id),
-        MAX(rc.affiliate_user_id),
-        COALESCE(MAX(rc.contract_date), MAX(DATE(rc.created_at)), CURDATE())
-      FROM rental_contracts rc
-      WHERE rc.booth_number IS NOT NULL
-        AND TRIM(rc.booth_number) <> ''
-        AND COALESCE(rc.status, 'draft') <> 'cancelled'
-      GROUP BY UPPER(TRIM(rc.booth_number))
+    `INSERT INTO booth (booth_number, booth_size, booth_dimensions, status)
+      SELECT UPPER(TRIM(rc.booth_number)),
+             REPLACE(MAX(rc.booth_size), '?', ''),
+             REPLACE(MAX(rc.booth_size), '?', ''),
+             'available'
+        FROM rental_contracts rc
+       WHERE rc.booth_number IS NOT NULL
+         AND TRIM(rc.booth_number) <> ''
+       GROUP BY UPPER(TRIM(rc.booth_number))
       ON DUPLICATE KEY UPDATE
-        booth_size = VALUES(booth_size),
-        status = 'booked',
-        rental_contract_id = VALUES(rental_contract_id),
-        affiliate_user_id = VALUES(affiliate_user_id),
-        booked_at = COALESCE(rental_booths.booked_at, VALUES(booked_at)),
-        released_at = NULL`,
+        booth_size = REPLACE(COALESCE(booth.booth_size, VALUES(booth_size)), '?', ''),
+        booth_dimensions = COALESCE(booth.booth_dimensions, VALUES(booth_dimensions))`,
   );
   await db.execute(
-    `UPDATE rental_booths rb
-      LEFT JOIN rental_contracts rc
-        ON UPPER(TRIM(rc.booth_number)) = rb.booth_number
-       AND COALESCE(rc.status, 'draft') <> 'cancelled'
-       SET rb.status = 'available',
-           rb.rental_contract_id = NULL,
-           rb.affiliate_user_id = NULL,
-           rb.released_at = COALESCE(rb.released_at, NOW())
-     WHERE rb.status = 'booked'
-       AND rc.id IS NULL`,
+    `DELETE rb
+       FROM rental_booths rb
+       LEFT JOIN rental_contracts rc
+         ON rc.id = rb.rental_contract_id
+      WHERE rc.id IS NULL
+         OR COALESCE(rc.status, 'draft') = 'cancelled'
+         OR rc.booth_number IS NULL
+         OR TRIM(rc.booth_number) = ''`,
+  );
+  await db.execute(
+    `INSERT IGNORE INTO rental_booths (rental_contract_id, booth_id)
+      SELECT rc.id, b.id
+        FROM rental_contracts rc
+        JOIN booth b ON b.booth_number = UPPER(TRIM(rc.booth_number))
+       WHERE rc.booth_number IS NOT NULL
+         AND TRIM(rc.booth_number) <> ''
+         AND COALESCE(rc.status, 'draft') <> 'cancelled'`,
   );
 }
 
@@ -1117,10 +1137,10 @@ async function assertRentalBoothAvailable(
   if (!normalized) return;
   await syncRentalBoothsFromContracts();
   const [rows] = await db.execute<RowDataPacket[]>(
-    `SELECT booth_number, status, rental_contract_id
-       FROM rental_booths
-      WHERE booth_number = ?
-        AND status = 'booked'
+    `SELECT rb.rental_contract_id
+       FROM rental_booths rb
+       JOIN booth b ON b.id = rb.booth_id
+      WHERE b.booth_number = ?
       LIMIT 1`,
     [normalized],
   );
@@ -1135,24 +1155,34 @@ async function assertRentalBoothAvailable(
 }
 
 async function syncRentalBoothForContract(contractId: number) {
-  await syncRentalBoothsFromContracts();
+  await ensureRentalBoothsTable();
   const [rows] = await db.execute<RowDataPacket[]>(
-    `SELECT booth_number
+    `SELECT booth_number, booth_size, status
        FROM rental_contracts
       WHERE id = ?
-        AND booth_number IS NOT NULL
-        AND TRIM(booth_number) <> ''
       LIMIT 1`,
     [contractId],
   );
-  const boothNumber = normalizedBoothNumber(rows[0]?.booth_number);
-  if (!boothNumber) return;
+  await db.execute("DELETE FROM rental_booths WHERE rental_contract_id = ?", [contractId]);
+  const contract = rows[0];
+  const boothNumber = normalizedBoothNumber(contract?.booth_number);
+  if (!boothNumber || String(contract?.status ?? "draft").toLowerCase() === "cancelled") return;
   await db.execute(
-    `UPDATE rental_booths
-        SET status = 'booked',
-            rental_contract_id = ?,
-            released_at = NULL
-      WHERE booth_number = ?`,
+    `INSERT INTO booth (booth_number, booth_size, booth_dimensions, status)
+      VALUES (?, ?, ?, 'available')
+      ON DUPLICATE KEY UPDATE
+        booth_size = REPLACE(COALESCE(booth.booth_size, VALUES(booth_size)), '?', ''),
+        booth_dimensions = COALESCE(booth.booth_dimensions, VALUES(booth_dimensions))`,
+    [
+      boothNumber,
+      String(contract?.booth_size ?? "").replaceAll("?", "").trim() || null,
+      String(contract?.booth_size ?? "").replaceAll("?", "").trim() || null,
+    ],
+  );
+  await db.execute(
+    `INSERT INTO rental_booths (rental_contract_id, booth_id)
+      SELECT ?, id FROM booth WHERE booth_number = ?
+      ON DUPLICATE KEY UPDATE rental_contract_id = VALUES(rental_contract_id)`,
     [contractId, boothNumber],
   );
 }
@@ -2056,10 +2086,24 @@ export async function listResource(resource: string, session: MiddarSession) {
   if (resource === "rental-booths") {
     await syncRentalBoothsFromContracts();
     const [rows] = await db.execute<RowDataPacket[]>(
-      `SELECT rb.*, rc.contract_number, rc.company_name, rc.contact_name
+      `SELECT rb.id,
+              rb.rental_contract_id,
+              rb.booth_id,
+              rb.created_at,
+              'booked' AS status,
+              b.booth_number,
+              b.booth_size,
+              b.booth_dimensions,
+              b.booth_category,
+              b.hall,
+              b.location_zone,
+              rc.contract_number,
+              rc.company_name,
+              rc.contact_name
          FROM rental_booths rb
+         JOIN booth b ON b.id = rb.booth_id
          LEFT JOIN rental_contracts rc ON rc.id = rb.rental_contract_id
-        ORDER BY rb.booth_number ASC LIMIT 500`,
+        ORDER BY b.booth_number ASC LIMIT 500`,
     );
     return rows;
   }

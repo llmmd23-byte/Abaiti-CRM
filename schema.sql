@@ -340,24 +340,54 @@ CREATE TABLE IF NOT EXISTS demo_requests (
       ON DELETE SET NULL ON UPDATE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-  CREATE TABLE IF NOT EXISTS rental_booths (
+  CREATE TABLE IF NOT EXISTS rental_contracts (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    booth_number VARCHAR(80) NOT NULL,
-    booth_size VARCHAR(80) NULL,
-    status ENUM('available', 'booked') NOT NULL DEFAULT 'available',
-    rental_contract_id BIGINT UNSIGNED NULL,
+    contract_number VARCHAR(80) NOT NULL,
+    lead_id BIGINT UNSIGNED NULL,
     affiliate_user_id BIGINT UNSIGNED NULL,
-    booked_at DATETIME NULL,
-    released_at DATETIME NULL,
+    event_name VARCHAR(190) NULL,
+    event_dates VARCHAR(190) NULL,
+    event_location VARCHAR(190) NULL,
+    first_party_cr VARCHAR(80) NULL,
+    first_party_representative VARCHAR(190) NULL,
+    second_party_cr VARCHAR(80) NULL,
+    second_party_representative VARCHAR(190) NULL,
+    booth_number VARCHAR(80) NULL,
+    participation_category VARCHAR(120) NULL,
+    booth_size VARCHAR(80) NULL,
+    lessor_name VARCHAR(190) NULL,
+    tenant_name VARCHAR(190) NULL,
+    company_name VARCHAR(190) NOT NULL,
+    contact_name VARCHAR(190) NOT NULL,
+    email VARCHAR(190) NULL,
+    phone VARCHAR(80) NULL,
+    address VARCHAR(255) NULL,
+    city VARCHAR(120) NULL,
+    country VARCHAR(120) NULL,
+    rental_item VARCHAR(255) NOT NULL,
+    rental_location VARCHAR(190) NULL,
+    lease_start_date DATE NULL,
+    lease_end_date DATE NULL,
+    unit_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+    quantity DECIMAL(12,2) NOT NULL DEFAULT 1,
+    subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
+    vat_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    grand_total DECIMAL(12,2) NOT NULL DEFAULT 0,
+    currency CHAR(3) NOT NULL DEFAULT 'SAR',
+    payment_method VARCHAR(80) NOT NULL DEFAULT 'bank_transfer',
+    contract_date DATE NULL,
+    status ENUM('draft', 'sent', 'signed', 'cancelled') NOT NULL DEFAULT 'draft',
+    notes TEXT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_rental_booths_number (booth_number),
-    KEY idx_rental_booths_status (status),
-    KEY idx_rental_booths_contract (rental_contract_id),
-    KEY idx_rental_booths_affiliate (affiliate_user_id),
-    CONSTRAINT fk_rental_booths_contract
-      FOREIGN KEY (rental_contract_id) REFERENCES rental_contracts(id)
+    UNIQUE KEY uq_rental_contracts_number (contract_number),
+    KEY idx_rental_contracts_lead (lead_id),
+    KEY idx_rental_contracts_affiliate (affiliate_user_id),
+    KEY idx_rental_contracts_status (status),
+    KEY idx_rental_contracts_company (company_name),
+    CONSTRAINT fk_rental_contracts_affiliate_user
+      FOREIGN KEY (affiliate_user_id) REFERENCES users(id)
       ON DELETE SET NULL ON UPDATE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -377,6 +407,23 @@ CREATE TABLE IF NOT EXISTS demo_requests (
     UNIQUE KEY uq_booth_number (booth_number),
     KEY idx_booth_status (status),
     KEY idx_booth_category (booth_category)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+  CREATE TABLE IF NOT EXISTS rental_booths (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    rental_contract_id BIGINT UNSIGNED NOT NULL,
+    booth_id BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_rental_booths_booth (booth_id),
+    UNIQUE KEY uq_rental_booths_contract_booth (rental_contract_id, booth_id),
+    KEY idx_rental_booths_contract (rental_contract_id),
+    CONSTRAINT fk_rental_booths_contract
+      FOREIGN KEY (rental_contract_id) REFERENCES rental_contracts(id)
+      ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_rental_booths_booth
+      FOREIGN KEY (booth_id) REFERENCES booth(id)
+      ON DELETE RESTRICT ON UPDATE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
   CREATE TABLE IF NOT EXISTS sales_orders (
