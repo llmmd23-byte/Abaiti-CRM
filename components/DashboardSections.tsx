@@ -3721,7 +3721,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .title{text-align:center;font-size:28px;font-weight:900;line-height:1.35;margin:2mm 0 2.5mm;}
       .subtitle{text-align:center;font-size:16px;font-weight:800;line-height:1.7;margin-bottom:4.5mm;}
       .contract-number{text-align:center;font-weight:900;font-size:15px;margin-bottom:7mm;direction:ltr;}
-      .intro{text-align:right;font-size:12.5px;margin:0 18mm 7mm 0;}
+      .intro{text-align:right;font-size:16px;font-weight:700;margin:0 18mm 7mm 0;}
       h2.section-heading{font-size:16px;font-weight:800;text-align:right;margin:0 0 4mm;}
       .party-box{border:1px solid #111;min-height:43mm;padding:6mm 5mm;margin-bottom:8mm;text-align:right;}
       .party-box h3{font-size:16px;font-weight:800;margin:0 0 5mm;}
