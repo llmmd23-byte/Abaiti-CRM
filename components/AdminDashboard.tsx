@@ -3859,8 +3859,27 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
       setSelectedBooth(nextBooth);
       setMessage(isArabic ? "تم حفظ بيانات البوث" : "Booth saved");
       window.setTimeout(() => setMessage(""), 2200);
-    } catch {
-      setMessage(isArabic ? "تعذر حفظ بيانات البوث" : "Unable to save booth");
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "SAVE_FAILED";
+      const errorMessages: Record<string, { ar: string; en: string }> = {
+        DUPLICATE_BOOTH_NUMBER: {
+          ar: "رقم البوث مستخدم مسبقاً",
+          en: "Booth number is already used",
+        },
+        FORBIDDEN: {
+          ar: "لا توجد صلاحية لتعديل بيانات البوث",
+          en: "You do not have permission to edit booth details",
+        },
+        VALIDATION_ERROR: {
+          ar: "راجع بيانات البوث قبل الحفظ",
+          en: "Review booth details before saving",
+        },
+      };
+      const nextMessage = errorMessages[code] ?? {
+        ar: "تعذر حفظ بيانات البوث",
+        en: "Unable to save booth",
+      };
+      setMessage(isArabic ? nextMessage.ar : nextMessage.en);
     } finally {
       setIsSaving(false);
     }

@@ -21,6 +21,7 @@ export function apiError(error: unknown) {
     "READ_ONLY_RESOURCE",
     "VALIDATION_ERROR",
     "DUPLICATE_PHONE",
+    "DUPLICATE_BOOTH_NUMBER",
     "DUPLICATE_CUSTOMER_QUOTE",
     "BOOTH_ALREADY_BOOKED",
     "PRODUCT_IN_USE",
@@ -42,6 +43,7 @@ export function apiError(error: unknown) {
                 "READ_ONLY_RESOURCE",
                 "VALIDATION_ERROR",
                 "DUPLICATE_PHONE",
+                "DUPLICATE_BOOTH_NUMBER",
                 "DUPLICATE_CUSTOMER_QUOTE",
               ].includes(code)
             ? 422

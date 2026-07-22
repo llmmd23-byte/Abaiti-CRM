@@ -2997,8 +2997,14 @@ export async function updateResource(
     }
   }
   if (resource === "booths") {
-    if (data.booth_number !== undefined && data.booth_number !== null)
+    if (data.booth_number !== undefined && data.booth_number !== null) {
       data.booth_number = normalizedBoothNumber(data.booth_number);
+      const [duplicateBoothRows] = await db.execute<RowDataPacket[]>(
+        "SELECT id FROM booth WHERE booth_number = ? AND id <> ? LIMIT 1",
+        [data.booth_number, id],
+      );
+      if (duplicateBoothRows.length) throw new Error("DUPLICATE_BOOTH_NUMBER");
+    }
     for (const column of ["booth_size", "booth_dimensions", "booth_category", "hall", "location_zone"]) {
       if (data[column] !== undefined && data[column] !== null)
         data[column] = String(data[column]).replaceAll("?", "").trim() || null;
