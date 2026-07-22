@@ -307,9 +307,9 @@ function remainingQuoteTimeLabel(row: BackendRow, isArabic: boolean) {
     (expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
   );
 
-  if (remainingDays <= 0) return isArabic ? "ظ…ظ†طھظ‡ظٹ" : "Expired";
+  if (remainingDays <= 0) return isArabic ? "منتهي" : "Expired";
   return isArabic
-    ? `${remainingDays.toLocaleString(NUMBER_LOCALE)} ظٹظˆظ…`
+    ? `${remainingDays.toLocaleString(NUMBER_LOCALE)} ${remainingDays === 1 ? "يوم" : "أيام"}`
     : `${remainingDays.toLocaleString(NUMBER_LOCALE)} day${remainingDays === 1 ? "" : "s"}`;
 }
 
