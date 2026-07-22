@@ -21280,7 +21280,7 @@ html[dir="rtl"]
 .admin-booths-page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
 }
 
 .admin-booths-head,
@@ -21358,14 +21358,16 @@ html[dir="rtl"]
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   background: #f8fafc;
-  padding: 14px;
-  overflow: auto;
-  max-height: 70vh;
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  overflow: hidden;
 }
 
 .admin-floor-map-canvas {
   position: relative;
-  min-width: 920px;
+  width: min(100%, 68vh);
+  min-width: 0;
   aspect-ratio: 5967 / 5662;
   border: 1px solid #cbd5e1;
   border-radius: 12px;
