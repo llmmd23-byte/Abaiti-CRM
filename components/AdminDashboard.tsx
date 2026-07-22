@@ -3891,16 +3891,21 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
           ) : visibleLayoutBooths.length ? (
             <>
               <div className="admin-floor-map-canvas">
-                <div className="admin-floor-map-label top">Pre-Function Hall</div>
+                <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
+                  {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}
+                </div>
                 <div className="admin-floor-map-label entrance">{isArabic ? "بوابة الدخول" : "Entrance"}</div>
                 <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
-                <div className="admin-floor-map-label right">Floor Map</div>
+                <div className="admin-floor-map-label right" dir={isArabic ? "rtl" : "ltr"}>
+                  {isArabic ? "خريطة المعرض" : "Floor Map"}
+                </div>
                 <div className="admin-floor-map-zone m-zone">M</div>
                 <div className="admin-floor-map-zone rl-zone">RL</div>
                 <div className="admin-floor-map-zone in-zone">IN</div>
                 {FLOOR_MAP_AREA_LABELS.map((area) => (
                   <div
                     className={`admin-floor-map-area-label ${area.key}`}
+                    dir={isArabic ? "rtl" : "ltr"}
                     key={area.key}
                     style={{
                       left: `${area.left}%`,
@@ -3919,6 +3924,16 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   const isInactive = String(booth?.status ?? "available") === "inactive";
                   const isSelected = booth && Number(selectedBooth?.id) === Number(booth.id);
                   const isFeatureArea = layoutBooth.id === "ACADEMY" || layoutBooth.id === "GLASS HOUSE";
+                  const boothMapLabel =
+                    layoutBooth.id === "ACADEMY"
+                      ? isArabic
+                        ? "الأكاديمية"
+                        : "Academy"
+                      : layoutBooth.id === "GLASS HOUSE"
+                        ? isArabic
+                          ? "جلاس هاوس"
+                          : "Glass House"
+                        : layoutBooth.id;
                   const boothMapSize = String(
                     booth?.booth_size ?? booth?.booth_dimensions ?? "",
                   ).trim();
@@ -3926,6 +3941,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                     <button
                       className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
                       disabled={isMissing}
+                      dir="ltr"
                       key={layoutBooth.id}
                       onClick={() => booth && selectBooth(booth)}
                       style={{
@@ -3937,7 +3953,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                       title={layoutBooth.id}
                       type="button"
                     >
-                      <strong>{layoutBooth.id}</strong>
+                      <strong>{boothMapLabel}</strong>
                       {boothMapSize ? <span>{boothMapSize}</span> : null}
                     </button>
                   );
