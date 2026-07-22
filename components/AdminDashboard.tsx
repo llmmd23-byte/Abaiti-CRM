@@ -3651,7 +3651,7 @@ const PPT_BOOTH_LAYOUT = [
 
 const FLOOR_MAP_AREA_LABELS = [
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.235, top: 16.719, width: 43.18, height: 4.486 },
-  { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 52.463, top: 16.719, width: 43.18, height: 4.237 },
+  { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 49.8, top: 16.719, width: 37.6, height: 4.237 },
   { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 86.906, top: 19.21, width: 8.812, height: 42.352 },
   { key: "corridor-top", labelAr: "ممر 4m", labelEn: "Corridor 4m", left: 46.1, top: 14.3, width: 5.9, height: 4.7 },
   { key: "innovation", labelAr: "ساحة الابتكار", labelEn: "Innovation Area", left: 52.464, top: 73.895, width: 43.309, height: 4.486 },
