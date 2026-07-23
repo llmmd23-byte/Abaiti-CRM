@@ -3960,7 +3960,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
             {!selectedLead ? <small className="quote-duration-hint">{text.noCustomerData}</small> : null}
           </label>
           <label className="quote-field"><span>{text.lessorName}</span><input onChange={(event) => setLessorName(event.target.value)} value={lessorName} /></label>
-          <label className="quote-field"><span>{text.tenantName}</span><input onChange={(event) => setTenantName(event.target.value)} value={tenantName} /></label>
+          <label className="quote-field rental-tenant-name-field"><span>{text.tenantName}</span><input onChange={(event) => setTenantName(event.target.value)} value={tenantName} /></label>
           <label className="quote-field rental-compact-label"><span>{text.secondPartyCr}</span><input inputMode="numeric" onChange={(event) => setSecondPartyCr(event.target.value)} value={secondPartyCr} /></label>
           <label className="quote-field rental-compact-label"><span>{text.secondPartyRepresentative}</span><input onChange={(event) => setSecondPartyRepresentative(event.target.value)} value={secondPartyRepresentative} /></label>
           <label className="quote-field"><span>{text.companyName} <b className="required-mark">*</b></span><input onChange={(event) => setCompanyName(event.target.value)} value={companyName} /></label>

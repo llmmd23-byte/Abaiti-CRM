@@ -5557,6 +5557,11 @@ html[dir="ltr"] .dashboard-main {
   overflow: hidden;
 }
 
+.rental-tenant-name-field > span {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .rental-booth-open-map {
   width: 100%;
   max-width: 100%;
