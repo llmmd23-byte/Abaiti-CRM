@@ -3971,7 +3971,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
             <span>{text.boothNumber}</span>
             <button className="rental-booth-open-map" onClick={() => setBoothPickerOpen(true)} type="button">
               <strong>{boothNumber || (isArabic ? "اختيار البوث" : "Choose booth")}</strong>
-              <span>{isArabic ? "اضغط لفتح خريطة البوثات" : "Open booth layout"}</span>
+              <span>{isArabic ? "خريطة" : "Map"}</span>
             </button>
           </label>
           {boothPickerOpen ? (
