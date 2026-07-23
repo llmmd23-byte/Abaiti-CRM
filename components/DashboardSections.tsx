@@ -3835,7 +3835,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <div class="footer-page">1</div>
     </div>
     <div class="page page-break">
-      <div class="top-strip"></div>
       <div class="contract-inner">
       <div class="section-title">ثالثاً: قيمة المشاركة</div>
       <table><tbody><tr><th>رقم البوث</th><th>الفئة</th><th>المساحة</th><th>السعر</th><th>الضريبة</th><th>الإجمالي</th></tr><tr><td>${escapePrintValue(displayValue(contract.booth_number ?? rentalItem))}</td><td>${escapePrintValue(displayValue(contract.participation_category ?? "---"))}</td><td>${escapePrintValue(displayValue(contract.booth_size))}</td><td>${escapePrintValue(money(subtotal))}</td><td>${escapePrintValue(money(vat))}</td><td>${escapePrintValue(money(grandTotal))}</td></tr></tbody></table>
@@ -3852,7 +3851,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <div class="footer-page">2</div>
     </div>
     <div class="page page-break">
-      <div class="top-strip"></div>
       <div class="contract-inner">
       <div class="section-title">سابعاً: القوة القاهرة</div>
       <p class="preamble">لا يكون أي من الطرفين مسؤولاً عن التأخير أو عدم تنفيذ التزاماته إذا كان ذلك نتيجة قوة قاهرة خارجة عن الإرادة، مثل الكوارث الطبيعية أو الحروب أو الأوبئة أو القرارات الحكومية أو أي ظرف يمنع تنفيذ العقد.</p>
