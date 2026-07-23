@@ -5694,6 +5694,11 @@ html[dir="ltr"] .dashboard-main {
   margin: 0 auto;
 }
 
+.rental-booth-modal-map .admin-floor-zone-container {
+  transform: scale(0.972);
+  transform-origin: center;
+}
+
 .rental-floor-map-shell {
   overflow: auto;
   max-height: 72vh;
