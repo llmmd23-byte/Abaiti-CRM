@@ -3831,6 +3831,21 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
     setMessage("");
   }
 
+  function cancelBoothEdit() {
+    setSelectedBooth(null);
+    setDraft({
+      booth_number: "",
+      booth_size: "",
+      booth_dimensions: "",
+      booth_category: "",
+      hall: "",
+      location_zone: "",
+      status: "available",
+      notes: "",
+    });
+    setMessage("");
+  }
+
   async function saveBooth() {
     if (!selectedBooth || isSaving) return;
     if (!draft.booth_number.trim()) {
@@ -4143,7 +4158,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
               </div>
               {message ? <p className="admin-booth-message">{message}</p> : null}
               <div className="admin-edit-actions">
-                <button className="secondary" onClick={() => selectBooth(selectedBooth)} type="button">
+                <button className="secondary" onClick={cancelBoothEdit} type="button">
                   {isArabic ? "إلغاء التعديل" : "Reset"}
                 </button>
                 <button className="primary" disabled={isSaving} onClick={() => void saveBooth()} type="button">
