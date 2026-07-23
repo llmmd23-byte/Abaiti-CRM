@@ -44,17 +44,6 @@ async function ensureLandingUrlColumn() {
 async function activeAssetFromLandingUrl(landingUrl: string) {
   const assetId = assetIdFromUrl(landingUrl);
   const publicAssetName = publicAssetNameFromUrl(landingUrl);
-  if (!assetId && !publicAssetName) {
-    const [latestAssets] = await db.execute<RowDataPacket[]>(
-      `SELECT id,original_name,mime_type,file_data,status
-         FROM marketing_assets
-        WHERE description = 'landing-page-brochure'
-          AND status = 'active'
-        ORDER BY updated_at DESC, created_at DESC, id DESC
-        LIMIT 1`,
-    );
-    return latestAssets[0] ?? null;
-  }
 
   const [assets] = assetId
     ? await db.execute<RowDataPacket[]>(
@@ -63,26 +52,34 @@ async function activeAssetFromLandingUrl(landingUrl: string) {
           WHERE id = ? LIMIT 1`,
         [assetId],
       )
-    : await db.execute<RowDataPacket[]>(
+    : publicAssetName
+      ? await db.execute<RowDataPacket[]>(
         `SELECT id,original_name,mime_type,file_data,status
            FROM marketing_assets
           WHERE REPLACE(file_path, '\\\\', '/') LIKE ? LIMIT 1`,
         [`%/marketing-library/${publicAssetName}`],
+      )
+      : await db.execute<RowDataPacket[]>(
+        `SELECT id,original_name,mime_type,file_data,status
+           FROM marketing_assets
+          WHERE description = 'landing-page-brochure'
+            AND status = 'active'
+          ORDER BY updated_at DESC, created_at DESC, id DESC
+          LIMIT 1`,
       );
 
   const asset = assets[0];
-  if (!asset || String(asset.status ?? "active") !== "active") {
-    const [latestAssets] = await db.execute<RowDataPacket[]>(
-      `SELECT id,original_name,mime_type,file_data,status
-         FROM marketing_assets
-        WHERE description = 'landing-page-brochure'
-          AND status = 'active'
-        ORDER BY updated_at DESC, created_at DESC, id DESC
-        LIMIT 1`,
-    );
-    return latestAssets[0] ?? null;
-  }
-  return asset;
+  if (asset && String(asset.status ?? "active") === "active") return asset;
+
+  const [latestAssets] = await db.execute<RowDataPacket[]>(
+    `SELECT id,original_name,mime_type,file_data,status
+       FROM marketing_assets
+      WHERE description = 'landing-page-brochure'
+        AND status = 'active'
+      ORDER BY updated_at DESC, created_at DESC, id DESC
+      LIMIT 1`,
+  );
+  return latestAssets[0] ?? null;
 }
 
 function contentDispositionName(value: unknown) {
@@ -115,16 +112,15 @@ export async function GET() {
         : await readFile(DEFAULT_BROCHURE_PATH);
 
     const fileName = asset?.original_name ?? "coffee-chocolate-expo-2026.pdf";
-    const headers = new Headers();
-    headers.set("Content-Type", String(asset?.mime_type ?? "application/pdf"));
-    headers.set("Content-Length", String(buffer.byteLength));
-    headers.set("Cache-Control", "no-store");
-    headers.set(
-      "Content-Disposition",
-      `inline; filename="${contentDispositionName(fileName)}"; filename*=UTF-8''${encodedContentDispositionName(fileName)}`,
-    );
-
-    return new NextResponse(new Uint8Array(buffer), {headers});
+    return new Response(new Uint8Array(buffer), {
+      headers: {
+        "content-type": "application/pdf",
+        "content-length": String(buffer.byteLength),
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
+        "content-disposition": `inline; filename="${contentDispositionName(fileName)}"; filename*=UTF-8''${encodedContentDispositionName(fileName)}`,
+      },
+    });
   } catch (error) {
     console.error("Unable to load landing brochure", error);
     return NextResponse.json({error: "BROCHURE_NOT_AVAILABLE"}, {status: 500});
