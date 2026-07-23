@@ -1,10 +1,11 @@
 "use client";
 
 import {useLocale} from "next-intl";
-import {useState, type CSSProperties, type ReactNode} from "react";
+import {useEffect, useMemo, useState, type CSSProperties, type ReactNode} from "react";
 import {DemoView} from "@/components/DashboardNewSections";
 import PdfPreviewFrame from "@/components/PdfPreviewFrame";
 import {useBackend} from "@/lib/client-backend";
+import {subscribeMarketingAssetsChanged} from "@/lib/marketing-assets-sync";
 
 type ProductWorkspaceView = "catalog" | "form";
 type MarketingTab = "sectors" | "social" | "library";
@@ -53,11 +54,27 @@ const catalogCopy = {
   }
 };
 
+const DEFAULT_PUBLIC_BROCHURE_URL =
+  "/api/v1/landing-brochure#toolbar=0&navpanes=0";
 const industryLinks = {
-  EVENTS_EXHIBITIONS: "/landing-pages/coffee-chocolate-expo-2026-v2.pdf#toolbar=0&navpanes=0"
+  EVENTS_EXHIBITIONS: DEFAULT_PUBLIC_BROCHURE_URL
 } as const;
 
-const LANDING_BROCHURE_VIEW_URL = "/api/v1/landing-brochure#toolbar=0&navpanes=0";
+function publicBrochureUrl(value: unknown) {
+  const raw = String(value ?? "").trim();
+  if (/^https?:\/\//i.test(raw)) {
+    return raw;
+  }
+  if (
+    !raw ||
+    raw.startsWith("/api/v1/landing-brochure") ||
+    raw.startsWith("/marketing-library/") ||
+    raw.startsWith("/landing-pages/")
+  ) {
+    return DEFAULT_PUBLIC_BROCHURE_URL;
+  }
+  return DEFAULT_PUBLIC_BROCHURE_URL;
+}
 
 const industriesData: Industry[] = [
   {
@@ -66,7 +83,7 @@ const industriesData: Industry[] = [
     url: industryLinks.EVENTS_EXHIBITIONS,
     title: {
       ar: "\u0623\u0646\u0638\u0645\u0629 \u0627\u0644\u0645\u0639\u0627\u0631\u0636 \u0648\u0627\u0644\u0641\u0639\u0627\u0644\u064a\u0627\u062a",
-      en: "Exhibitions and Events Systems",
+      en: "Exhibitions and Event Systems",
     },
     subtitle: {
       ar: "\u062d\u0644 \u0645\u062a\u0643\u0627\u0645\u0644 \u0644\u0625\u062f\u0627\u0631\u0629 \u0648\u062a\u0646\u0638\u064a\u0645 \u0627\u0644\u0645\u0639\u0627\u0631\u0636 \u0648\u0627\u0644\u0645\u0624\u062a\u0645\u0631\u0627\u062a \u0648\u062d\u062c\u0632 \u0627\u0644\u0623\u062c\u0646\u062d\u0629 \u0648\u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0644\u0648\u062c\u0633\u062a\u064a\u0629 \u0631\u0642\u0645\u064a\u0627\u064b \u0628\u0627\u0644\u0643\u0627\u0645\u0644.",
@@ -336,37 +353,62 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const [activeTab, setActiveTab] = useState<MarketingTab>("sectors");
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
-  const marketingAssets = useBackend<BackendRow[]>("/api/v1/data/marketing-assets");
-  const displayedIndustries: Industry[] = industriesData.map((industry) => {
-    const live = liveIndustries?.find((row) => row.slug === industry.id);
-    return live
-      ? {
-          ...industry,
-          title: {
-            ...industry.title,
-            ar: String(live.name ?? industry.title.ar),
-          },
-          subtitle: {
-            ...industry.subtitle,
-            ar: String(live.description ?? industry.subtitle.ar),
-          },
-          url:
-            industry.id === "events-exhibitions"
-              ? LANDING_BROCHURE_VIEW_URL
-              : industry.url,
-          externalUrl: String(live.external_url ?? "").trim() || undefined,
-        }
-      : industry;
-  });
+  const {
+    data: marketingAssetsData,
+    loading: marketingAssetsLoading,
+    reload: reloadMarketingAssets,
+  } = useBackend<BackendRow[]>("/api/v1/data/marketing-assets");
+
+  useEffect(
+    () =>
+      subscribeMarketingAssetsChanged(() => {
+        void reloadMarketingAssets();
+      }),
+    [reloadMarketingAssets],
+  );
+
+  const displayedIndustries: Industry[] = useMemo(
+    () =>
+      industriesData.map((industry) => {
+        const live = liveIndustries?.find((row) => row.slug === industry.id);
+        return live
+          ? {
+              ...industry,
+              title: {
+                ...industry.title,
+                ar: String(live.name ?? industry.title.ar),
+              },
+              subtitle: {
+                ...industry.subtitle,
+                ar: String(live.description ?? industry.subtitle.ar),
+              },
+              url:
+                industry.id === "events-exhibitions"
+                  ? publicBrochureUrl(live.landing_url)
+                  : industry.url,
+              externalUrl: String(live.external_url ?? "").trim() || undefined,
+            }
+          : industry;
+      }),
+    [liveIndustries],
+  );
   const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
   const primaryExternalUrl = primaryIndustry.externalUrl;
-  const visibleMarketingAssets = (marketingAssets.data ?? []).filter((asset) => {
-    if (Number(asset.file_data_size ?? 0) <= 0) return false;
-    if (String(asset.status ?? "active") !== "active") return false;
-    if (activeAssetFilter === "all") return true;
-    if (activeAssetFilter === "images") return String(asset.asset_type) === "image";
-    return String(asset.asset_type) === "video";
-  });
+  const visibleMarketingAssets = useMemo(
+    () =>
+      (marketingAssetsData ?? []).filter((asset) => {
+        const hasStoredFile =
+          Number(asset.file_data_size ?? 0) > 0 ||
+          Number(asset.file_size ?? 0) > 0 ||
+          String(asset.file_path ?? "").trim().length > 0;
+        if (!hasStoredFile) return false;
+        if (String(asset.status ?? "active") !== "active") return false;
+        if (activeAssetFilter === "all") return true;
+        if (activeAssetFilter === "images") return String(asset.asset_type) === "image";
+        return String(asset.asset_type) === "video";
+      }),
+    [activeAssetFilter, marketingAssetsData],
+  );
 
   async function handleCopyLink(url: string, sectorId: string) {
     await navigator.clipboard.writeText(url);
@@ -404,27 +446,21 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
     return String(asset.original_name ?? asset.title ?? "marketing-file").replace(/[\r\n]/g, "");
   }
 
-  async function handleMarketingAssetAction(asset: BackendRow, action: "view" | "download") {
+  function handleMarketingAssetAction(asset: BackendRow, action: "view" | "download") {
     const url = marketingAssetUrl(asset, action);
-    try {
-      if (action === "view") {
-        window.open(url, "_blank", "noopener,noreferrer");
-        return;
-      }
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = marketingAssetFileName(asset);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch {
-      window.alert(
-        isArabic
-          ? "تعذر فتح الملف. تأكد من وجود الملف أو سجّل الدخول مرة أخرى."
-          : "Unable to open the file. Make sure it exists or sign in again.",
-      );
+    if (action === "view") {
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      if (!opened) window.location.href = url;
+      return;
     }
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = marketingAssetFileName(asset);
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   }
 
   if (initialView === "form") {
@@ -434,8 +470,8 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   return (
     <section className="products-workspace" dir={isArabic ? "rtl" : "ltr"}>
       {activeTab !== "sectors" ? (
-      <div className="marketing-hub-hero bg-white border border-slate-100 shadow-sm rounded-2xl p-6 mb-6 w-full flex items-center justify-between gap-4">
-        <div className={`marketing-hub-copy flex flex-col gap-1 ${isArabic ? "text-right" : "text-left"}`}>
+      <div className="marketing-hub-hero bg-white border border-slate-100 shadow-sm rounded-2xl p-6 mb-6 w-full flex items-center justify-between">
+        <div className="marketing-hub-copy flex flex-col gap-1 text-right">
           <p className="eyebrow text-[#00b4d8] text-xs font-semibold mb-1">{marketing.eyebrow}</p>
           <h2 className="text-[#0f2942] text-xl font-bold md:text-2xl">{marketing.heading}</h2>
           <p className="marketing-hub-subtitle text-slate-500 text-sm">{marketing.subheading}</p>
@@ -498,7 +534,16 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                 </div>
               ) : null}
               <div className="landing-sector-copy">
-                <h2>{primaryIndustry.title[isArabic ? "ar" : "en"]}</h2>
+                <h2
+                  dir={isArabic ? "rtl" : "ltr"}
+                  lang={isArabic ? "ar" : "en"}
+                  style={{
+                    direction: isArabic ? "rtl" : "ltr",
+                    textAlign: isArabic ? "right" : "left",
+                  }}
+                >
+                  {primaryIndustry.title[isArabic ? "ar" : "en"]}
+                </h2>
                 <p>
                   {primaryIndustry.subtitle[isArabic ? "ar" : "en"]}
                 </p>
@@ -606,12 +651,20 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                         </td>
                       </tr>
                     ))}
-                  {!marketingAssets.loading && !visibleMarketingAssets.length ? (
+                  {!marketingAssetsLoading && !visibleMarketingAssets.length ? (
                     <tr>
-                      <td colSpan={5}>{isArabic ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0644\u0641\u0627\u062a \u0641\u064a \u0627\u0644\u0645\u0643\u062a\u0628\u0629 \u062d\u062a\u0649 \u0627\u0644\u0622\u0646" : "No files in the library yet"}</td>
+                      <td colSpan={5}>
+                        {(marketingAssetsData ?? []).length
+                          ? isArabic
+                            ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0644\u0641\u0627\u062a \u0645\u0637\u0627\u0628\u0642\u0629 \u0644\u0647\u0630\u0627 \u0627\u0644\u0641\u0644\u062a\u0631"
+                            : "No files match this filter"
+                          : isArabic
+                            ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0644\u0641\u0627\u062a \u0641\u064a \u0627\u0644\u0645\u0643\u062a\u0628\u0629 \u062d\u062a\u0649 \u0627\u0644\u0622\u0646"
+                            : "No files in the library yet"}
+                      </td>
                     </tr>
                   ) : null}
-                  {marketingAssets.loading ? (
+                  {marketingAssetsLoading ? (
                     <tr>
                       <td colSpan={5}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td>
                     </tr>
