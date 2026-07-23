@@ -3782,7 +3782,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       @page{size:Letter portrait;margin:0;}
       html,body{width:100%;min-height:100%;margin:0;padding:0;background:#fff;}
       body{direction:rtl;font-family:Arial,Tahoma,sans-serif;text-align:right;color:#000;font-size:13px;line-height:1.75;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-      .page{position:relative;width:100%;max-width:none;min-height:100vh;margin:0;padding:0;background:#fff;overflow:hidden;box-shadow:none;}
+      .page{position:relative;width:100%;max-width:none;min-height:0;margin:0;padding:0;background:#fff;overflow:visible;box-shadow:none;}
       .contract-inner{padding:clamp(12px,2vw,28px);}
       .top-strip{width:100vw;height:12mm;margin-inline:calc(50% - 50vw);margin-bottom:10mm;background:#0b0537;}
       .logos{display:flex;align-items:flex-start;justify-content:space-between;margin:0 4mm 5mm;}
@@ -3797,20 +3797,21 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       .party-box h3{font-size:16px;font-weight:800;margin:0 0 3mm;}
       .party-box p{margin:1.7mm 0;font-size:12.5px;line-height:1.45;}
       .center-section{text-align:center;margin-top:8mm;}
-      .section-title{font-size:17px;font-weight:800;margin:6mm 0 3mm;text-align:right;break-after:avoid;page-break-after:avoid;}
-      .preamble{font-size:12.5px;text-align:justify;text-align-last:right;line-height:1.9;margin:0 2mm 4mm;}
-      table{width:100%;border-collapse:collapse;margin:4mm 0 6mm;}
-      th,td{border:1px solid #111;padding:2.8mm 2mm;text-align:center;font-size:12px;line-height:1.45;}
+      .section-title{font-size:17px;font-weight:800;margin:4mm 0 2mm;text-align:right;break-after:avoid;page-break-after:avoid;}
+      .preamble{font-size:12.5px;text-align:justify;text-align-last:right;line-height:1.75;margin:0 2mm 2.6mm;}
+      table{width:100%;border-collapse:collapse;margin:2.5mm 0 4mm;break-inside:avoid;page-break-inside:avoid;}
+      tr,thead,tbody{break-inside:avoid;page-break-inside:avoid;}
+      th,td{border:1px solid #111;padding:2.2mm 2mm;text-align:center;font-size:11.6px;line-height:1.35;}
       th{font-weight:800;background:#f6f6f6;}
-      ul,ol{margin:0 7mm 4mm 0;padding:0;font-size:12.2px;line-height:1.8;}
-      li{margin-bottom:1.5mm;}
-      .signature{display:grid;grid-template-columns:1fr 1fr;gap:26mm;margin-top:18mm;text-align:center;font-size:12px;}
+      ul,ol{margin:0 7mm 3mm 0;padding:0;font-size:12.2px;line-height:1.65;}
+      li{margin-bottom:1mm;}
+      .signature{display:grid;grid-template-columns:1fr 1fr;gap:26mm;margin-top:12mm;text-align:center;font-size:12px;break-inside:avoid;page-break-inside:avoid;}
       .signature div{min-height:35mm;}
       .ltr{direction:ltr;text-align:left;}
       .footer-page{display:none;}
       .page-break{break-before:auto;page-break-before:auto;}
       p,li,td,th,.party-box{overflow-wrap:anywhere;}
-      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:auto;margin:0;padding:0;break-after:auto;}.top-strip{width:216mm;margin-inline:0;}.contract-inner{padding:11mm 13mm 8mm;}.section-title{break-after:avoid;page-break-after:avoid;}.preamble,table,ul,ol{break-before:avoid;page-break-before:avoid;}.party-box{break-inside:avoid;page-break-inside:avoid;}.page-break{break-before:auto;page-break-before:auto;}}
+      @media print{html,body{width:216mm;height:auto;}.page{width:216mm;min-height:auto;margin:0;padding:0;break-after:auto;}.top-strip{width:216mm;margin-inline:0;margin-bottom:7mm;}.contract-inner{padding:9mm 13mm 8mm;}.section-title{break-after:avoid;page-break-after:avoid;}.preamble,table,ul,ol{break-before:avoid;page-break-before:avoid;}.party-box,table,.signature{break-inside:avoid;page-break-inside:avoid;}.page-break{break-before:auto;page-break-before:auto;}}
     </style></head><body>
     <div class="page">
       <div class="top-strip"></div>
@@ -3834,7 +3835,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       </div>
       <div class="footer-page">1</div>
     </div>
-    <div class="page page-break">
+    <div class="page">
       <div class="contract-inner">
       <div class="section-title">ثالثاً: قيمة المشاركة</div>
       <table><tbody><tr><th>رقم البوث</th><th>الفئة</th><th>المساحة</th><th>السعر</th><th>الضريبة</th><th>الإجمالي</th></tr><tr><td>${escapePrintValue(displayValue(contract.booth_number ?? rentalItem))}</td><td>${escapePrintValue(displayValue(contract.participation_category ?? "---"))}</td><td>${escapePrintValue(displayValue(contract.booth_size))}</td><td>${escapePrintValue(money(subtotal))}</td><td>${escapePrintValue(money(vat))}</td><td>${escapePrintValue(money(grandTotal))}</td></tr></tbody></table>
@@ -3850,7 +3851,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       </div>
       <div class="footer-page">2</div>
     </div>
-    <div class="page page-break">
+    <div class="page">
       <div class="contract-inner">
       <div class="section-title">سابعاً: القوة القاهرة</div>
       <p class="preamble">لا يكون أي من الطرفين مسؤولاً عن التأخير أو عدم تنفيذ التزاماته إذا كان ذلك نتيجة قوة قاهرة خارجة عن الإرادة، مثل الكوارث الطبيعية أو الحروب أو الأوبئة أو القرارات الحكومية أو أي ظرف يمنع تنفيذ العقد.</p>
