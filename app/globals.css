@@ -4921,12 +4921,19 @@ html[dir="ltr"] .dashboard-main {
 
 .admin-status {
   display: inline-flex;
+  align-items: center;
   padding: 5px 10px;
   border-radius: 999px;
   background: #eef2f7;
   color: #526579;
   font-size: 11px;
+  line-height: 1.15;
   font-weight: 700;
+}
+
+.admin-shell[dir="ltr"] .admin-table-wrap .admin-status {
+  font-size: 10px;
+  line-height: 1.1;
 }
 .admin-status-active,
 .admin-status-accepted,
