@@ -3908,6 +3908,20 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
           <span>{booths.length.toLocaleString(NUMBER_LOCALE)} {isArabic ? "بوث" : "booths"}</span>
           <span className="booked">{totalBooked.toLocaleString(NUMBER_LOCALE)} {isArabic ? "محجوز" : "booked"}</span>
           <span className="inactive">{totalInactive.toLocaleString(NUMBER_LOCALE)} {isArabic ? "غير نشط" : "inactive"}</span>
+          <div className="admin-booth-map-legend" aria-label={isArabic ? "دليل ألوان البوثات" : "Booth color legend"}>
+            <span>
+              {isArabic ? "متاح" : "Available"}
+              <i className="available" aria-hidden="true" />
+            </span>
+            <span>
+              {isArabic ? "محجوز" : "Booked"}
+              <i className="booked" aria-hidden="true" />
+            </span>
+            <span>
+              {isArabic ? "مختار" : "Selected"}
+              <i className="selected" aria-hidden="true" />
+            </span>
+          </div>
         </div>
       </div>
 
@@ -3941,20 +3955,6 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
         <button className="admin-action-btn" onClick={() => void loadBooths()} type="button">
           {isArabic ? "تحديث" : "Refresh"}
         </button>
-        <div className="admin-booth-map-legend" aria-label={isArabic ? "دليل ألوان البوثات" : "Booth color legend"}>
-          <span>
-            {isArabic ? "متاح" : "Available"}
-            <i className="available" aria-hidden="true" />
-          </span>
-          <span>
-            {isArabic ? "محجوز" : "Booked"}
-            <i className="booked" aria-hidden="true" />
-          </span>
-          <span>
-            {isArabic ? "مختار" : "Selected"}
-            <i className="selected" aria-hidden="true" />
-          </span>
-        </div>
       </div>
 
       <div className="admin-booths-workspace">
