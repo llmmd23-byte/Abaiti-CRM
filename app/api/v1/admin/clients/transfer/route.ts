@@ -15,6 +15,47 @@ function normalizeIds(value: unknown) {
   );
 }
 
+let leadAssignmentSchemaReady: Promise<void> | undefined;
+
+function ensureLeadAssignmentSchema() {
+  if (!leadAssignmentSchemaReady) {
+    leadAssignmentSchemaReady = (async () => {
+      const [columns] = await db.execute<RowDataPacket[]>(
+        `SELECT COLUMN_NAME
+           FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'leads'
+            AND COLUMN_NAME = 'assigned_user_id'
+          LIMIT 1`,
+      );
+      if (!columns.length) {
+        await db.execute(
+          "ALTER TABLE leads ADD COLUMN assigned_user_id BIGINT UNSIGNED NULL AFTER affiliate_user_id",
+        );
+      }
+
+      const [indexes] = await db.execute<RowDataPacket[]>(
+        `SELECT INDEX_NAME
+           FROM INFORMATION_SCHEMA.STATISTICS
+          WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'leads'
+            AND INDEX_NAME = 'idx_leads_assigned_user'
+          LIMIT 1`,
+      );
+      if (!indexes.length) {
+        await db.execute(
+          "ALTER TABLE leads ADD INDEX idx_leads_assigned_user (assigned_user_id)",
+        );
+      }
+    })().catch((error) => {
+      leadAssignmentSchemaReady = undefined;
+      throw error;
+    });
+  }
+
+  return leadAssignmentSchemaReady;
+}
+
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session)
@@ -38,6 +79,8 @@ export async function POST(request: Request) {
   if (!leadIds.length || !Number.isInteger(targetUserId) || targetUserId < 1) {
     return NextResponse.json({ error: "VALIDATION_ERROR" }, { status: 422 });
   }
+
+  await ensureLeadAssignmentSchema();
 
   const [adminRows] = await db.execute<RowDataPacket[]>(
     "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
