@@ -1560,8 +1560,8 @@ html[dir="ltr"] .dashboard-main {
   text-align: inherit;
 }
 
-.admin-sidebar nav :is(a, button):hover,
-.admin-sidebar nav :is(a, button).active {
+.admin-sidebar nav :is(a, button, summary):hover,
+.admin-sidebar nav :is(a, button, summary).active {
   border-color: rgba(0, 180, 216, 0.32) !important;
   background: #113c56 !important;
   color: #00c8e8 !important;

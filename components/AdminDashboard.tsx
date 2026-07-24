@@ -571,7 +571,14 @@ export default function AdminDashboard({
             </button>
           ))}
           <details className="admin-nav-dropdown">
-            <summary className={settingsSections.has(activeSection) ? "active" : ""}>
+            <summary
+              className={settingsSections.has(activeSection) ? "active" : ""}
+              onClick={() => {
+                if (!settingsSections.has(activeSection)) {
+                  setActiveSection("products");
+                }
+              }}
+            >
               <span className="admin-nav-icon">
                 <AdminIcon name="settings" />
               </span>
