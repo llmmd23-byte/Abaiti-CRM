@@ -1306,11 +1306,20 @@ function AdminMetricList({
           : `${Number(body.data?.transferred ?? leadIds.length).toLocaleString(NUMBER_LOCALE)} clients transferred`,
       );
       onReload();
-    } catch {
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
       setTransferMessage(
-        isArabic
-          ? "\u062a\u0639\u0630\u0631 \u062a\u062d\u0648\u064a\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u0621"
-          : "Unable to transfer clients",
+        code === "FORBIDDEN"
+          ? isArabic
+            ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0635\u0644\u0627\u062d\u064a\u0629 \u0644\u062a\u062d\u0648\u064a\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u0621"
+            : "You do not have permission to transfer clients"
+          : code === "INVALID_TARGET_USER"
+            ? isArabic
+              ? "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u0645\u062d\u062f\u062f \u0644\u064a\u0633 \u0636\u0645\u0646 \u0646\u0641\u0633 \u0627\u0644\u0634\u0631\u0643\u0629"
+              : "The selected user is not in the same company"
+            : isArabic
+              ? "\u062a\u0639\u0630\u0631 \u062a\u062d\u0648\u064a\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u0621"
+              : "Unable to transfer clients",
       );
     }
   }

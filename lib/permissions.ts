@@ -125,6 +125,9 @@ export const adminPermissionKeys = allPermissionKeys.filter(
   (key) =>
     key.startsWith("page.admin.") ||
     key === "table.users" ||
+    key === "table.leads" ||
+    key === "table.lead_contacts" ||
+    key === "table.lead_notes" ||
     key === "table.products" ||
     key === "table.industries" ||
     key === "table.marketing_assets" ||

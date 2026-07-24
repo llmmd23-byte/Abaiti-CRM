@@ -21,7 +21,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   if (session.role !== "admin")
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
-  if (!(await hasPermission(session, "table.leads", "can_edit"))) {
+  const canEditLeads = await hasPermission(session, "table.leads", "can_edit");
+  const canViewAdminDashboard = await hasPermission(
+    session,
+    "page.admin.dashboard",
+    "can_view",
+  );
+  if (!canEditLeads && !canViewAdminDashboard) {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
 
