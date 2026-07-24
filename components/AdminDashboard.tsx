@@ -574,8 +574,9 @@ export default function AdminDashboard({
               {label[language]}
             </button>
           ))}
-          <div className="admin-nav-dropdown">
+          <div className={`admin-nav-dropdown${settingsOpen ? " open" : ""}`}>
             <button
+              aria-expanded={settingsOpen}
               className={settingsSections.has(activeSection) ? "active" : ""}
               onClick={() => setSettingsOpen((current) => !current)}
               type="button"
@@ -584,36 +585,34 @@ export default function AdminDashboard({
                 <AdminIcon name="settings" />
               </span>
               {isArabic ? "\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a" : "Settings"}
-              <span className={`admin-nav-chevron${settingsOpen ? " open" : ""}`}>
+              <span aria-hidden="true" className={`admin-nav-chevron${settingsOpen ? " open" : ""}`}>
                 v
               </span>
             </button>
-            {settingsOpen ? (
-              <div className="admin-nav-dropdown-menu">
-                {settingsNavItems.map(([label, icon]) => (
-                  <button
-                    className={activeSection === icon ? "active" : ""}
-                    key={icon}
-                    onClick={() => {
-                      setActiveSection(icon);
-                      setSettingsOpen(false);
-                    }}
-                    type="button"
-                  >
-                    <span className="admin-nav-icon">
-                      <AdminIcon name={icon} />
-                    </span>
-                    {label[language]}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+            <div className="admin-nav-dropdown-menu">
+              {settingsNavItems.map(([label, icon]) => (
+                <button
+                  className={activeSection === icon ? "active" : ""}
+                  key={icon}
+                  onClick={() => {
+                    setActiveSection(icon);
+                    setSettingsOpen(false);
+                  }}
+                  type="button"
+                >
+                  <span className="admin-nav-icon">
+                    <AdminIcon name={icon} />
+                  </span>
+                  {label[language]}
+                </button>
+              ))}
+            </div>
           </div>
         </nav>
         <div className="admin-sidebar-footer">
           <div
             className="admin-language-switch"
-            aria-label={isArabic ? "اختيار اللغة" : "Choose language"}
+            aria-label={isArabic ? "\u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0644\u063a\u0629" : "Choose language"}
           >
             <Link
               className={isArabic ? "active" : ""}

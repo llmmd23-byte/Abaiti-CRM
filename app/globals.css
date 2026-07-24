@@ -912,6 +912,7 @@ textarea {
 .admin-nav-dropdown {
   position: relative;
   flex: 0 0 auto;
+  z-index: 160;
 }
 
 .admin-nav-dropdown > button {
@@ -947,6 +948,18 @@ textarea {
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 18px 38px rgba(8, 27, 44, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+
+.admin-nav-dropdown.open .admin-nav-dropdown-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .admin-nav-dropdown-menu button {
