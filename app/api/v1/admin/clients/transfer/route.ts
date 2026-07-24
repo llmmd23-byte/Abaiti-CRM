@@ -49,15 +49,21 @@ export async function POST(request: Request) {
       : Number(adminRows[0].CompanyID);
 
   const [targetRows] = await db.execute<RowDataPacket[]>(
-    `SELECT id
+    `SELECT id, CompanyID
        FROM users
       WHERE id = ?
-        AND (CompanyID = ? OR id = ?)
+        AND (CompanyID = ? OR id = ? OR CompanyID IS NULL)
       LIMIT 1`,
     [targetUserId, adminCompanyId, adminId],
   );
   if (!targetRows.length) {
     return NextResponse.json({ error: "INVALID_TARGET_USER" }, { status: 422 });
+  }
+  if (targetRows[0]?.CompanyID === null || targetRows[0]?.CompanyID === undefined) {
+    await db.execute("UPDATE users SET CompanyID = ? WHERE id = ?", [
+      adminCompanyId,
+      targetUserId,
+    ]);
   }
 
   const placeholders = leadIds.map(() => "?").join(",");
@@ -69,6 +75,7 @@ export async function POST(request: Request) {
         AND (
           owner.CompanyID = ?
           OR owner.id = ?
+          OR owner.CompanyID IS NULL
           OR l.affiliate_user_id IS NULL
         )`,
     [...leadIds, adminCompanyId, adminId],

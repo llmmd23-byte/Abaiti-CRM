@@ -1757,25 +1757,27 @@ function AdminMetricList({
             {isArabic ? "\u0639\u0645\u064a\u0644 \u0645\u062d\u062f\u062f" : "selected clients"}
           </strong>
           <div className="admin-client-transfer-select">
-            <DashboardSelect
-              ariaLabel={isArabic ? "\u0627\u062e\u062a\u0631 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u062c\u062f\u064a\u062f" : "Choose new user"}
-              menuClassName="admin-client-transfer-menu"
-              onValueChange={setTransferTargetUserId}
-              options={[
-                {
-                  value: "",
-                  label: isArabic ? "\u0627\u062e\u062a\u0631 \u0645\u0633\u062a\u062e\u062f\u0645" : "Choose user",
-                  disabled: true,
-                },
-                ...transferUserOptions,
-              ]}
-              portal
+            <select
+              aria-label={isArabic ? "\u0627\u062e\u062a\u0631 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u062c\u062f\u064a\u062f" : "Choose new user"}
+              className="admin-client-transfer-native-select"
+              onChange={(event) => {
+                setTransferMessage("");
+                setTransferTargetUserId(event.target.value);
+              }}
               value={transferTargetUserId}
-            />
+            >
+              <option value="">
+                {isArabic ? "\u0627\u062e\u062a\u0631 \u0645\u0633\u062a\u062e\u062f\u0645" : "Choose user"}
+              </option>
+              {transferUserOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
           <button
             className="admin-client-transfer-btn"
-            disabled={!selectedVisibleClientIds.length || !transferTargetUserId}
             onClick={() => void transferSelectedClients()}
             type="button"
           >

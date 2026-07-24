@@ -2813,6 +2813,25 @@ html[dir="ltr"] .dashboard-main {
   min-width: 210px;
 }
 
+.admin-client-transfer-native-select {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d8e7f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #18324a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  outline: none;
+}
+
+.admin-client-transfer-native-select:focus {
+  border-color: #1a748b;
+  box-shadow: 0 0 0 3px rgba(26, 116, 139, 0.12);
+}
+
 .admin-client-transfer-btn {
   min-height: 38px;
   padding: 0 14px;
