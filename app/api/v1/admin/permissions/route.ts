@@ -272,6 +272,44 @@ export async function PUT(request: Request) {
   return NextResponse.json({ ok: true });
 }
 
+export async function PATCH(request: Request) {
+  const session = await getSession();
+  if (!session)
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  if (session.role !== "admin")
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  if (!(await hasPermission(session, "page.admin.permissions", "can_edit")))
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+
+  await ensurePermissionsTable();
+  const body = await request.json().catch(() => ({}));
+  const slug = String(body.slug ?? "").trim();
+  const nameAr = String(body.name_ar ?? "").trim().slice(0, 120);
+  const nameEn = String(body.name_en ?? "").trim().slice(0, 120);
+  if (!slug || !nameAr || !nameEn) {
+    return NextResponse.json({ error: "VALIDATION_ERROR" }, { status: 422 });
+  }
+
+  const [roles] = await db.execute<RowDataPacket[]>(
+    "SELECT id,is_system FROM roles WHERE slug = ? AND is_active = 1 LIMIT 1",
+    [slug],
+  );
+  const role = roles[0];
+  if (!role) {
+    return NextResponse.json({ error: "ROLE_NOT_FOUND" }, { status: 404 });
+  }
+  if (Number(role.is_system ?? 1) === 1) {
+    return NextResponse.json({ error: "SYSTEM_ROLE_PROTECTED" }, { status: 422 });
+  }
+
+  await db.execute(
+    "UPDATE roles SET name_ar = ?, name_en = ? WHERE id = ?",
+    [nameAr, nameEn, Number(role.id)],
+  );
+
+  return NextResponse.json({ ok: true });
+}
+
 export async function DELETE(request: Request) {
   const session = await getSession();
   if (!session)

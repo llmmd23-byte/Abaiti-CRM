@@ -18217,7 +18217,7 @@ html[dir="rtl"]
 
 .admin-role-list-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) auto auto auto;
+  grid-template-columns: minmax(180px, 1fr) auto auto auto auto;
   align-items: center;
   gap: 10px;
   padding: 12px;
@@ -18271,6 +18271,18 @@ html[dir="rtl"]
   border-color: #bfdbfe;
   background: #eff6ff;
   color: #2563eb !important;
+}
+
+.admin-role-details-btn {
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+.admin-role-details-btn:hover {
+  border-color: #1d4ed8 !important;
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
 }
 
 .admin-role-delete-btn {

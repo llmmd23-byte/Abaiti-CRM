@@ -3130,6 +3130,12 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
     slug: "",
     role_type: "user" as "admin" | "user",
   });
+  const [editingRole, setEditingRole] =
+    useState<AdminPermissionData["roles"][number] | null>(null);
+  const [roleEditDraft, setRoleEditDraft] = useState({
+    name_ar: "",
+    name_en: "",
+  });
   const language = isArabic ? "ar" : "en";
 
   function loadPermissions() {
@@ -3269,6 +3275,48 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           : isArabic
             ? "تعذر إنشاء الدور"
             : "Unable to create role",
+      );
+    }
+  }
+
+  function openRoleDetails(role: AdminPermissionData["roles"][number]) {
+    if (Number(role.is_system ?? 1) === 1) return;
+    setEditingRole(role);
+    setRoleEditDraft({
+      name_ar: String(role.name_ar ?? ""),
+      name_en: String(role.name_en ?? ""),
+    });
+    setMessage("");
+  }
+
+  async function saveRoleDetails() {
+    if (!editingRole) return;
+    setMessage(isArabic ? "\u062c\u0627\u0631\u064a \u062d\u0641\u0638 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062f\u0648\u0631..." : "Saving role details...");
+    try {
+      const response = await fetch("/api/v1/admin/permissions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          slug: editingRole.slug,
+          name_ar: roleEditDraft.name_ar,
+          name_en: roleEditDraft.name_en,
+        }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(body.error ?? "SAVE_FAILED"));
+      setEditingRole(null);
+      await loadPermissions();
+      setMessage(isArabic ? "\u062a\u0645 \u062d\u0641\u0638 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062f\u0648\u0631" : "Role details saved");
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      setMessage(
+        code === "SYSTEM_ROLE_PROTECTED"
+          ? isArabic
+            ? "\u0644\u0627 \u064a\u0645\u0643\u0646 \u062a\u0639\u062f\u064a\u0644 \u062f\u0648\u0631 \u0623\u0633\u0627\u0633\u064a \u0641\u064a \u0627\u0644\u0646\u0638\u0627\u0645"
+            : "System roles cannot be edited"
+          : isArabic
+            ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062f\u0648\u0631"
+            : "Unable to save role details",
       );
     }
   }
@@ -3456,6 +3504,15 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                       ? "شاشات المستخدم"
                       : "User screens"}
                 </span>
+                {Number(role.is_system ?? 1) === 0 ? (
+                  <button
+                    className="admin-row-edit admin-role-details-btn"
+                    onClick={() => openRoleDetails(role)}
+                    type="button"
+                  >
+                    {isArabic ? "\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644" : "Edit Details"}
+                  </button>
+                ) : null}
                 <button
                   className="admin-row-edit"
                   onClick={() => {
@@ -3486,6 +3543,70 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           })}
         </div>
       </div>
+      ) : null}
+
+      {editingRole ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setEditingRole(null);
+          }}
+          role="presentation"
+        >
+          <section
+            aria-modal="true"
+            className="admin-edit-modal admin-role-details-modal"
+            dir={isArabic ? "rtl" : "ltr"}
+            role="dialog"
+          >
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "\u062a\u0639\u062f\u064a\u0644 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062f\u0648\u0631" : "Edit Role Details"}</span>
+                <h3>{String(editingRole.slug)}</h3>
+              </div>
+              <button onClick={() => setEditingRole(null)} type="button">
+                X
+              </button>
+            </div>
+            <label>
+              <span>{isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u062f\u0648\u0631 \u0628\u0627\u0644\u0639\u0631\u0628\u064a" : "Arabic role name"}</span>
+              <input
+                onChange={(event) =>
+                  setRoleEditDraft((current) => ({
+                    ...current,
+                    name_ar: event.target.value,
+                  }))
+                }
+                value={roleEditDraft.name_ar}
+              />
+            </label>
+            <label>
+              <span>{isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u062f\u0648\u0631 \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a" : "English role name"}</span>
+              <input
+                dir="ltr"
+                onChange={(event) =>
+                  setRoleEditDraft((current) => ({
+                    ...current,
+                    name_en: event.target.value,
+                  }))
+                }
+                value={roleEditDraft.name_en}
+              />
+            </label>
+            <div className="admin-edit-actions">
+              <button
+                className="primary"
+                onClick={() => void saveRoleDetails()}
+                type="button"
+              >
+                {isArabic ? "\u062d\u0641\u0638 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644" : "Save Details"}
+              </button>
+              <button onClick={() => setEditingRole(null)} type="button">
+                {isArabic ? "\u0625\u0644\u063a\u0627\u0621" : "Cancel"}
+              </button>
+            </div>
+          </section>
+        </div>
       ) : null}
 
       {permissionView === "permissions" ? (
