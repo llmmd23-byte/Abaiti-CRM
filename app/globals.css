@@ -2710,7 +2710,7 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-clients-table {
-  min-width: 1080px !important;
+  min-width: 1130px !important;
   table-layout: fixed;
 }
 
@@ -2733,7 +2733,7 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-clients-table :is(th, td)[data-field="company_name"] {
-  width: 210px;
+  width: 200px;
 }
 
 .admin-clients-table :is(th, td)[data-field="name"] {
@@ -2770,6 +2770,75 @@ html[dir="ltr"] .dashboard-main {
 .admin-clients-table td:last-child {
   width: 110px;
   text-align: center;
+}
+
+.admin-client-select-column {
+  width: 48px !important;
+  text-align: center !important;
+}
+
+.admin-client-select-column input,
+.admin-client-select-all input {
+  width: 16px;
+  height: 16px;
+  accent-color: #1a748b;
+  cursor: pointer;
+}
+
+.admin-client-transfer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid #d8e7f0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.admin-client-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #18324a;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.admin-client-transfer-bar > strong {
+  color: #1a748b;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-client-transfer-select {
+  min-width: 210px;
+}
+
+.admin-client-transfer-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #1a748b;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-client-transfer-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.admin-client-transfer-message {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .admin-clients-table td[data-field="company_name"],

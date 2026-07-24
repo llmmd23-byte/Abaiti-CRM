@@ -922,6 +922,9 @@ function AdminMetricList({
   const [passwordRow, setPasswordRow] = useState<AdminRow | null>(null);
   const [passwordDraft, setPasswordDraft] = useState("");
   const [passwordMessage, setPasswordMessage] = useState("");
+  const [selectedClientIds, setSelectedClientIds] = useState<number[]>([]);
+  const [transferTargetUserId, setTransferTargetUserId] = useState("");
+  const [transferMessage, setTransferMessage] = useState("");
   const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
   const [createUserDraft, setCreateUserDraft] = useState({
     name: "",
@@ -942,6 +945,9 @@ function AdminMetricList({
     setPasswordRow(null);
     setPasswordDraft("");
     setPasswordMessage("");
+    setSelectedClientIds([]);
+    setTransferTargetUserId("");
+    setTransferMessage("");
     setIsCreateUserOpen(false);
     setCreateUserMessage("");
   }, [metric]);
@@ -1226,6 +1232,89 @@ function AdminMetricList({
       statusFilter,
     ],
   );
+  const visibleClientIds =
+    metric === "clients"
+      ? visibleRows
+          .map((row) => Number(row.id))
+          .filter((id) => Number.isInteger(id) && id > 0)
+      : [];
+  const visibleClientIdSet = new Set(visibleClientIds);
+  const selectedVisibleClientIds = selectedClientIds.filter((id) =>
+    visibleClientIdSet.has(id),
+  );
+  const allVisibleClientsSelected =
+    visibleClientIds.length > 0 &&
+    selectedVisibleClientIds.length === visibleClientIds.length;
+  const transferUserOptions = (metricData.users ?? []).map((user) => ({
+    value: String(user.id),
+    label: String(
+      user.name ??
+        user.full_name ??
+        user.email ??
+        `${isArabic ? "\u0645\u0633\u062a\u062e\u062f\u0645" : "User"} #${user.id}`,
+    ),
+  }));
+
+  function toggleClientSelection(id: number, checked: boolean) {
+    setTransferMessage("");
+    setSelectedClientIds((current) => {
+      const next = new Set(current);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return Array.from(next);
+    });
+  }
+
+  function toggleVisibleClients(checked: boolean) {
+    setTransferMessage("");
+    setSelectedClientIds((current) => {
+      const next = new Set(current);
+      visibleClientIds.forEach((id) => {
+        if (checked) next.add(id);
+        else next.delete(id);
+      });
+      return Array.from(next);
+    });
+  }
+
+  async function transferSelectedClients() {
+    const leadIds = selectedVisibleClientIds;
+    if (!leadIds.length || !transferTargetUserId) {
+      setTransferMessage(
+        isArabic
+          ? "\u062d\u062f\u062f \u0639\u0645\u0644\u0627\u0621 \u0648\u0627\u062e\u062a\u0631 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u062c\u062f\u064a\u062f"
+          : "Select clients and choose the new user",
+      );
+      return;
+    }
+    setTransferMessage(isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0648\u064a\u0644..." : "Transferring...");
+    try {
+      const response = await fetch("/api/v1/admin/clients/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({
+          lead_ids: leadIds,
+          target_user_id: Number(transferTargetUserId),
+        }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(body.error ?? "TRANSFER_FAILED"));
+      setSelectedClientIds([]);
+      setTransferTargetUserId("");
+      setTransferMessage(
+        isArabic
+          ? `\u062a\u0645 \u062a\u062d\u0648\u064a\u0644 ${Number(body.data?.transferred ?? leadIds.length).toLocaleString(NUMBER_LOCALE)} \u0639\u0645\u064a\u0644`
+          : `${Number(body.data?.transferred ?? leadIds.length).toLocaleString(NUMBER_LOCALE)} clients transferred`,
+      );
+      onReload();
+    } catch {
+      setTransferMessage(
+        isArabic
+          ? "\u062a\u0639\u0630\u0631 \u062a\u062d\u0648\u064a\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u0621"
+          : "Unable to transfer clients",
+      );
+    }
+  }
 
   function openEditor(row: AdminRow) {
     setEditingRow(row);
@@ -1642,6 +1731,53 @@ function AdminMetricList({
           ) : null}
         </div>
       </div>
+      {metric === "clients" ? (
+        <div className="admin-client-transfer-bar">
+          <label className="admin-client-select-all">
+            <input
+              checked={allVisibleClientsSelected}
+              disabled={!visibleClientIds.length}
+              onChange={(event) => toggleVisibleClients(event.target.checked)}
+              type="checkbox"
+            />
+            <span>
+              {isArabic ? "\u062a\u062d\u062f\u064a\u062f \u0643\u0644 \u0627\u0644\u0646\u062a\u0627\u0626\u062c" : "Select visible"}
+            </span>
+          </label>
+          <strong>
+            {selectedVisibleClientIds.length.toLocaleString(NUMBER_LOCALE)}{" "}
+            {isArabic ? "\u0639\u0645\u064a\u0644 \u0645\u062d\u062f\u062f" : "selected clients"}
+          </strong>
+          <div className="admin-client-transfer-select">
+            <DashboardSelect
+              ariaLabel={isArabic ? "\u0627\u062e\u062a\u0631 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u062c\u062f\u064a\u062f" : "Choose new user"}
+              menuClassName="admin-client-transfer-menu"
+              onValueChange={setTransferTargetUserId}
+              options={[
+                {
+                  value: "",
+                  label: isArabic ? "\u0627\u062e\u062a\u0631 \u0645\u0633\u062a\u062e\u062f\u0645" : "Choose user",
+                  disabled: true,
+                },
+                ...transferUserOptions,
+              ]}
+              portal
+              value={transferTargetUserId}
+            />
+          </div>
+          <button
+            className="admin-client-transfer-btn"
+            disabled={!selectedVisibleClientIds.length || !transferTargetUserId}
+            onClick={() => void transferSelectedClients()}
+            type="button"
+          >
+            {isArabic ? "\u062a\u062d\u0648\u064a\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u0621" : "Transfer Clients"}
+          </button>
+          {transferMessage ? (
+            <span className="admin-client-transfer-message">{transferMessage}</span>
+          ) : null}
+        </div>
+      ) : null}
       {false ? (
         <div className="admin-ticket-types-panel">
           <div className="admin-ticket-types-head">
@@ -1690,6 +1826,17 @@ function AdminMetricList({
         <table className={metric === "clients" ? "admin-clients-table" : undefined}>
           <thead>
             <tr>
+              {metric === "clients" ? (
+                <th className="admin-client-select-column">
+                  <input
+                    aria-label={isArabic ? "\u062a\u062d\u062f\u064a\u062f \u0643\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u0621" : "Select all clients"}
+                    checked={allVisibleClientsSelected}
+                    disabled={!visibleClientIds.length}
+                    onChange={(event) => toggleVisibleClients(event.target.checked)}
+                    type="checkbox"
+                  />
+                </th>
+              ) : null}
               {config.columns.map(([key, label]) => (
                 <th data-field={key} key={key}>{label}</th>
               ))}
@@ -1699,6 +1846,18 @@ function AdminMetricList({
           <tbody>
             {visibleRows.map((row, index) => (
               <tr key={`${metric}-${row.id}-${index}`}>
+                {metric === "clients" ? (
+                  <td className="admin-client-select-column">
+                    <input
+                      aria-label={isArabic ? "\u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0645\u064a\u0644" : "Select client"}
+                      checked={selectedClientIds.includes(Number(row.id))}
+                      onChange={(event) =>
+                        toggleClientSelection(Number(row.id), event.target.checked)
+                      }
+                      type="checkbox"
+                    />
+                  </td>
+                ) : null}
                 {config.columns.map(([key]) => {
                   const value =
                     metric === "clients" &&
@@ -1813,7 +1972,7 @@ function AdminMetricList({
             ))}
             {visibleRows.length === 0 ? (
               <tr>
-                <td className="admin-empty" colSpan={config.columns.length + 1}>
+                <td className="admin-empty" colSpan={config.columns.length + (metric === "clients" ? 2 : 1)}>
                   {isArabic ? "لا توجد بيانات مطابقة" : "No matching data"}
                 </td>
               </tr>
