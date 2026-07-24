@@ -3532,7 +3532,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                   </button>
                 ) : null}
                 <button
-                  className="admin-row-edit"
+                  className="admin-row-edit admin-role-permissions-btn"
                   onClick={() => {
                     setSubject(`role:${role.slug}`);
                     setQuery("");

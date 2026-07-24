@@ -18300,6 +18300,10 @@ html[dir="rtl"]
   color: #ffffff !important;
 }
 
+:dir(rtl) .admin-role-permissions-btn {
+  order: -1;
+}
+
 .admin-role-delete-btn {
   border-color: #fecaca !important;
   background: #fef2f2 !important;
