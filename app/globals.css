@@ -18217,7 +18217,7 @@ html[dir="rtl"]
 
 .admin-role-list-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) auto auto auto auto;
+  grid-template-columns: minmax(180px, 1fr) auto auto auto;
   align-items: center;
   gap: 10px;
   padding: 12px;
@@ -18295,6 +18295,18 @@ html[dir="rtl"]
   border-color: #dc2626 !important;
   background: #dc2626 !important;
   color: #ffffff !important;
+}
+
+.admin-role-details-modal .admin-edit-actions .danger {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.admin-role-details-modal .admin-edit-actions .danger:hover {
+  border-color: #dc2626;
+  background: #dc2626;
+  color: #ffffff;
 }
 
 .admin-system-role-badge {

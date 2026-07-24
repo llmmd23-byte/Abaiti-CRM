@@ -3525,19 +3525,11 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                 >
                   {isArabic ? "تعديل الصلاحيات" : "Edit Permissions"}
                 </button>
-                {Number(role.is_system ?? 1) === 0 ? (
-                  <button
-                    className="admin-row-edit admin-role-delete-btn"
-                    onClick={() => void deleteRole(role)}
-                    type="button"
-                  >
-                    {isArabic ? "\u062d\u0630\u0641" : "Delete"}
-                  </button>
-                ) : (
+                {Number(role.is_system ?? 1) === 1 ? (
                   <span className="admin-system-role-badge">
                     {isArabic ? "\u0623\u0633\u0627\u0633\u064a" : "System"}
                   </span>
-                )}
+                ) : null}
               </div>
             );
           })}
@@ -3603,6 +3595,13 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
               </button>
               <button onClick={() => setEditingRole(null)} type="button">
                 {isArabic ? "\u0625\u0644\u063a\u0627\u0621" : "Cancel"}
+              </button>
+              <button
+                className="danger"
+                onClick={() => void deleteRole(editingRole)}
+                type="button"
+              >
+                {isArabic ? "\u062d\u0630\u0641" : "Delete"}
               </button>
             </div>
           </section>
