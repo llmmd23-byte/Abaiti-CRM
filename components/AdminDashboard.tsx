@@ -3508,9 +3508,16 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                   <button
                     className="admin-row-edit admin-role-details-btn"
                     onClick={() => openRoleDetails(role)}
+                    title={isArabic ? "\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644" : "Edit Details"}
                     type="button"
                   >
-                    {isArabic ? "\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644" : "Edit Details"}
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                    <span className="sr-only">
+                      {isArabic ? "\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u062a\u0641\u0627\u0635\u064a\u0644" : "Edit Details"}
+                    </span>
                   </button>
                 ) : null}
                 <button
