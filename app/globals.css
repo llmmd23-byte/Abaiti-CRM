@@ -2710,7 +2710,7 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-clients-table {
-  min-width: 1130px !important;
+  min-width: 980px !important;
   table-layout: fixed;
 }
 
@@ -2733,7 +2733,7 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .admin-clients-table :is(th, td)[data-field="company_name"] {
-  width: 200px;
+  width: 220px;
 }
 
 .admin-clients-table :is(th, td)[data-field="name"] {
@@ -2754,12 +2754,8 @@ html[dir="ltr"] .dashboard-main {
   width: 150px;
 }
 
-.admin-clients-table :is(th, td)[data-field="website"] {
-  width: 170px;
-}
-
 .admin-clients-table :is(th, td)[data-field="tag_names"] {
-  width: 190px;
+  width: 210px;
 }
 
 .admin-clients-table :is(th, td)[data-field="affiliate_user_name"] {

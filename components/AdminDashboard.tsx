@@ -981,7 +981,6 @@ function AdminMetricList({
           isArabic ? "\u0627\u0644\u0646\u0634\u0627\u0637" : "Activity",
         ],
         ["phone", isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644" : "Mobile"],
-        ["website", isArabic ? "\u0627\u0644\u0645\u0648\u0642\u0639 \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a" : "Website"],
         ["tag_names", isArabic ? "\u0627\u0644\u0648\u0633\u0648\u0645" : "Tags"],
         ["affiliate_user_name", isArabic ? "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645" : "User"],
       ],
