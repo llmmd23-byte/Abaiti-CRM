@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --navy: #0b1f3a;
   --navy-2: #123457;
   --teal: #22b8b8;
@@ -893,7 +893,7 @@ textarea {
   display: none;
 }
 
-.admin-sidebar nav :is(a, button) {
+.admin-sidebar nav :is(a, button, summary) {
   width: auto;
   min-height: 42px;
   flex: 0 0 auto;
@@ -902,6 +902,15 @@ textarea {
   border-radius: 12px;
   font-size: 12px;
   white-space: nowrap;
+}
+
+.admin-sidebar nav summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.admin-sidebar nav summary::-webkit-details-marker {
+  display: none;
 }
 
 .admin-nav-icon {
@@ -931,6 +940,7 @@ textarea {
   transition: transform 0.18s ease;
 }
 
+.admin-nav-dropdown[open] .admin-nav-chevron,
 .admin-nav-chevron.open {
   transform: rotate(180deg);
 }
@@ -956,6 +966,7 @@ textarea {
     transform 0.16s ease;
 }
 
+.admin-nav-dropdown[open] .admin-nav-dropdown-menu,
 .admin-nav-dropdown.open .admin-nav-dropdown-menu {
   opacity: 1;
   pointer-events: auto;
@@ -1029,11 +1040,11 @@ textarea {
   .admin-official-brand img {
     max-width: 96px;
   }
-  .admin-sidebar nav :is(a, button) {
+  .admin-sidebar nav :is(a, button, summary) {
     min-width: auto;
     flex-basis: auto;
   }
-  .admin-sidebar nav :is(a, button) {
+  .admin-sidebar nav :is(a, button, summary) {
     font-size: 0;
     padding: 7px;
   }
@@ -1537,7 +1548,7 @@ html[dir="ltr"] .dashboard-main {
   display: grid;
   gap: 18px;
 }
-.admin-sidebar nav :is(a, button) {
+.admin-sidebar nav :is(a, button, summary) {
   display: flex;
   width: 100%;
   min-height: 54px;
@@ -1561,6 +1572,15 @@ html[dir="ltr"] .dashboard-main {
   background: #113c56 !important;
   color: #00c8e8 !important;
   box-shadow: inset 0 0 0 1px rgba(0, 180, 216, 0.06);
+}
+
+.admin-sidebar nav summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.admin-sidebar nav summary::-webkit-details-marker {
+  display: none;
 }
 
 .admin-nav-icon {
@@ -5138,7 +5158,7 @@ html[dir="ltr"] .dashboard-main {
     scroll-snap-type: x proximity;
   }
 
-  .admin-sidebar nav :is(a, button) {
+  .admin-sidebar nav :is(a, button, summary) {
     min-width: 170px;
     flex: 0 0 170px;
     scroll-snap-align: start;
@@ -5241,7 +5261,7 @@ html[dir="ltr"] .dashboard-main {
     grid-template-columns: 1fr;
   }
 
-  .admin-sidebar nav :is(a, button) {
+  .admin-sidebar nav :is(a, button, summary) {
     min-width: 155px;
     flex-basis: 155px;
   }
@@ -16376,7 +16396,7 @@ html[dir="ltr"] .landing-main .hero {
 .admin-shell .admin-sidebar nav::-webkit-scrollbar {
   display: none;
 }
-.admin-shell .admin-sidebar nav :is(a, button) {
+.admin-shell .admin-sidebar nav :is(a, button, summary) {
   width: auto;
   min-width: auto;
   min-height: 42px;
@@ -16387,7 +16407,16 @@ html[dir="ltr"] .landing-main .hero {
   font-size: 12px;
   white-space: nowrap;
 }
-.admin-shell .admin-nav-icon {
+.admin-shell .admin-sidebar nav summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.admin-sidebar nav summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-nav-icon {
   width: 27px;
   height: 27px;
 }
@@ -16447,7 +16476,7 @@ html[dir="ltr"] .landing-main .hero {
   .admin-shell .admin-official-brand img {
     max-width: 96px;
   }
-  .admin-shell .admin-sidebar nav :is(a, button) {
+  .admin-shell .admin-sidebar nav :is(a, button, summary) {
     min-width: auto;
     flex-basis: auto;
     font-size: 0;

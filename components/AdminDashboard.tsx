@@ -574,21 +574,20 @@ export default function AdminDashboard({
               {label[language]}
             </button>
           ))}
-          <div className={`admin-nav-dropdown${settingsOpen ? " open" : ""}`}>
-            <button
-              aria-expanded={settingsOpen}
-              className={settingsSections.has(activeSection) ? "active" : ""}
-              onClick={() => setSettingsOpen((current) => !current)}
-              type="button"
-            >
+          <details
+            className="admin-nav-dropdown"
+            onToggle={(event) => setSettingsOpen(event.currentTarget.open)}
+            open={settingsOpen || settingsSections.has(activeSection)}
+          >
+            <summary className={settingsSections.has(activeSection) ? "active" : ""}>
               <span className="admin-nav-icon">
                 <AdminIcon name="settings" />
               </span>
               {isArabic ? "\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a" : "Settings"}
-              <span aria-hidden="true" className={`admin-nav-chevron${settingsOpen ? " open" : ""}`}>
+              <span aria-hidden="true" className="admin-nav-chevron">
                 v
               </span>
-            </button>
+            </summary>
             <div className="admin-nav-dropdown-menu">
               {settingsNavItems.map(([label, icon]) => (
                 <button
@@ -607,7 +606,7 @@ export default function AdminDashboard({
                 </button>
               ))}
             </div>
-          </div>
+          </details>
         </nav>
         <div className="admin-sidebar-footer">
           <div
