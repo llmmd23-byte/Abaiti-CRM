@@ -18273,6 +18273,13 @@ html[dir="rtl"]
   color: #2563eb !important;
 }
 
+.admin-role-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
 .admin-role-details-btn {
   width: 34px;
   min-width: 34px;
@@ -18298,10 +18305,6 @@ html[dir="rtl"]
   border-color: #1d4ed8 !important;
   background: #1d4ed8 !important;
   color: #ffffff !important;
-}
-
-:dir(rtl) .admin-role-permissions-btn {
-  order: -1;
 }
 
 .admin-role-delete-btn {
