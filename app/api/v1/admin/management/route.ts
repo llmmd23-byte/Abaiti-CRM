@@ -497,7 +497,17 @@ export async function GET() {
   const adminCompanyId = adminRows[0]?.CompanyID ?? null;
   const adminUserId = Number(session.sub);
   const scopedCompanyId = Number(adminCompanyId ?? adminUserId);
-  const userScopeClause = (alias: string) => `(${alias}.CompanyID = ? OR ${alias}.id = ?)`;
+  if (adminCompanyId === null || adminCompanyId === undefined) {
+    await db.execute("UPDATE users SET CompanyID = ? WHERE id = ?", [
+      scopedCompanyId,
+      adminUserId,
+    ]);
+  }
+  await db.execute("UPDATE users SET CompanyID = ? WHERE CompanyID IS NULL", [
+    scopedCompanyId,
+  ]);
+  const userScopeClause = (alias: string) =>
+    `(${alias}.CompanyID = ? OR ${alias}.id = ? OR ${alias}.CompanyID IS NULL)`;
   const userScopeParams = [scopedCompanyId, adminUserId];
   await ensureSupportTicketTypesTable(scopedCompanyId);
 

@@ -1247,9 +1247,9 @@ function AdminMetricList({
   const transferUserOptions = (metricData.users ?? []).map((user) => ({
     value: String(user.id),
     label: String(
-      user.name ??
-        user.full_name ??
-        user.email ??
+      user.name ||
+        user.full_name ||
+        user.email ||
         `${isArabic ? "\u0645\u0633\u062a\u062e\u062f\u0645" : "User"} #${user.id}`,
     ),
   }));
