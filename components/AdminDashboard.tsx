@@ -368,9 +368,6 @@ export default function AdminDashboard({
   const [subFilter, setSubFilter] = useState<DashboardSubFilter>("weeks");
   const [periodAnchor, setPeriodAnchor] = useState(() => new Date());
   const [activeSection, setActiveSection] = useState<AdminSection>(initialSection);
-  const [settingsOpen, setSettingsOpen] = useState(() =>
-    settingsSections.has(initialSection),
-  );
   const [management, setManagement] = useState<ManagementData | null>(null);
   const [managementError, setManagementError] = useState("");
 
@@ -562,10 +559,7 @@ export default function AdminDashboard({
             <button
               className={activeSection === icon ? "active" : ""}
               key={icon}
-              onClick={() => {
-                setActiveSection(icon);
-                setSettingsOpen(false);
-              }}
+              onClick={() => setActiveSection(icon)}
               type="button"
             >
               <span className="admin-nav-icon">
@@ -574,11 +568,7 @@ export default function AdminDashboard({
               {label[language]}
             </button>
           ))}
-          <details
-            className="admin-nav-dropdown"
-            onToggle={(event) => setSettingsOpen(event.currentTarget.open)}
-            open={settingsOpen || settingsSections.has(activeSection)}
-          >
+          <details className="admin-nav-dropdown">
             <summary className={settingsSections.has(activeSection) ? "active" : ""}>
               <span className="admin-nav-icon">
                 <AdminIcon name="settings" />
@@ -593,10 +583,7 @@ export default function AdminDashboard({
                 <button
                   className={activeSection === icon ? "active" : ""}
                   key={icon}
-                  onClick={() => {
-                    setActiveSection(icon);
-                    setSettingsOpen(false);
-                  }}
+                  onClick={() => setActiveSection(icon)}
                   type="button"
                 >
                   <span className="admin-nav-icon">
