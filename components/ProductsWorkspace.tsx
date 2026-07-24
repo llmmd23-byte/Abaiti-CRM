@@ -61,18 +61,6 @@ const industryLinks = {
 } as const;
 
 function publicBrochureUrl(value: unknown) {
-  const raw = String(value ?? "").trim();
-  if (/^https?:\/\//i.test(raw)) {
-    return raw;
-  }
-  if (
-    !raw ||
-    raw.startsWith("/api/v1/landing-brochure") ||
-    raw.startsWith("/marketing-library/") ||
-    raw.startsWith("/landing-pages/")
-  ) {
-    return DEFAULT_PUBLIC_BROCHURE_URL;
-  }
   return DEFAULT_PUBLIC_BROCHURE_URL;
 }
 
@@ -386,7 +374,10 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                 industry.id === "events-exhibitions"
                   ? publicBrochureUrl(live.landing_url)
                   : industry.url,
-              externalUrl: String(live.external_url ?? "").trim() || undefined,
+              externalUrl:
+                industry.id === "events-exhibitions"
+                  ? undefined
+                  : String(live.external_url ?? "").trim() || undefined,
             }
           : industry;
       }),
