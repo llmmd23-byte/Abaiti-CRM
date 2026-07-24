@@ -18307,6 +18307,102 @@ html[dir="rtl"]
   color: #ffffff !important;
 }
 
+.admin-role-users-btn {
+  border-color: #bbf7d0 !important;
+  background: #f0fdf4 !important;
+  color: #047857 !important;
+}
+
+.admin-role-users-btn:hover {
+  border-color: #047857 !important;
+  background: #047857 !important;
+  color: #ffffff !important;
+}
+
+.admin-role-users-modal {
+  max-width: 680px;
+}
+
+.admin-role-users-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #d8e7f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-role-users-summary strong {
+  color: #11293d;
+  font-size: 14px;
+}
+
+.admin-role-users-list {
+  display: grid;
+  gap: 8px;
+  max-height: min(420px, 55vh);
+  overflow: auto;
+  padding-inline-end: 4px;
+}
+
+.admin-role-user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e7f0f6;
+  border-radius: 12px;
+  background: #fbfdff;
+}
+
+.admin-role-user-row > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-role-user-row strong,
+.admin-role-user-row span {
+  overflow-wrap: anywhere;
+}
+
+.admin-role-user-row strong {
+  color: #11293d;
+  font-size: 13px;
+}
+
+.admin-role-user-row span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.admin-role-user-row small {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #eef7fb;
+  color: #1a748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-role-users-empty {
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed #d8e7f0;
+  border-radius: 12px;
+  color: #64748b;
+  background: #fbfdff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .admin-role-delete-btn {
   border-color: #fecaca !important;
   background: #fef2f2 !important;

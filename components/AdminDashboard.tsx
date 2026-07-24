@@ -3132,6 +3132,8 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   });
   const [editingRole, setEditingRole] =
     useState<AdminPermissionData["roles"][number] | null>(null);
+  const [usersRole, setUsersRole] =
+    useState<AdminPermissionData["roles"][number] | null>(null);
   const [roleEditDraft, setRoleEditDraft] = useState({
     name_ar: "",
     name_en: "",
@@ -3211,6 +3213,11 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       ? `${label} ${key}`.toLocaleLowerCase().includes(normalized)
       : true;
   });
+  const usersForSelectedRole = usersRole
+    ? permissionData.users.filter(
+        (user) => String(user.role ?? "") === String(usersRole.slug),
+      )
+    : [];
 
   async function savePermission(
     permission: PermissionRecord,
@@ -3528,6 +3535,13 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                   >
                     {isArabic ? "\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0627\u062a" : "Edit Permissions"}
                   </button>
+                  <button
+                    className="admin-row-edit admin-role-users-btn"
+                    onClick={() => setUsersRole(role)}
+                    type="button"
+                  >
+                    {isArabic ? "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646" : "Users"}
+                  </button>
                   {Number(role.is_system ?? 1) === 0 ? (
                     <button
                       className="admin-row-edit admin-role-details-btn"
@@ -3635,6 +3649,68 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                 type="button"
               >
                 {isArabic ? "\u062d\u0630\u0641" : "Delete"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {usersRole ? (
+        <div
+          className="admin-edit-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setUsersRole(null);
+          }}
+          role="presentation"
+        >
+          <section
+            aria-modal="true"
+            className="admin-edit-modal admin-role-users-modal"
+            dir={isArabic ? "rtl" : "ltr"}
+            role="dialog"
+          >
+            <div className="admin-edit-head">
+              <div>
+                <span>{isArabic ? "\u0645\u0633\u062a\u062e\u062f\u0645\u0648 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629" : "Role Users"}</span>
+                <h3>{isArabic ? usersRole.name_ar : usersRole.name_en}</h3>
+              </div>
+              <button onClick={() => setUsersRole(null)} type="button">
+                X
+              </button>
+            </div>
+            <div className="admin-role-users-summary">
+              <strong>{usersForSelectedRole.length.toLocaleString(NUMBER_LOCALE)}</strong>
+              <span>{isArabic ? "\u0645\u0633\u062a\u062e\u062f\u0645" : "users"}</span>
+            </div>
+            {usersForSelectedRole.length ? (
+              <div className="admin-role-users-list">
+                {usersForSelectedRole.map((user) => (
+                  <div className="admin-role-user-row" key={String(user.id)}>
+                    <div>
+                      <strong>
+                        {String(
+                          user.name ??
+                            user.full_name ??
+                            user.email ??
+                            `${isArabic ? "\u0645\u0633\u062a\u062e\u062f\u0645" : "User"} #${user.id}`,
+                        )}
+                      </strong>
+                      <span>{String(user.email ?? "\u2014")}</span>
+                    </div>
+                    <small>{displayAdminValue(user.status, isArabic)}</small>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="admin-role-users-empty">
+                {isArabic
+                  ? "\u0644\u0627 \u064a\u0648\u062c\u062f \u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646 \u0645\u0631\u062a\u0628\u0637\u0648\u0646 \u0628\u0647\u0630\u0647 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629."
+                  : "No users are assigned to this role."}
+              </p>
+            )}
+            <div className="admin-edit-actions">
+              <button onClick={() => setUsersRole(null)} type="button">
+                {isArabic ? "\u0625\u063a\u0644\u0627\u0642" : "Close"}
               </button>
             </div>
           </section>
