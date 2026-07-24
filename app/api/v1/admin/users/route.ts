@@ -21,7 +21,17 @@ export async function POST(request: Request) {
     "SELECT CompanyID FROM users WHERE id = ? LIMIT 1",
     [adminId],
   );
-  const adminCompanyId = adminRows[0]?.CompanyID ?? null;
+  const existingAdminCompanyId = adminRows[0]?.CompanyID;
+  const adminCompanyId =
+    existingAdminCompanyId === null || existingAdminCompanyId === undefined
+      ? adminId
+      : Number(existingAdminCompanyId);
+  if (existingAdminCompanyId === null || existingAdminCompanyId === undefined) {
+    await db.execute("UPDATE users SET CompanyID = ? WHERE id = ?", [
+      adminCompanyId,
+      adminId,
+    ]);
+  }
 
   const body = await request.json();
   const name = String(body.name ?? "").trim().slice(0, 160);
