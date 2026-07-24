@@ -129,16 +129,21 @@ const metricLabels: Record<MetricKey, { ar: string; en: string }> = {
 };
 
 const navItems = [
-  [{ ar: "لوحة التحكم", en: "Dashboard" }, "dashboard"],
-  [{ ar: "تذاكر الخدمة", en: "Service Tickets" }, "tickets"],
-  [{ ar: "الحسابات", en: "Accounts" }, "accounts"],
-  [{ ar: "المنتجات", en: "Products" }, "products"],
-  [{ ar: "البوثات", en: "Booths" }, "booths"],
-  [{ ar: "الوسوم", en: "Tags" }, "tags"],
-  [{ ar: "الأنشطة", en: "Industries" }, "activity"],
-  [{ ar: "المحتوى", en: "Content" }, "content"],
-  [{ ar: "الصلاحيات", en: "Permissions" }, "permissions"],
+  [{ ar: "\u0644\u0648\u062d\u0629 \u0627\u0644\u062a\u062d\u0643\u0645", en: "Dashboard" }, "dashboard"],
+  [{ ar: "\u062a\u0630\u0627\u0643\u0631 \u0627\u0644\u062e\u062f\u0645\u0629", en: "Service Tickets" }, "tickets"],
+  [{ ar: "\u0627\u0644\u062d\u0633\u0627\u0628\u0627\u062a", en: "Accounts" }, "accounts"],
+  [{ ar: "\u0627\u0644\u0628\u0648\u062b\u0627\u062a", en: "Booths" }, "booths"],
+  [{ ar: "\u0627\u0644\u0648\u0633\u0648\u0645", en: "Tags" }, "tags"],
+  [{ ar: "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0627\u062a", en: "Permissions" }, "permissions"],
 ] as const;
+
+const settingsNavItems = [
+  [{ ar: "\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a", en: "Products" }, "products"],
+  [{ ar: "\u0627\u0644\u0623\u0646\u0634\u0637\u0629", en: "Industries" }, "activity"],
+  [{ ar: "\u0627\u0644\u0645\u062d\u062a\u0648\u0649", en: "Content" }, "content"],
+] as const;
+
+const settingsSections = new Set<AdminSection>(["products", "activity", "content"]);
 
 const adminValueLabels: Record<string, { ar: string; en: string }> = {
   active: { ar: "نشط", en: "Active" },
@@ -332,6 +337,11 @@ function AdminIcon({ name }: { name: string }) {
           <path d="M12 3 5 6v5c0 4.2 2.8 8 7 10 4.2-2 7-5.8 7-10V6l-7-3Z" />
           <path d="m9 12 2 2 4-5" />
         </>
+      ) : name === "settings" ? (
+        <>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2 3.4-.2-.1a1.7 1.7 0 0 0-2 .4l-.2.2a1.7 1.7 0 0 0-.4 1.9v.2h-4v-.2a1.7 1.7 0 0 0-.4-1.9l-.2-.2a1.7 1.7 0 0 0-2-.4l-.2.1-2-3.4.1-.1A1.7 1.7 0 0 0 6.6 15l-.1-.3a1.7 1.7 0 0 0-1.5-1.3H4.8v-4H5a1.7 1.7 0 0 0 1.5-1.3l.1-.3a1.7 1.7 0 0 0-.3-1.9l-.1-.1 2-3.4.2.1a1.7 1.7 0 0 0 2-.4l.2-.2a1.7 1.7 0 0 0 .4-1.9V1.8h4V2a1.7 1.7 0 0 0 .4 1.9l.2.2a1.7 1.7 0 0 0 2 .4l.2-.1 2 3.4-.1.1a1.7 1.7 0 0 0-.3 1.9l.1.3A1.7 1.7 0 0 0 21 11.4h.2v4H21a1.7 1.7 0 0 0-1.5 1.3Z" />
+        </>
       ) : (
         <>
           <rect x="4" y="5" width="16" height="14" rx="2" />
@@ -358,6 +368,9 @@ export default function AdminDashboard({
   const [subFilter, setSubFilter] = useState<DashboardSubFilter>("weeks");
   const [periodAnchor, setPeriodAnchor] = useState(() => new Date());
   const [activeSection, setActiveSection] = useState<AdminSection>(initialSection);
+  const [settingsOpen, setSettingsOpen] = useState(() =>
+    settingsSections.has(initialSection),
+  );
   const [management, setManagement] = useState<ManagementData | null>(null);
   const [managementError, setManagementError] = useState("");
 
@@ -549,7 +562,10 @@ export default function AdminDashboard({
             <button
               className={activeSection === icon ? "active" : ""}
               key={icon}
-              onClick={() => setActiveSection(icon)}
+              onClick={() => {
+                setActiveSection(icon);
+                setSettingsOpen(false);
+              }}
               type="button"
             >
               <span className="admin-nav-icon">
@@ -558,6 +574,41 @@ export default function AdminDashboard({
               {label[language]}
             </button>
           ))}
+          <div className="admin-nav-dropdown">
+            <button
+              className={settingsSections.has(activeSection) ? "active" : ""}
+              onClick={() => setSettingsOpen((current) => !current)}
+              type="button"
+            >
+              <span className="admin-nav-icon">
+                <AdminIcon name="settings" />
+              </span>
+              {isArabic ? "\u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a" : "Settings"}
+              <span className={`admin-nav-chevron${settingsOpen ? " open" : ""}`}>
+                v
+              </span>
+            </button>
+            {settingsOpen ? (
+              <div className="admin-nav-dropdown-menu">
+                {settingsNavItems.map(([label, icon]) => (
+                  <button
+                    className={activeSection === icon ? "active" : ""}
+                    key={icon}
+                    onClick={() => {
+                      setActiveSection(icon);
+                      setSettingsOpen(false);
+                    }}
+                    type="button"
+                  >
+                    <span className="admin-nav-icon">
+                      <AdminIcon name={icon} />
+                    </span>
+                    {label[language]}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </nav>
         <div className="admin-sidebar-footer">
           <div

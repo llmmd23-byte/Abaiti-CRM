@@ -885,7 +885,7 @@ textarea {
   flex: 1 1 auto;
   align-items: center;
   gap: 6px;
-  overflow-x: auto;
+  overflow: visible;
   scrollbar-width: none;
 }
 
@@ -907,6 +907,56 @@ textarea {
 .admin-nav-icon {
   width: 27px;
   height: 27px;
+}
+
+.admin-nav-dropdown {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.admin-nav-dropdown > button {
+  width: auto;
+}
+
+.admin-nav-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+  font-size: 10px;
+  font-weight: 900;
+  transition: transform 0.18s ease;
+}
+
+.admin-nav-chevron.open {
+  transform: rotate(180deg);
+}
+
+.admin-nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-start: 0;
+  z-index: 150;
+  display: grid;
+  min-width: 190px;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid rgba(141, 228, 239, 0.7);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 38px rgba(8, 27, 44, 0.18);
+}
+
+.admin-nav-dropdown-menu button {
+  width: 100% !important;
+  justify-content: flex-start;
+  min-height: 38px !important;
+}
+
+.admin-shell[dir="rtl"] .admin-nav-dropdown-menu button {
+  justify-content: flex-start;
 }
 
 .admin-sidebar-footer {
