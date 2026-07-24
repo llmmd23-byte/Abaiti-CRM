@@ -961,6 +961,8 @@ textarea {
 }
 
 .admin-nav-dropdown[open] .admin-nav-dropdown-menu,
+.admin-nav-dropdown:focus-within .admin-nav-dropdown-menu,
+.admin-nav-dropdown:hover .admin-nav-dropdown-menu,
 .admin-nav-dropdown.open .admin-nav-dropdown-menu {
   display: grid;
 }
