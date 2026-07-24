@@ -3135,6 +3135,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   const [roleEditDraft, setRoleEditDraft] = useState({
     name_ar: "",
     name_en: "",
+    slug: "",
   });
   const language = isArabic ? "ar" : "en";
 
@@ -3285,6 +3286,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
     setRoleEditDraft({
       name_ar: String(role.name_ar ?? ""),
       name_en: String(role.name_en ?? ""),
+      slug: String(role.slug ?? ""),
     });
     setMessage("");
   }
@@ -3298,6 +3300,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
         headers: { "Content-Type": "application/json; charset=utf-8" },
         body: JSON.stringify({
           slug: editingRole.slug,
+          new_slug: roleEditDraft.slug,
           name_ar: roleEditDraft.name_ar,
           name_en: roleEditDraft.name_en,
         }),
@@ -3306,6 +3309,10 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       if (!response.ok) throw new Error(String(body.error ?? "SAVE_FAILED"));
       setEditingRole(null);
       await loadPermissions();
+      const nextSlug = roleEditDraft.slug.trim();
+      if (subjectType === "role" && subjectId === editingRole.slug && nextSlug) {
+        setSubject(`role:${nextSlug}`);
+      }
       setMessage(isArabic ? "\u062a\u0645 \u062d\u0641\u0638 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062f\u0648\u0631" : "Role details saved");
     } catch (error) {
       const code = error instanceof Error ? error.message : "";
@@ -3314,6 +3321,10 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           ? isArabic
             ? "\u0644\u0627 \u064a\u0645\u0643\u0646 \u062a\u0639\u062f\u064a\u0644 \u062f\u0648\u0631 \u0623\u0633\u0627\u0633\u064a \u0641\u064a \u0627\u0644\u0646\u0638\u0627\u0645"
             : "System roles cannot be edited"
+          : code === "ROLE_ALREADY_EXISTS"
+            ? isArabic
+              ? "\u064a\u0648\u062c\u062f \u062f\u0648\u0631 \u0628\u0646\u0641\u0633 \u0627\u0644\u0631\u0645\u0632"
+              : "A role with this code already exists"
           : isArabic
             ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062f\u0648\u0631"
             : "Unable to save role details",
@@ -3567,6 +3578,19 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                 X
               </button>
             </div>
+            <label>
+              <span>{isArabic ? "\u0631\u0645\u0632 \u0627\u0644\u062f\u0648\u0631" : "Role code"}</span>
+              <input
+                dir="ltr"
+                onChange={(event) =>
+                  setRoleEditDraft((current) => ({
+                    ...current,
+                    slug: event.target.value,
+                  }))
+                }
+                value={roleEditDraft.slug}
+              />
+            </label>
             <label>
               <span>{isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u062f\u0648\u0631 \u0628\u0627\u0644\u0639\u0631\u0628\u064a" : "Arabic role name"}</span>
               <input

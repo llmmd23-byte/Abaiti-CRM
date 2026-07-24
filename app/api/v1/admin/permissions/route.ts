@@ -284,9 +284,10 @@ export async function PATCH(request: Request) {
   await ensurePermissionsTable();
   const body = await request.json().catch(() => ({}));
   const slug = String(body.slug ?? "").trim();
+  const nextSlug = slugifyRole(String(body.new_slug ?? slug));
   const nameAr = String(body.name_ar ?? "").trim().slice(0, 120);
   const nameEn = String(body.name_en ?? "").trim().slice(0, 120);
-  if (!slug || !nameAr || !nameEn) {
+  if (!slug || !nextSlug || !nameAr || !nameEn) {
     return NextResponse.json({ error: "VALIDATION_ERROR" }, { status: 422 });
   }
 
@@ -302,12 +303,28 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "SYSTEM_ROLE_PROTECTED" }, { status: 422 });
   }
 
-  await db.execute(
-    "UPDATE roles SET name_ar = ?, name_en = ? WHERE id = ?",
-    [nameAr, nameEn, Number(role.id)],
-  );
+  if (nextSlug !== slug) {
+    const [existing] = await db.execute<RowDataPacket[]>(
+      "SELECT id FROM roles WHERE slug = ? AND id <> ? LIMIT 1",
+      [nextSlug, Number(role.id)],
+    );
+    if (existing.length) {
+      return NextResponse.json({ error: "ROLE_ALREADY_EXISTS" }, { status: 409 });
+    }
+  }
 
-  return NextResponse.json({ ok: true });
+  await db.execute(
+    "UPDATE roles SET slug = ?, name_ar = ?, name_en = ? WHERE id = ?",
+    [nextSlug, nameAr, nameEn, Number(role.id)],
+  );
+  if (nextSlug !== slug) {
+    await db.execute(
+      "UPDATE permissions SET subject_id = ? WHERE subject_type = 'role' AND subject_id = ?",
+      [nextSlug, slug],
+    );
+  }
+
+  return NextResponse.json({ ok: true, data: { slug: nextSlug } });
 }
 
 export async function DELETE(request: Request) {
