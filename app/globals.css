@@ -2702,6 +2702,111 @@ html[dir="ltr"] .dashboard-main {
   font-size: 13px;
 }
 
+.admin-clients-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e5edf3;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.admin-clients-table {
+  min-width: 1080px !important;
+  table-layout: fixed;
+}
+
+.admin-clients-table th,
+.admin-clients-table td {
+  padding: 13px 12px !important;
+  vertical-align: middle;
+}
+
+.admin-clients-table th {
+  background: #f4f8fb;
+  color: #52677b;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-clients-table td {
+  color: #18324a;
+  line-height: 1.6;
+}
+
+.admin-clients-table :is(th, td)[data-field="company_name"] {
+  width: 210px;
+}
+
+.admin-clients-table :is(th, td)[data-field="name"] {
+  width: 180px;
+}
+
+.admin-clients-table :is(th, td)[data-field="stage"] {
+  width: 110px;
+  text-align: center;
+}
+
+.admin-clients-table :is(th, td)[data-field="industry_name"],
+.admin-clients-table :is(th, td)[data-field="industry_name_en"] {
+  width: 170px;
+}
+
+.admin-clients-table :is(th, td)[data-field="phone"] {
+  width: 150px;
+}
+
+.admin-clients-table :is(th, td)[data-field="website"] {
+  width: 170px;
+}
+
+.admin-clients-table :is(th, td)[data-field="tag_names"] {
+  width: 190px;
+}
+
+.admin-clients-table :is(th, td)[data-field="affiliate_user_name"] {
+  width: 150px;
+}
+
+.admin-clients-table th:last-child,
+.admin-clients-table td:last-child {
+  width: 110px;
+  text-align: center;
+}
+
+.admin-clients-table td[data-field="company_name"],
+.admin-clients-table td[data-field="name"],
+.admin-clients-table td[data-field="industry_name"],
+.admin-clients-table td[data-field="industry_name_en"],
+.admin-clients-table td[data-field="affiliate_user_name"] {
+  overflow-wrap: anywhere;
+}
+
+.admin-clients-table td[data-field="website"] a {
+  display: inline-block;
+  max-width: 100%;
+  color: #008faf;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.admin-clients-table .admin-client-tags-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-clients-table .admin-client-tags-cell span {
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eef7fb;
+  color: #1a748b;
+  font-size: 11px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .admin-data-card {
   padding: clamp(20px, 3vw, 30px);
   border: 1px solid #e5edf3;

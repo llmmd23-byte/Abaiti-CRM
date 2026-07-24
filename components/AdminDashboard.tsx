@@ -967,18 +967,17 @@ function AdminMetricList({
     clients: {
       rows: metricData.clients,
       columns: [
-        ["company_name", isArabic ? "اسم الشركة" : "Company Name"],
+        ["company_name", isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u0634\u0631\u0643\u0629" : "Company Name"],
+        ["name", isArabic ? "\u0627\u0644\u0627\u0633\u0645" : "Name"],
+        ["stage", isArabic ? "\u0627\u0644\u062d\u0627\u0644\u0629" : "Status"],
         [
           isArabic ? "industry_name" : "industry_name_en",
-          isArabic ? "النشاط" : "Activity",
+          isArabic ? "\u0627\u0644\u0646\u0634\u0627\u0637" : "Activity",
         ],
-        ["stage", isArabic ? "الحالة" : "Status"],
-        ["name", isArabic ? "الاسم" : "Name"],
-        ["phone", isArabic ? "رقم الجوال" : "Mobile"],
-        ["website", isArabic ? "الموقع الإلكتروني" : "Website"],
-        ["place_url", isArabic ? "موقع المحل" : "Store Location"],
-        ["tag_names", isArabic ? "الوسوم" : "Tags"],
-        ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
+        ["phone", isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u062c\u0648\u0627\u0644" : "Mobile"],
+        ["website", isArabic ? "\u0627\u0644\u0645\u0648\u0642\u0639 \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a" : "Website"],
+        ["tag_names", isArabic ? "\u0627\u0644\u0648\u0633\u0648\u0645" : "Tags"],
+        ["affiliate_user_name", isArabic ? "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645" : "User"],
       ],
     },
     demos: {
@@ -1466,7 +1465,7 @@ function AdminMetricList({
   }
 
   return (
-    <section className="admin-metric-list">
+    <section className={`admin-metric-list${metric === "clients" ? " admin-clients-list" : ""}`}>
       <div className="admin-metric-list-head">
         <div>
           <span>{isArabic ? "القائمة التفصيلية" : "Detailed List"}</span>
@@ -1687,12 +1686,12 @@ function AdminMetricList({
           </div>
         </div>
       ) : null}
-      <div className="admin-table-wrap">
-        <table>
+      <div className={`admin-table-wrap${metric === "clients" ? " admin-clients-table-wrap" : ""}`}>
+        <table className={metric === "clients" ? "admin-clients-table" : undefined}>
           <thead>
             <tr>
               {config.columns.map(([key, label]) => (
-                <th key={key}>{label}</th>
+                <th data-field={key} key={key}>{label}</th>
               ))}
               <th>{isArabic ? "إجراء" : "Action"}</th>
             </tr>
@@ -1704,7 +1703,7 @@ function AdminMetricList({
                   const value =
                     metric === "clients" &&
                     key === "company_name"
-                      ? row.name
+                      ? row.company_name ?? row.name
                       : metric === "clients" &&
                     key === "industry_name_en" &&
                     !row[key]
@@ -1734,7 +1733,7 @@ function AdminMetricList({
                         ? externalUrl(value)
                         : "";
                   return (
-                    <td key={key}>
+                    <td data-field={key} key={key}>
                       {isStatus ? (
                         <span
                           className={`admin-status admin-status-${String(value ?? "unknown")}`}
