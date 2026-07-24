@@ -60,6 +60,7 @@ type AdminPermissionData = {
     name_ar: string;
     name_en: string;
     role_type?: "admin" | "user";
+    is_system?: number;
   }>;
   users: AdminRow[];
   latestUpdatedAt?: string | null;
@@ -3272,6 +3273,48 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
     }
   }
 
+  async function deleteRole(role: AdminPermissionData["roles"][number]) {
+    if (Number(role.is_system ?? 1) === 1) return;
+    const roleName = String(isArabic ? role.name_ar : role.name_en);
+    const confirmed = window.confirm(
+      isArabic
+        ? `\u0647\u0644 \u062a\u0631\u064a\u062f \u062d\u0630\u0641 \u062f\u0648\u0631 ${roleName}\u061f`
+        : `Delete role ${roleName}?`,
+    );
+    if (!confirmed) return;
+
+    setMessage(isArabic ? "\u062c\u0627\u0631\u064a \u062d\u0630\u0641 \u0627\u0644\u062f\u0648\u0631..." : "Deleting role...");
+    try {
+      const response = await fetch("/api/v1/admin/permissions", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        body: JSON.stringify({ slug: role.slug }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(String(body.error ?? "DELETE_FAILED"));
+      if (subjectType === "role" && subjectId === role.slug) {
+        setSubject("role:admin");
+      }
+      await loadPermissions();
+      setMessage(isArabic ? "\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u062f\u0648\u0631" : "Role deleted");
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      setMessage(
+        code === "SYSTEM_ROLE_PROTECTED"
+          ? isArabic
+            ? "\u0644\u0627 \u064a\u0645\u0643\u0646 \u062d\u0630\u0641 \u062f\u0648\u0631 \u0623\u0633\u0627\u0633\u064a \u0641\u064a \u0627\u0644\u0646\u0638\u0627\u0645"
+            : "System roles cannot be deleted"
+          : code === "ROLE_IN_USE"
+            ? isArabic
+              ? "\u0644\u0627 \u064a\u0645\u0643\u0646 \u062d\u0630\u0641 \u062f\u0648\u0631 \u0645\u0631\u062a\u0628\u0637 \u0628\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646"
+              : "This role is assigned to users"
+            : isArabic
+              ? "\u062a\u0639\u0630\u0631 \u062d\u0630\u0641 \u0627\u0644\u062f\u0648\u0631"
+              : "Unable to delete role",
+      );
+    }
+  }
+
   return (
     <section className="admin-data-card admin-permissions-card">
       <div className="admin-data-head admin-permissions-head">
@@ -3425,6 +3468,19 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                 >
                   {isArabic ? "تعديل الصلاحيات" : "Edit Permissions"}
                 </button>
+                {Number(role.is_system ?? 1) === 0 ? (
+                  <button
+                    className="admin-row-edit admin-role-delete-btn"
+                    onClick={() => void deleteRole(role)}
+                    type="button"
+                  >
+                    {isArabic ? "\u062d\u0630\u0641" : "Delete"}
+                  </button>
+                ) : (
+                  <span className="admin-system-role-badge">
+                    {isArabic ? "\u0623\u0633\u0627\u0633\u064a" : "System"}
+                  </span>
+                )}
               </div>
             );
           })}

@@ -35,6 +35,7 @@ type RoleRow = RowDataPacket & {
   name_ar: string;
   name_en: string;
   role_type: RoleType;
+  is_system: number;
 };
 
 type PermissionSeed = {
@@ -461,7 +462,7 @@ export async function ensureRolesTable() {
 export async function listRoles() {
   await ensureRolesTable();
   const [rows] = await db.execute<RoleRow[]>(
-    "SELECT id,slug,name_ar,name_en,role_type FROM roles WHERE is_active = 1 ORDER BY role_type ASC, id ASC",
+    "SELECT id,slug,name_ar,name_en,role_type,is_system FROM roles WHERE is_active = 1 ORDER BY role_type ASC, id ASC",
   );
   return rows;
 }

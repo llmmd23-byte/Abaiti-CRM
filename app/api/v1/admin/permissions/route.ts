@@ -48,6 +48,7 @@ type RoleOption = {
   name_ar: string;
   name_en: string;
   role_type: RoleType;
+  is_system?: number;
 };
 
 async function adminCompanyId(userId: number) {
@@ -82,7 +83,7 @@ export async function GET() {
   const [[permissions], [users]] = await Promise.all([
     db.execute<PermissionRow[]>(
       `SELECT subject_type,subject_id,permission_key,can_view,can_create,can_edit,
-              can_delete,can_approve,can_reports,can_dashboard,data_scope,role_id
+              can_delete,can_approve,can_reports,can_dashboard,data_scope,role_id,updated_at
          FROM permissions
         ORDER BY subject_type, subject_id, permission_key`,
     ),
@@ -96,6 +97,15 @@ export async function GET() {
     ),
   ]);
 
+  const latestUpdatedAt = permissions.reduce<string | null>((latest, row) => {
+    const updatedAt = String(row.updated_at ?? "").trim();
+    if (!updatedAt) return latest;
+    if (!latest) return updatedAt;
+    return new Date(updatedAt).getTime() > new Date(latest).getTime()
+      ? updatedAt
+      : latest;
+  }, null);
+
   return NextResponse.json({
     data: {
       permissionKeys: allPermissionKeys,
@@ -103,6 +113,7 @@ export async function GET() {
       permissions,
       roles,
       users,
+      latestUpdatedAt,
     },
   });
 }
@@ -257,6 +268,52 @@ export async function PUT(request: Request) {
        updated_at=CURRENT_TIMESTAMP`,
     [subjectType, subjectId, roleId, permissionKey, ...values, dataScope],
   );
+
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(request: Request) {
+  const session = await getSession();
+  if (!session)
+    return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+  if (session.role !== "admin")
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  if (!(await hasPermission(session, "page.admin.permissions", "can_delete")))
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+
+  await ensurePermissionsTable();
+  const body = await request.json().catch(() => ({}));
+  const slug = String(body.slug ?? "").trim();
+  if (!slug) {
+    return NextResponse.json({ error: "VALIDATION_ERROR" }, { status: 422 });
+  }
+
+  const [roles] = await db.execute<RowDataPacket[]>(
+    "SELECT id,slug,is_system FROM roles WHERE slug = ? AND is_active = 1 LIMIT 1",
+    [slug],
+  );
+  const role = roles[0];
+  if (!role) {
+    return NextResponse.json({ error: "ROLE_NOT_FOUND" }, { status: 404 });
+  }
+  if (Number(role.is_system ?? 1) === 1) {
+    return NextResponse.json({ error: "SYSTEM_ROLE_PROTECTED" }, { status: 422 });
+  }
+
+  const roleId = Number(role.id);
+  const [users] = await db.execute<RowDataPacket[]>(
+    "SELECT id FROM users WHERE role_id = ? LIMIT 1",
+    [roleId],
+  );
+  if (users.length) {
+    return NextResponse.json({ error: "ROLE_IN_USE" }, { status: 409 });
+  }
+
+  await db.execute(
+    "DELETE FROM permissions WHERE subject_type = 'role' AND (subject_id = ? OR role_id = ?)",
+    [slug, roleId],
+  );
+  await db.execute("UPDATE roles SET is_active = 0 WHERE id = ?", [roleId]);
 
   return NextResponse.json({ ok: true });
 }
