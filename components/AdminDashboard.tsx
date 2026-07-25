@@ -936,7 +936,7 @@ function AdminMetricList({
   const [createUserDraft, setCreateUserDraft] = useState({
     name: "",
     email: "",
-    role: "affiliate",
+    role: "sales",
     status: "active",
     password: "",
   });
@@ -1083,6 +1083,11 @@ function AdminMetricList({
       ? options
       : [{ value: "affiliate", label: isArabic ? "مسوق" : "Affiliate" }];
   }, [isArabic, metricData.roles]);
+  const defaultCreateUserRole =
+    userRoleOptions.find((option) => option.value.toLowerCase() === "sales")
+      ?.value ??
+    userRoleOptions[0]?.value ??
+    "affiliate";
   const userTextFields = [
     ["name", isArabic ? "الاسم" : "Name", "text"],
     ["email", isArabic ? "البريد الإلكتروني" : "Email", "email"],
@@ -1509,7 +1514,7 @@ function AdminMetricList({
     setCreateUserDraft({
       name: "",
       email: "",
-      role: userRoleOptions[0]?.value ?? "affiliate",
+      role: defaultCreateUserRole,
       status: "active",
       password: "",
     });
@@ -1523,7 +1528,7 @@ function AdminMetricList({
     setCreateUserDraft({
       name: "",
       email: "",
-      role: userRoleOptions[0]?.value ?? "affiliate",
+      role: defaultCreateUserRole,
       status: "active",
       password: "",
     });
@@ -2062,43 +2067,41 @@ function AdminMetricList({
               <div className="admin-create-user-row form-row">
                 <label className="form-group">
                   <span>{isArabic ? "الصلاحية" : "Role"}</span>
-                  <div className="admin-choice-grid" role="group">
+                  <select
+                    className="admin-basic-select"
+                    onChange={(event) =>
+                      setCreateUserDraft((current) => ({
+                        ...current,
+                        role: event.target.value,
+                      }))
+                    }
+                    value={createUserDraft.role}
+                  >
                     {userRoleOptions.map((option) => (
-                      <button
-                        className={createUserDraft.role === option.value ? "active" : ""}
-                        key={option.value}
-                        onClick={() =>
-                          setCreateUserDraft((current) => ({
-                            ...current,
-                            role: option.value,
-                          }))
-                        }
-                        type="button"
-                      >
+                      <option key={option.value} value={option.value}>
                         {option.label}
-                      </button>
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </label>
                 <label className="form-group">
                   <span>{isArabic ? "حالة الحساب" : "Account Status"}</span>
-                  <div className="admin-choice-grid" role="group">
+                  <select
+                    className="admin-basic-select"
+                    onChange={(event) =>
+                      setCreateUserDraft((current) => ({
+                        ...current,
+                        status: event.target.value,
+                      }))
+                    }
+                    value={createUserDraft.status}
+                  >
                     {statusOptions.users.map((option) => (
-                      <button
-                        className={createUserDraft.status === option.value ? "active" : ""}
-                        key={option.value}
-                        onClick={() =>
-                          setCreateUserDraft((current) => ({
-                            ...current,
-                            status: option.value,
-                          }))
-                        }
-                        type="button"
-                      >
+                      <option key={option.value} value={option.value}>
                         {option.label}
-                      </button>
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </label>
               </div>
               <label className="form-group">
