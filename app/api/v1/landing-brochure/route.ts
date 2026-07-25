@@ -80,20 +80,20 @@ async function activeAssetFromLandingUrl(landingUrl: string) {
 
   const [assets] = assetId
     ? await db.execute<RowDataPacket[]>(
-        `SELECT id,original_name,mime_type,file_data,status
+        `SELECT id,original_name,mime_type,file_data,file_path,status
            FROM marketing_assets
           WHERE id = ? LIMIT 1`,
         [assetId],
       )
     : publicAssetName
       ? await db.execute<RowDataPacket[]>(
-        `SELECT id,original_name,mime_type,file_data,status
+        `SELECT id,original_name,mime_type,file_data,file_path,status
            FROM marketing_assets
           WHERE REPLACE(file_path, '\\\\', '/') LIKE ? LIMIT 1`,
         [`%/marketing-library/${publicAssetName}`],
       )
       : await db.execute<RowDataPacket[]>(
-        `SELECT id,original_name,mime_type,file_data,status
+        `SELECT id,original_name,mime_type,file_data,file_path,status
            FROM marketing_assets
           WHERE description = 'landing-page-brochure'
             AND status = 'active'
@@ -105,7 +105,7 @@ async function activeAssetFromLandingUrl(landingUrl: string) {
   if (asset && String(asset.status ?? "active") === "active") return asset;
 
   const [latestAssets] = await db.execute<RowDataPacket[]>(
-    `SELECT id,original_name,mime_type,file_data,status
+    `SELECT id,original_name,mime_type,file_data,file_path,status
        FROM marketing_assets
       WHERE description = 'landing-page-brochure'
         AND status = 'active'
@@ -113,6 +113,30 @@ async function activeAssetFromLandingUrl(landingUrl: string) {
       LIMIT 1`,
   );
   return latestAssets[0] ?? null;
+}
+
+async function assetBuffer(asset: RowDataPacket | null) {
+  if (asset && Buffer.isBuffer(asset.file_data) && asset.file_data.byteLength > 0) {
+    return asset.file_data;
+  }
+
+  const storedPath = String(asset?.file_path ?? "").trim();
+  if (storedPath) {
+    const normalizedPath = storedPath.replace(/\\/g, "/");
+    const candidates = [
+      path.isAbsolute(storedPath) ? storedPath : path.join(process.cwd(), storedPath),
+      path.join(process.cwd(), "public", normalizedPath.replace(/^public\//, "")),
+    ];
+    for (const candidate of candidates) {
+      try {
+        return await readFile(candidate);
+      } catch {
+        // Try the next known storage shape.
+      }
+    }
+  }
+
+  return readFile(DEFAULT_BROCHURE_PATH);
 }
 
 function contentDispositionName(value: unknown) {
@@ -143,10 +167,7 @@ export async function GET() {
     );
     const landingUrl = String(industries[0]?.landing_url ?? "");
     const asset = companyAsset ?? (await activeAssetFromLandingUrl(landingUrl));
-    const buffer =
-      asset && Buffer.isBuffer(asset.file_data) && asset.file_data.byteLength > 0
-        ? asset.file_data
-        : await readFile(DEFAULT_BROCHURE_PATH);
+    const buffer = await assetBuffer(asset ?? null);
 
     const fileName = asset?.original_name ?? "coffee-chocolate-expo-2026.pdf";
     return new Response(new Uint8Array(buffer), {
