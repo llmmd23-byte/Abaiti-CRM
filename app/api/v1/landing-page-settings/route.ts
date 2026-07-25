@@ -70,9 +70,7 @@ export async function GET() {
     ).trim();
     return NextResponse.json({
       data: {
-        landingUrl: companyAssetId
-          ? DEFAULT_BROCHURE_URL
-          : String(row?.landing_url ?? "").trim() || DEFAULT_BROCHURE_URL,
+        landingUrl: DEFAULT_BROCHURE_URL,
         externalUrl: companyExternalUrl || String(row?.external_url ?? "").trim(),
       },
     });
