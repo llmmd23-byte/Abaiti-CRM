@@ -19,10 +19,13 @@ CREATE TABLE IF NOT EXISTS company (
   currency VARCHAR(10) NOT NULL DEFAULT 'SAR',
   status ENUM('active','inactive','suspended') NOT NULL DEFAULT 'active',
   notes TEXT NULL,
+  landing_page_asset_id BIGINT UNSIGNED NULL,
+  landing_page_external_url VARCHAR(500) NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_company_code (company_code),
+  KEY idx_company_landing_page_asset (landing_page_asset_id),
   KEY idx_company_status (status),
   KEY idx_company_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

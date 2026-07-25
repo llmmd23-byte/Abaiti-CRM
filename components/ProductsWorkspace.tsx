@@ -10,6 +10,10 @@ import {subscribeMarketingAssetsChanged} from "@/lib/marketing-assets-sync";
 type ProductWorkspaceView = "catalog" | "form";
 type MarketingTab = "sectors" | "social" | "library";
 type AssetFilter = "all" | "images" | "videos";
+type LandingPageSettings = {
+  landingUrl?: string;
+  externalUrl?: string;
+};
 type SocialLogo = "instagram" | "snapchat" | "tiktok" | "x";
 type IconShape =
   | "home"
@@ -341,6 +345,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const [activeTab, setActiveTab] = useState<MarketingTab>("sectors");
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
+  const {data: landingPageSettings} = useBackend<LandingPageSettings>("/api/v1/landing-page-settings");
   const {
     data: marketingAssetsData,
     loading: marketingAssetsLoading,
@@ -372,19 +377,21 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
               },
               url:
                 industry.id === "events-exhibitions"
-                  ? publicBrochureUrl(live.landing_url)
+                  ? publicBrochureUrl(landingPageSettings?.landingUrl ?? live.landing_url)
                   : industry.url,
               externalUrl:
                 industry.id === "events-exhibitions"
-                  ? String(live.external_url ?? "").trim() || undefined
+                  ? String(landingPageSettings?.externalUrl ?? live.external_url ?? "").trim() || undefined
                   : String(live.external_url ?? "").trim() || undefined,
             }
           : industry;
       }),
-    [liveIndustries],
+    [landingPageSettings, liveIndustries],
   );
   const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
-  const primaryExternalUrl = primaryIndustry.externalUrl;
+  const primaryExternalUrl =
+    String(landingPageSettings?.externalUrl ?? "").trim() ||
+    primaryIndustry.externalUrl;
   const visibleMarketingAssets = useMemo(
     () =>
       (marketingAssetsData ?? []).filter((asset) => {

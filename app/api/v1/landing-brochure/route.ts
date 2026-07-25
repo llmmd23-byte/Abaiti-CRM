@@ -4,7 +4,9 @@ import path from "node:path";
 import type {RowDataPacket} from "mysql2";
 import {NextResponse} from "next/server";
 
+import {getSession} from "@/lib/auth";
 import {db} from "@/lib/db";
+import {getSessionUserCompanyId} from "@/lib/permissions";
 
 const INDUSTRY_SLUG = "events-exhibitions";
 const DEFAULT_BROCHURE_PATH = path.join(
@@ -39,6 +41,37 @@ async function ensureLandingUrlColumn() {
       "ALTER TABLE industries ADD COLUMN external_url VARCHAR(500) NULL AFTER landing_url",
     );
   }
+}
+
+async function ensureCompanyLandingPageColumns() {
+  const [columns] = await db.execute<RowDataPacket[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'company' AND COLUMN_NAME IN ('landing_page_asset_id','landing_page_external_url')",
+  );
+  const existing = new Set(columns.map((column) => String(column.COLUMN_NAME)));
+  if (!existing.has("landing_page_asset_id")) {
+    await db.execute(
+      "ALTER TABLE company ADD COLUMN landing_page_asset_id BIGINT UNSIGNED NULL AFTER notes",
+    );
+  }
+  if (!existing.has("landing_page_external_url")) {
+    await db.execute(
+      "ALTER TABLE company ADD COLUMN landing_page_external_url VARCHAR(500) NULL AFTER landing_page_asset_id",
+    );
+  }
+}
+
+async function companyLandingAssetId() {
+  const session = await getSession();
+  if (!session) return null;
+  const companyId = await getSessionUserCompanyId(session);
+  if (!companyId) return null;
+  await ensureCompanyLandingPageColumns();
+  const [rows] = await db.execute<RowDataPacket[]>(
+    "SELECT landing_page_asset_id FROM company WHERE id = ? LIMIT 1",
+    [companyId],
+  );
+  const assetId = rows[0]?.landing_page_asset_id;
+  return assetId === null || assetId === undefined ? null : Number(assetId);
 }
 
 async function activeAssetFromLandingUrl(landingUrl: string) {
@@ -100,12 +133,16 @@ function encodedContentDispositionName(value: unknown) {
 export async function GET() {
   try {
     await ensureLandingUrlColumn();
+    const companyAssetId = await companyLandingAssetId();
+    const companyAsset = companyAssetId
+      ? await activeAssetFromLandingUrl(`/api/v1/marketing-assets/view/${companyAssetId}`)
+      : null;
     const [industries] = await db.execute<RowDataPacket[]>(
       "SELECT landing_url FROM industries WHERE slug = ? LIMIT 1",
       [INDUSTRY_SLUG],
     );
     const landingUrl = String(industries[0]?.landing_url ?? "");
-    const asset = await activeAssetFromLandingUrl(landingUrl);
+    const asset = companyAsset ?? (await activeAssetFromLandingUrl(landingUrl));
     const buffer =
       asset && Buffer.isBuffer(asset.file_data) && asset.file_data.byteLength > 0
         ? asset.file_data

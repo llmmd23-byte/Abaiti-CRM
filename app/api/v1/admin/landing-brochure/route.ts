@@ -8,6 +8,7 @@ import {apiError, apiSession} from "@/lib/api-auth";
 import {createResource, listResource} from "@/lib/backend";
 import {isAdminSession} from "@/lib/auth";
 import {db} from "@/lib/db";
+import {getSessionUserCompanyId} from "@/lib/permissions";
 
 const INDUSTRY_SLUG = "events-exhibitions";
 const DEFAULT_BROCHURE_URL =
@@ -44,6 +45,32 @@ async function ensureLandingUrlColumn() {
   if (!existing.has("external_url")) {
     await db.execute(
       "ALTER TABLE industries ADD COLUMN external_url VARCHAR(500) NULL AFTER landing_url",
+    );
+  }
+}
+
+async function ensureCompanyLandingPageColumns() {
+  const [columns] = await db.execute<RowDataPacket[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'company' AND COLUMN_NAME IN ('landing_page_asset_id','landing_page_external_url')",
+  );
+  const existing = new Set(columns.map((column) => String(column.COLUMN_NAME)));
+  if (!existing.has("landing_page_asset_id")) {
+    await db.execute(
+      "ALTER TABLE company ADD COLUMN landing_page_asset_id BIGINT UNSIGNED NULL AFTER notes",
+    );
+  }
+  if (!existing.has("landing_page_external_url")) {
+    await db.execute(
+      "ALTER TABLE company ADD COLUMN landing_page_external_url VARCHAR(500) NULL AFTER landing_page_asset_id",
+    );
+  }
+
+  const [indexes] = await db.execute<RowDataPacket[]>(
+    "SELECT INDEX_NAME FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'company' AND INDEX_NAME = 'idx_company_landing_page_asset'",
+  );
+  if (!indexes.length) {
+    await db.execute(
+      "ALTER TABLE company ADD KEY idx_company_landing_page_asset (landing_page_asset_id)",
     );
   }
 }
@@ -96,6 +123,16 @@ async function latestLandingBrochureAsset() {
   return assets[0] ?? null;
 }
 
+async function companyLandingPage(companyId: number | null) {
+  await ensureCompanyLandingPageColumns();
+  if (!companyId) return null;
+  const [rows] = await db.execute<RowDataPacket[]>(
+    "SELECT landing_page_asset_id, landing_page_external_url FROM company WHERE id = ? LIMIT 1",
+    [companyId],
+  );
+  return rows[0] ?? null;
+}
+
 async function defaultBrochureData() {
   const fileStat = await stat(DEFAULT_BROCHURE_PATH).catch(() => null);
   return {
@@ -120,10 +157,46 @@ function normalizeExternalUrl(value: unknown) {
   }
 }
 
-async function activeBrochureData() {
+async function assetById(assetId: number | null) {
+  if (!assetId) return null;
+  const [assets] = await db.execute<RowDataPacket[]>(
+    `SELECT id,title,original_name,file_path,file_size,mime_type,status,created_at,updated_at
+       FROM marketing_assets
+      WHERE id = ? LIMIT 1`,
+    [assetId],
+  );
+  const asset = assets[0];
+  return asset && String(asset.status ?? "active") === "active" ? asset : null;
+}
+
+async function activeBrochureData(companyId: number | null) {
+  const companyLanding = await companyLandingPage(companyId);
+  const companyAsset = await assetById(
+    companyLanding?.landing_page_asset_id
+      ? Number(companyLanding.landing_page_asset_id)
+      : null,
+  );
+  const companyExternalUrl = String(
+    companyLanding?.landing_page_external_url ?? "",
+  ).trim();
+  if (companyAsset) {
+    return {
+      isDefault: false,
+      isActive: true,
+      url: PUBLIC_BROCHURE_URL,
+      id: Number(companyAsset.id),
+      name: String(companyAsset.original_name ?? companyAsset.title ?? "landing-brochure.pdf"),
+      size: Number(companyAsset.file_size ?? 0),
+      updatedAt: companyAsset.updated_at ?? companyAsset.created_at ?? null,
+      mimeType: companyAsset.mime_type,
+      externalUrl: companyExternalUrl,
+    };
+  }
+
   const industry = await ensureLandingIndustry();
   const landingUrl = String(industry?.landing_url ?? "");
-  const externalUrl = String(industry?.external_url ?? "").trim();
+  const externalUrl =
+    companyExternalUrl || String(industry?.external_url ?? "").trim();
   const assetId = customAssetIdFromUrl(landingUrl);
   const publicAssetName = publicAssetNameFromUrl(landingUrl);
 
@@ -177,7 +250,9 @@ export async function GET() {
 
   try {
     await listResource("marketing-assets", session);
-    return NextResponse.json({data: await activeBrochureData()});
+    return NextResponse.json({
+      data: await activeBrochureData(await getSessionUserCompanyId(session)),
+    });
   } catch (error) {
     return apiError(error);
   }
@@ -230,13 +305,22 @@ export async function POST(request: Request) {
     const assetId = Number(asset?.id);
     if (!assetId) throw new Error("UPLOAD_FAILED");
 
+    const companyId = await getSessionUserCompanyId(session);
+    await ensureCompanyLandingPageColumns();
     await ensureLandingIndustry();
-    await db.execute(
-      "UPDATE industries SET landing_url = ? WHERE slug = ?",
-      [`/api/v1/marketing-assets/view/${assetId}`, INDUSTRY_SLUG],
-    );
+    if (companyId) {
+      await db.execute(
+        "UPDATE company SET landing_page_asset_id = ? WHERE id = ?",
+        [assetId, companyId],
+      );
+    } else {
+      await db.execute(
+        "UPDATE industries SET landing_url = ? WHERE slug = ?",
+        [`/api/v1/marketing-assets/view/${assetId}`, INDUSTRY_SLUG],
+      );
+    }
 
-    return NextResponse.json({data: await activeBrochureData()}, {status: 201});
+    return NextResponse.json({data: await activeBrochureData(companyId)}, {status: 201});
   } catch (error) {
     return apiError(error);
   }
@@ -256,12 +340,21 @@ export async function PUT(request: Request) {
       return NextResponse.json({error: "INVALID_URL"}, {status: 422});
     }
 
+    const companyId = await getSessionUserCompanyId(session);
+    await ensureCompanyLandingPageColumns();
     await ensureLandingIndustry();
-    await db.execute("UPDATE industries SET external_url = ? WHERE slug = ?", [
-      externalUrl || null,
-      INDUSTRY_SLUG,
-    ]);
-    return NextResponse.json({data: await activeBrochureData()});
+    if (companyId) {
+      await db.execute(
+        "UPDATE company SET landing_page_external_url = ? WHERE id = ?",
+        [externalUrl || null, companyId],
+      );
+    } else {
+      await db.execute("UPDATE industries SET external_url = ? WHERE slug = ?", [
+        externalUrl || null,
+        INDUSTRY_SLUG,
+      ]);
+    }
+    return NextResponse.json({data: await activeBrochureData(companyId)});
   } catch (error) {
     return apiError(error);
   }
@@ -275,8 +368,13 @@ export async function DELETE() {
   }
 
   try {
+    const companyId = await getSessionUserCompanyId(session);
+    const companyLanding = await companyLandingPage(companyId);
     const industry = await ensureLandingIndustry();
-    const assetId = customAssetIdFromUrl(industry?.landing_url);
+    const assetId =
+      companyLanding?.landing_page_asset_id
+        ? Number(companyLanding.landing_page_asset_id)
+        : customAssetIdFromUrl(industry?.landing_url);
     const publicAssetName = publicAssetNameFromUrl(industry?.landing_url);
     if (assetId) {
       await db.execute("UPDATE marketing_assets SET status = 'inactive' WHERE id = ?", [
@@ -288,11 +386,18 @@ export async function DELETE() {
         [`%/marketing-library/${publicAssetName}`],
       );
     }
-    await db.execute("UPDATE industries SET landing_url = ? WHERE slug = ?", [
-      DEFAULT_BROCHURE_URL,
-      INDUSTRY_SLUG,
-    ]);
-    return NextResponse.json({data: await activeBrochureData()});
+    if (companyId) {
+      await db.execute(
+        "UPDATE company SET landing_page_asset_id = NULL WHERE id = ?",
+        [companyId],
+      );
+    } else {
+      await db.execute("UPDATE industries SET landing_url = ? WHERE slug = ?", [
+        DEFAULT_BROCHURE_URL,
+        INDUSTRY_SLUG,
+      ]);
+    }
+    return NextResponse.json({data: await activeBrochureData(companyId)});
   } catch (error) {
     return apiError(error);
   }
