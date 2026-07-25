@@ -679,7 +679,7 @@ export default function AdminDashboard({
             <div className="admin-live-status">
               <i /> {isArabic ? "النظام يعمل بكفاءة" : "System operational"}
             </div>
-            {currentAccountName ? (
+            {activeSection === "dashboard" && currentAccountName ? (
               <div className="admin-current-account">
                 <span>{isArabic ? "الحساب الحالي" : "Current account"}</span>
                 <strong>{currentAccountName}</strong>
