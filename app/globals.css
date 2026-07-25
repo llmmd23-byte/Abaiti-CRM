@@ -3989,6 +3989,10 @@ html[dir="ltr"] .dashboard-main {
   opacity: 0.55;
 }
 
+.landing-brochure-actions:has(button.danger:disabled) > button:first-child {
+  display: none;
+}
+
 .upload-new-zone {
   display: flex;
   min-height: 190px;
