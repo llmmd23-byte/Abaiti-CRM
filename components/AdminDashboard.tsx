@@ -33,6 +33,11 @@ type AdminSection =
   | "content"
   | "permissions";
 type AdminRow = Record<string, unknown> & { id: number };
+type CurrentAccount = {
+  name?: string;
+  email?: string;
+  role?: string;
+};
 type PermissionRecord = {
   subject_type: "role" | "user";
   subject_id: string;
@@ -356,13 +361,22 @@ function AdminIcon({ name }: { name: string }) {
 
 export default function AdminDashboard({
   initialSection = "dashboard",
+  currentAccount,
 }: {
   initialSection?: AdminSection;
+  currentAccount?: CurrentAccount;
 } = {}) {
   const locale = useLocale();
   const isArabic = locale === "ar";
   const language = isArabic ? "ar" : "en";
   const pathname = usePathname() || "/admin";
+  const currentAccountName =
+    currentAccount?.name?.trim() || currentAccount?.email?.trim() || "";
+  const currentAccountEmail =
+    currentAccount?.email?.trim() &&
+    currentAccount.email.trim() !== currentAccountName
+      ? currentAccount.email.trim()
+      : "";
   const [summary, setSummary] = useState<Summary | null>(null);
   const [activeMetric, setActiveMetric] = useState<MetricKey>("users");
   const [analyticsUserFilter, setAnalyticsUserFilter] = useState("all");
@@ -661,8 +675,17 @@ export default function AdminDashboard({
                   : "View and manage platform data with Master Admin privileges."}
             </span>
           </div>
-          <div className="admin-live-status">
-            <i /> {isArabic ? "النظام يعمل بكفاءة" : "System operational"}
+          <div className="admin-status-stack">
+            <div className="admin-live-status">
+              <i /> {isArabic ? "النظام يعمل بكفاءة" : "System operational"}
+            </div>
+            {currentAccountName ? (
+              <div className="admin-current-account">
+                <span>{isArabic ? "الحساب الحالي" : "Current account"}</span>
+                <strong>{currentAccountName}</strong>
+                {currentAccountEmail ? <small>{currentAccountEmail}</small> : null}
+              </div>
+            ) : null}
           </div>
         </header>
 

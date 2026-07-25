@@ -118,7 +118,14 @@ export default async function AdminPage({
           `,
         }}
       />
-      <AdminDashboard initialSection={initialSection} />
+      <AdminDashboard
+        initialSection={initialSection}
+        currentAccount={{
+          name: session.name,
+          email: session.email,
+          role: session.role,
+        }}
+      />
     </>
   );
 }
