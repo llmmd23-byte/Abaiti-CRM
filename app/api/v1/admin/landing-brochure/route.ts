@@ -286,7 +286,9 @@ export async function POST(request: Request) {
       .padStart(3, "0")}-${safeFilePart(originalName)}`;
     const filePath = path.join(uploadRoot, storedName);
     const buffer = Buffer.from(await fileValue.arrayBuffer());
-    await writeFile(filePath, buffer);
+    await writeFile(filePath, buffer).catch((error) => {
+      console.warn("Landing brochure file path write skipped", error);
+    });
 
     const asset = await createResource(
       "marketing-assets",
@@ -304,6 +306,10 @@ export async function POST(request: Request) {
     );
     const assetId = Number(asset?.id);
     if (!assetId) throw new Error("UPLOAD_FAILED");
+    await db.execute("UPDATE marketing_assets SET file_data = ? WHERE id = ?", [
+      buffer,
+      assetId,
+    ]);
 
     const companyId = await getSessionUserCompanyId(session);
     await ensureCompanyLandingPageColumns();
