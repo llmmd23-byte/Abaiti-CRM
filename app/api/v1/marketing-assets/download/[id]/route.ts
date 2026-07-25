@@ -88,6 +88,8 @@ export async function GET(_request: Request, {params}: Context) {
     }
     const headers = new Headers();
     headers.set("Content-Type", String(asset.mime_type ?? "application/octet-stream"));
+    headers.set("Cache-Control", "no-store");
+    headers.set("X-Content-Type-Options", "nosniff");
     headers.set(
       "Content-Disposition",
       `attachment; filename="${contentDispositionName(asset.original_name)}"; filename*=UTF-8''${encodedContentDispositionName(asset.original_name)}`,

@@ -425,27 +425,6 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
     return `/api/v1/marketing-assets/${action}/${encodeURIComponent(String(asset.id))}`;
   }
 
-  function marketingAssetFileName(asset: BackendRow) {
-    return String(asset.original_name ?? asset.title ?? "marketing-file").replace(/[\r\n]/g, "");
-  }
-
-  function handleMarketingAssetAction(asset: BackendRow, action: "view" | "download") {
-    const url = marketingAssetUrl(asset, action);
-    if (action === "view") {
-      const opened = window.open(url, "_blank", "noopener,noreferrer");
-      if (!opened) window.location.href = url;
-      return;
-    }
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = marketingAssetFileName(asset);
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }
-
   if (initialView === "form") {
     return <DemoView />;
   }
@@ -584,20 +563,20 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                         <td>{cleanAssetDate(asset.created_at)}</td>
                         <td>
                           <div className="actions-wrapper marketing-asset-actions">
-                            <button
+                            <a
                               className="action-btn btn-view"
-                              onClick={() => void handleMarketingAssetAction(asset, "view")}
-                              type="button"
+                              href={marketingAssetUrl(asset, "view")}
+                              rel="noreferrer"
+                              target="_blank"
                             >
                               {isArabic ? "\u0627\u0644\u0639\u0631\u0636" : "View"}
-                            </button>
-                            <button
+                            </a>
+                            <a
                               className="action-btn btn-download"
-                              onClick={() => void handleMarketingAssetAction(asset, "download")}
-                              type="button"
+                              href={marketingAssetUrl(asset, "download")}
                             >
                               {isArabic ? "\u062a\u0646\u0632\u064a\u0644" : "Download"}
-                            </button>
+                            </a>
                           </div>
                         </td>
                       </tr>
