@@ -3887,11 +3887,6 @@ html[dir="ltr"] .dashboard-main {
   color: #00afb9;
 }
 
-.landing-brochure-badge.link,
-.landing-url-input-container {
-  display: none !important;
-}
-
 .landing-page-manager-grid {
   display: grid;
   grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr);
@@ -4576,6 +4571,26 @@ html[dir="ltr"] .dashboard-main {
   height: 100%;
   border: 0;
   background: #ffffff;
+}
+
+.landing-sector-site-preview {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  min-height: 560px;
+  border: 0;
+  background: #ffffff;
+}
+
+.landing-sector-site-preview + .landing-sector-frame-fallback {
+  min-height: 40px;
+  height: auto;
+  padding: 10px 16px;
+  border-top: 1px solid #eef2f7;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12px;
 }
 
 .landing-preview-frame object,
@@ -10625,6 +10640,19 @@ html[dir="rtl"] .compact-action {
 
 .landing-sector-frame-stack {
   position: relative;
+}
+
+.landing-sector-frame .landing-sector-site-preview {
+  min-height: min(70vh, calc(100vh - 220px));
+}
+
+.landing-sector-frame .landing-sector-site-preview + .landing-sector-frame-fallback {
+  min-height: auto;
+  height: auto;
+  padding: 10px 16px;
+  border-top: 1px solid #eef2f7;
+  background: #ffffff;
+  font-size: 12px;
 }
 
 .landing-sector-frame-stack > a,

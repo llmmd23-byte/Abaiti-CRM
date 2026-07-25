@@ -337,6 +337,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const isArabic = locale === "ar";
   const copy = isArabic ? catalogCopy.ar : catalogCopy.en;
   const marketing = isArabic ? marketingCopy.ar : marketingCopy.en;
+  const [copiedSectorId, setCopiedSectorId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<MarketingTab>("sectors");
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
@@ -375,7 +376,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                   : industry.url,
               externalUrl:
                 industry.id === "events-exhibitions"
-                  ? undefined
+                  ? String(live.external_url ?? "").trim() || undefined
                   : String(live.external_url ?? "").trim() || undefined,
             }
           : industry;
@@ -383,6 +384,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
     [liveIndustries],
   );
   const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
+  const primaryExternalUrl = primaryIndustry.externalUrl;
   const visibleMarketingAssets = useMemo(
     () =>
       (marketingAssetsData ?? []).filter((asset) => {
@@ -425,6 +427,12 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
     return `/api/v1/marketing-assets/${action}/${encodeURIComponent(String(asset.id))}`;
   }
 
+  async function handleCopyLink(url: string, sectorId: string) {
+    await navigator.clipboard.writeText(url);
+    setCopiedSectorId(sectorId);
+    window.setTimeout(() => setCopiedSectorId(null), 2000);
+  }
+
   if (initialView === "form") {
     return <DemoView />;
   }
@@ -463,6 +471,35 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
         {activeTab === "sectors" ? (
           <div className={`landing-sector-card ${isArabic ? "rtl" : "ltr"}`}>
             <div className="landing-sector-heading">
+              {primaryExternalUrl ? (
+                <div className="landing-sector-actions">
+                  <a
+                    className="landing-sector-control"
+                    href={primaryExternalUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span>{isArabic ? "\u0641\u062a\u062d \u0627\u0644\u0645\u0648\u0642\u0639" : "Open site"}</span>
+                  </a>
+                  <button
+                    className="landing-sector-control"
+                    onClick={() =>
+                      void handleCopyLink(primaryExternalUrl, primaryIndustry.id)
+                    }
+                    type="button"
+                  >
+                    <span>
+                      {copiedSectorId === primaryIndustry.id
+                        ? isArabic
+                          ? "\u062a\u0645 \u0627\u0644\u0646\u0633\u062e"
+                          : "Copied"
+                        : isArabic
+                          ? "\u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637"
+                          : "Copy link"}
+                    </span>
+                  </button>
+                </div>
+              ) : null}
               <div className="landing-sector-copy">
                 <h2
                   dir={isArabic ? "rtl" : "ltr"}
@@ -482,6 +519,23 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
 
             <div className="landing-sector-frame">
               <div className="landing-sector-frame-stack">
+                {primaryExternalUrl ? (
+                  <>
+                    <iframe
+                      className="landing-sector-site-preview"
+                      src={primaryExternalUrl}
+                      title={primaryIndustry.title[isArabic ? "ar" : "en"]}
+                    />
+                    <div className="landing-sector-frame-fallback">
+                      <span>
+                        {isArabic
+                          ? "\u0625\u0630\u0627 \u0644\u0645 \u062a\u0638\u0647\u0631 \u0627\u0644\u0635\u0641\u062d\u0629 \u062f\u0627\u062e\u0644 \u0627\u0644\u0625\u0637\u0627\u0631\u060c \u0627\u0641\u062a\u062d\u0647\u0627 \u0645\u0646 \u0627\u0644\u0632\u0631 \u0623\u0639\u0644\u0627\u0647."
+                          : "If the page does not appear inside the frame, open it from the button above."}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
                 <PdfPreviewFrame
                   className="landing-sector-pdf-preview"
                   minHeight={560}
@@ -491,6 +545,8 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                 <a href={primaryIndustry.url} target="_blank" rel="noreferrer">
                   {isArabic ? "فتح بروشور صفحة الهبوط" : "Open landing brochure"}
                 </a>
+                  </>
+                )}
               </div>
             </div>
           </div>
