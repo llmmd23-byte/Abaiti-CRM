@@ -57,7 +57,7 @@ export async function signInAction(
   }
 
   await createSession(user, formData.get("remember") === "on");
-  redirect(user.role === "admin" ? `/${locale}/admin` : `/${locale}/dashboard`);
+  redirect(user.role_type === "admin" ? `/${locale}/admin` : `/${locale}/dashboard`);
 }
 
 export async function signOutAction(formData: FormData) {

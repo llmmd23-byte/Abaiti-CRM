@@ -6,6 +6,7 @@ import {NextResponse} from "next/server";
 
 import {apiError, apiSession} from "@/lib/api-auth";
 import {createResource, listResource} from "@/lib/backend";
+import {isAdminSession} from "@/lib/auth";
 import {db} from "@/lib/db";
 
 const INDUSTRY_SLUG = "events-exhibitions";
@@ -170,7 +171,7 @@ async function activeBrochureData() {
 export async function GET() {
   const session = await apiSession();
   if (session instanceof NextResponse) return session;
-  if (session.role !== "admin") {
+  if (!isAdminSession(session)) {
     return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
   }
 
@@ -185,7 +186,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await apiSession();
   if (session instanceof NextResponse) return session;
-  if (session.role !== "admin") {
+  if (!isAdminSession(session)) {
     return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
   }
 
@@ -244,7 +245,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   const session = await apiSession();
   if (session instanceof NextResponse) return session;
-  if (session.role !== "admin") {
+  if (!isAdminSession(session)) {
     return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
   }
 
@@ -269,7 +270,7 @@ export async function PUT(request: Request) {
 export async function DELETE() {
   const session = await apiSession();
   if (session instanceof NextResponse) return session;
-  if (session.role !== "admin") {
+  if (!isAdminSession(session)) {
     return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
   }
 

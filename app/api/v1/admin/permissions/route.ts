@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { RowDataPacket } from "mysql2";
 
-import { getSession } from "@/lib/auth";
+import { getSession, isAdminSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   allPermissionKeys,
@@ -63,7 +63,7 @@ export async function GET() {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-  if (session.role !== "admin")
+  if (!isAdminSession(session))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   if (!(await hasPermission(session, "page.admin.permissions", "can_view")))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-  if (session.role !== "admin")
+  if (!isAdminSession(session))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   if (!(await hasPermission(session, "page.admin.permissions", "can_create")))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
@@ -181,7 +181,7 @@ export async function PUT(request: Request) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-  if (session.role !== "admin")
+  if (!isAdminSession(session))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   if (!(await hasPermission(session, "page.admin.permissions", "can_edit")))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
@@ -276,7 +276,7 @@ export async function PATCH(request: Request) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-  if (session.role !== "admin")
+  if (!isAdminSession(session))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   if (!(await hasPermission(session, "page.admin.permissions", "can_edit")))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
@@ -331,7 +331,7 @@ export async function DELETE(request: Request) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-  if (session.role !== "admin")
+  if (!isAdminSession(session))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   if (!(await hasPermission(session, "page.admin.permissions", "can_delete")))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });

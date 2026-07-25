@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import type {ResultSetHeader, RowDataPacket} from "mysql2";
-import {getSession} from "@/lib/auth";
+import {getSession, isAdminSession} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {hasPermission} from "@/lib/permissions";
 
@@ -48,7 +48,7 @@ function nullableDate(value: unknown) {
 export async function PUT(request: Request, {params}: {params: Promise<{id: string}>}) {
   const session = await getSession();
   if (!session) return NextResponse.json({error: "UNAUTHORIZED"}, {status: 401});
-  if (session.role !== "admin") return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
+  if (!isAdminSession(session)) return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
   if (!(await hasPermission(session, "table.users", "can_edit")))
     return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
 
@@ -166,4 +166,38 @@ export async function PUT(request: Request, {params}: {params: Promise<{id: stri
     [id]
   );
   return NextResponse.json({data: rows[0]});
+}
+
+export async function DELETE(_request: Request, {params}: {params: Promise<{id: string}>}) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({error: "UNAUTHORIZED"}, {status: 401});
+  if (!isAdminSession(session)) return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
+  if (!(await hasPermission(session, "table.users", "can_delete")))
+    return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
+
+  const id = Number((await params).id);
+  if (!Number.isInteger(id) || id < 1) return NextResponse.json({error: "INVALID_ID"}, {status: 422});
+
+  const [rows] = await db.execute<RowDataPacket[]>(
+    "SELECT id,email FROM users WHERE id = ? LIMIT 1",
+    [id],
+  );
+  const existing = rows[0];
+  if (!existing) return NextResponse.json({error: "NOT_FOUND"}, {status: 404});
+
+  if (String(existing.email ?? "").toLowerCase() === "admin@middar.com") {
+    return NextResponse.json({error: "DEFAULT_ADMIN_PROTECTED"}, {status: 422});
+  }
+
+  if (id === Number(session.sub)) {
+    return NextResponse.json({error: "CANNOT_DELETE_CURRENT_ADMIN"}, {status: 422});
+  }
+
+  const [result] = await db.execute<ResultSetHeader>(
+    "DELETE FROM users WHERE id = ?",
+    [id],
+  );
+  if (!result.affectedRows) return NextResponse.json({error: "NOT_FOUND"}, {status: 404});
+
+  return NextResponse.json({success: true});
 }

@@ -3,7 +3,7 @@ import path from "path";
 import {randomUUID} from "crypto";
 import {NextResponse} from "next/server";
 import type {ResultSetHeader, RowDataPacket} from "mysql2";
-import {getSession} from "@/lib/auth";
+import {getSession, isAdminSession} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {hasPermission} from "@/lib/permissions";
 
@@ -28,7 +28,7 @@ async function ensureReceiptColumn() {
 export async function POST(request: Request, {params}: {params: Promise<{id: string}>}) {
   const session = await getSession();
   if (!session) return NextResponse.json({error: "UNAUTHORIZED"}, {status: 401});
-  if (session.role !== "admin") return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
+  if (!isAdminSession(session)) return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
   if (!(await hasPermission(session, "table.quotes", "can_edit")))
     return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
 

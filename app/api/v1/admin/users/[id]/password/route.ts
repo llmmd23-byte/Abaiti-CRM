@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import type { ResultSetHeader } from "mysql2";
-import { getSession } from "@/lib/auth";
+import { getSession, isAdminSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hasPermission } from "@/lib/permissions";
 
@@ -12,7 +12,7 @@ export async function PUT(
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-  if (session.role !== "admin")
+  if (!isAdminSession(session))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   if (!(await hasPermission(session, "table.users", "can_edit")))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });

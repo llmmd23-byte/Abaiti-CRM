@@ -1,6 +1,6 @@
 import {redirect} from "next/navigation";
 import AdminDashboard from "@/components/AdminDashboard";
-import {getSession} from "@/lib/auth";
+import {getSession, isAdminSession} from "@/lib/auth";
 
 const validAdminSections = new Set([
   "dashboard",
@@ -24,7 +24,7 @@ export default async function AdminPage({
   const {locale} = await params;
   const session = await getSession();
   if (!session) redirect(`/${locale}/signin`);
-  if (session.role !== "admin") redirect(`/${locale}/dashboard`);
+  if (!isAdminSession(session)) redirect(`/${locale}/dashboard`);
   const query = await searchParams;
   const initialSection = validAdminSections.has(String(query?.section ?? "dashboard"))
     ? (String(query?.section ?? "dashboard") as

@@ -1,13 +1,13 @@
 import {NextResponse} from "next/server";
 import type {ResultSetHeader, RowDataPacket} from "mysql2";
-import {getSession} from "@/lib/auth";
+import {getSession, isAdminSession} from "@/lib/auth";
 import {db} from "@/lib/db";
 import {hasPermission} from "@/lib/permissions";
 
 export async function PUT(_request: Request, {params}: {params: Promise<{id: string}>}) {
   const session = await getSession();
   if (!session) return NextResponse.json({error: "UNAUTHORIZED"}, {status: 401});
-  if (session.role !== "admin") return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
+  if (!isAdminSession(session)) return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
   if (!(await hasPermission(session, "table.commissions", "can_approve")))
     return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
 

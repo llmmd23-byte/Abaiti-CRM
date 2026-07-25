@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 
-import { getSession } from "@/lib/auth";
+import { getSession, isAdminSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hasPermission } from "@/lib/permissions";
 
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-  if (session.role !== "admin")
+  if (!isAdminSession(session))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   const canEditLeads = await hasPermission(session, "table.leads", "can_edit");
   const canViewAdminDashboard = await hasPermission(

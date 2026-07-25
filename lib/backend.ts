@@ -3,7 +3,7 @@ import "server-only";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 
 import { db } from "@/lib/db";
-import type { MiddarSession } from "@/lib/auth";
+import { isAdminSession, type MiddarSession } from "@/lib/auth";
 import {
   getSessionUserCompanyId,
   ownerIdsForScope,
@@ -475,7 +475,7 @@ const definitionFor = (resource: string) => {
 };
 
 const canManageGlobal = (session: MiddarSession) =>
-  session.role === "admin" || session.role === "sales";
+  isAdminSession(session) || session.role === "sales";
 
 async function ownerFilter(
   definition: ResourceDefinition,

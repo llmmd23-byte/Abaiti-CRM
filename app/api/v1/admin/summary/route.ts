@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { RowDataPacket } from "mysql2";
-import { getSession } from "@/lib/auth";
+import { getSession, isAdminSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hasPermission } from "@/lib/permissions";
 
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
-  if (session.role !== "admin")
+  if (!isAdminSession(session))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   if (!(await hasPermission(session, "page.admin.dashboard", "can_view")))
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     requestedAnchor && /^\d{4}-\d{2}-\d{2}$/.test(requestedAnchor)
       ? requestedAnchor
       : new Date().toISOString().slice(0, 10);
-  const rangeCondition =
+  const baseRangeCondition =
     period === "all"
       ? "created_at IS NOT NULL"
       : period === "day"
@@ -59,6 +59,8 @@ export async function GET(request: Request) {
         : period === "year"
           ? `created_at >= DATE_FORMAT(DATE('${anchor}'), '%Y-01-01') AND created_at < DATE_FORMAT(DATE('${anchor}') + INTERVAL 1 YEAR, '%Y-01-01')`
           : `created_at >= DATE('${anchor}') - INTERVAL 6 DAY AND created_at < DATE('${anchor}') + INTERVAL 1 DAY`;
+  const rangeConditionFor = (alias: string) =>
+    baseRangeCondition.replaceAll("created_at", `${alias}.created_at`);
   const periodExpression =
     period === "day"
       ? "DATE_FORMAT(created_at, '%H')"
@@ -99,16 +101,16 @@ export async function GET(request: Request) {
 
   const [summaryRows] = await db.execute<RowDataPacket[]>(
     `SELECT
-      (SELECT COUNT(*) FROM users u WHERE ${userScope}${selectedUserScope} AND u.${rangeCondition}) users,
-      (SELECT COUNT(*) FROM leads l JOIN users u ON u.id=l.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND l.${rangeCondition}) clients,
-      (SELECT COUNT(*) FROM demo_requests d JOIN users u ON u.id=d.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND d.${rangeCondition}) demos,
-      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND q.${rangeCondition}) quotes,
-      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND s.${rangeCondition}) sales,
-      (SELECT COUNT(*) FROM support_tickets t JOIN users u ON u.id=t.user_id WHERE ${userScope}${selectedUserScope} AND t.status IN ('open','in_progress') AND t.${rangeCondition}) openTickets,
-      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND q.status IN ('draft', 'sent', 'accepted') AND q.${rangeCondition}) openQuotes,
-      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND s.status = 'pending' AND s.${rangeCondition}) uncreatedSalesCommissions,
-      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${saleUserScope}${selectedSaleUserScope} AND c.status = 'pending' AND c.${rangeCondition}) invisibleCommissions,
-      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${saleUserScope}${selectedSaleUserScope} AND c.status <> 'paid' AND c.${rangeCondition}) unpaidCommissions`,
+      (SELECT COUNT(*) FROM users u WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("u")}) users,
+      (SELECT COUNT(*) FROM leads l JOIN users u ON u.id=l.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("l")}) clients,
+      (SELECT COUNT(*) FROM demo_requests d JOIN users u ON u.id=d.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("d")}) demos,
+      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("q")}) quotes,
+      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("s")}) sales,
+      (SELECT COUNT(*) FROM support_tickets t JOIN users u ON u.id=t.user_id WHERE ${userScope}${selectedUserScope} AND t.status IN ('open','in_progress') AND ${rangeConditionFor("t")}) openTickets,
+      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND q.status IN ('draft', 'sent', 'accepted') AND ${rangeConditionFor("q")}) openQuotes,
+      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND s.status = 'pending' AND ${rangeConditionFor("s")}) uncreatedSalesCommissions,
+      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${saleUserScope}${selectedSaleUserScope} AND c.status = 'pending' AND ${rangeConditionFor("c")}) invisibleCommissions,
+      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${saleUserScope}${selectedSaleUserScope} AND c.status <> 'paid' AND ${rangeConditionFor("c")}) unpaidCommissions`,
     [
       ...scopedParams(),
       ...scopedParams(),
@@ -125,11 +127,11 @@ export async function GET(request: Request) {
   const summary = summaryRows[0] ?? {};
 
   const metricQueries: Record<string, string> = {
-    users: `SELECT ${periodExpression.replaceAll("created_at", "u.created_at")} day, COUNT(*) total FROM users u WHERE ${userScope}${selectedUserScope} AND u.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "u.created_at")} ORDER BY day`,
-    clients: `SELECT ${periodExpression.replaceAll("created_at", "l.created_at")} day, COUNT(*) total FROM leads l JOIN users u ON u.id=l.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND l.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "l.created_at")} ORDER BY day`,
-    demos: `SELECT ${periodExpression.replaceAll("created_at", "d.created_at")} day, COUNT(*) total FROM demo_requests d JOIN users u ON u.id=d.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND d.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "d.created_at")} ORDER BY day`,
-    quotes: `SELECT ${periodExpression.replaceAll("created_at", "q.created_at")} day, COUNT(*) total FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND q.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "q.created_at")} ORDER BY day`,
-    sales: `SELECT ${periodExpression.replaceAll("created_at", "s.created_at")} day, COUNT(*) total FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND s.${rangeCondition} GROUP BY ${periodExpression.replaceAll("created_at", "s.created_at")} ORDER BY day`,
+    users: `SELECT ${periodExpression.replaceAll("created_at", "u.created_at")} day, COUNT(*) total FROM users u WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("u")} GROUP BY ${periodExpression.replaceAll("created_at", "u.created_at")} ORDER BY day`,
+    clients: `SELECT ${periodExpression.replaceAll("created_at", "l.created_at")} day, COUNT(*) total FROM leads l JOIN users u ON u.id=l.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("l")} GROUP BY ${periodExpression.replaceAll("created_at", "l.created_at")} ORDER BY day`,
+    demos: `SELECT ${periodExpression.replaceAll("created_at", "d.created_at")} day, COUNT(*) total FROM demo_requests d JOIN users u ON u.id=d.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("d")} GROUP BY ${periodExpression.replaceAll("created_at", "d.created_at")} ORDER BY day`,
+    quotes: `SELECT ${periodExpression.replaceAll("created_at", "q.created_at")} day, COUNT(*) total FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("q")} GROUP BY ${periodExpression.replaceAll("created_at", "q.created_at")} ORDER BY day`,
+    sales: `SELECT ${periodExpression.replaceAll("created_at", "s.created_at")} day, COUNT(*) total FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("s")} GROUP BY ${periodExpression.replaceAll("created_at", "s.created_at")} ORDER BY day`,
   };
 
   const seriesEntries: Array<

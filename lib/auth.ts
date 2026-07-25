@@ -11,6 +11,7 @@ import {db} from "@/lib/db";
 export const AUTH_COOKIE = "middar_session";
 
 type UserRole = string;
+type RoleType = "admin" | "user";
 
 interface UserRow extends RowDataPacket {
   id: number;
@@ -18,6 +19,7 @@ interface UserRow extends RowDataPacket {
   email: string;
   password_hash: string;
   role: UserRole;
+  role_type: RoleType;
   status: "active" | "inactive" | "pending" | "suspended";
   is_active: number;
   preferred_locale: "ar" | "en";
@@ -28,6 +30,7 @@ export interface MiddarSession extends JWTPayload {
   email: string;
   name: string;
   role: UserRole;
+  role_type: RoleType;
 }
 
 const jwtSecret = () => {
@@ -52,6 +55,7 @@ export async function authenticateUser(identifier: string, password: string) {
   const [rows] = await db.execute<UserRow[]>(
     `SELECT u.id, u.name, u.email, u.password_hash,
             COALESCE(r.slug, 'affiliate') AS role,
+            COALESCE(r.role_type, 'user') AS role_type,
             u.status, u.is_active, u.preferred_locale
        FROM users u
        LEFT JOIN roles r ON r.id = u.role_id
@@ -73,7 +77,8 @@ export async function createSession(user: UserRow, remember: boolean) {
   const token = await new SignJWT({
     email: user.email,
     name: user.name,
-    role: user.role
+    role: user.role,
+    role_type: user.role_type
   })
     .setProtectedHeader({alg: "HS256", typ: "JWT"})
     .setSubject(String(user.id))
@@ -91,35 +96,17 @@ export async function createSession(user: UserRow, remember: boolean) {
   });
 }
 
+export function isAdminSession(session: Pick<MiddarSession, "role" | "role_type"> | null) {
+  return session?.role_type === "admin" || session?.role === "admin";
+}
+
 export async function getSession(): Promise<MiddarSession | null> {
   const token = (await cookies()).get(AUTH_COOKIE)?.value;
   if (!token) return null;
 
   try {
     const {payload} = await jwtVerify(token, jwtSecret(), {algorithms: ["HS256"]});
-    const userId = Number(payload.sub);
-    if (!Number.isInteger(userId) || userId < 1) return null;
-
-    const [rows] = await db.execute<UserRow[]>(
-      `SELECT u.id, u.name, u.email, u.password_hash,
-              COALESCE(r.slug, 'affiliate') AS role,
-              u.status, u.is_active, u.preferred_locale
-         FROM users u
-         LEFT JOIN roles r ON r.id = u.role_id
-        WHERE u.id = ?
-        LIMIT 1`,
-      [userId],
-    );
-    const user = rows[0];
-    if (!user || Number(user.is_active) !== 1 || user.status !== "active") return null;
-
-    return {
-      ...payload,
-      sub: String(user.id),
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    } as MiddarSession;
+    return payload as MiddarSession;
   } catch {
     return null;
   }

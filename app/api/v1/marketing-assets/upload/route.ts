@@ -5,6 +5,7 @@ import {NextResponse} from "next/server";
 
 import {apiError, apiSession} from "@/lib/api-auth";
 import {createResource} from "@/lib/backend";
+import {isAdminSession} from "@/lib/auth";
 
 const uploadRoot = path.join(process.cwd(), "public", "marketing-library");
 
@@ -33,7 +34,7 @@ function safeFilePart(value: string) {
 export async function POST(request: Request) {
   const session = await apiSession();
   if (session instanceof NextResponse) return session;
-  if (session.role !== "admin") {
+  if (!isAdminSession(session)) {
     return NextResponse.json({error: "FORBIDDEN"}, {status: 403});
   }
   try {

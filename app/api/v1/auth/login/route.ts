@@ -27,8 +27,9 @@ export async function POST(request: Request) {
       name: user.name,
       email: user.email,
       role: user.role,
+      role_type: user.role_type,
       preferred_locale: user.preferred_locale,
-      redirect_to: user.role === "admin" ? `/${user.preferred_locale}/admin` : `/${user.preferred_locale}/dashboard`
+      redirect_to: user.role_type === "admin" ? `/${user.preferred_locale}/admin` : `/${user.preferred_locale}/dashboard`
     }
   });
 }

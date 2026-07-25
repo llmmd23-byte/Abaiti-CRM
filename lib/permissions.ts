@@ -2,7 +2,7 @@ import "server-only";
 
 import type { RowDataPacket } from "mysql2";
 
-import type { MiddarSession } from "@/lib/auth";
+import { isAdminSession, type MiddarSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export type PermissionAction =
@@ -656,7 +656,7 @@ export async function getPermission(
 ) {
   const rows = await permissionRows(session, permissionKey);
   if (rows[0]) return rows[0];
-  if (session.role === "admin") return adminFallback(permissionKey);
+  if (isAdminSession(session)) return adminFallback(permissionKey);
   return null;
 }
 
@@ -684,7 +684,7 @@ export async function getDataScope(
 ): Promise<DataScope> {
   const permission = await getPermission(session, permissionKey);
   if (permission?.data_scope) return permission.data_scope;
-  return session.role === "admin" ? "all" : "own";
+  return isAdminSession(session) ? "all" : "own";
 }
 
 export async function getSessionUserCompanyId(session: MiddarSession) {
@@ -732,7 +732,7 @@ export async function getSessionPermissions(session: MiddarSession) {
   for (const row of rows) {
     if (!byKey.has(row.permission_key)) byKey.set(row.permission_key, row);
   }
-  if (session.role === "admin") {
+  if (isAdminSession(session)) {
     for (const key of allPermissionKeys) {
       if (!byKey.has(key)) byKey.set(key, adminFallback(key));
     }
