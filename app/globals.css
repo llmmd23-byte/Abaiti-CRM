@@ -3887,6 +3887,11 @@ html[dir="ltr"] .dashboard-main {
   color: #00afb9;
 }
 
+.landing-brochure-badge.link,
+.landing-url-input-container {
+  display: none !important;
+}
+
 .landing-page-manager-grid {
   display: grid;
   grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr);
