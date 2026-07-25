@@ -676,12 +676,14 @@ export default function AdminDashboard({
             </span>
           </div>
           <div className="admin-status-stack">
-            <div className="admin-live-status">
-              <i /> {isArabic ? "النظام يعمل بكفاءة" : "System operational"}
-            </div>
+          <div className="admin-live-status">
+            <i /> {isArabic ? "النظام يعمل بكفاءة" : "System operational"}
+          </div>
             {activeSection === "dashboard" && currentAccountName ? (
               <div className="admin-current-account">
-                <span>{isArabic ? "الحساب الحالي" : "Current account"}</span>
+                <span>
+                  {isArabic ? "\u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u062d\u0627\u0644\u064a" : "Current account"}
+                </span>
                 <strong>{currentAccountName}</strong>
                 {currentAccountEmail ? <small>{currentAccountEmail}</small> : null}
               </div>
@@ -4897,6 +4899,8 @@ function AdminManagementSection({
   const landingBrochureFileRef = useRef<HTMLInputElement | null>(null);
   const managementData = data ?? EMPTY_MANAGEMENT_DATA;
   const landingBrochurePreviewUrl = "/api/v1/landing-brochure#toolbar=1&navpanes=0";
+  const canPreviewLandingBrochure =
+    Boolean(landingBrochure?.url) && !landingBrochure?.isDefault;
 
   useEffect(() => {
     if (section !== "content") return;
@@ -5836,9 +5840,11 @@ function AdminManagementSection({
                   {isArabic ? "تاريخ التحديث" : "Updated"}: {landingBrochureDate(landingBrochure?.updatedAt)}
                 </p>
                 <div className="landing-brochure-actions">
-                  <button onClick={previewActiveBrochure} type="button" disabled={!landingBrochure?.url}>
+                  {canPreviewLandingBrochure ? (
+                  <button onClick={previewActiveBrochure} type="button">
                     {isArabic ? "معاينة سريعة" : "Preview"}
                   </button>
+                  ) : null}
                   <button
                     className="danger"
                     onClick={() => setIsLandingDeleteConfirmOpen(true)}
