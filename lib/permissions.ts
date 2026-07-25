@@ -62,6 +62,7 @@ export const pagePermissions = [
   "page.admin.dashboard",
   "page.admin.tickets",
   "page.admin.accounts",
+  "page.admin.booths",
   "page.admin.products",
   "page.admin.tags",
   "page.admin.activities",
@@ -100,6 +101,12 @@ export const tablePermissions = [
   "table.stock",
   "table.demo_requests",
   "table.quotes",
+  "table.participation_contracts",
+  "table.sponsorship_contracts",
+  "table.rental_contracts",
+  "table.rental_booths",
+  "table.booths",
+  "table.sales_orders",
   "table.sales",
   "table.commissions",
   "table.support_tickets",
@@ -130,6 +137,12 @@ export const adminPermissionKeys = allPermissionKeys.filter(
     key === "table.lead_notes" ||
     key === "table.products" ||
     key === "table.industries" ||
+    key === "table.booths" ||
+    key === "table.rental_booths" ||
+    key === "table.participation_contracts" ||
+    key === "table.sponsorship_contracts" ||
+    key === "table.rental_contracts" ||
+    key === "table.sales_orders" ||
     key === "table.marketing_assets" ||
     key === "table.tag_types" ||
     key === "table.tags" ||
@@ -160,6 +173,12 @@ export const userPermissionKeys = allPermissionKeys.filter(
       "table.stock",
       "table.demo_requests",
       "table.quotes",
+      "table.participation_contracts",
+      "table.sponsorship_contracts",
+      "table.rental_contracts",
+      "table.rental_booths",
+      "table.booths",
+      "table.sales_orders",
       "table.sales",
       "table.commissions",
       "table.support_tickets",
@@ -185,6 +204,12 @@ const userTableScopes = new Set([
   "table.lead_tag_assignments",
   "table.store",
   "table.stock",
+  "table.participation_contracts",
+  "table.sponsorship_contracts",
+  "table.rental_contracts",
+  "table.rental_booths",
+  "table.booths",
+  "table.sales_orders",
   "table.quotes",
   "table.sales",
   "table.commissions",
@@ -199,6 +224,12 @@ const userWritableTables = new Set([
   "table.lead_tag_assignments",
   "table.store",
   "table.stock",
+  "table.participation_contracts",
+  "table.sponsorship_contracts",
+  "table.rental_contracts",
+  "table.rental_booths",
+  "table.booths",
+  "table.sales_orders",
   "table.quotes",
   "table.support_tickets",
   "table.support_ticket_types",
@@ -218,6 +249,8 @@ const affiliatePermissionSeeds: PermissionSeed[] = [
       userTableScopes.has(key) ||
       key === "table.products" ||
       key === "table.industries" ||
+      key === "table.booths" ||
+      key === "table.rental_booths" ||
       key === "table.marketing_assets" ||
       key === "table.educational_assets" ||
       key === "table.support_ticket_types" ||
@@ -231,6 +264,10 @@ const affiliatePermissionSeeds: PermissionSeed[] = [
       key === "table.lead_tag_assignments" ||
       key === "table.store" ||
       key === "table.stock" ||
+      key === "table.participation_contracts" ||
+      key === "table.sponsorship_contracts" ||
+      key === "table.rental_contracts" ||
+      key === "table.sales_orders" ||
       key === "table.payout_methods",
     scope: userTableScopes.has(key) ? ("team" as const) : ("own" as const),
   })),
@@ -354,6 +391,8 @@ function defaultSeedForRoleType(roleType: RoleType, key: string): PermissionSeed
       userTableScopes.has(key) ||
       key === "table.products" ||
       key === "table.industries" ||
+      key === "table.booths" ||
+      key === "table.rental_booths" ||
       key === "table.marketing_assets" ||
       key === "table.educational_assets" ||
       key === "table.support_ticket_events",
@@ -366,6 +405,10 @@ function defaultSeedForRoleType(roleType: RoleType, key: string): PermissionSeed
       key === "table.lead_tag_assignments" ||
       key === "table.store" ||
       key === "table.stock" ||
+      key === "table.participation_contracts" ||
+      key === "table.sponsorship_contracts" ||
+      key === "table.rental_contracts" ||
+      key === "table.sales_orders" ||
       key === "table.payout_methods",
     scope: userTableScopes.has(key) ? "team" : "own",
   };

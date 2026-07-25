@@ -18332,11 +18332,13 @@ html[dir="rtl"]
 
 .admin-permissions-card {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
 .admin-permissions-head {
   align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eef4f7;
 }
 
 .admin-permissions-tools {
@@ -18402,7 +18404,7 @@ html[dir="rtl"]
 
 .admin-role-create-panel {
   display: grid;
-  grid-template-columns: 1.25fr repeat(4, minmax(140px, 1fr)) auto;
+  grid-template-columns: minmax(220px, 1.2fr) repeat(2, minmax(150px, 1fr)) minmax(140px, 0.75fr) minmax(150px, 0.85fr) auto;
   align-items: end;
   gap: 10px;
   padding: 14px;
@@ -18760,10 +18762,60 @@ html[dir="rtl"]
 
 .admin-permissions-table-wrap {
   overflow-x: auto;
+  border: 1px solid #e3edf4;
+  border-radius: 18px;
+  background: #ffffff;
 }
 
 .admin-permissions-table {
   min-width: 980px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-permissions-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f7fbfd;
+  color: #486074;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.admin-permissions-table tbody tr:not(.admin-permission-category-row):hover td {
+  background: #fbfdff;
+}
+
+.admin-permission-category-row td {
+  padding: 12px 16px !important;
+  border-top: 1px solid #e3edf4;
+  border-bottom: 1px solid #e3edf4;
+  background: #f2fbfd !important;
+}
+
+.admin-permission-category-row td,
+.admin-permission-category-row span,
+.admin-permission-category-row small {
+  color: #0f5161 !important;
+}
+
+.admin-permission-category-row td {
+  display: table-cell;
+}
+
+.admin-permission-category-row span {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.admin-permission-category-row small {
+  margin-inline-start: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.78;
 }
 
 .admin-permissions-footnote {

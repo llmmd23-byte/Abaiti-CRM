@@ -3265,6 +3265,7 @@ const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
   "page.admin.dashboard": { ar: "صفحة الأدمن - لوحة التحكم", en: "Admin - Dashboard Page" },
   "page.admin.tickets": { ar: "صفحة الأدمن - تذاكر الخدمة", en: "Admin - Service Tickets Page" },
   "page.admin.accounts": { ar: "صفحة الأدمن - الحسابات", en: "Admin - Accounts Page" },
+  "page.admin.booths": { ar: "صفحة الأدمن - البوثات", en: "Admin - Booths Page" },
   "page.admin.products": { ar: "صفحة الأدمن - المنتجات", en: "Admin - Products Page" },
   "page.admin.tags": { ar: "صفحة الأدمن - الوسوم", en: "Admin - Tags Page" },
   "page.admin.activities": { ar: "صفحة الأدمن - الأنشطة", en: "Admin - Activities Page" },
@@ -3288,6 +3289,7 @@ const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
   "table.users": { ar: "جدول المستخدمين", en: "Users Table" },
   "table.products": { ar: "جدول المنتجات", en: "Products Table" },
   "table.industries": { ar: "جدول الأنشطة", en: "Industries Table" },
+  "table.marketing_assets": { ar: "جدول المكتبة التسويقية", en: "Marketing Library Table" },
   "table.educational_assets": { ar: "جدول المحتوى التعليمي", en: "Educational Content Table" },
   "table.leads": { ar: "جدول العملاء المهتمين", en: "Interested Customers Table" },
   "table.lead_contacts": { ar: "جدول جهات اتصال العملاء", en: "Client Contacts Table" },
@@ -3299,9 +3301,16 @@ const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
   "table.stock": { ar: "جدول مخزون المعارض", en: "Store Stock Table" },
   "table.demo_requests": { ar: "جدول النسخ التجريبية", en: "Demos Table" },
   "table.quotes": { ar: "جدول عروض الأسعار", en: "Quotes Table" },
+  "table.participation_contracts": { ar: "جدول عقود المشاركة", en: "Participation Contracts Table" },
+  "table.sponsorship_contracts": { ar: "جدول عقود الرعاية", en: "Sponsorship Contracts Table" },
+  "table.rental_contracts": { ar: "جدول عقود التأجير", en: "Rental Contracts Table" },
+  "table.rental_booths": { ar: "جدول ربط البوثات بعقود التأجير", en: "Rental Booth Links Table" },
+  "table.booths": { ar: "جدول البوثات", en: "Booths Table" },
+  "table.sales_orders": { ar: "جدول أوامر البيع", en: "Sales Orders Table" },
   "table.sales": { ar: "جدول المبيعات", en: "Sales Table" },
   "table.commissions": { ar: "جدول العمولات", en: "Commissions Table" },
   "table.support_tickets": { ar: "جدول تذاكر الخدمة", en: "Support Tickets Table" },
+  "table.support_ticket_types": { ar: "جدول أنواع تذاكر الخدمة", en: "Support Ticket Types Table" },
   "table.support_ticket_events": { ar: "جدول خط زمن التذاكر", en: "Ticket Timeline Table" },
   "table.team_members": { ar: "جدول أعضاء الفريق", en: "Team Members Table" },
   "table.social_accounts": { ar: "جدول حسابات التواصل", en: "Social Accounts Table" },
@@ -3309,6 +3318,73 @@ const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
   "data.team_members": { ar: "رؤية بيانات أعضاء الفريق", en: "View Team Members Data" },
   "commission.percentage": { ar: "تغيير نسبة العمولة", en: "Change Commission Percentage" },
 };
+
+const permissionCategoryLabels: Record<string, { ar: string; en: string; order: number }> = {
+  admin_pages: { ar: "صفحات الأدمن", en: "Admin Pages", order: 10 },
+  user_pages: { ar: "صفحات المستخدم", en: "User Pages", order: 20 },
+  customers: { ar: "العملاء والوسوم", en: "Customers & Tags", order: 30 },
+  contracts: { ar: "العقود والبوثات", en: "Contracts & Booths", order: 40 },
+  sales: { ar: "المبيعات والعمولات", en: "Sales & Commissions", order: 50 },
+  support: { ar: "الدعم والتذاكر", en: "Support & Tickets", order: 60 },
+  settings: { ar: "الإعدادات والمحتوى", en: "Settings & Content", order: 70 },
+  other: { ar: "صلاحيات أخرى", en: "Other Permissions", order: 90 },
+};
+
+function permissionCategoryForKey(key: string) {
+  if (key.startsWith("page.admin.")) return "admin_pages";
+  if (key.startsWith("page.user.")) return "user_pages";
+  if (
+    [
+      "table.leads",
+      "table.lead_contacts",
+      "table.lead_notes",
+      "table.tag_types",
+      "table.tags",
+      "table.lead_tag_assignments",
+      "table.demo_requests",
+    ].includes(key)
+  )
+    return "customers";
+  if (
+    [
+      "table.participation_contracts",
+      "table.sponsorship_contracts",
+      "table.rental_contracts",
+      "table.rental_booths",
+      "table.booths",
+      "table.sales_orders",
+    ].includes(key)
+  )
+    return "contracts";
+  if (
+    [
+      "table.quotes",
+      "table.sales",
+      "table.commissions",
+      "commission.percentage",
+    ].includes(key)
+  )
+    return "sales";
+  if (key.includes("support_ticket") || key === "page.user.support")
+    return "support";
+  if (
+    [
+      "table.products",
+      "table.industries",
+      "table.marketing_assets",
+      "table.educational_assets",
+      "table.users",
+      "table.store",
+      "table.stock",
+      "table.team_members",
+      "table.social_accounts",
+      "table.payout_methods",
+      "data.team_members",
+    ].includes(key)
+  )
+    return "settings";
+  return "other";
+}
 
 function blankPermission(
   subjectType: "role" | "user",
@@ -3429,6 +3505,29 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       ? `${label} ${key}`.toLocaleLowerCase().includes(normalized)
       : true;
   });
+  const groupedPermissionKeys = filteredKeys
+    .slice()
+    .sort((first, second) => {
+      const firstCategory =
+        permissionCategoryLabels[permissionCategoryForKey(first)] ??
+        permissionCategoryLabels.other;
+      const secondCategory =
+        permissionCategoryLabels[permissionCategoryForKey(second)] ??
+        permissionCategoryLabels.other;
+      if (firstCategory.order !== secondCategory.order) {
+        return firstCategory.order - secondCategory.order;
+      }
+      return (permissionKeyLabels[first]?.[language] ?? first).localeCompare(
+        permissionKeyLabels[second]?.[language] ?? second,
+      );
+    })
+    .reduce<Array<{ category: string; keys: string[] }>>((groups, key) => {
+      const category = permissionCategoryForKey(key);
+      const current = groups[groups.length - 1];
+      if (current?.category === category) current.keys.push(key);
+      else groups.push({ category, keys: [key] });
+      return groups;
+    }, []);
   const usersForSelectedRole = usersRole
     ? permissionData.users.filter(
         (user) => String(user.role ?? "") === String(usersRole.slug),
@@ -3946,59 +4045,75 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
             </tr>
           </thead>
           <tbody>
-            {filteredKeys.map((permissionKey) => {
-              const permission =
-                permissionMap.get(permissionKey) ??
-                blankPermission(subjectType, subjectId, permissionKey);
-              return (
-                <tr key={`${subject}-${permissionKey}`}>
-                  <td>
-                    <strong>
-                      {permissionKeyLabels[permissionKey]?.[language] ??
-                        permissionKey}
-                    </strong>
-                    <span>{permissionKey}</span>
-                  </td>
-                  {permissionActionLabels.map(([key]) => (
-                    <td key={key}>
-                      <label className="admin-permission-check">
-                        <input
-                          checked={Number(permission[key]) === 1}
-                          onChange={(event) =>
-                            savePermission(permission, {
-                              [key]: event.target.checked ? 1 : 0,
-                            } as Partial<PermissionRecord>)
-                          }
-                          type="checkbox"
-                        />
-                        <i />
-                      </label>
-                    </td>
-                  ))}
-                  <td>
-                    <select
-                      aria-label={isArabic ? "نطاق البيانات" : "Data scope"}
-                      className="admin-permission-scope"
-                      onChange={(event) =>
-                        savePermission(permission, {
-                          data_scope: event.target
-                            .value as PermissionRecord["data_scope"],
-                        })
-                      }
-                      value={permission.data_scope}
-                    >
-                      {Object.entries(permissionScopeLabels).map(
-                        ([value, label]) => (
-                          <option key={value} value={value}>
-                            {label[language]}
-                          </option>
-                        ),
-                      )}
-                    </select>
+            {groupedPermissionKeys.map((group) => (
+              <Fragment key={group.category}>
+                <tr className="admin-permission-category-row">
+                  <td colSpan={permissionActionLabels.length + 2}>
+                    <span>
+                      {(permissionCategoryLabels[group.category] ??
+                        permissionCategoryLabels.other)[language]}
+                    </span>
+                    <small>
+                      {group.keys.length.toLocaleString(NUMBER_LOCALE)}{" "}
+                      {isArabic ? "صلاحية" : "permissions"}
+                    </small>
                   </td>
                 </tr>
-              );
-            })}
+                {group.keys.map((permissionKey) => {
+                  const permission =
+                    permissionMap.get(permissionKey) ??
+                    blankPermission(subjectType, subjectId, permissionKey);
+                  return (
+                    <tr key={`${subject}-${permissionKey}`}>
+                      <td>
+                        <strong>
+                          {permissionKeyLabels[permissionKey]?.[language] ??
+                            permissionKey}
+                        </strong>
+                        <span>{permissionKey}</span>
+                      </td>
+                      {permissionActionLabels.map(([key]) => (
+                        <td key={key}>
+                          <label className="admin-permission-check">
+                            <input
+                              checked={Number(permission[key]) === 1}
+                              onChange={(event) =>
+                                savePermission(permission, {
+                                  [key]: event.target.checked ? 1 : 0,
+                                } as Partial<PermissionRecord>)
+                              }
+                              type="checkbox"
+                            />
+                            <i />
+                          </label>
+                        </td>
+                      ))}
+                      <td>
+                        <select
+                          aria-label={isArabic ? "نطاق البيانات" : "Data scope"}
+                          className="admin-permission-scope"
+                          onChange={(event) =>
+                            savePermission(permission, {
+                              data_scope: event.target
+                                .value as PermissionRecord["data_scope"],
+                            })
+                          }
+                          value={permission.data_scope}
+                        >
+                          {Object.entries(permissionScopeLabels).map(
+                            ([value, label]) => (
+                              <option key={value} value={value}>
+                                {label[language]}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </Fragment>
+            ))}
             {filteredKeys.length === 0 ? (
               <tr>
                 <td className="admin-empty" colSpan={9}>

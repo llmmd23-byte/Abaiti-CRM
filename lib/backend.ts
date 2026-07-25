@@ -195,7 +195,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   "participation-contracts": {
     table: "participation_contracts",
     ownerField: "affiliate_user_id",
-    permissionKey: "table.quotes",
+    permissionKey: "table.participation_contracts",
     writable: [
       "contract_number",
       "lead_id",
@@ -227,7 +227,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   "sponsorship-contracts": {
     table: "sponsorship_contracts",
     ownerField: "affiliate_user_id",
-    permissionKey: "table.quotes",
+    permissionKey: "table.sponsorship_contracts",
     writable: [
       "contract_number",
       "lead_id",
@@ -263,7 +263,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   "rental-contracts": {
     table: "rental_contracts",
     ownerField: "affiliate_user_id",
-    permissionKey: "table.quotes",
+    permissionKey: "table.rental_contracts",
     writable: [
       "contract_number",
       "lead_id",
@@ -305,12 +305,12 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   },
   "rental-booths": {
     table: "rental_booths",
-    permissionKey: "table.quotes",
+    permissionKey: "table.rental_booths",
     writable: [],
   },
   booths: {
     table: "booth",
-    permissionKey: "table.quotes",
+    permissionKey: "table.booths",
     writable: [
       "booth_number",
       "booth_size",
@@ -326,7 +326,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   "sales-orders": {
     table: "sales_orders",
     ownerField: "affiliate_user_id",
-    permissionKey: "table.quotes",
+    permissionKey: "table.sales_orders",
     writable: [
       "order_number",
       "lead_id",
