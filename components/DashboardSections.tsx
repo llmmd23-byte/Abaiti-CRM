@@ -3431,6 +3431,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
   const [contractFormOpen, setContractFormOpen] = useState(false);
   const skipNextRentalAutoSaveRef = useRef(false);
+  const rentalAutoSaveSnapshotRef = useRef("");
 
   const text = isArabic
     ? {
@@ -3705,6 +3706,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
 
   function resetContractForm() {
     setEditingContractId(null);
+    rentalAutoSaveSnapshotRef.current = "";
     setContractNumber("");
     setLeadId("");
     setEventName(isArabic ? "المعرض الدولي لصناع القهوة والشوكولاتة" : "International Coffee and Chocolate Makers Exhibition");
@@ -3754,6 +3756,42 @@ export function RentalContractsPanel({locale}: {locale: string}) {
 
   function editContract(contract: BackendRow) {
     skipNextRentalAutoSaveRef.current = true;
+    rentalAutoSaveSnapshotRef.current = JSON.stringify({
+      contract_number: String(contract.contract_number ?? "").trim() || null,
+      lead_id: contract.lead_id ? Number(contract.lead_id) : null,
+      event_name: String(contract.event_name ?? (isArabic ? "المعرض الدولي لصناع القهوة والشوكولاتة" : "International Coffee and Chocolate Makers Exhibition")).trim() || null,
+      event_dates: String(contract.event_dates ?? (isArabic ? "8-10 أكتوبر 2026م (27-29 ربيع الآخر 1448هـ)" : "8-10 October 2026")).trim() || null,
+      event_location: String(contract.event_location ?? (isArabic ? "فندق جدة هيلتون - القاعة الكبرى" : "Jeddah Hilton Hotel - Grand Hall")).trim() || null,
+      lessor_name: String(contract.lessor_name ?? (isArabic ? "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات" : "Netaq Al Aamal Exhibitions & Conferences")).trim() || null,
+      first_party_cr: String(contract.first_party_cr ?? "").trim() || null,
+      first_party_representative: String(contract.first_party_representative ?? "").trim() || null,
+      tenant_name: String(contract.tenant_name ?? contract.company_name ?? "").trim() || String(contract.company_name ?? "").trim(),
+      second_party_cr: String(contract.second_party_cr ?? "").trim() || null,
+      second_party_representative: String(contract.second_party_representative ?? "").trim() || null,
+      company_name: String(contract.company_name ?? "").trim(),
+      contact_name: String(contract.contact_name ?? "").trim(),
+      email: String(contract.email ?? "").trim() || null,
+      phone: String(contract.phone ?? "").trim() || null,
+      address: String(contract.address ?? "").trim() || null,
+      city: String(contract.city ?? "").trim() || null,
+      country: String(contract.country ?? "Saudi Arabia").trim() || null,
+      booth_number: String(contract.booth_number ?? "RL13").trim() || null,
+      participation_category: String(contract.participation_category ?? (isArabic ? "كلاسيك (Classic)" : "Classic")).trim() || null,
+      booth_size: String(contract.booth_size ?? (isArabic ? "3x3 متر" : "3x3 m")).trim() || null,
+      rental_item: String(contract.rental_item ?? "").trim(),
+      rental_location: String(contract.rental_location ?? "").trim() || null,
+      lease_start_date: cleanDate(contract.lease_start_date) === "—" ? dateAfterDays(0) : cleanDate(contract.lease_start_date),
+      lease_end_date: cleanDate(contract.lease_end_date) === "—" ? dateAfterDays(3) : cleanDate(contract.lease_end_date),
+      unit_price: contract.unit_price == null ? 0 : Number(contract.unit_price),
+      quantity: contract.quantity == null ? 1 : Number(contract.quantity),
+      subtotal: roundMoney(rentalContractAmounts(contract).subtotal),
+      vat_amount: roundMoney(rentalContractAmounts(contract).vat),
+      grand_total: roundMoney(rentalContractAmounts(contract).grandTotal),
+      payment_status: String(contract.payment_status ?? "pending_payment"),
+      contract_date: cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date),
+      status: String(contract.status ?? "draft"),
+      notes: String(contract.notes ?? "").trim() || null,
+    });
     setContractFormOpen(true);
     setEditingContractId(Number(contract.id));
     setContractNumber(String(contract.contract_number ?? ""));
@@ -3949,17 +3987,26 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     };
   }
 
+  function rememberRentalAutoSaveSnapshot() {
+    rentalAutoSaveSnapshotRef.current = JSON.stringify(rentalContractPayload());
+  }
+
   useEffect(() => {
     if (!editingContractId || !contractFormOpen) return;
     if (skipNextRentalAutoSaveRef.current) {
       skipNextRentalAutoSaveRef.current = false;
+      rememberRentalAutoSaveSnapshot();
       return;
     }
     if (!companyName.trim() || !contactName.trim() || !rentalItem.trim()) return;
+    const payload = rentalContractPayload();
+    const nextSnapshot = JSON.stringify(payload);
+    if (nextSnapshot === rentalAutoSaveSnapshotRef.current) return;
     const timeout = window.setTimeout(() => {
       setSaveStatus(text.saving);
-      updateBackend("rental-contracts", editingContractId, rentalContractPayload())
+      updateBackend("rental-contracts", editingContractId, payload)
         .then(async () => {
+          rentalAutoSaveSnapshotRef.current = nextSnapshot;
           setSaveStatus(text.updated);
           await contracts.reload();
           await rentalBooths.reload();
