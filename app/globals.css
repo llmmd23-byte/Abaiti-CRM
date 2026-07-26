@@ -9354,7 +9354,7 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
 .dashboard-route-shell .dashboard-main .rental-contract-form-card .form-grid {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 14px;
-  align-items: end;
+  align-items: start;
 }
 
 .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field {
