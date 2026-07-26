@@ -9318,6 +9318,91 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
   margin-top: 4px;
 }
 
+.dashboard-route-shell .dashboard-main .rental-contract-form-card {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  padding: 22px;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .card-title {
+  margin-bottom: 0;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .form-grid {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field {
+  grid-column: span 3;
+  min-width: 0;
+  gap: 7px;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(2),
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(4),
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(7),
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(8),
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(9),
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(13),
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(23),
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(24) {
+  grid-column: span 6;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field > span,
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .rental-compact-label > span,
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .rental-tenant-name-field > span {
+  display: flex;
+  min-height: 30px;
+  align-items: flex-end;
+  overflow: visible;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card :is(input, textarea, .dashboard-select-trigger, .rental-booth-open-map) {
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card :is(input, .dashboard-select-trigger, .rental-booth-open-map) {
+  min-height: 44px;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card input {
+  width: 100%;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-duration-hint {
+  margin-top: 2px;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .rental-booth-modal-backdrop {
+  grid-column: 1 / -1;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-details-field {
+  margin-bottom: 0;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-details-field textarea {
+  min-height: 96px;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-action-row {
+  align-items: center;
+  margin-top: 2px;
+}
+
 .dashboard-route-shell .dashboard-main .quote-history-card .responsive-table {
   width: 100%;
   overflow-x: visible;
@@ -10073,6 +10158,25 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
   .dashboard-route-shell .dashboard-main .quote-form-card .quote-field-date {
     grid-column: span 1;
   }
+
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .form-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field {
+    grid-column: span 3;
+  }
+
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(2),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(4),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(7),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(8),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(9),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(13),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(23),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(24) {
+    grid-column: span 6;
+  }
 }
 
 @media (max-width: 640px) {
@@ -10085,6 +10189,26 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
   .dashboard-route-shell .dashboard-main .quote-form-card .quote-field-amount,
   .dashboard-route-shell .dashboard-main .quote-form-card .quote-field-duration,
   .dashboard-route-shell .dashboard-main .quote-form-card .quote-field-date {
+    grid-column: 1 / -1;
+  }
+
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card {
+    padding: 16px;
+  }
+
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field,
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(2),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(4),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(7),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(8),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(9),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(13),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(23),
+  .dashboard-route-shell .dashboard-main .rental-contract-form-card .quote-field:nth-of-type(24) {
     grid-column: 1 / -1;
   }
 
