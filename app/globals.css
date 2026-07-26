@@ -9351,6 +9351,34 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
   margin-bottom: 0;
 }
 
+.dashboard-route-shell .dashboard-main .rental-list-title-row,
+.dashboard-route-shell .dashboard-main .rental-form-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.dashboard-route-shell .dashboard-main .rental-list-title-row > div,
+.dashboard-route-shell .dashboard-main .rental-form-title-row > div {
+  min-width: 0;
+}
+
+.dashboard-route-shell .dashboard-main .rental-list-add-button {
+  flex: 0 0 auto;
+  min-width: 132px;
+  min-height: 44px;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.dashboard-route-shell .dashboard-main .rental-back-button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  white-space: nowrap;
+}
+
 .dashboard-route-shell .dashboard-main .rental-contract-form-card .form-grid {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 14px;
@@ -10251,6 +10279,17 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
 
   .dashboard-route-shell .dashboard-main .rental-contract-form-card {
     padding: 16px;
+  }
+
+  .dashboard-route-shell .dashboard-main .rental-list-title-row,
+  .dashboard-route-shell .dashboard-main .rental-form-title-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-route-shell .dashboard-main .rental-list-add-button,
+  .dashboard-route-shell .dashboard-main .rental-back-button {
+    width: 100%;
   }
 
   .dashboard-route-shell .dashboard-main .rental-contract-form-card .form-grid {

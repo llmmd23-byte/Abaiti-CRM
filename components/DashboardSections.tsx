@@ -3429,6 +3429,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [boothMapZone, setBoothMapZone] = useState("all");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
+  const [contractFormOpen, setContractFormOpen] = useState(false);
 
   const text = isArabic
     ? {
@@ -3436,6 +3437,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         formSubtitle: "\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0642\u062f \u0645\u0631\u062a\u0628\u0637\u0629 \u0628\u0627\u0644\u0639\u0645\u0644\u0627\u0621 \u0627\u0644\u0645\u0647\u062a\u0645\u064a\u0646",
         listTitle: "\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0639\u0642\u0648\u062f \u0627\u0644\u062a\u0623\u062c\u064a\u0631\u064a\u0629",
         listSubtitle: "\u0627\u0644\u0639\u0642\u0648\u062f \u0627\u0644\u062a\u0623\u062c\u064a\u0631\u064a\u0629 \u0627\u0644\u062a\u064a \u062a\u0645 \u0625\u062f\u062e\u0627\u0644\u0647\u0627 \u0645\u0646 \u062d\u0633\u0627\u0628\u0643",
+        addContract: "\u0625\u0636\u0627\u0641\u0629",
+        backToList: "\u0631\u062c\u0648\u0639 \u0644\u0644\u0642\u0627\u0626\u0645\u0629",
         customer: "\u0627\u0644\u0639\u0645\u064a\u0644 \u0627\u0644\u0645\u0647\u062a\u0645",
         customerPlaceholder: "\u0627\u062e\u062a\u0631 \u0627\u0644\u0639\u0645\u064a\u0644 \u0627\u0644\u0645\u0647\u062a\u0645",
         customerSearch: "\u0627\u0628\u062d\u062b \u0628\u0627\u0633\u0645 \u0627\u0644\u0639\u0645\u064a\u0644 \u0623\u0648 \u0627\u0644\u0634\u0631\u0643\u0629",
@@ -3494,6 +3497,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         formSubtitle: "Rental contract details linked to interested customers",
         listTitle: "Rental contracts list",
         listSubtitle: "Rental contracts entered from your account",
+        addContract: "Add",
+        backToList: "Back to list",
         customer: "Interested customer",
         customerPlaceholder: "Select interested customer",
         customerSearch: "Search by customer or company",
@@ -3732,7 +3737,22 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setContractStatus("draft");
   }
 
+  function openNewContractForm() {
+    resetContractForm();
+    setSaveStatus("");
+    setContractFormOpen(true);
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  function closeContractForm() {
+    resetContractForm();
+    setSaveStatus("");
+    setContractFormOpen(false);
+    window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
   function editContract(contract: BackendRow) {
+    setContractFormOpen(true);
     setEditingContractId(Number(contract.id));
     setContractNumber(String(contract.contract_number ?? ""));
     setLeadId(contract.lead_id ? String(contract.lead_id) : "");
@@ -3945,6 +3965,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         setSaveStatus(text.saved);
       }
       resetContractForm();
+      setContractFormOpen(false);
       await contracts.reload();
       await rentalBooths.reload();
     } catch {
@@ -3970,8 +3991,17 @@ export function RentalContractsPanel({locale}: {locale: string}) {
 
   return (
     <div className="quotes-page-grid">
+      {contractFormOpen ? (
       <article className="quote-card quote-form-card rental-contract-form-card">
-        <div className="card-title"><h3>{text.formTitle}</h3><span>{text.formSubtitle}</span></div>
+        <div className="card-title rental-form-title-row">
+          <div>
+            <h3>{text.formTitle}</h3>
+            <span>{text.formSubtitle}</span>
+          </div>
+          <button className="contract-filter-reset rental-back-button" onClick={closeContractForm} type="button">
+            {text.backToList}
+          </button>
+        </div>
         <div className="form-grid">
           <label className="quote-field"><span>{text.contractNumber}</span><input onChange={(event) => setContractNumber(event.target.value)} placeholder={isArabic ? "تلقائياً" : "Automatic"} value={contractNumber} /></label>
           <label className="quote-field"><span>{text.eventName}</span><input onChange={(event) => setEventName(event.target.value)} value={eventName} /></label>
@@ -4185,9 +4215,14 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
         </div>
       </article>
-
+      ) : (
       <article className="quote-card quote-history-card">
-        <div className="card-title"><div><h3>{text.listTitle}</h3><span>{text.listSubtitle}</span></div></div>
+        <div className="card-title rental-list-title-row">
+          <div><h3>{text.listTitle}</h3><span>{text.listSubtitle}</span></div>
+          <button className="button button-primary rental-list-add-button" onClick={openNewContractForm} type="button">
+            {text.addContract}
+          </button>
+        </div>
         <div className="contract-smart-filter-row"><div className="contract-smart-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" /><path d="m15.5 15.5 4 4" /></svg><input onChange={(event) => setSearch(event.target.value)} placeholder={isArabic ? "\u0627\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645\u060c \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u062c\u0648\u0627\u0644..." : "Search by name, company, mobile..."} type="search" value={search} /><strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong></div></div>
         <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.paymentStatus}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
           {filteredContracts.map((contract) => {
@@ -4221,6 +4256,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           {contracts.loading ? <tr><td className="quote-history-empty" colSpan={7}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td></tr> : null}
         </tbody></table></div>
       </article>
+      )}
     </div>
   );
 }
