@@ -260,11 +260,12 @@ const resources: Record<BackendResource, ResourceDefinition> = {
       "grand_total",
       "currency",
       "payment_method",
+      "payment_status",
       "contract_date",
       "status",
       "notes",
     ],
-    defaults: { status: "draft", currency: "SAR", payment_method: "bank_transfer" },
+    defaults: { status: "draft", currency: "SAR", payment_method: "bank_transfer", payment_status: "pending_payment" },
   },
   "rental-contracts": {
     table: "rental_contracts",

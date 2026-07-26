@@ -5699,6 +5699,28 @@ html[dir="ltr"] .dashboard-main {
   background: #0096b4;
 }
 
+.contract-table-action.text {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 76px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.contract-table-action.text.paid {
+  color: #166534;
+  border-color: #86efac;
+  background: #dcfce7;
+}
+
+.contract-table-action.text.paid:hover {
+  color: #14532d;
+  border-color: #4ade80;
+  background: #bbf7d0;
+}
+
 .quote-flow-menu > .quote-flow-option + .quote-flow-option {
   margin-top: 12px;
 }

@@ -3466,6 +3466,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         update: "\u062a\u062d\u062f\u064a\u062b \u0627\u0644\u0639\u0642\u062f",
         edit: "\u062a\u0639\u062f\u064a\u0644",
         print: "\u0637\u0628\u0627\u0639\u0629",
+        markPaid: "\u062a\u0645 \u0627\u0644\u062f\u0641\u0639",
         actions: "\u0627\u0644\u0625\u062c\u0631\u0627\u0621\u0627\u062a",
         saving: "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638...",
         saved: "\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0639\u0642\u062f",
@@ -3524,6 +3525,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         update: "Update contract",
         edit: "Edit",
         print: "Print",
+        markPaid: "Mark paid",
         actions: "Actions",
         saving: "Saving...",
         saved: "Contract saved",
@@ -3953,6 +3955,19 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     window.setTimeout(() => setSaveStatus(""), 2200);
   }
 
+  async function markContractPaid(contract: BackendRow) {
+    setSaveStatus(text.saving);
+    try {
+      await updateBackend("rental-contracts", Number(contract.id), {payment_status: "paid"});
+      setSaveStatus(text.updated);
+      await contracts.reload();
+      await rentalBooths.reload();
+    } catch {
+      setSaveStatus(text.failed);
+    }
+    window.setTimeout(() => setSaveStatus(""), 2200);
+  }
+
   return (
     <div className="quotes-page-grid">
       <article className="quote-card quote-form-card rental-contract-form-card">
@@ -4173,7 +4188,27 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.paymentStatus}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
           {filteredContracts.map((contract) => {
             const paymentValue = String(contract.payment_status ?? "pending_payment");
-            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "-")}</td><td>{String(contract.company_name ?? "-")}</td><td>{String(contract.rental_item ?? "-")}</td><td><span className={`quote-status ${paymentValue}`}>{paymentValue === "paid" ? text.paid : text.pendingPayment}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button><button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button></div></td></tr>;
+            return (
+              <tr key={contract.id}>
+                <td>{String(contract.contract_number ?? contract.id)}</td>
+                <td>{String(contract.customer_name ?? "-")}</td>
+                <td>{String(contract.company_name ?? "-")}</td>
+                <td>{String(contract.rental_item ?? "-")}</td>
+                <td><span className={`quote-status ${paymentValue}`}>{paymentValue === "paid" ? text.paid : text.pendingPayment}</span></td>
+                <td>{cleanDate(contract.contract_date)}</td>
+                <td>
+                  <div className="contract-table-actions">
+                    {paymentValue !== "paid" ? (
+                      <button className="contract-table-action text paid" onClick={() => void markContractPaid(contract)} type="button">
+                        {text.markPaid}
+                      </button>
+                    ) : null}
+                    <button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button>
+                    <button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button>
+                  </div>
+                </td>
+              </tr>
+            );
           })}
           {!contracts.loading && !filteredContracts.length ? <tr><td className="quote-history-empty" colSpan={7}>{text.noContracts}</td></tr> : null}
           {contracts.loading ? <tr><td className="quote-history-empty" colSpan={7}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td></tr> : null}
