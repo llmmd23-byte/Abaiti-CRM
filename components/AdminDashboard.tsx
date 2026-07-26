@@ -4568,6 +4568,10 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
           <span className="inactive">{totalInactive.toLocaleString(NUMBER_LOCALE)} {isArabic ? "غير نشط" : "inactive"}</span>
           <div className="admin-booth-map-legend" aria-label={isArabic ? "دليل ألوان البوثات" : "Booth color legend"}>
             <span>
+              {isArabic ? "مختار" : "Selected"}
+              <i className="selected" aria-hidden="true" />
+            </span>
+            <span>
               {isArabic ? "متاح" : "Available"}
               <i className="available" aria-hidden="true" />
             </span>
@@ -4578,10 +4582,6 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
             <span>
               {isArabic ? "محجوز" : "Booked"}
               <i className="booked" aria-hidden="true" />
-            </span>
-            <span>
-              {isArabic ? "مختار" : "Selected"}
-              <i className="selected" aria-hidden="true" />
             </span>
           </div>
         </div>

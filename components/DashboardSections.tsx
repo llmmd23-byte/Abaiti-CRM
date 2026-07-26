@@ -4016,10 +4016,10 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                     />
                   </div>
                   <div className="admin-booth-map-legend" aria-label={isArabic ? "دليل ألوان البوثات" : "Booth color legend"}>
+                    <span>{isArabic ? "مختار" : "Selected"}<i className="selected" aria-hidden="true" /></span>
                     <span>{isArabic ? "متاح" : "Available"}<i className="available" aria-hidden="true" /></span>
                     <span>{isArabic ? "بانتظار الدفع" : "Pending payment"}<i className="pending-payment" aria-hidden="true" /></span>
                     <span>{isArabic ? "محجوز" : "Booked"}<i className="booked" aria-hidden="true" /></span>
-                    <span>{isArabic ? "مختار" : "Selected"}<i className="selected" aria-hidden="true" /></span>
                   </div>
                 </div>
                 <div className="admin-booth-zone-filter rental-booth-modal-zone-filter" role="listbox" aria-label={isArabic ? "فلترة الأقسام" : "Zone filter"}>
