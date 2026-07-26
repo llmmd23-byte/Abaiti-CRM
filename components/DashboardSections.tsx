@@ -4194,15 +4194,19 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                 <td>{String(contract.customer_name ?? "-")}</td>
                 <td>{String(contract.company_name ?? "-")}</td>
                 <td>{String(contract.rental_item ?? "-")}</td>
-                <td><span className={`quote-status ${paymentValue}`}>{paymentValue === "paid" ? text.paid : text.pendingPayment}</span></td>
-                <td>{cleanDate(contract.contract_date)}</td>
                 <td>
-                  <div className="contract-table-actions">
+                  <div className="rental-payment-cell">
+                    <span className={`quote-status ${paymentValue}`}>{paymentValue === "paid" ? text.paid : text.pendingPayment}</span>
                     {paymentValue !== "paid" ? (
-                      <button className="contract-table-action text paid" onClick={() => void markContractPaid(contract)} type="button">
+                      <button className="rental-mark-paid-button" onClick={() => void markContractPaid(contract)} type="button">
                         {text.markPaid}
                       </button>
                     ) : null}
+                  </div>
+                </td>
+                <td>{cleanDate(contract.contract_date)}</td>
+                <td>
+                  <div className="contract-table-actions">
                     <button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button>
                     <button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button>
                   </div>
