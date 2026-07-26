@@ -3421,7 +3421,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [quantity, setQuantity] = useState("1");
   const [contractDate, setContractDate] = useState(() => dateAfterDays(0));
   const [notes, setNotes] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState("unpaid");
+  const [paymentStatus, setPaymentStatus] = useState("pending_payment");
   const [contractStatus, setContractStatus] = useState("draft");
   const [search, setSearch] = useState("");
   const [boothPickerOpen, setBoothPickerOpen] = useState(false);
@@ -3457,9 +3457,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         subtotal: "\u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a \u0642\u0628\u0644 \u0627\u0644\u0636\u0631\u064a\u0628\u0629",
         vatAmount: "\u0636\u0631\u064a\u0628\u0629 \u0627\u0644\u0642\u064a\u0645\u0629 \u0627\u0644\u0645\u0636\u0627\u0641\u0629 15%",
         paymentStatus: "حالة السداد",
-        unpaidPayment: "غير مدفوع",
         pendingPayment: "بانتظار الدفع",
-        paid: "مدفوع",
+        paid: "تم الدفع",
         status: "الحالة",
         contractDate: "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0639\u0642\u062f",
         notes: "\u0645\u0644\u0627\u062d\u0638\u0627\u062a \u0648\u0634\u0631\u0648\u0637",
@@ -3467,7 +3466,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         update: "\u062a\u062d\u062f\u064a\u062b \u0627\u0644\u0639\u0642\u062f",
         edit: "\u062a\u0639\u062f\u064a\u0644",
         print: "\u0637\u0628\u0627\u0639\u0629",
-        markPaid: "\u062a\u0645 \u0627\u0644\u062f\u0641\u0639",
         actions: "\u0627\u0644\u0625\u062c\u0631\u0627\u0621\u0627\u062a",
         saving: "\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0641\u0638...",
         saved: "\u062a\u0645 \u062d\u0641\u0638 \u0627\u0644\u0639\u0642\u062f",
@@ -3517,7 +3515,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         subtotal: "Total before VAT",
         vatAmount: "VAT 15%",
         paymentStatus: "Payment status",
-        unpaidPayment: "Unpaid",
         pendingPayment: "Pending payment",
         paid: "Paid",
         status: "Status",
@@ -3527,7 +3524,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         update: "Update contract",
         edit: "Edit",
         print: "Print",
-        markPaid: "Mark paid",
         actions: "Actions",
         saving: "Saving...",
         saved: "Contract saved",
@@ -3612,7 +3608,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       if (value && !booths.has(value)) {
         booths.set(
           value,
-            String(contract.payment_status ?? "unpaid") === "paid"
+            String(contract.payment_status ?? "pending_payment") === "paid"
             ? "booked"
             : "pending_payment",
         );
@@ -3732,7 +3728,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setQuantity("1");
     setContractDate(dateAfterDays(0));
     setNotes("");
-    setPaymentStatus("unpaid");
+    setPaymentStatus("pending_payment");
     setContractStatus("draft");
   }
 
@@ -3767,7 +3763,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setQuantity(contract.quantity == null ? "1" : String(contract.quantity));
     setContractDate(cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date));
     setNotes(String(contract.notes ?? ""));
-    setPaymentStatus(String(contract.payment_status ?? "unpaid"));
+    setPaymentStatus(String(contract.payment_status ?? "pending_payment"));
     setContractStatus(String(contract.status ?? "draft"));
     window.scrollTo({top: 0, behavior: "smooth"});
   }
@@ -3949,19 +3945,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         setSaveStatus(text.saved);
       }
       resetContractForm();
-      await contracts.reload();
-      await rentalBooths.reload();
-    } catch {
-      setSaveStatus(text.failed);
-    }
-    window.setTimeout(() => setSaveStatus(""), 2200);
-  }
-
-  async function markContractPaid(contract: BackendRow) {
-    setSaveStatus(text.saving);
-    try {
-      await updateBackend("rental-contracts", Number(contract.id), {payment_status: "paid"});
-      setSaveStatus(text.updated);
       await contracts.reload();
       await rentalBooths.reload();
     } catch {
@@ -4152,9 +4135,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
               ariaLabel={text.paymentStatus}
               onValueChange={setPaymentStatus}
               options={[
-                {value: "unpaid", label: text.unpaidPayment},
                 {value: "pending_payment", label: text.pendingPayment},
-                ...(paymentStatus === "paid" ? [{value: "paid", label: text.paid}] : []),
+                {value: "paid", label: text.paid},
               ]}
               value={paymentStatus}
             />
@@ -4190,13 +4172,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         <div className="contract-smart-filter-row"><div className="contract-smart-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" /><path d="m15.5 15.5 4 4" /></svg><input onChange={(event) => setSearch(event.target.value)} placeholder={isArabic ? "\u0627\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645\u060c \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u062c\u0648\u0627\u0644..." : "Search by name, company, mobile..."} type="search" value={search} /><strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong></div></div>
         <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.paymentStatus}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
           {filteredContracts.map((contract) => {
-            const paymentValue = String(contract.payment_status ?? "unpaid");
+            const paymentValue = String(contract.payment_status ?? "pending_payment");
             const paymentLabel =
               paymentValue === "paid"
                 ? text.paid
-                : paymentValue === "pending_payment"
-                  ? text.pendingPayment
-                  : text.unpaidPayment;
+                : text.pendingPayment;
             return (
               <tr key={contract.id}>
                 <td>{String(contract.contract_number ?? contract.id)}</td>
@@ -4206,11 +4186,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                 <td>
                   <div className="rental-payment-cell">
                     <span className={`quote-status ${paymentValue}`}>{paymentLabel}</span>
-                    {paymentValue !== "paid" ? (
-                      <button className="rental-mark-paid-button" onClick={() => void markContractPaid(contract)} type="button">
-                        {text.markPaid}
-                      </button>
-                    ) : null}
                   </div>
                 </td>
                 <td>{cleanDate(contract.contract_date)}</td>

@@ -5909,12 +5909,6 @@ html[dir="ltr"] .dashboard-main {
   background: #007bff;
 }
 
-.quote-status.unpaid {
-  border-color: #cbd5e1;
-  background: #f8fafc;
-  color: #475569;
-}
-
 .quote-status.pending_payment {
   border-color: #fcd34d;
   background: #fef3c7;
@@ -5947,26 +5941,6 @@ html[dir="ltr"] .dashboard-main {
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
-}
-
-.rental-mark-paid-button {
-  min-height: 34px;
-  padding: 0 12px;
-  border: 1px solid #86efac;
-  border-radius: 8px;
-  color: #166534;
-  background: #dcfce7;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 900;
-  white-space: nowrap;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-}
-
-.rental-mark-paid-button:hover {
-  border-color: #4ade80;
-  background: #bbf7d0;
-  transform: translateY(-1px);
 }
 
 .rental-booth-number-field {

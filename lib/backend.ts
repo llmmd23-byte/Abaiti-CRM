@@ -309,7 +309,7 @@ const resources: Record<BackendResource, ResourceDefinition> = {
       "status",
       "notes",
     ],
-    defaults: { status: "draft", currency: "SAR", payment_method: "bank_transfer", payment_status: "unpaid" },
+    defaults: { status: "draft", currency: "SAR", payment_method: "bank_transfer", payment_status: "pending_payment" },
   },
   "rental-booths": {
     table: "rental_booths",
@@ -927,7 +927,7 @@ async function ensureRentalContractsTable() {
     ["booth_number", "ALTER TABLE rental_contracts ADD COLUMN booth_number VARCHAR(80) NULL AFTER second_party_representative"],
     ["participation_category", "ALTER TABLE rental_contracts ADD COLUMN participation_category VARCHAR(120) NULL AFTER booth_number"],
     ["booth_size", "ALTER TABLE rental_contracts ADD COLUMN booth_size VARCHAR(80) NULL AFTER participation_category"],
-    ["payment_status", "ALTER TABLE rental_contracts ADD COLUMN payment_status ENUM('unpaid', 'pending_payment', 'paid') NOT NULL DEFAULT 'unpaid' AFTER payment_method"],
+    ["payment_status", "ALTER TABLE rental_contracts ADD COLUMN payment_status ENUM('pending_payment', 'paid') NOT NULL DEFAULT 'pending_payment' AFTER payment_method"],
   ];
   for (const [column, statement] of rentalExtraColumns) {
     if (!(await columnExists("rental_contracts", column))) {
@@ -936,7 +936,10 @@ async function ensureRentalContractsTable() {
   }
   if (await columnExists("rental_contracts", "payment_status")) {
     await db.execute(
-      "ALTER TABLE rental_contracts MODIFY COLUMN payment_status ENUM('unpaid', 'pending_payment', 'paid') NOT NULL DEFAULT 'unpaid'",
+      "UPDATE rental_contracts SET payment_status = 'pending_payment' WHERE payment_status = 'unpaid'",
+    );
+    await db.execute(
+      "ALTER TABLE rental_contracts MODIFY COLUMN payment_status ENUM('pending_payment', 'paid') NOT NULL DEFAULT 'pending_payment'",
     );
   }
   await ensureRentalBoothsTable();
@@ -2563,8 +2566,8 @@ export async function createResource(
     data.subtotal = subtotal;
     data.vat_amount = vatAmount;
     data.grand_total = grandTotal;
-    if (!["unpaid", "pending_payment", "paid"].includes(String(data.payment_status ?? ""))) {
-      data.payment_status = "unpaid";
+    if (!["pending_payment", "paid"].includes(String(data.payment_status ?? ""))) {
+      data.payment_status = "pending_payment";
     }
     if (data.booth_number) {
       data.booth_number = normalizedBoothNumber(data.booth_number);
@@ -3035,9 +3038,9 @@ export async function updateResource(
     data.grand_total = grandTotal;
     if (
       data.payment_status !== undefined &&
-      !["unpaid", "pending_payment", "paid"].includes(String(data.payment_status))
+      !["pending_payment", "paid"].includes(String(data.payment_status))
     ) {
-      data.payment_status = "unpaid";
+      data.payment_status = "pending_payment";
     }
     if (data.booth_number !== undefined && data.booth_number !== null) {
       data.booth_number = normalizedBoothNumber(data.booth_number);
