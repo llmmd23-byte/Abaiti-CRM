@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "next-intl";
@@ -126,11 +126,11 @@ const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
 
 const metricLabels: Record<MetricKey, { ar: string; en: string }> = {
-  users: { ar: "ط§ظ„ظ…ط³طھط®ط¯ظ…ظٹظ†", en: "Users" },
-  clients: { ar: "ط§ظ„ط¹ظ…ظ„ط§ط،", en: "Clients" },
-  demos: { ar: "ط§ظ„ظ†ط³ط® ط§ظ„طھط¬ط±ظٹط¨ظٹط©", en: "Demos" },
-  quotes: { ar: "ط¹ط±ظˆط¶ ط§ظ„ط£ط³ط¹ط§ط±", en: "Quotes" },
-  sales: { ar: "ط§ظ„ظ…ط¨ظٹط¹ط§طھ", en: "Sales" },
+  users: { ar: "المستخدمين", en: "Users" },
+  clients: { ar: "العملاء", en: "Clients" },
+  demos: { ar: "النسخ التجريبية", en: "Demos" },
+  quotes: { ar: "عروض الأسعار", en: "Quotes" },
+  sales: { ar: "المبيعات", en: "Sales" },
 };
 
 const navItems = [
@@ -151,40 +151,40 @@ const settingsNavItems = [
 const settingsSections = new Set<AdminSection>(["products", "activity", "content"]);
 
 const adminValueLabels: Record<string, { ar: string; en: string }> = {
-  active: { ar: "ظ†ط´ط·", en: "Active" },
-  inactive: { ar: "ط؛ظٹط± ظ†ط´ط·", en: "Inactive" },
-  pending: { ar: "ظ‚ظٹط¯ ط§ظ„ط§ظ†طھط¸ط§ط±", en: "Pending" },
-  suspended: { ar: "ظ…ظˆظ‚ظˆظپ", en: "Suspended" },
-  admin: { ar: "ظ…ط´ط±ظپ", en: "Admin" },
-  affiliate: { ar: "ظ…ط³ظˆظ‚", en: "Affiliate" },
-  sales: { ar: "ظ…ط¨ظٹط¹ط§طھ", en: "Sales" },
-  support: { ar: "ط¯ط¹ظ…", en: "Support" },
+  active: { ar: "نشط", en: "Active" },
+  inactive: { ar: "غير نشط", en: "Inactive" },
+  pending: { ar: "قيد الانتظار", en: "Pending" },
+  suspended: { ar: "موقوف", en: "Suspended" },
+  admin: { ar: "مشرف", en: "Admin" },
+  affiliate: { ar: "مسوق", en: "Affiliate" },
+  sales: { ar: "مبيعات", en: "Sales" },
+  support: { ar: "دعم", en: "Support" },
   new: { ar: "\u062c\u062f\u064a\u062f", en: "New" },
-  interested: { ar: "ظ…ظ‡طھظ…", en: "Interested" },
-  proposal: { ar: "ط¹ط±ط¶ ظ…ظ‚ط¯ظ…", en: "Proposal" },
-  won: { ar: "ظ…ظƒطھط³ط¨", en: "Won" },
-  lost: { ar: "ظ…ظپظ‚ظˆط¯", en: "Lost" },
-  contacted: { ar: "طھظ… ط§ظ„طھظˆط§طµظ„", en: "Contacted" },
-  scheduled: { ar: "ظ…ط¬ط¯ظˆظ„", en: "Scheduled" },
-  completed: { ar: "ظ…ظƒطھظ…ظ„", en: "Completed" },
-  cancelled: { ar: "ظ…ظ„ط؛ظٹ", en: "Cancelled" },
-  draft: { ar: "ظ…ط³ظˆط¯ط©", en: "Draft" },
-  sent: { ar: "ظ…ط±ط³ظ„", en: "Sent" },
-  accepted: { ar: "ظ…ظ‚ط¨ظˆظ„", en: "Accepted" },
-  paid: { ar: "ظ…ط¯ظپظˆط¹", en: "Paid" },
-  expired: { ar: "ظ…ظ†طھظ‡ظٹ", en: "Expired" },
-  approved: { ar: "ظ…ط¹طھظ…ط¯", en: "Approved" },
-  refunded: { ar: "ظ…ط³طھط±ط¯", en: "Refunded" },
-  open: { ar: "ظ…ظپطھظˆط­", en: "Open" },
-  in_progress: { ar: "ظ‚ظٹط¯ ط§ظ„طھظ†ظپظٹط°", en: "In Progress" },
-  closed: { ar: "ظ…ط؛ظ„ظ‚", en: "Closed" },
-  resolved: { ar: "طھظ… ط§ظ„ط­ظ„", en: "Resolved" },
-  rejected: { ar: "ظ…ط±ظپظˆط¶", en: "Rejected" },
+  interested: { ar: "مهتم", en: "Interested" },
+  proposal: { ar: "عرض مقدم", en: "Proposal" },
+  won: { ar: "مكتسب", en: "Won" },
+  lost: { ar: "مفقود", en: "Lost" },
+  contacted: { ar: "تم التواصل", en: "Contacted" },
+  scheduled: { ar: "مجدول", en: "Scheduled" },
+  completed: { ar: "مكتمل", en: "Completed" },
+  cancelled: { ar: "ملغي", en: "Cancelled" },
+  draft: { ar: "مسودة", en: "Draft" },
+  sent: { ar: "مرسل", en: "Sent" },
+  accepted: { ar: "مقبول", en: "Accepted" },
+  paid: { ar: "مدفوع", en: "Paid" },
+  expired: { ar: "منتهي", en: "Expired" },
+  approved: { ar: "معتمد", en: "Approved" },
+  refunded: { ar: "مسترد", en: "Refunded" },
+  open: { ar: "مفتوح", en: "Open" },
+  in_progress: { ar: "قيد التنفيذ", en: "In Progress" },
+  closed: { ar: "مغلق", en: "Closed" },
+  resolved: { ar: "تم الحل", en: "Resolved" },
+  rejected: { ar: "مرفوض", en: "Rejected" },
 };
 
 function displayAdminValue(value: unknown, isArabic: boolean) {
   const key = String(value ?? "");
-  return adminValueLabels[key]?.[isArabic ? "ar" : "en"] ?? (key || "â€”");
+  return adminValueLabels[key]?.[isArabic ? "ar" : "en"] ?? (key || "—");
 }
 
 function externalUrl(value: unknown) {
@@ -215,10 +215,10 @@ function customerWebsiteUrl(value: unknown) {
 
 function formatAdminDateTime(value: unknown, isArabic: boolean) {
   const raw = String(value ?? "").trim();
-  if (!raw) return "â€”";
+  if (!raw) return "—";
   const normalized = raw.includes("T") ? raw : raw.replace(" ", "T");
   const date = new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(normalized) ? normalized : `${normalized}Z`);
-  if (Number.isNaN(date.getTime())) return "â€”";
+  if (Number.isNaN(date.getTime())) return "—";
   return new Intl.DateTimeFormat(isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE, {
     year: "numeric",
     month: "2-digit",
@@ -232,13 +232,13 @@ function formatAdminDateTime(value: unknown, isArabic: boolean) {
 
 function commissionLevelForSalesCount(count: unknown) {
   const salesCount = Number(count ?? 0);
-  if (salesCount >= 90) return "ظ…ط­طھط±ظپ ظ…ط§ط³ظٹ";
-  if (salesCount >= 70) return "ظ…ط­طھط±ظپ ط°ظ‡ط¨ظٹ";
-  if (salesCount >= 50) return "ظ…ط­طھط±ظپ ظپط¶ظٹ";
-  if (salesCount >= 30) return "ظ…ط­طھط±ظپ";
-  if (salesCount >= 20) return "ظ…ظ†ط¬ط²";
-  if (salesCount >= 10) return "ظ†ط´ظٹط·";
-  return "ظ…ط¨طھط¯ط¦";
+  if (salesCount >= 90) return "محترف ماسي";
+  if (salesCount >= 70) return "محترف ذهبي";
+  if (salesCount >= 50) return "محترف فضي";
+  if (salesCount >= 30) return "محترف";
+  if (salesCount >= 20) return "منجز";
+  if (salesCount >= 10) return "نشيط";
+  return "مبتدئ";
 }
 
 function isWithinPeriod(row: AdminRow, period: DashboardPeriod) {
@@ -263,11 +263,11 @@ function chartDateLabel(
   if (period === "day") return `${value}:00`;
   if (value.startsWith("week-")) {
     const weekNumber = value.replace("week-", "");
-    return isArabic ? `ط§ظ„ط£ط³ط¨ظˆط¹ ${weekNumber}` : `Week ${weekNumber}`;
+    return isArabic ? `الأسبوع ${weekNumber}` : `Week ${weekNumber}`;
   }
   if (value.includes("-Q")) {
     const quarter = value.split("-Q")[1] ?? "";
-    return isArabic ? `ط§ظ„ط±ط¨ط¹ ${quarter}` : `Q${quarter}`;
+    return isArabic ? `الربع ${quarter}` : `Q${quarter}`;
   }
   if (period === "all" || period === "year")
     return new Date(`${value}-01T12:00:00`).toLocaleDateString(
@@ -407,7 +407,7 @@ export default function AdminDashboard({
         setManagement(null);
         setManagementError(
           isArabic
-            ? "طھط¹ط°ط± طھط­ظ…ظٹظ„ ط§ظ„ط¨ظٹط§ظ†ط§طھ. ط£ط¹ط¯ ط§ظ„ظ…ط­ط§ظˆظ„ط© ط¨ط¹ط¯ ظ„ط­ط¸ط§طھ."
+            ? "تعذر تحميل البيانات. أعد المحاولة بعد لحظات."
             : "Could not load data. Please try again shortly.",
         );
       })
@@ -469,7 +469,7 @@ export default function AdminDashboard({
   const analyticsUserOptions = [
     {
       value: "all",
-      label: isArabic ? "ظƒظ„ ط§ظ„ظ…ط³طھط®ط¯ظ…ظٹظ† (ط§ظ„ظƒظ„)" : "All users",
+      label: isArabic ? "كل المستخدمين (الكل)" : "All users",
     },
     ...(management?.users ?? []).map((user) => ({
       value: String(user.id),
@@ -477,7 +477,7 @@ export default function AdminDashboard({
         user.name ??
           user.full_name ??
           user.email ??
-          `${isArabic ? "ظ…ط³طھط®ط¯ظ…" : "User"} #${user.id}`,
+          `${isArabic ? "مستخدم" : "User"} #${user.id}`,
       ),
     })),
   ];
@@ -492,22 +492,22 @@ export default function AdminDashboard({
         selectedAnalyticsUser.name ??
           selectedAnalyticsUser.full_name ??
           selectedAnalyticsUser.email ??
-          `${isArabic ? "ظ…ط³طھط®ط¯ظ…" : "User"} #${selectedAnalyticsUser.id}`,
+          `${isArabic ? "مستخدم" : "User"} #${selectedAnalyticsUser.id}`,
       )
     : isArabic
-      ? "ظƒظ„ ط§ظ„ظ…ط³طھط®ط¯ظ…ظٹظ†"
+      ? "كل المستخدمين"
       : "All users";
   const analyticsUserRole = selectedAnalyticsUser
-    ? String(selectedAnalyticsUser.role_name ?? selectedAnalyticsUser.role ?? "â€”")
+    ? String(selectedAnalyticsUser.role_name ?? selectedAnalyticsUser.role ?? "—")
     : isArabic
-      ? "طھظ‚ط±ظٹط± ط´ط§ظ…ظ„"
+      ? "تقرير شامل"
       : "Comprehensive report";
   const analyticsLastLogin = selectedAnalyticsUser
     ? selectedAnalyticsUser.last_login_at
       ? String(selectedAnalyticsUser.last_login_at).slice(0, 10)
-      : "â€”"
+      : "—"
     : isArabic
-      ? "ط§ظ„ط¢ظ†"
+      ? "الآن"
       : "Now";
   const selectedAnalyticsStats = selectedAnalyticsUser
     ? (management?.userStats ?? []).find(
@@ -531,15 +531,15 @@ export default function AdminDashboard({
   const subFilterOptions =
     period === "month"
       ? [
-          { value: "weeks" as const, label: isArabic ? "طھظ‚ط³ظٹظ… ط¨ط§ظ„ط£ط³ط§ط¨ظٹط¹" : "By weeks" },
-          { value: "days" as const, label: isArabic ? "طھظ‚ط³ظٹظ… ط¨ط§ظ„ط£ظٹط§ظ…" : "By days" },
+          { value: "weeks" as const, label: isArabic ? "تقسيم بالأسابيع" : "By weeks" },
+          { value: "days" as const, label: isArabic ? "تقسيم بالأيام" : "By days" },
         ]
       : period === "year"
         ? [
-            { value: "months" as const, label: isArabic ? "طھظ‚ط³ظٹظ… ط¨ط§ظ„ط´ظ‡ظˆط±" : "By months" },
-            { value: "quarters" as const, label: isArabic ? "ط±ط¨ط¹ ط³ظ†ظˆظٹ" : "Quarterly" },
+            { value: "months" as const, label: isArabic ? "تقسيم بالشهور" : "By months" },
+            { value: "quarters" as const, label: isArabic ? "ربع سنوي" : "Quarterly" },
           ]
-        : [{ value: "days" as const, label: isArabic ? "ط¹ط±ط¶ ظٹظˆظ…ظٹ" : "Daily view" }];
+        : [{ value: "days" as const, label: isArabic ? "عرض يومي" : "Daily view" }];
   function changeDashboardPeriod(nextPeriod: DashboardPeriod) {
     setPeriod(nextPeriod);
     setSubFilter(
@@ -646,7 +646,7 @@ export default function AdminDashboard({
                 <path d="M14 16l4-4-4-4" />
                 <path d="M9 12h9" />
               </svg>
-              {isArabic ? "طھط³ط¬ظٹظ„ ط§ظ„ط®ط±ظˆط¬" : "Sign out"}
+              {isArabic ? "تسجيل الخروج" : "Sign out"}
             </button>
           </form>
         </div>
@@ -655,11 +655,11 @@ export default function AdminDashboard({
       <main className="admin-main" id={`admin-${activeSection}`}>
         <header className="admin-header">
           <div>
-            <p>{isArabic ? "ظ„ظˆط­ط© ط§ظ„ط¥ط¯ط§ط±ط© ط§ظ„ط±ط¦ظٹط³ظٹط©" : "Master Admin Panel"}</p>
+            <p>{isArabic ? "لوحة الإدارة الرئيسية" : "Master Admin Panel"}</p>
             <h1>
               {activeSection === "dashboard"
                 ? isArabic
-                  ? "ظ…ط±ط­ط¨ظ‹ط§ ط¨ظƒ ظپظٹ ظ…ط±ظƒط² طھط­ظƒظ… ظ…ظٹط¯ط§ط±"
+                  ? "مرحبًا بك في مركز تحكم ميدار"
                   : "Welcome to Middar Control Center"
                 : navItems.find((item) => item[1] === activeSection)?.[0][
                     language
@@ -668,16 +668,16 @@ export default function AdminDashboard({
             <span>
               {activeSection === "dashboard"
                 ? isArabic
-                  ? "ظ…ط±ط§ظ‚ط¨ط© ط§ظ„ظ…ظ†طµط© ظˆط¥ط¯ط§ط±ط© ط§ظ„ط¹ظ…ظ„ظٹط§طھ ظ…ظ† ظ…ظƒط§ظ† ظˆط§ط­ط¯."
+                  ? "مراقبة المنصة وإدارة العمليات من مكان واحد."
                   : "Monitor the platform and manage operations from one place."
                 : isArabic
-                  ? "ط¹ط±ط¶ ظˆط¥ط¯ط§ط±ط© ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…ظ†طµط© ط¨طµظ„ط§ط­ظٹط§طھ ط§ظ„ظ…ط´ط±ظپ ط§ظ„ط±ط¦ظٹط³ظٹ."
+                  ? "عرض وإدارة بيانات المنصة بصلاحيات المشرف الرئيسي."
                   : "View and manage platform data with Master Admin privileges."}
             </span>
           </div>
           <div className="admin-status-stack">
           <div className="admin-live-status">
-            <i /> {isArabic ? "ط§ظ„ظ†ط¸ط§ظ… ظٹط¹ظ…ظ„ ط¨ظƒظپط§ط،ط©" : "System operational"}
+            <i /> {isArabic ? "النظام يعمل بكفاءة" : "System operational"}
           </div>
             {activeSection === "dashboard" && currentAccountName ? (
               <div className="admin-current-account">
@@ -705,7 +705,7 @@ export default function AdminDashboard({
                 >
                   <span>{metricLabels[key][language]}</span>
                   <strong>
-                    {summary?.totals[key]?.toLocaleString(NUMBER_LOCALE) ?? "â€”"}
+                    {summary?.totals[key]?.toLocaleString(NUMBER_LOCALE) ?? "—"}
                   </strong>
                 </button>
               ))}
@@ -715,10 +715,10 @@ export default function AdminDashboard({
               <div className="admin-chart-head">
                 <div>
                   <span>
-                    {isArabic ? "طھط­ظ„ظٹظ„ط§طھ ط§ظ„ظ…ظ†طµط©" : "Platform Analytics"}
+                    {isArabic ? "تحليلات المنصة" : "Platform Analytics"}
                   </span>
                   <h2>
-                    {isArabic ? "ظ†ظ…ظˆ" : "Growth"}{" "}
+                    {isArabic ? "نمو" : "Growth"}{" "}
                     {metricLabels[activeMetric][language]}
                   </h2>
                 </div>
@@ -727,19 +727,19 @@ export default function AdminDashboard({
                     <DashboardSelect
                       ariaLabel={
                         isArabic
-                          ? "ط§ط®طھظٹط§ط± ط§ظ„ظ…ط³طھط®ط¯ظ… ظ„طھط­ظ„ظٹظ„ط§طھ ط§ظ„ظ…ظ†طµط©"
+                          ? "اختيار المستخدم لتحليلات المنصة"
                           : "Select user for platform analytics"
                       }
                       onValueChange={setAnalyticsUserFilter}
                       options={analyticsUserOptions}
                       searchable
                       searchPlaceholder={
-                        isArabic ? "ط§ط¨ط­ط« ط¹ظ† ظ…ط³طھط®ط¯ظ…..." : "Search users..."
+                        isArabic ? "ابحث عن مستخدم..." : "Search users..."
                       }
                       value={analyticsUserFilter}
                     />
                   </div>
-                  <div className="admin-period-segment" aria-label={isArabic ? "ط§ظ„ظپطھط±ط© ط§ظ„ط±ط¦ظٹط³ظٹط©" : "Main period"}>
+                  <div className="admin-period-segment" aria-label={isArabic ? "الفترة الرئيسية" : "Main period"}>
                     {(["week", "month", "year"] as DashboardPeriod[]).map((item) => (
                       <button
                         className={period === item ? "active" : ""}
@@ -749,33 +749,33 @@ export default function AdminDashboard({
                       >
                         {item === "week"
                           ? isArabic
-                            ? "ط£ط³ط¨ظˆط¹"
+                            ? "أسبوع"
                             : "Week"
                           : item === "month"
                             ? isArabic
-                              ? "ط´ظ‡ط±"
+                              ? "شهر"
                               : "Month"
                             : isArabic
-                              ? "ط³ظ†ط©"
+                              ? "سنة"
                               : "Year"}
                       </button>
                     ))}
                   </div>
                   <div className="admin-period-navigator">
                     <button
-                      aria-label={isArabic ? "ط§ظ„ظپطھط±ط© ط§ظ„ط³ط§ط¨ظ‚ط©" : "Previous period"}
+                      aria-label={isArabic ? "الفترة السابقة" : "Previous period"}
                       onClick={() => navigateDashboardPeriod("prev")}
                       type="button"
                     >
-                      {isArabic ? "â€؛" : "â€¹"}
+                      {isArabic ? "›" : "‹"}
                     </button>
                     <strong>{periodLabel}</strong>
                     <button
-                      aria-label={isArabic ? "ط§ظ„ظپطھط±ط© ط§ظ„طھط§ظ„ظٹط©" : "Next period"}
+                      aria-label={isArabic ? "الفترة التالية" : "Next period"}
                       onClick={() => navigateDashboardPeriod("next")}
                       type="button"
                     >
-                      {isArabic ? "â€¹" : "â€؛"}
+                      {isArabic ? "‹" : "›"}
                     </button>
                   </div>
                   <div className="admin-period-subfilters">
@@ -820,7 +820,7 @@ export default function AdminDashboard({
                   <div>
                     <h3>
                       {isArabic
-                        ? `ط£ط¯ط§ط،: ${analyticsUserName}`
+                        ? `أداء: ${analyticsUserName}`
                         : `Performance: ${analyticsUserName}`}
                     </h3>
                     <span>{analyticsUserRole}</span>
@@ -828,19 +828,19 @@ export default function AdminDashboard({
                 </div>
                 <div className="admin-analytics-user-metrics">
                   <div>
-                    <span>{isArabic ? "ط§ظ„ط¹ظ…ظ„ط§ط، ط§ظ„ظ…ط¶ط§ظپظˆظ†" : "Added customers"}</span>
+                    <span>{isArabic ? "العملاء المضافون" : "Added customers"}</span>
                     <strong>
                       {analyticsAddedCustomers.toLocaleString(NUMBER_LOCALE)}
                     </strong>
                   </div>
                   <div>
-                    <span>{isArabic ? "ط§ظ„ط¹ط±ظˆط¶" : "Quotes"}</span>
+                    <span>{isArabic ? "العروض" : "Quotes"}</span>
                     <strong>
                       {analyticsAddedQuotes.toLocaleString(NUMBER_LOCALE)}
                     </strong>
                   </div>
                   <div>
-                    <span>{isArabic ? "ط¢ط®ط± طھط³ط¬ظٹظ„ ط¯ط®ظˆظ„" : "Last login"}</span>
+                    <span>{isArabic ? "آخر تسجيل دخول" : "Last login"}</span>
                     <strong>{analyticsLastLogin}</strong>
                   </div>
                 </div>
@@ -859,59 +859,59 @@ export default function AdminDashboard({
 
             <section className="admin-bottom-grid">
               <article id="admin-tickets">
-                <span>{isArabic ? "ط§ظ„طھط°ط§ظƒط± ط§ظ„ظ…ظپطھظˆط­ط©" : "Open Tickets"}</span>
-                <strong>{summary?.totals.openTickets ?? "â€”"}</strong>
+                <span>{isArabic ? "التذاكر المفتوحة" : "Open Tickets"}</span>
+                <strong>{summary?.totals.openTickets ?? "—"}</strong>
                 <p>
                   {isArabic
-                    ? "ط·ظ„ط¨ط§طھ ط¯ط¹ظ… طھط­طھط§ط¬ ط¥ظ„ظ‰ ط§ظ„ظ…طھط§ط¨ط¹ط©"
+                    ? "طلبات دعم تحتاج إلى المتابعة"
                     : "Support requests needing attention"}
                 </p>
               </article>
               <article id="admin-open-quotes">
                 <span>
-                  {isArabic ? "ط¹ط±ظˆط¶ ط§ظ„ط£ط³ط¹ط§ط± ط§ظ„ظ…ظپطھظˆط­ط©" : "Open Quotes"}
+                  {isArabic ? "عروض الأسعار المفتوحة" : "Open Quotes"}
                 </span>
-                <strong>{summary?.totals.openQuotes ?? "â€”"}</strong>
+                <strong>{summary?.totals.openQuotes ?? "—"}</strong>
                 <p>
                   {isArabic
-                    ? "ط¹ط±ظˆط¶ ط£ط³ط¹ط§ط± ظ„ظ… طھظڈط؛ظ„ظ‚ ط¨ط¹ط¯"
+                    ? "عروض أسعار لم تُغلق بعد"
                     : "Quotes that have not been closed"}
                 </p>
               </article>
               <article id="admin-uncreated-sales-commissions">
                 <span>
                   {isArabic
-                    ? "ط¹ظ…ظˆظ„ط§طھ ظ…ط¨ظٹط¹ط§طھ ط؛ظٹط± ظ…ظ†ط´ط£ط©"
+                    ? "عمولات مبيعات غير منشأة"
                     : "Sales without commissions"}
                 </span>
                 <strong>
-                  {summary?.totals.uncreatedSalesCommissions ?? "â€”"}
+                  {summary?.totals.uncreatedSalesCommissions ?? "—"}
                 </strong>
                 <p>
                   {isArabic
-                    ? "ظپظˆط§طھظٹط± ظ…ط¨ظٹط¹ط§طھ طھط­طھ ط§ظ„ط¥ط¬ط±ط§ط،"
+                    ? "فواتير مبيعات تحت الإجراء"
                     : "Sales invoices in progress"}
                 </p>
               </article>
               <article id="admin-invisible-commissions">
                 <span>
-                  {isArabic ? "ط¹ظ…ظˆظ„ط§طھ ط؛ظٹط± ظ…ط¹طھظ…ط¯ط©" : "Unapproved Commissions"}
+                  {isArabic ? "عمولات غير معتمدة" : "Unapproved Commissions"}
                 </span>
-                <strong>{summary?.totals.invisibleCommissions ?? "â€”"}</strong>
+                <strong>{summary?.totals.invisibleCommissions ?? "—"}</strong>
                 <p>
                   {isArabic
-                    ? "ط¹ظ…ظˆظ„ط§طھ ظ„ظ… طھظڈط¹طھظ…ط¯ ط¨ط¹ط¯"
+                    ? "عمولات لم تُعتمد بعد"
                     : "Commissions awaiting approval"}
                 </p>
               </article>
               <article id="admin-unpaid-commissions">
                 <span>
-                  {isArabic ? "ط¹ظ…ظˆظ„ط§طھ ط؛ظٹط± ظ…ط¯ظپظˆط¹ط©" : "Unpaid Commissions"}
+                  {isArabic ? "عمولات غير مدفوعة" : "Unpaid Commissions"}
                 </span>
-                <strong>{summary?.totals.unpaidCommissions ?? "â€”"}</strong>
+                <strong>{summary?.totals.unpaidCommissions ?? "—"}</strong>
                 <p>
                   {isArabic
-                    ? "ط¹ظ…ظˆظ„ط§طھ ظ„ظ… ظٹظƒطھظ…ظ„ ط³ط¯ط§ط¯ظ‡ط§"
+                    ? "عمولات لم يكتمل سدادها"
                     : "Commissions awaiting payment"}
                 </p>
               </article>
@@ -994,12 +994,12 @@ function AdminMetricList({
     users: {
       rows: metricData.users,
       columns: [
-        ["name", isArabic ? "ط§ظ„ط§ط³ظ…" : "Name"],
-        ["email", isArabic ? "ط§ظ„ط¨ط±ظٹط¯ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ" : "Email"],
-        ["role", isArabic ? "ط§ظ„طµظ„ط§ط­ظٹط©" : "Role"],
-        ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
-        ["is_active", isArabic ? "ط­ط§ظ„ط© طھظپط¹ظٹظ„ ط§ظ„ط­ط³ط§ط¨" : "Account Active"],
-        ["created_at", isArabic ? "طھط§ط±ظٹط® ط§ظ„ط¥ظ†ط´ط§ط،" : "Created Date"],
+        ["name", isArabic ? "الاسم" : "Name"],
+        ["email", isArabic ? "البريد الإلكتروني" : "Email"],
+        ["role", isArabic ? "الصلاحية" : "Role"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["is_active", isArabic ? "حالة تفعيل الحساب" : "Account Active"],
+        ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
       ],
     },
     clients: {
@@ -1020,35 +1020,35 @@ function AdminMetricList({
     demos: {
       rows: metricData.demos,
       columns: [
-        ["contact_name", isArabic ? "ط§ظ„ط¹ظ…ظٹظ„" : "Client"],
-        ["company_name", isArabic ? "ط§ظ„ط´ط±ظƒط©" : "Company"],
-        ["phone", isArabic ? "ط±ظ‚ظ… ط§ظ„ط¬ظˆط§ظ„" : "Mobile"],
-        ["affiliate_user_name", isArabic ? "ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User"],
-        ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
-        ["created_at", isArabic ? "طھط§ط±ظٹط® ط§ظ„ط¥ظ†ط´ط§ط،" : "Created Date"],
+        ["contact_name", isArabic ? "العميل" : "Client"],
+        ["company_name", isArabic ? "الشركة" : "Company"],
+        ["phone", isArabic ? "رقم الجوال" : "Mobile"],
+        ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
       ],
     },
     quotes: {
       rows: metricData.quotes,
       columns: [
-        ["quote_number", isArabic ? "ط±ظ‚ظ… ط§ظ„ط¹ط±ط¶" : "Quote Number"],
-        ["customer_name", isArabic ? "ط§ظ„ط¹ظ…ظٹظ„" : "Client"],
-        ["product_name", isArabic ? "ط§ظ„ظ…ظ†طھط¬" : "Product"],
-        ["amount", isArabic ? "ط§ظ„ظ‚ظٹظ…ط©" : "Amount"],
-        ["valid_until", isArabic ? "طھط§ط±ظٹط® ط§ظ„ط§ظ†طھظ‡ط§ط،" : "Expiry Date"],
-        ["affiliate_user_name", isArabic ? "ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User"],
-        ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
+        ["quote_number", isArabic ? "رقم العرض" : "Quote Number"],
+        ["customer_name", isArabic ? "العميل" : "Client"],
+        ["product_name", isArabic ? "المنتج" : "Product"],
+        ["amount", isArabic ? "القيمة" : "Amount"],
+        ["valid_until", isArabic ? "تاريخ الانتهاء" : "Expiry Date"],
+        ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
+        ["status", isArabic ? "الحالة" : "Status"],
       ],
     },
     sales: {
       rows: metricData.sales,
       columns: [
-        ["id", isArabic ? "ط±ظ‚ظ… ط§ظ„ط¹ظ…ظ„ظٹط©" : "Sale ID"],
-        ["customer_name", isArabic ? "ط§ظ„ط¹ظ…ظٹظ„" : "Client"],
-        ["product_name", isArabic ? "ط§ظ„ظ…ظ†طھط¬" : "Product"],
-        ["sale_amount", isArabic ? "ط§ظ„ظ‚ظٹظ…ط©" : "Amount"],
-        ["affiliate_user_name", isArabic ? "ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User"],
-        ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
+        ["id", isArabic ? "رقم العملية" : "Sale ID"],
+        ["customer_name", isArabic ? "العميل" : "Client"],
+        ["product_name", isArabic ? "المنتج" : "Product"],
+        ["sale_amount", isArabic ? "القيمة" : "Amount"],
+        ["affiliate_user_name", isArabic ? "المستخدم" : "User"],
+        ["status", isArabic ? "الحالة" : "Status"],
       ],
     },
   };
@@ -1058,43 +1058,43 @@ function AdminMetricList({
     Array<{ value: string; label: string }>
   > = {
     users: [
-      { value: "active", label: isArabic ? "ظ†ط´ط·" : "Active" },
-      { value: "pending", label: isArabic ? "ظ‚ظٹط¯ ط§ظ„ط§ظ†طھط¸ط§ط±" : "Pending" },
-      { value: "inactive", label: isArabic ? "ط؛ظٹط± ظ†ط´ط·" : "Inactive" },
-      { value: "suspended", label: isArabic ? "ظ…ظˆظ‚ظˆظپ" : "Suspended" },
+      { value: "active", label: isArabic ? "نشط" : "Active" },
+      { value: "pending", label: isArabic ? "قيد الانتظار" : "Pending" },
+      { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
+      { value: "suspended", label: isArabic ? "موقوف" : "Suspended" },
     ],
     clients: [
                   { value: "new", label: isArabic ? "\u062c\u062f\u064a\u062f" : "New" },
-      { value: "interested", label: isArabic ? "ظ…ظ‡طھظ…" : "Interested" },
-      { value: "proposal", label: isArabic ? "ط¹ط±ط¶ ظ…ظ‚ط¯ظ…" : "Proposal" },
-      { value: "won", label: isArabic ? "ظ…ظƒطھط³ط¨" : "Won" },
-      { value: "lost", label: isArabic ? "ظ…ظپظ‚ظˆط¯" : "Lost" },
+      { value: "interested", label: isArabic ? "مهتم" : "Interested" },
+      { value: "proposal", label: isArabic ? "عرض مقدم" : "Proposal" },
+      { value: "won", label: isArabic ? "مكتسب" : "Won" },
+      { value: "lost", label: isArabic ? "مفقود" : "Lost" },
     ],
     demos: [
                     { value: "new", label: isArabic ? "\u062c\u062f\u064a\u062f" : "New" },
-      { value: "contacted", label: isArabic ? "طھظ… ط§ظ„طھظˆط§طµظ„" : "Contacted" },
-      { value: "scheduled", label: isArabic ? "ظ…ط¬ط¯ظˆظ„" : "Scheduled" },
-      { value: "completed", label: isArabic ? "ظ…ظƒطھظ…ظ„" : "Completed" },
-      { value: "cancelled", label: isArabic ? "ظ…ظ„ط؛ظٹ" : "Cancelled" },
+      { value: "contacted", label: isArabic ? "تم التواصل" : "Contacted" },
+      { value: "scheduled", label: isArabic ? "مجدول" : "Scheduled" },
+      { value: "completed", label: isArabic ? "مكتمل" : "Completed" },
+      { value: "cancelled", label: isArabic ? "ملغي" : "Cancelled" },
     ],
     quotes: [
-      { value: "draft", label: isArabic ? "ظ…ط³ظˆط¯ط©" : "Draft" },
-      { value: "sent", label: isArabic ? "ظ…ط±ط³ظ„" : "Sent" },
-      { value: "accepted", label: isArabic ? "ظ…ظ‚ط¨ظˆظ„" : "Accepted" },
-      { value: "paid", label: isArabic ? "ظ…ط¯ظپظˆط¹" : "Paid" },
-      { value: "expired", label: isArabic ? "ظ…ظ†طھظ‡ظٹ" : "Expired" },
-      { value: "cancelled", label: isArabic ? "ظ…ظ„ط؛ظٹ" : "Cancelled" },
+      { value: "draft", label: isArabic ? "مسودة" : "Draft" },
+      { value: "sent", label: isArabic ? "مرسل" : "Sent" },
+      { value: "accepted", label: isArabic ? "مقبول" : "Accepted" },
+      { value: "paid", label: isArabic ? "مدفوع" : "Paid" },
+      { value: "expired", label: isArabic ? "منتهي" : "Expired" },
+      { value: "cancelled", label: isArabic ? "ملغي" : "Cancelled" },
     ],
     sales: [
-      { value: "pending", label: isArabic ? "ظ‚ظٹط¯ ط§ظ„ط§ظ†طھط¸ط§ط±" : "Pending" },
-      { value: "approved", label: isArabic ? "ظ…ط¹طھظ…ط¯" : "Approved" },
-      { value: "paid", label: isArabic ? "ظ…ط¯ظپظˆط¹" : "Paid" },
-      { value: "cancelled", label: isArabic ? "ظ…ظ„ط؛ظٹ" : "Cancelled" },
-      { value: "refunded", label: isArabic ? "ظ…ط³طھط±ط¯" : "Refunded" },
+      { value: "pending", label: isArabic ? "قيد الانتظار" : "Pending" },
+      { value: "approved", label: isArabic ? "معتمد" : "Approved" },
+      { value: "paid", label: isArabic ? "مدفوع" : "Paid" },
+      { value: "cancelled", label: isArabic ? "ملغي" : "Cancelled" },
+      { value: "refunded", label: isArabic ? "مسترد" : "Refunded" },
     ],
     content: [
-      { value: "active", label: isArabic ? "ظ†ط´ط·" : "Active" },
-      { value: "inactive", label: isArabic ? "ط؛ظٹط± ظ†ط´ط·" : "Inactive" },
+      { value: "active", label: isArabic ? "نشط" : "Active" },
+      { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
     ],
   };
   const userRoleOptions = useMemo(() => {
@@ -1106,7 +1106,7 @@ function AdminMetricList({
       }));
     return options.length
       ? options
-      : [{ value: "affiliate", label: isArabic ? "ظ…ط³ظˆظ‚" : "Affiliate" }];
+      : [{ value: "affiliate", label: isArabic ? "مسوق" : "Affiliate" }];
   }, [isArabic, metricData.roles]);
   const defaultCreateUserRole =
     userRoleOptions.find((option) => option.value.toLowerCase() === "sales")
@@ -1114,29 +1114,29 @@ function AdminMetricList({
     userRoleOptions[0]?.value ??
     "affiliate";
   const userTextFields = [
-    ["name", isArabic ? "ط§ظ„ط§ط³ظ…" : "Name", "text"],
-    ["email", isArabic ? "ط§ظ„ط¨ط±ظٹط¯ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ" : "Email", "email"],
-    ["phone", isArabic ? "ط±ظ‚ظ… ط§ظ„ط¬ظˆط§ظ„" : "Mobile", "tel"],
-    ["city", isArabic ? "ط§ظ„ظ…ط¯ظٹظ†ط©" : "City", "text"],
-    ["district", isArabic ? "ط§ظ„ط­ظٹ" : "District", "text"],
-    ["referral_code", isArabic ? "ط±ظ…ط² ط§ظ„ط¥ط­ط§ظ„ط©" : "Referral Code", "text"],
-    ["landing_slug", isArabic ? "ط±ط§ط¨ط· ط§ظ„طµظپط­ط©" : "Landing Slug", "text"],
-    ["license_file_url", isArabic ? "ط±ط§ط¨ط· ظ…ظ„ظپ ط§ظ„ط±ط®طµط©" : "License File URL", "text"],
-    ["joined_at", isArabic ? "طھط§ط±ظٹط® ط§ظ„ط§ظ†ط¶ظ…ط§ظ…" : "Joined Date", "date"],
+    ["name", isArabic ? "الاسم" : "Name", "text"],
+    ["email", isArabic ? "البريد الإلكتروني" : "Email", "email"],
+    ["phone", isArabic ? "رقم الجوال" : "Mobile", "tel"],
+    ["city", isArabic ? "المدينة" : "City", "text"],
+    ["district", isArabic ? "الحي" : "District", "text"],
+    ["referral_code", isArabic ? "رمز الإحالة" : "Referral Code", "text"],
+    ["landing_slug", isArabic ? "رابط الصفحة" : "Landing Slug", "text"],
+    ["license_file_url", isArabic ? "رابط ملف الرخصة" : "License File URL", "text"],
+    ["joined_at", isArabic ? "تاريخ الانضمام" : "Joined Date", "date"],
   ] as const;
   const userTextareaFields = [
-    ["skills_experience", isArabic ? "ط§ظ„ط®ط¨ط±ط§طھ" : "Experience"],
-    ["skills_courses", isArabic ? "ط§ظ„ط¯ظˆط±ط§طھ" : "Courses"],
+    ["skills_experience", isArabic ? "الخبرات" : "Experience"],
+    ["skills_courses", isArabic ? "الدورات" : "Courses"],
   ] as const;
   const userReadonlyFields = [
-    ["id", isArabic ? "ط±ظ‚ظ… ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User ID"],
-    ["role_type", isArabic ? "ظ†ظˆط¹ ط§ظ„ط¯ظˆط±" : "Role Type"],
-    ["manager_name", isArabic ? "ط§ط³ظ… ط§ظ„ظ…ط¯ظٹط±" : "Manager Name"],
-    ["is_active", isArabic ? "ظ…ظپط¹ظ„" : "Active"],
-    ["created_at", isArabic ? "طھط§ط±ظٹط® ط§ظ„ط¥ظ†ط´ط§ط،" : "Created At"],
-    ["updated_at", isArabic ? "طھط§ط±ظٹط® ط§ظ„طھط­ط¯ظٹط«" : "Updated At"],
-    ["last_login_at", isArabic ? "ط¢ط®ط± ط¯ط®ظˆظ„" : "Last Login"],
-    ["skills_proof_files", isArabic ? "ظ…ظ„ظپط§طھ ط¥ط«ط¨ط§طھ ط§ظ„ظ…ظ‡ط§ط±ط§طھ" : "Skill Proof Files"],
+    ["id", isArabic ? "رقم المستخدم" : "User ID"],
+    ["role_type", isArabic ? "نوع الدور" : "Role Type"],
+    ["manager_name", isArabic ? "اسم المدير" : "Manager Name"],
+    ["is_active", isArabic ? "مفعل" : "Active"],
+    ["created_at", isArabic ? "تاريخ الإنشاء" : "Created At"],
+    ["updated_at", isArabic ? "تاريخ التحديث" : "Updated At"],
+    ["last_login_at", isArabic ? "آخر دخول" : "Last Login"],
+    ["skills_proof_files", isArabic ? "ملفات إثبات المهارات" : "Skill Proof Files"],
   ] as const;
   const normalizedSearch = search.trim().toLocaleLowerCase();
   const hasUserFilter = ["clients", "demos", "quotes", "sales"].includes(
@@ -1210,14 +1210,14 @@ function AdminMetricList({
       ? [
           {
             value: "__select_type_first__",
-            label: isArabic ? "ط§ط®طھط± ظ†ظˆط¹ ط§ظ„ظˆط³ظ… ط£ظˆظ„ظ‹ط§" : "Select a tag type first",
+            label: isArabic ? "اختر نوع الوسم أولًا" : "Select a tag type first",
             disabled: true,
           },
         ]
       : [
           {
             value: "all",
-            label: isArabic ? "ظƒظ„ ظˆط³ظˆظ… ظ‡ط°ط§ ط§ظ„ظ†ظˆط¹" : "All tags in this type",
+            label: isArabic ? "كل وسوم هذا النوع" : "All tags in this type",
           },
           ...tagFilterOptions,
         ];
@@ -1416,7 +1416,7 @@ function AdminMetricList({
 
   async function saveEdit() {
     if (!editingRow) return;
-    setEditMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setEditMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const resources: Record<MetricKey, string> = {
         users: "admin/users",
@@ -1442,10 +1442,10 @@ function AdminMetricList({
         error instanceof Error &&
           error.message === "CANNOT_DISABLE_CURRENT_ADMIN"
           ? isArabic
-            ? "ظ„ط§ ظٹظ…ظƒظ† طھط¹ط·ظٹظ„ ط­ط³ط§ط¨ ط§ظ„ظ…ط´ط±ظپ ط§ظ„ظ…ط³طھط®ط¯ظ… ط­ط§ظ„ظٹظ‹ط§"
+            ? "لا يمكن تعطيل حساب المشرف المستخدم حاليًا"
             : "You cannot disable the current admin account"
           : isArabic
-            ? "طھط¹ط°ط± ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ"
+            ? "تعذر حفظ التعديلات"
             : "Unable to save changes",
       );
     }
@@ -1458,7 +1458,7 @@ function AdminMetricList({
     if (email === "admin@middar.com") {
       setEditMessage(
         isArabic
-          ? "ظ„ط§ ظٹظ…ظƒظ† ط­ط°ظپ admin@middar.com ظ„ط£ظ†ظ‡ ط­ط³ط§ط¨ ط£ط³ط§ط³ظٹ."
+          ? "لا يمكن حذف admin@middar.com لأنه حساب أساسي."
           : "admin@middar.com cannot be deleted because it is a core account.",
       );
       return;
@@ -1466,13 +1466,13 @@ function AdminMetricList({
     if (
       !window.confirm(
         isArabic
-          ? "ظ‡ظ„ طھط±ظٹط¯ ط­ط°ظپ ط­ط³ط§ط¨ ط§ظ„ظ…ط³طھط®ط¯ظ…طں ظ„ط§ ظٹظ…ظƒظ† ط§ظ„طھط±ط§ط¬ط¹ ط¹ظ† ظ‡ط°ط§ ط§ظ„ط¥ط¬ط±ط§ط،."
+          ? "هل تريد حذف حساب المستخدم؟ لا يمكن التراجع عن هذا الإجراء."
           : "Delete this user account? This action cannot be undone.",
       )
     ) {
       return;
     }
-    setEditMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ط°ظپ..." : "Deleting...");
+    setEditMessage(isArabic ? "جاري الحذف..." : "Deleting...");
     try {
       const response = await fetch(`/api/v1/admin/users/${editingRow.id}`, {
         method: "DELETE",
@@ -1487,10 +1487,10 @@ function AdminMetricList({
       setEditMessage(
         error instanceof Error && error.message === "DEFAULT_ADMIN_PROTECTED"
           ? isArabic
-            ? "ظ„ط§ ظٹظ…ظƒظ† ط­ط°ظپ admin@middar.com ظ„ط£ظ†ظ‡ ط­ط³ط§ط¨ ط£ط³ط§ط³ظٹ."
+            ? "لا يمكن حذف admin@middar.com لأنه حساب أساسي."
             : "admin@middar.com cannot be deleted because it is a core account."
           : isArabic
-            ? "طھط¹ط°ط± ط­ط°ظپ ط§ظ„ط­ط³ط§ط¨"
+            ? "تعذر حذف الحساب"
             : "Unable to delete user account",
       );
     }
@@ -1507,12 +1507,12 @@ function AdminMetricList({
     if (passwordDraft.length < 6) {
       setPasswordMessage(
         isArabic
-          ? "ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط± ظٹط¬ط¨ ط£ظ† طھظƒظˆظ† 6 ط£ط­ط±ظپ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„"
+          ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل"
           : "Password must be at least 6 characters",
       );
       return;
     }
-    setPasswordMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setPasswordMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const response = await fetch(
         `/api/v1/admin/users/${passwordRow.id}/password`,
@@ -1530,7 +1530,7 @@ function AdminMetricList({
       onReload();
     } catch {
       setPasswordMessage(
-        isArabic ? "طھط¹ط°ط± طھط¹ط¯ظٹظ„ ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط±" : "Unable to update password",
+        isArabic ? "تعذر تعديل كلمة المرور" : "Unable to update password",
       );
     }
   }
@@ -1569,12 +1569,12 @@ function AdminMetricList({
     ) {
       setCreateUserMessage(
         isArabic
-          ? "ط£ظƒظ…ظ„ ط§ظ„ط­ظ‚ظˆظ„ ط§ظ„ظ…ط·ظ„ظˆط¨ط©طŒ ظˆظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط± 6 ط£ط­ط±ظپ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„"
+          ? "أكمل الحقول المطلوبة، وكلمة المرور 6 أحرف على الأقل"
           : "Complete the required fields. Password must be at least 6 characters.",
       );
       return;
     }
-    setCreateUserMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setCreateUserMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const response = await fetch("/api/v1/admin/users", {
         method: "POST",
@@ -1589,10 +1589,10 @@ function AdminMetricList({
       setCreateUserMessage(
         error instanceof Error && error.message === "EMAIL_EXISTS"
           ? isArabic
-            ? "ط§ظ„ط¨ط±ظٹط¯ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ ظ…ط³طھط®ط¯ظ… ظ…ط³ط¨ظ‚ظ‹ط§"
+            ? "البريد الإلكتروني مستخدم مسبقًا"
             : "Email is already in use"
           : isArabic
-            ? "طھط¹ط°ط± ط¥ظ†ط´ط§ط، ط§ظ„ظ…ط³طھط®ط¯ظ…"
+            ? "تعذر إنشاء المستخدم"
             : "Unable to create user",
       );
     }
@@ -1602,7 +1602,7 @@ function AdminMetricList({
     <section className={`admin-metric-list${metric === "clients" ? " admin-clients-list" : ""}`}>
       <div className="admin-metric-list-head">
         <div>
-          <span>{isArabic ? "ط§ظ„ظ‚ط§ط¦ظ…ط© ط§ظ„طھظپطµظٹظ„ظٹط©" : "Detailed List"}</span>
+          <span>{isArabic ? "القائمة التفصيلية" : "Detailed List"}</span>
           <h2>{metricLabels[metric][isArabic ? "ar" : "en"]}</h2>
         </div>
         <div className="admin-user-list-tools">
@@ -1616,10 +1616,10 @@ function AdminMetricList({
               placeholder={
                 metric === "users"
                   ? isArabic
-                    ? "ط§ط¨ط­ط« ط¹ظ† ظ…ط³طھط®ط¯ظ…..."
+                    ? "ابحث عن مستخدم..."
                     : "Search users..."
                   : isArabic
-                    ? "ط§ظ„ط¨ط­ط« ظپظٹ ط§ظ„ظ‚ط§ط¦ظ…ط©..."
+                    ? "البحث في القائمة..."
                     : "Search list..."
               }
               type="search"
@@ -1633,12 +1633,12 @@ function AdminMetricList({
               </strong>
               <div className="admin-user-status-filter admin-client-user-filter">
                 <DashboardSelect
-                  ariaLabel={isArabic ? "ظپظ„طھط±ط© ط§ظ„ط¹ظ…ظ„ط§ط،" : "Filter customers"}
+                  ariaLabel={isArabic ? "فلترة العملاء" : "Filter customers"}
                   onValueChange={setStatusFilter}
                   options={[
                     {
                       value: "all",
-                      label: isArabic ? "ط¬ظ…ظٹط¹ ط§ظ„ط¹ظ…ظ„ط§ط،" : "All customers",
+                      label: isArabic ? "جميع العملاء" : "All customers",
                     },
                     ...statusOptions.clients,
                   ]}
@@ -1647,7 +1647,7 @@ function AdminMetricList({
               </div>
               <div className="admin-user-status-filter admin-client-user-filter">
                 <DashboardSelect
-                  ariaLabel={isArabic ? "ظپظ„طھط±ط© ط­ط³ط¨ ظ†ظˆط¹ ط§ظ„ظˆط³ظ…" : "Filter by tag type"}
+                  ariaLabel={isArabic ? "فلترة حسب نوع الوسم" : "Filter by tag type"}
                   onValueChange={(value) => {
                     setClientTagTypeFilter(value);
                     setClientTagFilter("all");
@@ -1655,7 +1655,7 @@ function AdminMetricList({
                   options={[
                     {
                       value: "all",
-                      label: isArabic ? "ط¬ظ…ظٹط¹ ط£ظ†ظˆط§ط¹ ط§ظ„ظˆط³ظˆظ…" : "All tag types",
+                      label: isArabic ? "جميع أنواع الوسوم" : "All tag types",
                     },
                     ...tagTypeFilterOptions,
                   ]}
@@ -1696,12 +1696,12 @@ function AdminMetricList({
           {metric !== "clients" ? (
             <div className="admin-user-status-filter">
             <DashboardSelect
-              ariaLabel={isArabic ? "ظپظ„طھط±ط© ط­ط³ط¨ ط§ظ„ط­ط§ظ„ط©" : "Filter by status"}
+              ariaLabel={isArabic ? "فلترة حسب الحالة" : "Filter by status"}
               onValueChange={setStatusFilter}
               options={[
                 {
                   value: "all",
-                  label: isArabic ? "ظƒظ„ ط§ظ„ط­ط§ظ„ط§طھ" : "All Statuses",
+                  label: isArabic ? "كل الحالات" : "All Statuses",
                 },
                 ...statusOptions[metric],
               ]}
@@ -1712,12 +1712,12 @@ function AdminMetricList({
           {hasUserFilter && metric !== "clients" ? (
             <div className="admin-user-status-filter admin-client-user-filter">
               <DashboardSelect
-                ariaLabel={isArabic ? "ظپظ„طھط±ط© ط­ط³ط¨ ط§ظ„ظ…ط³طھط®ط¯ظ…" : "Filter by user"}
+                ariaLabel={isArabic ? "فلترة حسب المستخدم" : "Filter by user"}
                 onValueChange={setClientUserFilter}
                 options={[
                   {
                     value: "all",
-                    label: isArabic ? "ظƒظ„ ط§ظ„ظ…ط³طھط®ط¯ظ…ظٹظ†" : "All Users",
+                    label: isArabic ? "كل المستخدمين" : "All Users",
                   },
                   ...userFilterOptions,
                 ]}
@@ -1729,7 +1729,7 @@ function AdminMetricList({
             <Fragment>
               <div className="admin-user-status-filter admin-client-user-filter">
                 <DashboardSelect
-                  ariaLabel={isArabic ? "ظپظ„طھط±ط© ط­ط³ط¨ ظ†ظˆط¹ ط§ظ„ظˆط³ظ…" : "Filter by tag type"}
+                  ariaLabel={isArabic ? "فلترة حسب نوع الوسم" : "Filter by tag type"}
                   onValueChange={(value) => {
                     setClientTagTypeFilter(value);
                     setClientTagFilter("all");
@@ -1737,7 +1737,7 @@ function AdminMetricList({
                   options={[
                     {
                       value: "all",
-                      label: isArabic ? "ظƒظ„ ط£ظ†ظˆط§ط¹ ط§ظ„ظˆط³ظˆظ…" : "All Tag Types",
+                      label: isArabic ? "كل أنواع الوسوم" : "All Tag Types",
                     },
                     ...tagTypeFilterOptions,
                   ]}
@@ -1746,7 +1746,7 @@ function AdminMetricList({
               </div>
               <div className="admin-user-status-filter admin-client-user-filter">
                 <DashboardSelect
-                  ariaLabel={isArabic ? "ظپظ„طھط±ط© ط­ط³ط¨ ط§ظ„ظˆط³ظ…" : "Filter by tag"}
+                  ariaLabel={isArabic ? "فلترة حسب الوسم" : "Filter by tag"}
                   onValueChange={setClientTagFilter}
                   options={tagSelectOptions}
                   value={clientTagFilter}
@@ -1771,7 +1771,7 @@ function AdminMetricList({
                 <path d="M19 8v6" />
                 <path d="M16 11h6" />
               </svg>
-              <span>{isArabic ? "ط¥ط¶ط§ظپط© ظ…ط³طھط®ط¯ظ… ط¬ط¯ظٹط¯" : "Add New User"}</span>
+              <span>{isArabic ? "إضافة مستخدم جديد" : "Add New User"}</span>
             </button>
           ) : null}
         </div>
@@ -1829,10 +1829,10 @@ function AdminMetricList({
         <div className="admin-ticket-types-panel">
           <div className="admin-ticket-types-head">
             <div>
-              <span>{isArabic ? "ط£ظ†ظˆط§ط¹ ط§ظ„طھط°ط§ظƒط±" : "Ticket Types"}</span>
+              <span>{isArabic ? "أنواع التذاكر" : "Ticket Types"}</span>
               <strong>
                 {(data?.ticketTypes ?? []).length.toLocaleString(NUMBER_LOCALE)}{" "}
-                {isArabic ? "ظ†ظˆط¹" : "types"}
+                {isArabic ? "نوع" : "types"}
               </strong>
             </div>
             <button
@@ -1840,7 +1840,7 @@ function AdminMetricList({
               onClick={() => openTicketTypeEditor()}
               type="button"
             >
-              {isArabic ? "ط¥ط¶ط§ظپط© ظ†ظˆط¹ طھط°ظƒط±ط©" : "Add Ticket Type"}
+              {isArabic ? "إضافة نوع تذكرة" : "Add Ticket Type"}
             </button>
           </div>
           <div className="admin-ticket-types-list">
@@ -1849,8 +1849,8 @@ function AdminMetricList({
                 <div>
                   <strong>
                     {isArabic
-                      ? String(ticketType.name_ar ?? "â€”")
-                      : String(ticketType.name_en ?? ticketType.name_ar ?? "â€”")}
+                      ? String(ticketType.name_ar ?? "—")
+                      : String(ticketType.name_en ?? ticketType.name_ar ?? "—")}
                   </strong>
                   <small>{String(ticketType.description ?? "")}</small>
                 </div>
@@ -1862,7 +1862,7 @@ function AdminMetricList({
                   onClick={() => openTicketTypeEditor(ticketType)}
                   type="button"
                 >
-                  {isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
+                  {isArabic ? "تعديل" : "Edit"}
                 </button>
               </article>
             ))}
@@ -1887,7 +1887,7 @@ function AdminMetricList({
               {config.columns.map(([key, label]) => (
                 <th data-field={key} key={key}>{label}</th>
               ))}
-              <th>{isArabic ? "ط¥ط¬ط±ط§ط،" : "Action"}</th>
+              <th>{isArabic ? "إجراء" : "Action"}</th>
             </tr>
           </thead>
           <tbody>
@@ -1918,7 +1918,7 @@ function AdminMetricList({
                           key === "requirements" &&
                           !String(row[key] ?? "").trim()
                         ? isArabic
-                          ? "ظ„ط§ ظٹظˆط¬ط¯ ظ…طھط·ظ„ط¨ط§طھ"
+                          ? "لا يوجد متطلبات"
                           : "No requirements"
                         : row[key];
                   const isStatus =
@@ -1947,17 +1947,17 @@ function AdminMetricList({
                           {displayAdminValue(value, isArabic)}
                         </span>
                       ) : isDate ? (
-                        String(value ?? "â€”").slice(0, 10)
+                        String(value ?? "—").slice(0, 10)
                       ) : isActiveFlag ? (
                         <span
                           className={`admin-status admin-status-${Number(value) === 1 ? "active" : "inactive"}`}
                         >
                           {Number(value) === 1
                             ? isArabic
-                              ? "ظ…ظپط¹ظ„"
+                              ? "مفعل"
                               : "Active"
                             : isArabic
-                              ? "ط؛ظٹط± ظ…ظپط¹ظ„"
+                              ? "غير مفعل"
                               : "Inactive"}
                         </span>
                       ) : isAmount ? (
@@ -1977,7 +1977,7 @@ function AdminMetricList({
                               ))}
                           </div>
                         ) : (
-                          "â€”"
+                          "—"
                         )
                       ) : isWebsite ? (
                         websiteUrl ? (
@@ -1988,9 +1988,9 @@ function AdminMetricList({
                           ""
                         )
                       ) : isPhone ? (
-                        <bdi dir="ltr">{String(value ?? "â€”")}</bdi>
+                        <bdi dir="ltr">{String(value ?? "—")}</bdi>
                       ) : (
-                        String(value ?? "â€”")
+                        String(value ?? "—")
                       )}
                     </td>
                   );
@@ -2002,7 +2002,7 @@ function AdminMetricList({
                       onClick={() => openEditor(row)}
                       type="button"
                     >
-                      {isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
+                      {isArabic ? "تعديل" : "Edit"}
                     </button>
                     {metric === "users" ? (
                       <button
@@ -2010,7 +2010,7 @@ function AdminMetricList({
                         onClick={() => openPasswordEditor(row)}
                         type="button"
                       >
-                        {isArabic ? "طھط¹ط¯ظٹظ„ ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط±" : "Edit Password"}
+                        {isArabic ? "تعديل كلمة المرور" : "Edit Password"}
                       </button>
                     ) : null}
                   </div>
@@ -2020,7 +2020,7 @@ function AdminMetricList({
             {visibleRows.length === 0 ? (
               <tr>
                 <td className="admin-empty" colSpan={config.columns.length + (metric === "clients" ? 2 : 1)}>
-                  {isArabic ? "ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ ظ…ط·ط§ط¨ظ‚ط©" : "No matching data"}
+                  {isArabic ? "لا توجد بيانات مطابقة" : "No matching data"}
                 </td>
               </tr>
             ) : null}
@@ -2041,14 +2041,14 @@ function AdminMetricList({
             role="dialog"
           >
             <div className="admin-create-user-head modal-header">
-              <h3>{isArabic ? "ط¥ط¶ط§ظپط© ظ…ط³طھط®ط¯ظ… ط¬ط¯ظٹط¯" : "Add New User"}</h3>
+              <h3>{isArabic ? "إضافة مستخدم جديد" : "Add New User"}</h3>
               <button
-                aria-label={isArabic ? "ط¥ط؛ظ„ط§ظ‚" : "Close"}
+                aria-label={isArabic ? "إغلاق" : "Close"}
                 className="close-modal-btn"
                 onClick={closeCreateUserModal}
                 type="button"
               >
-                أ—
+                ×
               </button>
             </div>
             <form
@@ -2059,7 +2059,7 @@ function AdminMetricList({
               }}
             >
               <label className="form-group">
-                <span>{isArabic ? "ط§ظ„ط§ط³ظ… ط¨ط§ظ„ظƒط§ظ…ظ„" : "Full Name"}</span>
+                <span>{isArabic ? "الاسم بالكامل" : "Full Name"}</span>
                 <input
                   onChange={(event) =>
                     setCreateUserDraft((current) => ({
@@ -2067,14 +2067,14 @@ function AdminMetricList({
                       name: event.target.value,
                     }))
                   }
-                  placeholder={isArabic ? "ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ظ…ط³طھط®ط¯ظ…" : "Enter user name"}
+                  placeholder={isArabic ? "أدخل اسم المستخدم" : "Enter user name"}
                   required
                   type="text"
                   value={createUserDraft.name}
                 />
               </label>
               <label className="form-group">
-                <span>{isArabic ? "ط§ظ„ط¨ط±ظٹط¯ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ" : "Email"}</span>
+                <span>{isArabic ? "البريد الإلكتروني" : "Email"}</span>
                 <input
                   dir="ltr"
                   onChange={(event) =>
@@ -2091,7 +2091,7 @@ function AdminMetricList({
               </label>
               <div className="admin-create-user-row form-row">
                 <label className="form-group">
-                  <span>{isArabic ? "ط§ظ„طµظ„ط§ط­ظٹط©" : "Role"}</span>
+                  <span>{isArabic ? "الصلاحية" : "Role"}</span>
                   <select
                     className="admin-basic-select"
                     onChange={(event) =>
@@ -2110,7 +2110,7 @@ function AdminMetricList({
                   </select>
                 </label>
                 <label className="form-group">
-                  <span>{isArabic ? "ط­ط§ظ„ط© ط§ظ„ط­ط³ط§ط¨" : "Account Status"}</span>
+                  <span>{isArabic ? "حالة الحساب" : "Account Status"}</span>
                   <select
                     className="admin-basic-select"
                     onChange={(event) =>
@@ -2130,7 +2130,7 @@ function AdminMetricList({
                 </label>
               </div>
               <label className="form-group">
-                <span>{isArabic ? "ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط±" : "Password"}</span>
+                <span>{isArabic ? "كلمة المرور" : "Password"}</span>
                 <input
                   dir="ltr"
                   minLength={6}
@@ -2155,10 +2155,10 @@ function AdminMetricList({
                   onClick={closeCreateUserModal}
                   type="button"
                 >
-                  {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                  {isArabic ? "إلغاء" : "Cancel"}
                 </button>
                 <button className="btn-submit" type="submit">
-                  {isArabic ? "ط­ظپط¸ ط§ظ„ظ…ط³طھط®ط¯ظ…" : "Save User"}
+                  {isArabic ? "حفظ المستخدم" : "Save User"}
                 </button>
               </div>
             </form>
@@ -2176,7 +2176,7 @@ function AdminMetricList({
           <section className="admin-edit-modal" role="dialog" aria-modal="true">
             <div className="admin-edit-head">
               <div>
-                <span>{isArabic ? "طھط¹ط¯ظٹظ„ ط§ظ„ط³ط¬ظ„" : "Edit Record"}</span>
+                <span>{isArabic ? "تعديل السجل" : "Edit Record"}</span>
                 <h3>
                   {String(
                     editingRow.name ??
@@ -2230,7 +2230,7 @@ function AdminMetricList({
                   </label>
                 ))}
                 <label>
-                  <span>{isArabic ? "ط§ظ„طµظ„ط§ط­ظٹط©" : "Role"}</span>
+                  <span>{isArabic ? "الصلاحية" : "Role"}</span>
                   <select
                     className="admin-basic-select"
                     onChange={(event) =>
@@ -2245,10 +2245,10 @@ function AdminMetricList({
                             label: `${isArabic ? role.name_ar : role.name_en} - ${
                               role.role_type === "admin"
                                 ? isArabic
-                                  ? "ط£ط¯ظ…ظ†"
+                                  ? "أدمن"
                                   : "Admin"
                                 : isArabic
-                                  ? "ظ…ط³طھط®ط¯ظ…"
+                                  ? "مستخدم"
                                   : "User"
                             }`,
                           }))
@@ -2266,9 +2266,9 @@ function AdminMetricList({
                   </select>
                 </label>
                 <label>
-                  <span>{isArabic ? "ط§ظ„ظ„ط؛ط© ط§ظ„ظ…ظپط¶ظ„ط©" : "Preferred Language"}</span>
+                  <span>{isArabic ? "اللغة المفضلة" : "Preferred Language"}</span>
                   <DashboardSelect
-                    ariaLabel={isArabic ? "ط§ظ„ظ„ط؛ط© ط§ظ„ظ…ظپط¶ظ„ط©" : "Preferred Language"}
+                    ariaLabel={isArabic ? "اللغة المفضلة" : "Preferred Language"}
                     menuClassName="admin-edit-select-menu"
                     onValueChange={(preferred_locale) =>
                       setEditDraft((current) => ({
@@ -2277,17 +2277,17 @@ function AdminMetricList({
                       }))
                     }
                     options={[
-                      { value: "ar", label: isArabic ? "ط§ظ„ط¹ط±ط¨ظٹط©" : "Arabic" },
-                      { value: "en", label: isArabic ? "ط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹط©" : "English" },
+                      { value: "ar", label: isArabic ? "العربية" : "Arabic" },
+                      { value: "en", label: isArabic ? "الإنجليزية" : "English" },
                     ]}
                     portal
                     value={editDraft.preferred_locale ?? "ar"}
                   />
                 </label>
                 <label>
-                  <span>{isArabic ? "ظ†ظˆط¹ ط§ظ„ط±ط®طµط©" : "License Type"}</span>
+                  <span>{isArabic ? "نوع الرخصة" : "License Type"}</span>
                   <DashboardSelect
-                    ariaLabel={isArabic ? "ظ†ظˆط¹ ط§ظ„ط±ط®طµط©" : "License Type"}
+                    ariaLabel={isArabic ? "نوع الرخصة" : "License Type"}
                     menuClassName="admin-edit-select-menu"
                     onValueChange={(license_type) =>
                       setEditDraft((current) => ({
@@ -2296,24 +2296,24 @@ function AdminMetricList({
                       }))
                     }
                     options={[
-                      { value: "none", label: isArabic ? "ظ„ط§ طھظˆط¬ط¯" : "None" },
-                      { value: "verified", label: isArabic ? "ظ…ظˆط«ظ‚" : "Verified" },
+                      { value: "none", label: isArabic ? "لا توجد" : "None" },
+                      { value: "verified", label: isArabic ? "موثق" : "Verified" },
                       {
                         value: "e_marketing",
                         label: isArabic
-                          ? "طھط³ظˆظٹظ‚ ط¥ظ„ظƒطھط±ظˆظ†ظٹ"
+                          ? "تسويق إلكتروني"
                           : "E-Marketing",
                       },
-                      { value: "fal", label: isArabic ? "ظپط§ظ„" : "FAL" },
+                      { value: "fal", label: isArabic ? "فال" : "FAL" },
                     ]}
                     portal
                     value={editDraft.license_type ?? "none"}
                   />
                 </label>
                 <label>
-                  <span>{isArabic ? "ط­ط§ظ„ط© ط§ظ„ط±ط®طµط©" : "License Status"}</span>
+                  <span>{isArabic ? "حالة الرخصة" : "License Status"}</span>
                   <DashboardSelect
-                    ariaLabel={isArabic ? "ط­ط§ظ„ط© ط§ظ„ط±ط®طµط©" : "License Status"}
+                    ariaLabel={isArabic ? "حالة الرخصة" : "License Status"}
                     menuClassName="admin-edit-select-menu"
                     onValueChange={(license_status) =>
                       setEditDraft((current) => ({
@@ -2322,16 +2322,16 @@ function AdminMetricList({
                       }))
                     }
                     options={[
-                      { value: "pending", label: isArabic ? "ظ‚ظٹط¯ ط§ظ„ظ…ط±ط§ط¬ط¹ط©" : "Pending" },
-                      { value: "verified", label: isArabic ? "ظ…ظˆط«ظ‚ط©" : "Verified" },
-                      { value: "rejected", label: isArabic ? "ظ…ط±ظپظˆط¶ط©" : "Rejected" },
+                      { value: "pending", label: isArabic ? "قيد المراجعة" : "Pending" },
+                      { value: "verified", label: isArabic ? "موثقة" : "Verified" },
+                      { value: "rejected", label: isArabic ? "مرفوضة" : "Rejected" },
                     ]}
                     portal
                     value={editDraft.license_status ?? "pending"}
                   />
                 </label>
                 <label>
-                  <span>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</span>
+                  <span>{isArabic ? "الحالة" : "Status"}</span>
                   <select
                     className="admin-basic-select"
                     onChange={(event) =>
@@ -2350,21 +2350,21 @@ function AdminMetricList({
             ) : null}
             {metric === "users" ? (
               <div className="admin-user-readonly-grid">
-                <h4>{isArabic ? "ظ…ط¹ظ„ظˆظ…ط§طھ ط§ظ„ظ†ط¸ط§ظ…" : "System Information"}</h4>
+                <h4>{isArabic ? "معلومات النظام" : "System Information"}</h4>
                 {userReadonlyFields.map(([field, label]) => {
                   const value = editingRow[field];
                   const display =
                     field === "is_active"
                       ? Number(value) === 1
                         ? isArabic
-                          ? "ظ†ط¹ظ…"
+                          ? "نعم"
                           : "Yes"
                         : isArabic
-                          ? "ظ„ط§"
+                          ? "لا"
                           : "No"
                       : field.includes("_at")
                         ? formatAdminDateTime(value, isArabic)
-                        : String(value ?? "â€”");
+                        : String(value ?? "—");
                   return (
                     <div key={field}>
                       <span>{label}</span>
@@ -2377,7 +2377,7 @@ function AdminMetricList({
             {metric === "clients" ? (
               <>
                 <label>
-                  <span>{isArabic ? "ط§ظ„ط§ط³ظ…" : "Name"}</span>
+                  <span>{isArabic ? "الاسم" : "Name"}</span>
                   <input
                     onChange={(event) =>
                       setEditDraft((current) => ({
@@ -2389,7 +2389,7 @@ function AdminMetricList({
                   />
                 </label>
                 <label>
-                  <span>{isArabic ? "ط§ظ„ط´ط±ظƒط©" : "Company"}</span>
+                  <span>{isArabic ? "الشركة" : "Company"}</span>
                   <input
                     onChange={(event) =>
                       setEditDraft((current) => ({
@@ -2401,7 +2401,7 @@ function AdminMetricList({
                   />
                 </label>
                 <label>
-                  <span>{isArabic ? "ط±ظ‚ظ… ط§ظ„ط¬ظˆط§ظ„" : "Mobile"}</span>
+                  <span>{isArabic ? "رقم الجوال" : "Mobile"}</span>
                   <input
                     dir="ltr"
                     onChange={(event) =>
@@ -2418,7 +2418,7 @@ function AdminMetricList({
             {metric === "demos" ? (
               <>
                 <label>
-                  <span>{isArabic ? "ط§ظ„ط¹ظ…ظٹظ„" : "Client"}</span>
+                  <span>{isArabic ? "العميل" : "Client"}</span>
                   <input
                     onChange={(event) =>
                       setEditDraft((current) => ({
@@ -2430,7 +2430,7 @@ function AdminMetricList({
                   />
                 </label>
                 <label>
-                  <span>{isArabic ? "ط§ظ„ط´ط±ظƒط©" : "Company"}</span>
+                  <span>{isArabic ? "الشركة" : "Company"}</span>
                   <input
                     onChange={(event) =>
                       setEditDraft((current) => ({
@@ -2442,7 +2442,7 @@ function AdminMetricList({
                   />
                 </label>
                 <label>
-                  <span>{isArabic ? "ط±ظ‚ظ… ط§ظ„ط¬ظˆط§ظ„" : "Mobile"}</span>
+                  <span>{isArabic ? "رقم الجوال" : "Mobile"}</span>
                   <input
                     dir="ltr"
                     onChange={(event) =>
@@ -2458,7 +2458,7 @@ function AdminMetricList({
             ) : null}
             {metric === "quotes" ? (
               <label>
-                <span>{isArabic ? "طھط§ط±ظٹط® ط§ظ„ط§ظ†طھظ‡ط§ط،" : "Expiry Date"}</span>
+                <span>{isArabic ? "تاريخ الانتهاء" : "Expiry Date"}</span>
                 <input
                   onChange={(event) =>
                     setEditDraft((current) => ({
@@ -2476,14 +2476,14 @@ function AdminMetricList({
               <span>
                 {metric === "clients"
                   ? isArabic
-                    ? "ط§ظ„ظ…ط±ط­ظ„ط©"
+                    ? "المرحلة"
                     : "Stage"
                   : isArabic
-                    ? "ط§ظ„ط­ط§ظ„ط©"
+                    ? "الحالة"
                     : "Status"}
               </span>
               <DashboardSelect
-                ariaLabel={isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}
+                ariaLabel={isArabic ? "الحالة" : "Status"}
                 menuClassName="admin-edit-select-menu"
                 onValueChange={(value) =>
                   setEditDraft((current) => ({
@@ -2507,18 +2507,18 @@ function AdminMetricList({
                 onClick={() => void saveEdit()}
                 type="button"
               >
-                {isArabic ? "ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ" : "Save Changes"}
+                {isArabic ? "حفظ التعديلات" : "Save Changes"}
               </button>
               <button onClick={() => setEditingRow(null)} type="button">
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
             {metric === "users" ? (
               <div className="admin-user-delete-section">
-                <strong>{isArabic ? "ط­ط°ظپ ط§ظ„ط­ط³ط§ط¨" : "Delete Account"}</strong>
+                <strong>{isArabic ? "حذف الحساب" : "Delete Account"}</strong>
                 <span>
                   {isArabic
-                    ? "ظ‡ط°ط§ ط§ظ„ط®ظٹط§ط± ظٹط­ط°ظپ ط­ط³ط§ط¨ ط§ظ„ظ…ط³طھط®ط¯ظ… ظ…ظ† ط§ظ„ظ†ط¸ط§ظ…."
+                    ? "هذا الخيار يحذف حساب المستخدم من النظام."
                     : "This option removes the user account from the system."}
                 </span>
                 <button
@@ -2527,12 +2527,12 @@ function AdminMetricList({
                   onClick={() => void deleteEditingUser()}
                   type="button"
                 >
-                  {isArabic ? "ط­ط°ظپ ط§ظ„ط­ط³ط§ط¨" : "Delete Account"}
+                  {isArabic ? "حذف الحساب" : "Delete Account"}
                 </button>
                 {String(editingRow.email ?? "").toLowerCase() === "admin@middar.com" ? (
                   <small>
                     {isArabic
-                      ? "ظ„ط§ ظٹظ…ظƒظ† ط­ط°ظپ admin@middar.com ظ„ط£ظ†ظ‡ ط­ط³ط§ط¨ ط£ط³ط§ط³ظٹ."
+                      ? "لا يمكن حذف admin@middar.com لأنه حساب أساسي."
                       : "admin@middar.com cannot be deleted because it is a core account."}
                   </small>
                 ) : null}
@@ -2552,7 +2552,7 @@ function AdminMetricList({
           <section className="admin-edit-modal" role="dialog" aria-modal="true">
             <div className="admin-edit-head">
               <div>
-                <span>{isArabic ? "طھط¹ط¯ظٹظ„ ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط±" : "Edit Password"}</span>
+                <span>{isArabic ? "تعديل كلمة المرور" : "Edit Password"}</span>
                 <h3>{String(passwordRow.name ?? passwordRow.email ?? "")}</h3>
               </div>
               <button onClick={() => setPasswordRow(null)} type="button">
@@ -2560,12 +2560,12 @@ function AdminMetricList({
               </button>
             </div>
             <label>
-              <span>{isArabic ? "ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط± ط§ظ„ط¬ط¯ظٹط¯ط©" : "New Password"}</span>
+              <span>{isArabic ? "كلمة المرور الجديدة" : "New Password"}</span>
               <input
                 autoFocus
                 onChange={(event) => setPasswordDraft(event.target.value)}
                 placeholder={
-                  isArabic ? "ط£ط¯ط®ظ„ ظƒظ„ظ…ط© ظ…ط±ظˆط± ط¬ط¯ظٹط¯ط©" : "Enter a new password"
+                  isArabic ? "أدخل كلمة مرور جديدة" : "Enter a new password"
                 }
                 type="password"
                 value={passwordDraft}
@@ -2578,10 +2578,10 @@ function AdminMetricList({
                 onClick={() => void savePassword()}
                 type="button"
               >
-                {isArabic ? "ط­ظپط¸ ظƒظ„ظ…ط© ط§ظ„ظ…ط±ظˆط±" : "Save Password"}
+                {isArabic ? "حفظ كلمة المرور" : "Save Password"}
               </button>
               <button onClick={() => setPasswordRow(null)} type="button">
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
           </section>
@@ -2745,7 +2745,7 @@ function AdminTagsSection({
     };
     if (!typeDraft.name.trim()) return;
     setSavingKey(`tags-${type.id}`);
-    setMessage(isArabic ? "ط¬ط§ط±ظٹ ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ..." : "Saving changes...");
+    setMessage(isArabic ? "جاري حفظ التعديلات..." : "Saving changes...");
     try {
       const typeResponse = await fetch(`/api/v1/data/lead-tag-types/${type.id}`, {
         method: "PUT",
@@ -2796,10 +2796,10 @@ function AdminTagsSection({
         }));
       }
 
-      setMessage(isArabic ? "طھظ… ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ" : "Changes saved");
+      setMessage(isArabic ? "تم حفظ التعديلات" : "Changes saved");
       onReload();
     } catch {
-      setMessage(isArabic ? "طھط¹ط°ط± ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ" : "Could not save changes");
+      setMessage(isArabic ? "تعذر حفظ التعديلات" : "Could not save changes");
     } finally {
       setSavingKey("");
     }
@@ -2842,7 +2842,7 @@ function AdminTagsSection({
     if (!type.tags.length) {
       setMessage(
         isArabic
-          ? "ظ„ط§ طھظˆط¬ط¯ ظˆط³ظˆظ… ظ„ط¥ظ†ط´ط§ط، طھط¯ط±ط¬ ظ„ظ‡ط§"
+          ? "لا توجد وسوم لإنشاء تدرج لها"
           : "No tags available for a gradient",
       );
       return;
@@ -2850,7 +2850,7 @@ function AdminTagsSection({
     const baseColor = typeDrafts[type.id]?.color ?? type.color;
     const gradientEnd = "#11293d";
     setSavingKey(`gradient-${type.id}`);
-    setMessage(isArabic ? "ط¬ط§ط±ظٹ ط­ظپط¸ ط§ظ„طھط¯ط±ط¬ ط§ظ„ظ„ظˆظ†ظٹ..." : "Saving color gradient...");
+    setMessage(isArabic ? "جاري حفظ التدرج اللوني..." : "Saving color gradient...");
     setTagDrafts((current) => {
       const next = { ...current };
       type.tags.forEach((tag, index) => {
@@ -2878,10 +2878,10 @@ function AdminTagsSection({
           if (!response.ok) throw new Error("SAVE_GRADIENT_FAILED");
         }),
       );
-      setMessage(isArabic ? "طھظ… ط­ظپط¸ ط§ظ„طھط¯ط±ط¬ ط§ظ„ظ„ظˆظ†ظٹ" : "Color gradient saved");
+      setMessage(isArabic ? "تم حفظ التدرج اللوني" : "Color gradient saved");
       onReload();
     } catch {
-      setMessage(isArabic ? "طھط¹ط°ط± ط­ظپط¸ ط§ظ„طھط¯ط±ط¬ ط§ظ„ظ„ظˆظ†ظٹ" : "Could not save color gradient");
+      setMessage(isArabic ? "تعذر حفظ التدرج اللوني" : "Could not save color gradient");
     } finally {
       setSavingKey("");
     }
@@ -2908,18 +2908,18 @@ function AdminTagsSection({
     <section className="admin-data-card admin-tags-page">
       <div className="admin-data-head">
         <div>
-          <span>{isArabic ? "ط¥ط¯ط§ط±ط© ط§ظ„ظˆط³ظˆظ…" : "Tag Management"}</span>
+          <span>{isArabic ? "إدارة الوسوم" : "Tag Management"}</span>
           <strong>
             {editingType
               ? isArabic
-                ? "طھط¹ط¯ظٹظ„ ظ†ظˆط¹ ط§ظ„ظˆط³ظ…"
+                ? "تعديل نوع الوسم"
                 : "Edit Tag Type"
               : viewingType
                 ? isArabic
-                  ? "ظƒظ„ ظˆط³ظˆظ… ط§ظ„ظ†ظˆط¹"
+                  ? "كل وسوم النوع"
                   : "All Tags in Type"
               : `${groupedTypes.length.toLocaleString(NUMBER_LOCALE)} ${
-                  isArabic ? "ظ†ظˆط¹ ظˆط³ظ…" : "tag types"
+                  isArabic ? "نوع وسم" : "tag types"
                 }`}
           </strong>
         </div>
@@ -2933,14 +2933,14 @@ function AdminTagsSection({
               onClick={() => setViewingTypeId(null)}
               type="button"
             >
-              {isArabic ? "ط±ط¬ظˆط¹" : "Back"}
+              {isArabic ? "رجوع" : "Back"}
             </button>
             <div>
-              <span>{isArabic ? "ظ†ظˆط¹ ط§ظ„ظˆط³ظ…" : "Tag type"}</span>
+              <span>{isArabic ? "نوع الوسم" : "Tag type"}</span>
               <h3>{viewingType.name}</h3>
               <p>
                 {viewingType.tags.length.toLocaleString(NUMBER_LOCALE)}{" "}
-                {isArabic ? "ظˆط³ظ…" : "tags"}
+                {isArabic ? "وسم" : "tags"}
               </p>
             </div>
           </div>
@@ -2964,7 +2964,7 @@ function AdminTagsSection({
                 >
                   <div>
                     <strong>{totalCustomers.toLocaleString(NUMBER_LOCALE)}</strong>
-                    <span>{isArabic ? "ط¹ظ…ظٹظ„" : "customers"}</span>
+                    <span>{isArabic ? "عميل" : "customers"}</span>
                   </div>
                 </div>
                 <div className="admin-all-tags-list">
@@ -2979,7 +2979,7 @@ function AdminTagsSection({
                         <strong>{percent.toLocaleString(NUMBER_LOCALE)}%</strong>
                         <small>
                           {tag.count.toLocaleString(NUMBER_LOCALE)}{" "}
-                          {isArabic ? "ط¹ظ…ظٹظ„" : "customers"}
+                          {isArabic ? "عميل" : "customers"}
                         </small>
                       </div>
                     );
@@ -2987,7 +2987,7 @@ function AdminTagsSection({
                   {!sortedTags.length ? (
                     <p className="admin-empty">
                       {isArabic
-                        ? "ظ„ط§ طھظˆط¬ط¯ ظˆط³ظˆظ… ظ…ط±طھط¨ط·ط© ط¨ظ‡ط°ط§ ط§ظ„ظ†ظˆط¹"
+                        ? "لا توجد وسوم مرتبطة بهذا النوع"
                         : "No tags linked to this type"}
                     </p>
                   ) : null}
@@ -3016,7 +3016,7 @@ function AdminTagsSection({
                       <h3>{type.name}</h3>
                       <p>
                         {totalCustomers.toLocaleString(NUMBER_LOCALE)}{" "}
-                        {isArabic ? "ط¹ظ…ظٹظ„ ط¥ط¬ظ…ط§ظ„ظٹ" : "total customers"}
+                        {isArabic ? "عميل إجمالي" : "total customers"}
                       </p>
                     </div>
                   </div>
@@ -3030,7 +3030,7 @@ function AdminTagsSection({
                   >
                     <div>
                       <strong>{totalCustomers.toLocaleString(NUMBER_LOCALE)}</strong>
-                      <span>{isArabic ? "ط¹ظ…ظٹظ„" : "customers"}</span>
+                      <span>{isArabic ? "عميل" : "customers"}</span>
                     </div>
                   </div>
 
@@ -3049,7 +3049,7 @@ function AdminTagsSection({
                             </strong>
                             <small>
                               {tag.count.toLocaleString(NUMBER_LOCALE)}{" "}
-                              {isArabic ? "ط¹ظ…ظٹظ„" : "customers"}
+                              {isArabic ? "عميل" : "customers"}
                             </small>
                           </div>
                         );
@@ -3057,7 +3057,7 @@ function AdminTagsSection({
                     ) : (
                       <p className="admin-empty">
                         {isArabic
-                          ? "ظ„ط§ طھظˆط¬ط¯ ظˆط³ظˆظ… ظ…ط±طھط¨ط·ط© ط¨ظ‡ط°ط§ ط§ظ„ظ†ظˆط¹"
+                          ? "لا توجد وسوم مرتبطة بهذا النوع"
                           : "No tags linked to this type"}
                       </p>
                     )}
@@ -3072,7 +3072,7 @@ function AdminTagsSection({
                       }}
                       type="button"
                     >
-                      {isArabic ? "ظ…ط´ط§ظ‡ط¯ط© ط§ظ„ظ…ط²ظٹط¯" : "View more"}
+                      {isArabic ? "مشاهدة المزيد" : "View more"}
                     </button>
                   ) : null}
 
@@ -3084,7 +3084,7 @@ function AdminTagsSection({
                     }}
                     type="button"
                   >
-                    {isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
+                    {isArabic ? "تعديل" : "Edit"}
                   </button>
                 </article>
               );
@@ -3092,7 +3092,7 @@ function AdminTagsSection({
           ) : (
             <p className="admin-empty">
               {isArabic
-                ? "ظ„ط§ طھظˆط¬ط¯ ط£ظ†ظˆط§ط¹ ظˆط³ظˆظ… ط­طھظ‰ ط§ظ„ط¢ظ†"
+                ? "لا توجد أنواع وسوم حتى الآن"
                 : "No tag types have been created yet"}
             </p>
           )}
@@ -3108,12 +3108,12 @@ function AdminTagsSection({
             }}
             type="button"
           >
-            {isArabic ? "ط±ط¬ظˆط¹" : "Back"}
+            {isArabic ? "رجوع" : "Back"}
           </button>
           <span>{editingType.name}</span>
           <p>
             {isArabic
-              ? "ط¹ط¯ظ‘ظ„ ظ†ظˆط¹ ط§ظ„ظˆط³ظ… ظˆط§ظ„ظˆط³ظˆظ… ط§ظ„ظ…ط±طھط¨ط·ط© ط¨ظ‡ ظپظٹ ظ‡ط°ظ‡ ط§ظ„طµظپط­ط©."
+              ? "عدّل نوع الوسم والوسوم المرتبطة به في هذه الصفحة."
               : "Edit this tag type and its linked tags on this page."}
           </p>
         </div>
@@ -3132,7 +3132,7 @@ function AdminTagsSection({
             <article className="admin-tag-manager-card" key={`manage-${type.id}`}>
                 <div className="admin-tag-type-editor">
                   <label>
-                    <span>{isArabic ? "ظ†ظˆط¹ ط§ظ„ظˆط³ظ…" : "Tag type"}</span>
+                    <span>{isArabic ? "نوع الوسم" : "Tag type"}</span>
                     <input
                       onChange={(event) =>
                         setTypeDrafts((current) => ({
@@ -3144,7 +3144,7 @@ function AdminTagsSection({
                     />
                   </label>
                   <label className="admin-color-field">
-                    <span>{isArabic ? "ط§ظ„ظ„ظˆظ†" : "Color"}</span>
+                    <span>{isArabic ? "اللون" : "Color"}</span>
                     <input
                       onChange={(event) =>
                         setTypeDrafts((current) => ({
@@ -3160,7 +3160,7 @@ function AdminTagsSection({
 
                 <div className="admin-linked-tags-editor">
                   <div className="admin-linked-tags-head">
-                    <strong>{isArabic ? "ط§ظ„ظˆط³ظˆظ… ط§ظ„ظ…ط±طھط¨ط·ط©" : "Linked tags"}</strong>
+                    <strong>{isArabic ? "الوسوم المرتبطة" : "Linked tags"}</strong>
                     <button
                       className="admin-action-btn admin-gradient-btn"
                       disabled={savingKey === `gradient-${type.id}`}
@@ -3169,10 +3169,10 @@ function AdminTagsSection({
                     >
                       {savingKey === `gradient-${type.id}`
                         ? isArabic
-                          ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..."
+                          ? "جاري الحفظ..."
                           : "Saving..."
                         : isArabic
-                          ? "ط¥ظ†ط´ط§ط، طھط¯ط±ط¬ ظ„ظˆظ†ظٹ"
+                          ? "إنشاء تدرج لوني"
                           : "Create color gradient"}
                     </button>
                   </div>
@@ -3197,7 +3197,7 @@ function AdminTagsSection({
                             value={tagDraft.name}
                           />
                           <input
-                            aria-label={isArabic ? "ظ„ظˆظ† ط§ظ„ظˆط³ظ…" : "Tag color"}
+                            aria-label={isArabic ? "لون الوسم" : "Tag color"}
                             onChange={(event) =>
                               setTagDrafts((current) => ({
                                 ...current,
@@ -3215,7 +3215,7 @@ function AdminTagsSection({
                     })
                   ) : (
                     <p className="admin-empty">
-                      {isArabic ? "ظ„ط§ طھظˆط¬ط¯ ظˆط³ظˆظ… ظ„ظ‡ط°ط§ ط§ظ„ظ†ظˆط¹" : "No tags for this type"}
+                      {isArabic ? "لا توجد وسوم لهذا النوع" : "No tags for this type"}
                     </p>
                   )}
                 </div>
@@ -3228,11 +3228,11 @@ function AdminTagsSection({
                         [type.id]: { ...newDraft, name: event.target.value },
                       }))
                     }
-                    placeholder={isArabic ? "ط§ط³ظ… ظˆط³ظ… ط¬ط¯ظٹط¯" : "New tag name"}
+                    placeholder={isArabic ? "اسم وسم جديد" : "New tag name"}
                     value={newDraft.name}
                   />
                   <input
-                    aria-label={isArabic ? "ظ„ظˆظ† ط§ظ„ظˆط³ظ… ط§ظ„ط¬ط¯ظٹط¯" : "New tag color"}
+                    aria-label={isArabic ? "لون الوسم الجديد" : "New tag color"}
                     onChange={(event) =>
                       setNewTagDrafts((current) => ({
                         ...current,
@@ -3252,10 +3252,10 @@ function AdminTagsSection({
                   >
                     {savingKey === `tags-${type.id}`
                       ? isArabic
-                        ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..."
+                        ? "جاري الحفظ..."
                         : "Saving..."
                       : isArabic
-                        ? "ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ"
+                        ? "حفظ التعديلات"
                         : "Save Changes"}
                   </button>
                 </div>
@@ -3270,89 +3270,89 @@ function AdminTagsSection({
 }
 
 const permissionActionLabels = [
-  ["can_view", { ar: "ط¹ط±ط¶", en: "View" }],
-  ["can_create", { ar: "ط¥ط¶ط§ظپط©", en: "Create" }],
-  ["can_edit", { ar: "طھط¹ط¯ظٹظ„", en: "Edit" }],
-  ["can_delete", { ar: "ط­ط°ظپ", en: "Delete" }],
-  ["can_approve", { ar: "ط§ط¹طھظ…ط§ط¯", en: "Approve" }],
-  ["can_reports", { ar: "طھظ‚ط§ط±ظٹط±", en: "Reports" }],
-  ["can_dashboard", { ar: "ظ„ظˆط­ط©", en: "Dashboard" }],
+  ["can_view", { ar: "عرض", en: "View" }],
+  ["can_create", { ar: "إضافة", en: "Create" }],
+  ["can_edit", { ar: "تعديل", en: "Edit" }],
+  ["can_delete", { ar: "حذف", en: "Delete" }],
+  ["can_approve", { ar: "اعتماد", en: "Approve" }],
+  ["can_reports", { ar: "تقارير", en: "Reports" }],
+  ["can_dashboard", { ar: "لوحة", en: "Dashboard" }],
 ] as const;
 
 const permissionScopeLabels: Record<string, { ar: string; en: string }> = {
-  own: { ar: "ط¨ظٹط§ظ†ط§طھظ‡ ظپظ‚ط·", en: "Own data" },
-  team: { ar: "ط¨ظٹط§ظ†ط§طھ ط§ظ„ظپط±ظٹظ‚", en: "Team data" },
-  company: { ar: "ط¨ظٹط§ظ†ط§طھ ط§ظ„ط´ط±ظƒط©", en: "Company data" },
-  all: { ar: "ظƒظ„ ط§ظ„ط¨ظٹط§ظ†ط§طھ", en: "All data" },
+  own: { ar: "بياناته فقط", en: "Own data" },
+  team: { ar: "بيانات الفريق", en: "Team data" },
+  company: { ar: "بيانات الشركة", en: "Company data" },
+  all: { ar: "كل البيانات", en: "All data" },
 };
 
 const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
-  "page.admin.dashboard": { ar: "طµظپط­ط© ط§ظ„ط£ط¯ظ…ظ† - ظ„ظˆط­ط© ط§ظ„طھط­ظƒظ…", en: "Admin - Dashboard Page" },
-  "page.admin.tickets": { ar: "طµظپط­ط© ط§ظ„ط£ط¯ظ…ظ† - طھط°ط§ظƒط± ط§ظ„ط®ط¯ظ…ط©", en: "Admin - Service Tickets Page" },
-  "page.admin.accounts": { ar: "طµظپط­ط© ط§ظ„ط£ط¯ظ…ظ† - ط§ظ„ط­ط³ط§ط¨ط§طھ", en: "Admin - Accounts Page" },
-  "page.admin.booths": { ar: "طµظپط­ط© ط§ظ„ط£ط¯ظ…ظ† - ط§ظ„ط¨ظˆط«ط§طھ", en: "Admin - Booths Page" },
-  "page.admin.products": { ar: "طµظپط­ط© ط§ظ„ط£ط¯ظ…ظ† - ط§ظ„ظ…ظ†طھط¬ط§طھ", en: "Admin - Products Page" },
-  "page.admin.tags": { ar: "طµظپط­ط© ط§ظ„ط£ط¯ظ…ظ† - ط§ظ„ظˆط³ظˆظ…", en: "Admin - Tags Page" },
-  "page.admin.activities": { ar: "طµظپط­ط© ط§ظ„ط£ط¯ظ…ظ† - ط§ظ„ط£ظ†ط´ط·ط©", en: "Admin - Activities Page" },
-  "page.admin.content": { ar: "طµظپط­ط© ط§ظ„ط£ط¯ظ…ظ† - ط§ظ„ظ…ط­طھظˆظ‰", en: "Admin - Content Page" },
-  "page.admin.permissions": { ar: "طµظپط­ط© ط§ظ„ط£ط¯ظ…ظ† - ط§ظ„طµظ„ط§ط­ظٹط§طھ", en: "Admin - Permissions Page" },
-  "page.user.overview": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ظ†ط¸ط±ط© ط¹ط§ظ…ط©", en: "User - Overview Page" },
-  "page.user.marketing": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط§ظ„طھط³ظˆظٹظ‚", en: "User - Marketing Page" },
-  "page.user.customers": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط§ظ„ط¹ظ…ظ„ط§ط،", en: "User - Customers Page" },
-  "page.user.stores": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط§ظ„ظ…ط¹ط§ط±ط¶", en: "User - Stores Page" },
-  "page.user.quotes": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط¹ط±ظˆط¶ ط§ظ„ط£ط³ط¹ط§ط±", en: "User - Quotes Page" },
-  "page.user.participation_contracts": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط¹ظ‚ظˆط¯ ط§ظ„ظ…ط´ط§ط±ظƒط©", en: "User - Participation Contracts Page" },
-  "page.user.sponsorship_contracts": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط¹ظ‚ظˆط¯ ط§ظ„ط±ط¹ط§ظٹط©", en: "User - Sponsorship Contracts Page" },
-  "page.user.sales_orders": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط£ظˆط§ظ…ط± ط§ظ„ط¨ظٹط¹", en: "User - Sales Orders Page" },
-  "page.user.rental_contracts": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط¹ظ‚ظˆط¯ طھط£ط¬ظٹط±ظٹط©", en: "User - Rental Contracts Page" },
-  "page.user.sales": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط§ظ„ظ…ط¨ظٹط¹ط§طھ", en: "User - Sales Page" },
-  "page.user.activation": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط§ظ„طھظپط¹ظٹظ„", en: "User - Activation Page" },
-  "page.user.education": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط§ظ„ظ…ط­طھظˆظ‰ ط§ظ„طھط¹ظ„ظٹظ…ظٹ", en: "User - Education Page" },
-  "page.user.support": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ظ…ط±ظƒط² ط§ظ„ط¯ط¹ظ…", en: "User - Support Page" },
-  "page.user.accounts": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط§ظ„ط­ط³ط§ط¨ط§طھ", en: "User - Accounts Page" },
-  "page.user.settings": { ar: "طµظپط­ط© ط§ظ„ظ…ط³طھط®ط¯ظ… - ط§ظ„ط¥ط¹ط¯ط§ط¯ط§طھ", en: "User - Settings Page" },
-  "table.users": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ظ…ط³طھط®ط¯ظ…ظٹظ†", en: "Users Table" },
-  "table.products": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ظ…ظ†طھط¬ط§طھ", en: "Products Table" },
-  "table.industries": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ط£ظ†ط´ط·ط©", en: "Industries Table" },
-  "table.marketing_assets": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ظ…ظƒطھط¨ط© ط§ظ„طھط³ظˆظٹظ‚ظٹط©", en: "Marketing Library Table" },
-  "table.educational_assets": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ظ…ط­طھظˆظ‰ ط§ظ„طھط¹ظ„ظٹظ…ظٹ", en: "Educational Content Table" },
-  "table.leads": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ط¹ظ…ظ„ط§ط، ط§ظ„ظ…ظ‡طھظ…ظٹظ†", en: "Interested Customers Table" },
-  "table.lead_contacts": { ar: "ط¬ط¯ظˆظ„ ط¬ظ‡ط§طھ ط§طھطµط§ظ„ ط§ظ„ط¹ظ…ظ„ط§ط،", en: "Client Contacts Table" },
-  "table.lead_notes": { ar: "ط¬ط¯ظˆظ„ ظ…ظ„ط§ط­ط¸ط§طھ ط§ظ„ط¹ظ…ظ„ط§ط،", en: "Client Notes Table" },
-  "table.tag_types": { ar: "ط¬ط¯ظˆظ„ ط£ظ†ظˆط§ط¹ ط§ظ„ظˆط³ظˆظ…", en: "Tag Types Table" },
-  "table.tags": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ظˆط³ظˆظ…", en: "Tags Table" },
-  "table.lead_tag_assignments": { ar: "ط¬ط¯ظˆظ„ ط±ط¨ط· ط§ظ„ط¹ظ…ظ„ط§ط، ط¨ط§ظ„ظˆط³ظˆظ…", en: "Customer Tag Assignments Table" },
-  "table.store": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ظ…ط¹ط§ط±ط¶", en: "Stores Table" },
-  "table.stock": { ar: "ط¬ط¯ظˆظ„ ظ…ط®ط²ظˆظ† ط§ظ„ظ…ط¹ط§ط±ط¶", en: "Store Stock Table" },
-  "table.demo_requests": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ظ†ط³ط® ط§ظ„طھط¬ط±ظٹط¨ظٹط©", en: "Demos Table" },
-  "table.quotes": { ar: "ط¬ط¯ظˆظ„ ط¹ط±ظˆط¶ ط§ظ„ط£ط³ط¹ط§ط±", en: "Quotes Table" },
-  "table.participation_contracts": { ar: "ط¬ط¯ظˆظ„ ط¹ظ‚ظˆط¯ ط§ظ„ظ…ط´ط§ط±ظƒط©", en: "Participation Contracts Table" },
-  "table.sponsorship_contracts": { ar: "ط¬ط¯ظˆظ„ ط¹ظ‚ظˆط¯ ط§ظ„ط±ط¹ط§ظٹط©", en: "Sponsorship Contracts Table" },
-  "table.rental_contracts": { ar: "ط¬ط¯ظˆظ„ ط¹ظ‚ظˆط¯ ط§ظ„طھط£ط¬ظٹط±", en: "Rental Contracts Table" },
-  "table.rental_booths": { ar: "ط¬ط¯ظˆظ„ ط±ط¨ط· ط§ظ„ط¨ظˆط«ط§طھ ط¨ط¹ظ‚ظˆط¯ ط§ظ„طھط£ط¬ظٹط±", en: "Rental Booth Links Table" },
-  "table.booths": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ط¨ظˆط«ط§طھ", en: "Booths Table" },
-  "table.sales_orders": { ar: "ط¬ط¯ظˆظ„ ط£ظˆط§ظ…ط± ط§ظ„ط¨ظٹط¹", en: "Sales Orders Table" },
-  "table.sales": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ظ…ط¨ظٹط¹ط§طھ", en: "Sales Table" },
-  "table.commissions": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ط¹ظ…ظˆظ„ط§طھ", en: "Commissions Table" },
-  "table.support_tickets": { ar: "ط¬ط¯ظˆظ„ طھط°ط§ظƒط± ط§ظ„ط®ط¯ظ…ط©", en: "Support Tickets Table" },
-  "table.support_ticket_types": { ar: "ط¬ط¯ظˆظ„ ط£ظ†ظˆط§ط¹ طھط°ط§ظƒط± ط§ظ„ط®ط¯ظ…ط©", en: "Support Ticket Types Table" },
-  "table.support_ticket_events": { ar: "ط¬ط¯ظˆظ„ ط®ط· ط²ظ…ظ† ط§ظ„طھط°ط§ظƒط±", en: "Ticket Timeline Table" },
-  "table.team_members": { ar: "ط¬ط¯ظˆظ„ ط£ط¹ط¶ط§ط، ط§ظ„ظپط±ظٹظ‚", en: "Team Members Table" },
-  "table.social_accounts": { ar: "ط¬ط¯ظˆظ„ ط­ط³ط§ط¨ط§طھ ط§ظ„طھظˆط§طµظ„", en: "Social Accounts Table" },
-  "table.payout_methods": { ar: "ط¬ط¯ظˆظ„ ط§ظ„ط­ط³ط§ط¨ط§طھ ط§ظ„ط¨ظ†ظƒظٹط©", en: "Bank Accounts Table" },
-  "data.team_members": { ar: "ط±ط¤ظٹط© ط¨ظٹط§ظ†ط§طھ ط£ط¹ط¶ط§ط، ط§ظ„ظپط±ظٹظ‚", en: "View Team Members Data" },
-  "commission.percentage": { ar: "طھط؛ظٹظٹط± ظ†ط³ط¨ط© ط§ظ„ط¹ظ…ظˆظ„ط©", en: "Change Commission Percentage" },
+  "page.admin.dashboard": { ar: "صفحة الأدمن - لوحة التحكم", en: "Admin - Dashboard Page" },
+  "page.admin.tickets": { ar: "صفحة الأدمن - تذاكر الخدمة", en: "Admin - Service Tickets Page" },
+  "page.admin.accounts": { ar: "صفحة الأدمن - الحسابات", en: "Admin - Accounts Page" },
+  "page.admin.booths": { ar: "صفحة الأدمن - البوثات", en: "Admin - Booths Page" },
+  "page.admin.products": { ar: "صفحة الأدمن - المنتجات", en: "Admin - Products Page" },
+  "page.admin.tags": { ar: "صفحة الأدمن - الوسوم", en: "Admin - Tags Page" },
+  "page.admin.activities": { ar: "صفحة الأدمن - الأنشطة", en: "Admin - Activities Page" },
+  "page.admin.content": { ar: "صفحة الأدمن - المحتوى", en: "Admin - Content Page" },
+  "page.admin.permissions": { ar: "صفحة الأدمن - الصلاحيات", en: "Admin - Permissions Page" },
+  "page.user.overview": { ar: "صفحة المستخدم - نظرة عامة", en: "User - Overview Page" },
+  "page.user.marketing": { ar: "صفحة المستخدم - التسويق", en: "User - Marketing Page" },
+  "page.user.customers": { ar: "صفحة المستخدم - العملاء", en: "User - Customers Page" },
+  "page.user.stores": { ar: "صفحة المستخدم - المعارض", en: "User - Stores Page" },
+  "page.user.quotes": { ar: "صفحة المستخدم - عروض الأسعار", en: "User - Quotes Page" },
+  "page.user.participation_contracts": { ar: "صفحة المستخدم - عقود المشاركة", en: "User - Participation Contracts Page" },
+  "page.user.sponsorship_contracts": { ar: "صفحة المستخدم - عقود الرعاية", en: "User - Sponsorship Contracts Page" },
+  "page.user.sales_orders": { ar: "صفحة المستخدم - أوامر البيع", en: "User - Sales Orders Page" },
+  "page.user.rental_contracts": { ar: "صفحة المستخدم - عقود تأجيرية", en: "User - Rental Contracts Page" },
+  "page.user.sales": { ar: "صفحة المستخدم - المبيعات", en: "User - Sales Page" },
+  "page.user.activation": { ar: "صفحة المستخدم - التفعيل", en: "User - Activation Page" },
+  "page.user.education": { ar: "صفحة المستخدم - المحتوى التعليمي", en: "User - Education Page" },
+  "page.user.support": { ar: "صفحة المستخدم - مركز الدعم", en: "User - Support Page" },
+  "page.user.accounts": { ar: "صفحة المستخدم - الحسابات", en: "User - Accounts Page" },
+  "page.user.settings": { ar: "صفحة المستخدم - الإعدادات", en: "User - Settings Page" },
+  "table.users": { ar: "جدول المستخدمين", en: "Users Table" },
+  "table.products": { ar: "جدول المنتجات", en: "Products Table" },
+  "table.industries": { ar: "جدول الأنشطة", en: "Industries Table" },
+  "table.marketing_assets": { ar: "جدول المكتبة التسويقية", en: "Marketing Library Table" },
+  "table.educational_assets": { ar: "جدول المحتوى التعليمي", en: "Educational Content Table" },
+  "table.leads": { ar: "جدول العملاء المهتمين", en: "Interested Customers Table" },
+  "table.lead_contacts": { ar: "جدول جهات اتصال العملاء", en: "Client Contacts Table" },
+  "table.lead_notes": { ar: "جدول ملاحظات العملاء", en: "Client Notes Table" },
+  "table.tag_types": { ar: "جدول أنواع الوسوم", en: "Tag Types Table" },
+  "table.tags": { ar: "جدول الوسوم", en: "Tags Table" },
+  "table.lead_tag_assignments": { ar: "جدول ربط العملاء بالوسوم", en: "Customer Tag Assignments Table" },
+  "table.store": { ar: "جدول المعارض", en: "Stores Table" },
+  "table.stock": { ar: "جدول مخزون المعارض", en: "Store Stock Table" },
+  "table.demo_requests": { ar: "جدول النسخ التجريبية", en: "Demos Table" },
+  "table.quotes": { ar: "جدول عروض الأسعار", en: "Quotes Table" },
+  "table.participation_contracts": { ar: "جدول عقود المشاركة", en: "Participation Contracts Table" },
+  "table.sponsorship_contracts": { ar: "جدول عقود الرعاية", en: "Sponsorship Contracts Table" },
+  "table.rental_contracts": { ar: "جدول عقود التأجير", en: "Rental Contracts Table" },
+  "table.rental_booths": { ar: "جدول ربط البوثات بعقود التأجير", en: "Rental Booth Links Table" },
+  "table.booths": { ar: "جدول البوثات", en: "Booths Table" },
+  "table.sales_orders": { ar: "جدول أوامر البيع", en: "Sales Orders Table" },
+  "table.sales": { ar: "جدول المبيعات", en: "Sales Table" },
+  "table.commissions": { ar: "جدول العمولات", en: "Commissions Table" },
+  "table.support_tickets": { ar: "جدول تذاكر الخدمة", en: "Support Tickets Table" },
+  "table.support_ticket_types": { ar: "جدول أنواع تذاكر الخدمة", en: "Support Ticket Types Table" },
+  "table.support_ticket_events": { ar: "جدول خط زمن التذاكر", en: "Ticket Timeline Table" },
+  "table.team_members": { ar: "جدول أعضاء الفريق", en: "Team Members Table" },
+  "table.social_accounts": { ar: "جدول حسابات التواصل", en: "Social Accounts Table" },
+  "table.payout_methods": { ar: "جدول الحسابات البنكية", en: "Bank Accounts Table" },
+  "data.team_members": { ar: "رؤية بيانات أعضاء الفريق", en: "View Team Members Data" },
+  "commission.percentage": { ar: "تغيير نسبة العمولة", en: "Change Commission Percentage" },
 };
 
 const permissionCategoryLabels: Record<string, { ar: string; en: string; order: number }> = {
-  admin_pages: { ar: "طµظپط­ط§طھ ط§ظ„ط£ط¯ظ…ظ†", en: "Admin Pages", order: 10 },
-  user_pages: { ar: "طµظپط­ط§طھ ط§ظ„ظ…ط³طھط®ط¯ظ…", en: "User Pages", order: 20 },
-  customers: { ar: "ط§ظ„ط¹ظ…ظ„ط§ط، ظˆط§ظ„ظˆط³ظˆظ…", en: "Customers & Tags", order: 30 },
-  contracts: { ar: "ط§ظ„ط¹ظ‚ظˆط¯ ظˆط§ظ„ط¨ظˆط«ط§طھ", en: "Contracts & Booths", order: 40 },
-  sales: { ar: "ط§ظ„ظ…ط¨ظٹط¹ط§طھ ظˆط§ظ„ط¹ظ…ظˆظ„ط§طھ", en: "Sales & Commissions", order: 50 },
-  support: { ar: "ط§ظ„ط¯ط¹ظ… ظˆط§ظ„طھط°ط§ظƒط±", en: "Support & Tickets", order: 60 },
-  settings: { ar: "ط§ظ„ط¥ط¹ط¯ط§ط¯ط§طھ ظˆط§ظ„ظ…ط­طھظˆظ‰", en: "Settings & Content", order: 70 },
-  other: { ar: "طµظ„ط§ط­ظٹط§طھ ط£ط®ط±ظ‰", en: "Other Permissions", order: 90 },
+  admin_pages: { ar: "صفحات الأدمن", en: "Admin Pages", order: 10 },
+  user_pages: { ar: "صفحات المستخدم", en: "User Pages", order: 20 },
+  customers: { ar: "العملاء والوسوم", en: "Customers & Tags", order: 30 },
+  contracts: { ar: "العقود والبوثات", en: "Contracts & Booths", order: 40 },
+  sales: { ar: "المبيعات والعمولات", en: "Sales & Commissions", order: 50 },
+  support: { ar: "الدعم والتذاكر", en: "Support & Tickets", order: 60 },
+  settings: { ar: "الإعدادات والمحتوى", en: "Settings & Content", order: 70 },
+  other: { ar: "صلاحيات أخرى", en: "Other Permissions", order: 90 },
 };
 
 function permissionCategoryForKey(key: string) {
@@ -3472,7 +3472,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   if (!permissionData) {
     return (
       <section className="admin-data-card admin-loading">
-        {isArabic ? "ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط§ظ„طµظ„ط§ط­ظٹط§طھ..." : "Loading permissions..."}
+        {isArabic ? "جاري تحميل الصلاحيات..." : "Loading permissions..."}
       </section>
     );
   }
@@ -3500,7 +3500,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
         month: "2-digit",
         day: "2-digit",
       }).format(new Date(permissionData.latestUpdatedAt))
-    : "â€”";
+    : "—";
   const subjectLabel =
     subjectType === "role"
       ? String(
@@ -3582,7 +3582,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           }
         : current,
     );
-    setMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const response = await fetch("/api/v1/admin/permissions", {
         method: "PUT",
@@ -3590,15 +3590,15 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
         body: JSON.stringify(nextPermission),
       });
       if (!response.ok) throw new Error("SAVE_FAILED");
-      setMessage(isArabic ? "طھظ… ط­ظپط¸ ط§ظ„طµظ„ط§ط­ظٹط©" : "Permission saved");
+      setMessage(isArabic ? "تم حفظ الصلاحية" : "Permission saved");
     } catch {
-      setMessage(isArabic ? "طھط¹ط°ط± ط­ظپط¸ ط§ظ„طµظ„ط§ط­ظٹط©" : "Unable to save permission");
+      setMessage(isArabic ? "تعذر حفظ الصلاحية" : "Unable to save permission");
       loadPermissions();
     }
   }
 
   async function createRole() {
-    setMessage(isArabic ? "ط¬ط§ط±ظٹ ط¥ظ†ط´ط§ط، ط§ظ„ط¯ظˆط±..." : "Creating role...");
+    setMessage(isArabic ? "جاري إنشاء الدور..." : "Creating role...");
     try {
       const response = await fetch("/api/v1/admin/permissions", {
         method: "POST",
@@ -3613,15 +3613,15 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
         setSubject(`role:${body.data.slug}`);
         setPermissionView("permissions");
       }
-      setMessage(isArabic ? "طھظ… ط¥ظ†ط´ط§ط، ط§ظ„ط¯ظˆط±" : "Role created");
+      setMessage(isArabic ? "تم إنشاء الدور" : "Role created");
     } catch (error) {
       setMessage(
         error instanceof Error && error.message === "ROLE_ALREADY_EXISTS"
           ? isArabic
-            ? "ظٹظˆط¬ط¯ ط¯ظˆط± ط¨ظ†ظپط³ ط§ظ„ط±ظ…ط²"
+            ? "يوجد دور بنفس الرمز"
             : "A role with this slug already exists"
           : isArabic
-            ? "طھط¹ط°ط± ط¥ظ†ط´ط§ط، ط§ظ„ط¯ظˆط±"
+            ? "تعذر إنشاء الدور"
             : "Unable to create role",
       );
     }
@@ -3728,17 +3728,17 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           <span>
             {permissionView === "permissions"
               ? isArabic
-                ? "طھط¹ط¯ظٹظ„ طµظ„ط§ط­ظٹط§طھ ط§ظ„ط¯ظˆط±"
+                ? "تعديل صلاحيات الدور"
                 : "Edit Role Permissions"
               : isArabic
-                ? "ط¥ط¯ط§ط±ط© ط§ظ„طµظ„ط§ط­ظٹط§طھ"
+                ? "إدارة الصلاحيات"
                 : "Permission Management"}
           </span>
           <strong>
             {permissionView === "permissions"
-              ? `${isArabic ? "طµظ„ط§ط­ظٹط§طھ" : "Permissions"} ${subjectLabel}`
+              ? `${isArabic ? "صلاحيات" : "Permissions"} ${subjectLabel}`
               : isArabic
-                ? "ط§ظ„ط£ط¯ظˆط§ط± ظˆط§ظ„طµظ„ط§ط­ظٹط§طھ"
+                ? "الأدوار والصلاحيات"
                 : "Roles & Permissions"}
           </strong>
         </div>
@@ -3753,13 +3753,13 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
               }}
               type="button"
             >
-              {isArabic ? "ط±ط¬ظˆط¹ ظ„ظ‚ط§ط¦ظ…ط© ط§ظ„ط£ط¯ظˆط§ط±" : "Back to Roles"}
+              {isArabic ? "رجوع لقائمة الأدوار" : "Back to Roles"}
             </button>
             <input
-              aria-label={isArabic ? "ط¨ط­ط« ظپظٹ ط§ظ„طµظ„ط§ط­ظٹط§طھ" : "Search permissions"}
+              aria-label={isArabic ? "بحث في الصلاحيات" : "Search permissions"}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={
-                isArabic ? "ط§ظ„ط¨ط­ط« ظپظٹ طµظ„ط§ط­ظٹط§طھ ط§ظ„ط¯ظˆط±..." : "Search role permissions..."
+                isArabic ? "البحث في صلاحيات الدور..." : "Search role permissions..."
               }
               type="search"
               value={query}
@@ -3773,10 +3773,10 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       {permissionView === "roles" ? (
       <div className="admin-role-create-panel">
         <div>
-          <span>{isArabic ? "ط¥ط¶ط§ظپط© ط¯ظˆط± ط¬ط¯ظٹط¯" : "Add New Role"}</span>
+          <span>{isArabic ? "إضافة دور جديد" : "Add New Role"}</span>
           <strong>
             {isArabic
-              ? "ط£ظ†ط´ط¦ ط¯ظˆط±ظ‹ط§ ط«ظ… ط§ط±ط¨ط·ظ‡ ط¨ط§ظ„ظ…ط³طھط®ط¯ظ…ظٹظ† ظˆط§ظ„طµظ„ط§ط­ظٹط§طھ"
+              ? "أنشئ دورًا ثم اربطه بالمستخدمين والصلاحيات"
               : "Create a role, then link it to users and permissions"}
           </strong>
         </div>
@@ -3784,7 +3784,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           onChange={(event) =>
             setRoleDraft((current) => ({ ...current, name_ar: event.target.value }))
           }
-          placeholder={isArabic ? "ط§ط³ظ… ط§ظ„ط¯ظˆط± ط¨ط§ظ„ط¹ط±ط¨ظٹ" : "Arabic role name"}
+          placeholder={isArabic ? "اسم الدور بالعربي" : "Arabic role name"}
           value={roleDraft.name_ar}
         />
         <input
@@ -3792,7 +3792,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           onChange={(event) =>
             setRoleDraft((current) => ({ ...current, name_en: event.target.value }))
           }
-          placeholder={isArabic ? "ط§ط³ظ… ط§ظ„ط¯ظˆط± ط¨ط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹ" : "English role name"}
+          placeholder={isArabic ? "اسم الدور بالإنجليزي" : "English role name"}
           value={roleDraft.name_en}
         />
         <input
@@ -3800,11 +3800,11 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           onChange={(event) =>
             setRoleDraft((current) => ({ ...current, slug: event.target.value }))
           }
-          placeholder={isArabic ? "ط±ظ…ط² ط§ظ„ط¯ظˆط± ط§ط®طھظٹط§ط±ظٹ" : "Optional role slug"}
+          placeholder={isArabic ? "رمز الدور اختياري" : "Optional role slug"}
           value={roleDraft.slug}
         />
         <DashboardSelect
-          ariaLabel={isArabic ? "ظ†ظˆط¹ ط§ظ„ط¯ظˆط±" : "Role type"}
+          ariaLabel={isArabic ? "نوع الدور" : "Role type"}
           menuClassName="admin-edit-select-menu"
           onValueChange={(role_type) =>
             setRoleDraft((current) => ({
@@ -3813,13 +3813,13 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
             }))
           }
           options={[
-            { value: "user", label: isArabic ? "ط´ط§ط´ط§طھ ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User screens" },
-            { value: "admin", label: isArabic ? "ط´ط§ط´ط§طھ ط§ظ„ط£ط¯ظ…ظ†" : "Admin screens" },
+            { value: "user", label: isArabic ? "شاشات المستخدم" : "User screens" },
+            { value: "admin", label: isArabic ? "شاشات الأدمن" : "Admin screens" },
           ]}
           value={roleDraft.role_type}
         />
         <button className="admin-create-role-btn" onClick={createRole} type="button">
-          {isArabic ? "ط¥ظ†ط´ط§ط، ط§ظ„ط¯ظˆط±" : "Create Role"}
+          {isArabic ? "إنشاء الدور" : "Create Role"}
         </button>
       </div>
       ) : null}
@@ -3828,16 +3828,16 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       <div className="admin-roles-list-card">
         <div className="admin-roles-list-head">
           <div>
-            <span>{isArabic ? "ظ‚ط§ط¦ظ…ط© ط§ظ„ط£ط¯ظˆط§ط±" : "Roles List"}</span>
+            <span>{isArabic ? "قائمة الأدوار" : "Roles List"}</span>
             <strong>
               {isArabic
-                ? "ط§ط®طھط± ط§ظ„ط¯ظˆط± ظ„طھط¹ط¯ظٹظ„ ط§ظ„طµظ„ط§ط­ظٹط§طھ ط§ظ„ظ…ط±طھط¨ط·ط© ط¨ظ‡"
+                ? "اختر الدور لتعديل الصلاحيات المرتبطة به"
                 : "Choose a role to edit its linked permissions"}
             </strong>
           </div>
           <small>
             {permissionData.roles.length.toLocaleString(NUMBER_LOCALE)}{" "}
-            {isArabic ? "ط¯ظˆط±" : "roles"}
+            {isArabic ? "دور" : "roles"}
           </small>
         </div>
         <div className="admin-roles-list-grid">
@@ -3856,10 +3856,10 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                 <span className={`admin-role-type-pill ${role.role_type ?? "user"}`}>
                   {role.role_type === "admin"
                     ? isArabic
-                      ? "ط´ط§ط´ط§طھ ط§ظ„ط£ط¯ظ…ظ†"
+                      ? "شاشات الأدمن"
                       : "Admin screens"
                     : isArabic
-                      ? "ط´ط§ط´ط§طھ ط§ظ„ظ…ط³طھط®ط¯ظ…"
+                      ? "شاشات المستخدم"
                       : "User screens"}
                 </span>
                 <div className="admin-role-actions">
@@ -4062,11 +4062,11 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
         <table className="admin-permissions-table">
           <thead>
             <tr>
-              <th>{isArabic ? "ط§ظ„طµظ„ط§ط­ظٹط©" : "Permission"}</th>
+              <th>{isArabic ? "الصلاحية" : "Permission"}</th>
               {permissionActionLabels.map(([key, label]) => (
                 <th key={key}>{label[language]}</th>
               ))}
-              <th>{isArabic ? "ظ†ط·ط§ظ‚ ط§ظ„ط¨ظٹط§ظ†ط§طھ" : "Data Scope"}</th>
+              <th>{isArabic ? "نطاق البيانات" : "Data Scope"}</th>
             </tr>
           </thead>
           <tbody>
@@ -4080,7 +4080,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                     </span>
                     <small>
                       {group.keys.length.toLocaleString(NUMBER_LOCALE)}{" "}
-                      {isArabic ? "طµظ„ط§ط­ظٹط©" : "permissions"}
+                      {isArabic ? "صلاحية" : "permissions"}
                     </small>
                   </td>
                 </tr>
@@ -4115,7 +4115,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
                       ))}
                       <td>
                         <select
-                          aria-label={isArabic ? "ظ†ط·ط§ظ‚ ط§ظ„ط¨ظٹط§ظ†ط§طھ" : "Data scope"}
+                          aria-label={isArabic ? "نطاق البيانات" : "Data scope"}
                           className="admin-permission-scope"
                           onChange={(event) =>
                             savePermission(permission, {
@@ -4142,7 +4142,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
             {filteredKeys.length === 0 ? (
               <tr>
                 <td className="admin-empty" colSpan={9}>
-                  {isArabic ? "ظ„ط§ طھظˆط¬ط¯ طµظ„ط§ط­ظٹط§طھ ظ…ط·ط§ط¨ظ‚ط©" : "No matching permissions"}
+                  {isArabic ? "لا توجد صلاحيات مطابقة" : "No matching permissions"}
                 </td>
               </tr>
             ) : null}
@@ -4154,7 +4154,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       <div className="admin-permissions-footnote">
         <span>
           {isArabic
-            ? "ط¢ط®ط± طھط¹ط¯ظٹظ„ ظ„ظ„طµظ„ط§ط­ظٹط§طھ ظƒط§ظ† ط¨طھط§ط±ظٹط®"
+            ? "آخر تعديل للصلاحيات كان بتاريخ"
             : "Last permissions update was on"}
         </span>
         <strong>{latestPermissionsUpdate}</strong>
@@ -4292,22 +4292,22 @@ export const PPT_BOOTH_LAYOUT = [
 ] as const;
 
 export const FLOOR_MAP_AREA_LABELS = [
-  { key: "traders", labelAr: "ط³ظˆظ‚ ط§ظ„طھط¬ط§ط±", labelEn: "Traders Market", left: 3.235, top: 16.719, width: 43.18, height: 4.486 },
-  { key: "roasting", labelAr: "ظ…ظ†ط·ظ‚ط© ط§ظ„طھط­ظ…ظٹطµ", labelEn: "Roasting Area", left: 49.8, top: 16.719, width: 37.6, height: 4.237 },
-  { key: "farmers", labelAr: "ط³ظˆظ‚ ظ…ط²ط§ط±ط¹ظٹظ† ط§ظ„ط¨ظ†", labelEn: "Coffee Farmers Market", left: 86.906, top: 19.21, width: 8.812, height: 42.352 },
-  { key: "corridor-top", labelAr: "ظ…ظ…ط± 4m", labelEn: "Corridor 4m", left: 46.1, top: 14.3, width: 5.9, height: 4.7 },
-  { key: "innovation", labelAr: "ط³ط§ط­ط© ط§ظ„ط§ط¨طھظƒط§ط±", labelEn: "Innovation Area", left: 52.464, top: 73.895, width: 43.309, height: 4.486 },
-  { key: "stage", labelAr: "ط§ظ„ط³ط§ط­ط© ظˆط§ظ„ظ…ط³ط±ط­", labelEn: "Plaza & Stage", left: 3.235, top: 75.199, width: 43.355, height: 22.454 },
+  { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.235, top: 16.719, width: 43.18, height: 4.486 },
+  { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 49.8, top: 16.719, width: 37.6, height: 4.237 },
+  { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 86.906, top: 19.21, width: 8.812, height: 42.352 },
+  { key: "corridor-top", labelAr: "ممر 4m", labelEn: "Corridor 4m", left: 46.1, top: 14.3, width: 5.9, height: 4.7 },
+  { key: "innovation", labelAr: "ساحة الابتكار", labelEn: "Innovation Area", left: 52.464, top: 73.895, width: 43.309, height: 4.486 },
+  { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.235, top: 75.199, width: 43.355, height: 22.454 },
 ] as const;
 
 export const FLOOR_MAP_ZONES = [
-  { key: "all", labelAr: "ظƒظ„ ط§ظ„ط£ظ‚ط³ط§ظ…", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
-  { key: "prefunction", labelAr: "ظ‚ط§ط¹ط© ظ…ط§ ظ‚ط¨ظ„ ط§ظ„ظپط¹ط§ظ„ظٹط©", labelEn: "Pre-Function Hall", left: 11.2, top: 4.6, width: 76.4, height: 9.2 },
-  { key: "traders", labelAr: "ط³ظˆظ‚ ط§ظ„طھط¬ط§ط±", labelEn: "Traders Market", left: 3.0, top: 17.0, width: 47.8, height: 56.8 },
-  { key: "roasting", labelAr: "ظ…ظ†ط·ظ‚ط© ط§ظ„طھط­ظ…ظٹطµ", labelEn: "Roasting Area", left: 49.8, top: 17.0, width: 37.6, height: 55.8 },
-  { key: "farmers", labelAr: "ط³ظˆظ‚ ظ…ط²ط§ط±ط¹ظٹظ† ط§ظ„ط¨ظ†", labelEn: "Coffee Farmers Market", left: 88.8, top: 17.2, width: 6.8, height: 46.4 },
-  { key: "innovation", labelAr: "ط³ط§ط­ط© ط§ظ„ط§ط¨طھظƒط§ط±", labelEn: "Innovation Area", left: 51.8, top: 74.2, width: 43.3, height: 22.4 },
-  { key: "stage", labelAr: "ط§ظ„ط³ط§ط­ط© ظˆط§ظ„ظ…ط³ط±ط­", labelEn: "Plaza & Stage", left: 3.8, top: 75.6, width: 41.8, height: 21.0 },
+  { key: "all", labelAr: "كل الأقسام", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
+  { key: "prefunction", labelAr: "قاعة ما قبل الفعالية", labelEn: "Pre-Function Hall", left: 11.2, top: 4.6, width: 76.4, height: 9.2 },
+  { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.0, top: 17.0, width: 47.8, height: 56.8 },
+  { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 49.8, top: 17.0, width: 37.6, height: 55.8 },
+  { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 88.8, top: 17.2, width: 6.8, height: 46.4 },
+  { key: "innovation", labelAr: "ساحة الابتكار", labelEn: "Innovation Area", left: 51.8, top: 74.2, width: 43.3, height: 22.4 },
+  { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.8, top: 75.6, width: 41.8, height: 21.0 },
 ] as const;
 
 export function floorMapZoneForBooth(boothId: string) {
@@ -4361,7 +4361,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
       setBooths(Array.isArray(boothPayload.data) ? boothPayload.data : []);
       void loadBoothBookings();
     } catch {
-      setMessage(isArabic ? "طھط¹ط°ط± طھط­ظ…ظٹظ„ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط¨ظˆط«ط§طھ" : "Unable to load booths");
+      setMessage(isArabic ? "تعذر تحميل بيانات البوثات" : "Unable to load booths");
     } finally {
       setIsLoading(false);
     }
@@ -4491,11 +4491,11 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
   async function saveBooth() {
     if (!selectedBooth || isSaving) return;
     if (!draft.booth_number.trim()) {
-      setMessage(isArabic ? "ط±ظ‚ظ… ط§ظ„ط¨ظˆط« ظ…ط·ظ„ظˆط¨" : "Booth number is required");
+      setMessage(isArabic ? "رقم البوث مطلوب" : "Booth number is required");
       return;
     }
     setIsSaving(true);
-    setMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const response = await fetch(`/api/v1/data/booths/${selectedBooth.id}`, {
         method: "PUT",
@@ -4521,26 +4521,26 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
         current.map((booth) => (Number(booth.id) === Number(nextBooth.id) ? nextBooth : booth)),
       );
       setSelectedBooth(nextBooth);
-      setMessage(isArabic ? "طھظ… ط­ظپط¸ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط¨ظˆط«" : "Booth saved");
+      setMessage(isArabic ? "تم حفظ بيانات البوث" : "Booth saved");
       window.setTimeout(() => setMessage(""), 2200);
     } catch (error) {
       const code = error instanceof Error ? error.message : "SAVE_FAILED";
       const errorMessages: Record<string, { ar: string; en: string }> = {
         DUPLICATE_BOOTH_NUMBER: {
-          ar: "ط±ظ‚ظ… ط§ظ„ط¨ظˆط« ظ…ط³طھط®ط¯ظ… ظ…ط³ط¨ظ‚ط§ظ‹",
+          ar: "رقم البوث مستخدم مسبقاً",
           en: "Booth number is already used",
         },
         FORBIDDEN: {
-          ar: "ظ„ط§ طھظˆط¬ط¯ طµظ„ط§ط­ظٹط© ظ„طھط¹ط¯ظٹظ„ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط¨ظˆط«",
+          ar: "لا توجد صلاحية لتعديل بيانات البوث",
           en: "You do not have permission to edit booth details",
         },
         VALIDATION_ERROR: {
-          ar: "ط±ط§ط¬ط¹ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط¨ظˆط« ظ‚ط¨ظ„ ط§ظ„ط­ظپط¸",
+          ar: "راجع بيانات البوث قبل الحفظ",
           en: "Review booth details before saving",
         },
       };
       const nextMessage = errorMessages[code] ?? {
-        ar: "طھط¹ط°ط± ط­ظپط¸ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط¨ظˆط«",
+        ar: "تعذر حفظ بيانات البوث",
         en: "Unable to save booth",
       };
       setMessage(isArabic ? nextMessage.ar : nextMessage.en);
@@ -4553,22 +4553,22 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
     <section className="admin-data-card admin-booths-page">
       <div className="admin-booths-head">
         <div>
-          <span>{isArabic ? "ط¥ط¯ط§ط±ط© ط§ظ„ط¨ظˆط«ط§طھ" : "Booth Management"}</span>
-          <h2>{isArabic ? "ط®ط±ظٹط·ط© ط§ظ„ط¨ظˆط«ط§طھ" : "Booth Layout"}</h2>
+          <span>{isArabic ? "إدارة البوثات" : "Booth Management"}</span>
+          <h2>{isArabic ? "خريطة البوثات" : "Booth Layout"}</h2>
           <p>
             {isArabic
-              ? "ط§ط®طھط± ط£ظٹ ط¨ظˆط« ظ…ظ† ط§ظ„ظ…ط®ط·ط· ظ„طھط¹ط¯ظٹظ„ ط±ظ‚ظ…ظ‡طŒ ظ…ظ‚ط§ط³ظ‡طŒ ط£ط¨ط¹ط§ط¯ظ‡طŒ ظ…ظˆظ‚ط¹ظ‡ ط£ظˆ ط­ط§ظ„طھظ‡."
+              ? "اختر أي بوث من المخطط لتعديل رقمه، مقاسه، أبعاده، موقعه أو حالته."
               : "Select any booth from the layout to edit its number, size, dimensions, location, or status."}
           </p>
         </div>
         <div className="admin-booth-stats">
-          <span>{booths.length.toLocaleString(NUMBER_LOCALE)} {isArabic ? "ط¨ظˆط«" : "booths"}</span>
-          <span className="booked">{totalBooked.toLocaleString(NUMBER_LOCALE)} {isArabic ? "ظ…ط­ط¬ظˆط²" : "booked"}</span>
+          <span>{booths.length.toLocaleString(NUMBER_LOCALE)} {isArabic ? "بوث" : "booths"}</span>
+          <span className="booked">{totalBooked.toLocaleString(NUMBER_LOCALE)} {isArabic ? "محجوز" : "booked"}</span>
           <span className="pending-payment">{totalPendingPayment.toLocaleString(NUMBER_LOCALE)} {isArabic ? "بانتظار الدفع" : "pending"}</span>
-          <span className="inactive">{totalInactive.toLocaleString(NUMBER_LOCALE)} {isArabic ? "ط؛ظٹط± ظ†ط´ط·" : "inactive"}</span>
-          <div className="admin-booth-map-legend" aria-label={isArabic ? "ط¯ظ„ظٹظ„ ط£ظ„ظˆط§ظ† ط§ظ„ط¨ظˆط«ط§طھ" : "Booth color legend"}>
+          <span className="inactive">{totalInactive.toLocaleString(NUMBER_LOCALE)} {isArabic ? "غير نشط" : "inactive"}</span>
+          <div className="admin-booth-map-legend" aria-label={isArabic ? "دليل ألوان البوثات" : "Booth color legend"}>
             <span>
-              {isArabic ? "ظ…طھط§ط­" : "Available"}
+              {isArabic ? "متاح" : "Available"}
               <i className="available" aria-hidden="true" />
             </span>
             <span>
@@ -4576,11 +4576,11 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
               <i className="pending-payment" aria-hidden="true" />
             </span>
             <span>
-              {isArabic ? "ظ…ط­ط¬ظˆط²" : "Booked"}
+              {isArabic ? "محجوز" : "Booked"}
               <i className="booked" aria-hidden="true" />
             </span>
             <span>
-              {isArabic ? "ظ…ط®طھط§ط±" : "Selected"}
+              {isArabic ? "مختار" : "Selected"}
               <i className="selected" aria-hidden="true" />
             </span>
           </div>
@@ -4594,14 +4594,14 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
             <path d="m15.5 15.5 4 4" />
           </svg>
           <input
-            aria-label={isArabic ? "ط§ظ„ط¨ط­ط« ظپظٹ ط§ظ„ط¨ظˆط«ط§طھ" : "Search booths"}
+            aria-label={isArabic ? "البحث في البوثات" : "Search booths"}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={isArabic ? "ط§ط¨ط­ط« ط¨ط±ظ‚ظ… ط§ظ„ط¨ظˆط« ط£ظˆ ط§ظ„ظ…ظ†ط·ظ‚ط©..." : "Search booth number or zone..."}
+            placeholder={isArabic ? "ابحث برقم البوث أو المنطقة..." : "Search booth number or zone..."}
             type="search"
             value={query}
           />
         </div>
-        <div className="admin-booth-zone-filter" role="listbox" aria-label={isArabic ? "ظپظ„طھط±ط© ط§ظ„ط£ظ‚ط³ط§ظ…" : "Zone filter"}>
+        <div className="admin-booth-zone-filter" role="listbox" aria-label={isArabic ? "فلترة الأقسام" : "Zone filter"}>
           {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "stage").map((zone) => (
             <button
               aria-selected={activeZone === zone.key}
@@ -4615,22 +4615,22 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
           ))}
         </div>
         <button className="admin-action-btn" onClick={() => void loadBooths()} type="button">
-          {isArabic ? "طھط­ط¯ظٹط«" : "Refresh"}
+          {isArabic ? "تحديث" : "Refresh"}
         </button>
       </div>
 
       <div className="admin-booths-workspace">
         <div className="admin-booths-layout" aria-busy={isLoading}>
           {isLoading ? (
-            <div className="admin-booths-empty">{isArabic ? "ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط§ظ„ط®ط±ظٹط·ط©..." : "Loading layout..."}</div>
+            <div className="admin-booths-empty">{isArabic ? "جاري تحميل الخريطة..." : "Loading layout..."}</div>
           ) : visibleLayoutBooths.length ? (
             <>
               <div className="admin-floor-map-canvas">
                 <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
-                  {isArabic ? "ظ‚ط§ط¹ط© ظ…ط§ ظ‚ط¨ظ„ ط§ظ„ظپط¹ط§ظ„ظٹط©" : "Pre-Function Hall"}
+                  {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}
                 </div>
-                <div className="admin-floor-map-label entrance">{isArabic ? "ط¨ظˆط§ط¨ط© ط§ظ„ط¯ط®ظˆظ„" : "Entrance"}</div>
-                <div className="admin-floor-map-label exit">{isArabic ? "ط¨ظˆط§ط¨ط© ط§ظ„ط®ط±ظˆط¬" : "Exit"}</div>
+                <div className="admin-floor-map-label entrance">{isArabic ? "بوابة الدخول" : "Entrance"}</div>
+                <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
                 {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "all").map((zone) => (
                   <div
                     className={`admin-floor-zone-container ${zone.key} ${activeZone === zone.key ? "is-focused" : ""} ${activeZone !== "all" && activeZone !== zone.key ? "is-dimmed" : ""}`}
@@ -4673,11 +4673,11 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   const boothMapLabel =
                     layoutBooth.id === "ACADEMY"
                       ? isArabic
-                        ? "ط§ظ„ط£ظƒط§ط¯ظٹظ…ظٹط©"
+                        ? "الأكاديمية"
                         : "Academy"
                       : layoutBooth.id === "GLASS HOUSE"
                         ? isArabic
-                          ? "ط¬ظ„ط§ط³ ظ‡ط§ظˆط³"
+                          ? "جلاس هاوس"
                           : "Glass House"
                         : layoutBooth.id;
                   const boothMapSize = String(
@@ -4708,7 +4708,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
               {unplacedBooths.length ? (
                 <section className="admin-unplaced-booths">
                   <div className="admin-booth-zone-title">
-                    <strong>{isArabic ? "ط¨ظˆط«ط§طھ ط®ط§ط±ط¬ ط§ظ„ط®ط±ظٹط·ط©" : "Unplaced booths"}</strong>
+                    <strong>{isArabic ? "بوثات خارج الخريطة" : "Unplaced booths"}</strong>
                     <span>{unplacedBooths.length.toLocaleString(NUMBER_LOCALE)}</span>
                   </div>
                   <div className="admin-booth-buttons">
@@ -4736,7 +4736,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
               ) : null}
             </>
           ) : (
-            <div className="admin-booths-empty">{isArabic ? "ظ„ط§ طھظˆط¬ط¯ ط¨ظˆط«ط§طھ ظ…ط·ط§ط¨ظ‚ط©" : "No matching booths"}</div>
+            <div className="admin-booths-empty">{isArabic ? "لا توجد بوثات مطابقة" : "No matching booths"}</div>
           )}
         </div>
 
@@ -4745,33 +4745,33 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
             <>
               <div className="admin-booth-editor-head">
                 <div>
-                  <span>{isArabic ? "ط¨ظٹط§ظ†ط§طھ ط§ظ„ط¨ظˆط«" : "Booth Details"}</span>
+                  <span>{isArabic ? "بيانات البوث" : "Booth Details"}</span>
                   <h3>{String(selectedBooth.booth_number ?? "")}</h3>
                 </div>
                 <span className={`admin-booth-status ${selectedBooking ? "booked" : String(draft.status)}`}>
                   {selectedBooking
-                    ? isArabic ? "ظ…ط­ط¬ظˆط²" : "Booked"
+                    ? isArabic ? "محجوز" : "Booked"
                     : draft.status === "inactive"
-                      ? isArabic ? "ط؛ظٹط± ظ†ط´ط·" : "Inactive"
-                      : isArabic ? "ظ…طھط§ط­" : "Available"}
+                      ? isArabic ? "غير نشط" : "Inactive"
+                      : isArabic ? "متاح" : "Available"}
                 </span>
               </div>
               {selectedBooking ? (
                 <div className="admin-booth-booking-note">
-                  <strong>{isArabic ? "ظ…ط±طھط¨ط· ط¨ط¹ظ‚ط¯" : "Linked contract"}</strong>
+                  <strong>{isArabic ? "مرتبط بعقد" : "Linked contract"}</strong>
                   <span>
-                    {String(selectedBooking.contract_number ?? selectedBooking.company_name ?? selectedBooking.rental_contract_id ?? "â€”")}
+                    {String(selectedBooking.contract_number ?? selectedBooking.company_name ?? selectedBooking.rental_contract_id ?? "—")}
                   </span>
                 </div>
               ) : null}
               <div className="admin-booth-form">
                 {[
-                  ["booth_number", isArabic ? "ط±ظ‚ظ… ط§ظ„ط¨ظˆط«" : "Booth number"],
-                  ["booth_size", isArabic ? "ط§ظ„ظ…ط³ط§ط­ط©" : "Size"],
-                  ["booth_dimensions", isArabic ? "ط£ط¨ط¹ط§ط¯ ط§ظ„ط¨ظˆط«" : "Dimensions"],
-                  ["booth_category", isArabic ? "ط§ظ„ظپط¦ط©" : "Category"],
-                  ["hall", isArabic ? "ط§ظ„ظ‚ط§ط¹ط©" : "Hall"],
-                  ["location_zone", isArabic ? "ط§ظ„ظ…ظ†ط·ظ‚ط©" : "Zone"],
+                  ["booth_number", isArabic ? "رقم البوث" : "Booth number"],
+                  ["booth_size", isArabic ? "المساحة" : "Size"],
+                  ["booth_dimensions", isArabic ? "أبعاد البوث" : "Dimensions"],
+                  ["booth_category", isArabic ? "الفئة" : "Category"],
+                  ["hall", isArabic ? "القاعة" : "Hall"],
+                  ["location_zone", isArabic ? "المنطقة" : "Zone"],
                 ].map(([field, label]) => (
                   <label key={field}>
                     <span>{label}</span>
@@ -4785,7 +4785,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   </label>
                 ))}
                 <label>
-                  <span>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</span>
+                  <span>{isArabic ? "الحالة" : "Status"}</span>
                   <select
                     className="admin-basic-select"
                     onChange={(event) =>
@@ -4793,12 +4793,12 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                     }
                     value={draft.status}
                   >
-                    <option value="available">{isArabic ? "ظ…طھط§ط­" : "Available"}</option>
-                    <option value="inactive">{isArabic ? "ط؛ظٹط± ظ†ط´ط·" : "Inactive"}</option>
+                    <option value="available">{isArabic ? "متاح" : "Available"}</option>
+                    <option value="inactive">{isArabic ? "غير نشط" : "Inactive"}</option>
                   </select>
                 </label>
                 <label className="admin-booth-notes">
-                  <span>{isArabic ? "ظ…ظ„ط§ط­ط¸ط§طھ" : "Notes"}</span>
+                  <span>{isArabic ? "ملاحظات" : "Notes"}</span>
                   <textarea
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, notes: event.target.value }))
@@ -4810,17 +4810,17 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
               {message ? <p className="admin-booth-message">{message}</p> : null}
               <div className="admin-edit-actions">
                 <button className="secondary" onClick={cancelBoothEdit} type="button">
-                  {isArabic ? "ط¥ظ„ط؛ط§ط، ط§ظ„طھط¹ط¯ظٹظ„" : "Reset"}
+                  {isArabic ? "إلغاء التعديل" : "Reset"}
                 </button>
                 <button className="primary" disabled={isSaving} onClick={() => void saveBooth()} type="button">
-                  {isSaving ? (isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...") : (isArabic ? "ط­ظپط¸ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط¨ظˆط«" : "Save booth")}
+                  {isSaving ? (isArabic ? "جاري الحفظ..." : "Saving...") : (isArabic ? "حفظ بيانات البوث" : "Save booth")}
                 </button>
               </div>
             </>
           ) : (
             <div className="admin-booth-editor-empty">
-              <strong>{isArabic ? "ط§ط®طھط± ط¨ظˆط« ظ…ظ† ط§ظ„ط®ط±ظٹط·ط©" : "Select a booth"}</strong>
-              <span>{isArabic ? "ط³طھط¸ظ‡ط± ط¨ظٹط§ظ†ط§طھظ‡ ظ‡ظ†ط§ ظ„ظ„طھط¹ط¯ظٹظ„." : "Its details will appear here for editing."}</span>
+              <strong>{isArabic ? "اختر بوث من الخريطة" : "Select a booth"}</strong>
+              <span>{isArabic ? "ستظهر بياناته هنا للتعديل." : "Its details will appear here for editing."}</span>
               {message ? <p className="admin-booth-message">{message}</p> : null}
             </div>
           )}
@@ -4955,53 +4955,53 @@ function AdminManagementSection({
     tickets: {
       rows: managementData.tickets,
       columns: [
-        ["ticket_number", isArabic ? "ط±ظ‚ظ… ط§ظ„طھط°ظƒط±ط©" : "Ticket Number"],
-        ["subject", isArabic ? "ط§ظ„ظ…ظˆط¶ظˆط¹" : "Subject"],
-        ["category", isArabic ? "ط§ظ„طھطµظ†ظٹظپ" : "Category"],
-        ["details", isArabic ? "طھظپط§طµظٹظ„ ط§ظ„طھط°ظƒط±ط©" : "Ticket Details"],
-        ["notes", isArabic ? "ط§ظ„ظ…ظ„ط§ط­ط¸ط§طھ" : "Notes"],
-        ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
-        ["user_name", isArabic ? "ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User"],
-        ["created_at", isArabic ? "طھط§ط±ظٹط® ط§ظ„ط¥ظ†ط´ط§ط،" : "Created Date"],
+        ["ticket_number", isArabic ? "رقم التذكرة" : "Ticket Number"],
+        ["subject", isArabic ? "الموضوع" : "Subject"],
+        ["category", isArabic ? "التصنيف" : "Category"],
+        ["details", isArabic ? "تفاصيل التذكرة" : "Ticket Details"],
+        ["notes", isArabic ? "الملاحظات" : "Notes"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["user_name", isArabic ? "المستخدم" : "User"],
+        ["created_at", isArabic ? "تاريخ الإنشاء" : "Created Date"],
       ],
     },
     accounts: {
       rows: managementData.users,
       columns: [
-        ["name", isArabic ? "ط§ظ„ط§ط³ظ…" : "Name"],
-        ["email", isArabic ? "ط§ظ„ط¨ط±ظٹط¯ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ" : "Email"],
-        ["role", isArabic ? "ط§ظ„طµظ„ط§ط­ظٹط©" : "Role"],
-        ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
-        ["last_login_at", isArabic ? "ط¢ط®ط± ط¯ط®ظˆظ„" : "Last Login"],
+        ["name", isArabic ? "الاسم" : "Name"],
+        ["email", isArabic ? "البريد الإلكتروني" : "Email"],
+        ["role", isArabic ? "الصلاحية" : "Role"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["last_login_at", isArabic ? "آخر دخول" : "Last Login"],
       ],
     },
     products: {
       rows: managementData.products,
       columns: [
-        [isArabic ? "name" : "name_en", isArabic ? "ط§ظ„ظ…ظ†طھط¬" : "Product"],
-        ["slug", isArabic ? "ط§ظ„ط±ظ…ط²" : "Slug"],
-        ["base_price", isArabic ? "ط§ظ„ط³ط¹ط±" : "Price"],
-        ["currency", isArabic ? "ط§ظ„ط¹ظ…ظ„ط©" : "Currency"],
-        ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
+        [isArabic ? "name" : "name_en", isArabic ? "المنتج" : "Product"],
+        ["slug", isArabic ? "الرمز" : "Slug"],
+        ["base_price", isArabic ? "السعر" : "Price"],
+        ["currency", isArabic ? "العملة" : "Currency"],
+        ["status", isArabic ? "الحالة" : "Status"],
       ],
     },
     activity: {
       rows: managementData.industries,
       columns: [
-        [isArabic ? "name" : "name_en", isArabic ? "ط§ط³ظ… ط§ظ„ظ†ط´ط§ط·" : "Industry"],
-        ["slug", isArabic ? "ط§ظ„ط±ظ…ط²" : "Slug"],
-        ["description", isArabic ? "ط§ظ„ظˆطµظپ" : "Description"],
-        ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
-        ["created_at", isArabic ? "طھط§ط±ظٹط® ط§ظ„ط¥ط¶ط§ظپط©" : "Created Date"],
+        [isArabic ? "name" : "name_en", isArabic ? "اسم النشاط" : "Industry"],
+        ["slug", isArabic ? "الرمز" : "Slug"],
+        ["description", isArabic ? "الوصف" : "Description"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["created_at", isArabic ? "تاريخ الإضافة" : "Created Date"],
       ],
     },
     content: {
       rows: managementData.content,
       columns: [
-        ["title", isArabic ? "ط§ظ„ط¹ظ†ظˆط§ظ†" : "Title"],
-        ["asset_type", isArabic ? "ظ†ظˆط¹ ط§ظ„ظ…ط­طھظˆظ‰" : "Content Type"],
-        ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
-        ["created_at", isArabic ? "طھط§ط±ظٹط® ط§ظ„ط¥ط¶ط§ظپط©" : "Created Date"],
+        ["title", isArabic ? "العنوان" : "Title"],
+        ["asset_type", isArabic ? "نوع المحتوى" : "Content Type"],
+        ["status", isArabic ? "الحالة" : "Status"],
+        ["created_at", isArabic ? "تاريخ الإضافة" : "Created Date"],
       ],
     },
   } satisfies Record<
@@ -5013,12 +5013,12 @@ function AdminManagementSection({
       ? {
           rows: managementData.content,
           columns: [
-            ["title", isArabic ? "ط§ط³ظ… ط§ظ„ظ…ظ„ظپ" : "File Name"],
-            ["original_name", isArabic ? "ط§ظ„ظ…ظ„ظپ ط§ظ„ط£طµظ„ظٹ" : "Original File"],
-            ["asset_type", isArabic ? "ط§ظ„ظ†ظˆط¹" : "Type"],
-            ["file_size", isArabic ? "ط§ظ„ط­ط¬ظ…" : "Size"],
-            ["status", isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"],
-            ["created_at", isArabic ? "طھط§ط±ظٹط® ط§ظ„ط±ظپط¹" : "Upload Date"],
+            ["title", isArabic ? "اسم الملف" : "File Name"],
+            ["original_name", isArabic ? "الملف الأصلي" : "Original File"],
+            ["asset_type", isArabic ? "النوع" : "Type"],
+            ["file_size", isArabic ? "الحجم" : "Size"],
+            ["status", isArabic ? "الحالة" : "Status"],
+            ["created_at", isArabic ? "تاريخ الرفع" : "Upload Date"],
           ],
         }
       : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths">] ?? {
@@ -5082,11 +5082,11 @@ function AdminManagementSection({
     return (
       <section className="admin-data-card admin-loading">
         <span>
-          {error || (isArabic ? "ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط§ظ„ط¨ظٹط§ظ†ط§طھ..." : "Loading data...")}
+          {error || (isArabic ? "جاري تحميل البيانات..." : "Loading data...")}
         </span>
         {error ? (
           <button className="admin-action-btn" onClick={onReload}>
-            {isArabic ? "ط¥ط¹ط§ط¯ط© ط§ظ„ظ…ط­ط§ظˆظ„ط©" : "Retry"}
+            {isArabic ? "إعادة المحاولة" : "Retry"}
           </button>
         ) : null}
       </section>
@@ -5098,7 +5098,7 @@ function AdminManagementSection({
     const userId = Number(row.user_id);
     const userName = usersById.get(userId);
     if (userName) return userName;
-    return userId ? `User #${userId}` : "â€”";
+    return userId ? `User #${userId}` : "—";
   }
 
   function openTicketEditor(ticket: AdminRow) {
@@ -5126,11 +5126,11 @@ function AdminManagementSection({
   async function saveTicketType() {
     if (!ticketTypeDraft.name_ar.trim() || !ticketTypeDraft.name_en.trim()) {
       setTicketTypeMessage(
-        isArabic ? "ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ظ†ظˆط¹ ط¨ط§ظ„ط¹ط±ط¨ظٹ ظˆط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹ" : "Enter the Arabic and English type names",
+        isArabic ? "أدخل اسم النوع بالعربي والإنجليزي" : "Enter the Arabic and English type names",
       );
       return;
     }
-    setTicketTypeMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setTicketTypeMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const response = await fetch(
         editingTicketType
@@ -5159,7 +5159,7 @@ function AdminManagementSection({
       onReload();
     } catch {
       setTicketTypeMessage(
-        isArabic ? "طھط¹ط°ط± ط­ظپط¸ ظ†ظˆط¹ ط§ظ„طھط°ظƒط±ط©" : "Unable to save ticket type",
+        isArabic ? "تعذر حفظ نوع التذكرة" : "Unable to save ticket type",
       );
     }
   }
@@ -5207,12 +5207,12 @@ function AdminManagementSection({
   function ticketEventTitle(event: Record<string, unknown>) {
     const type = String(event.event_type ?? "");
     if (type === "created")
-      return isArabic ? "طھظ… ط¥ظ†ط´ط§ط، ط§ظ„طھط°ظƒط±ط©" : "Ticket Created";
+      return isArabic ? "تم إنشاء التذكرة" : "Ticket Created";
     if (type === "status_changed")
-      return isArabic ? "طھظ… طھط؛ظٹظٹط± ط§ظ„ط­ط§ظ„ط©" : "Status Changed";
+      return isArabic ? "تم تغيير الحالة" : "Status Changed";
     if (type === "admin_note")
-      return isArabic ? "ط£ط¶ظٹظپطھ ظ…ظ„ط§ط­ط¸ط© ط£ط¯ظ…ظ†" : "Admin Note Added";
-    return isArabic ? "ط­ط±ظƒط© ط¹ظ„ظ‰ ط§ظ„طھط°ظƒط±ط©" : "Ticket Activity";
+      return isArabic ? "أضيفت ملاحظة أدمن" : "Admin Note Added";
+    return isArabic ? "حركة على التذكرة" : "Ticket Activity";
   }
 
   function ticketEventDescription(event: Record<string, unknown>) {
@@ -5236,7 +5236,7 @@ function AdminManagementSection({
       notes: nextNotes,
     };
     setIsTicketSaving(true);
-    setTicketEditMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setTicketEditMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const response = await fetch(
         `/api/v1/data/support-tickets/${editingTicket.id}`,
@@ -5268,10 +5268,10 @@ function AdminManagementSection({
       setTicketEditMessage(
         error instanceof Error && error.message === "FORBIDDEN"
           ? isArabic
-            ? "ظ„ظٹط³طھ ظ„ط¯ظٹظƒ طµظ„ط§ط­ظٹط© طھط¹ط¯ظٹظ„ ط§ظ„طھط°ظƒط±ط©"
+            ? "ليست لديك صلاحية تعديل التذكرة"
             : "You do not have permission to edit this ticket"
           : isArabic
-            ? "طھط¹ط°ط± ط­ظپط¸ ط§ظ„طھط°ظƒط±ط©"
+            ? "تعذر حفظ التذكرة"
             : "Unable to save ticket",
       );
     } finally {
@@ -5305,7 +5305,7 @@ function AdminManagementSection({
       window.setTimeout(() => onReload(), 200);
     } catch {
       setTicketEditMessage(
-        isArabic ? "طھط¹ط°ط± طھط­ط¯ظٹط« ط§ظ„طھط°ظƒط±ط©" : "Unable to update ticket",
+        isArabic ? "تعذر تحديث التذكرة" : "Unable to update ticket",
       );
     }
   }
@@ -5319,12 +5319,12 @@ function AdminManagementSection({
     ) {
       setProductMessage(
         isArabic
-          ? "ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ظ…ظ†طھط¬ ظˆط§ظ„ط±ظ…ط² ظˆط§ظ„ط³ط¹ط±"
+          ? "أدخل اسم المنتج والرمز والسعر"
           : "Enter the Arabic and English product names, code, and price",
       );
       return;
     }
-    setProductMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setProductMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const response = await fetch(
         editingProduct
@@ -5345,7 +5345,7 @@ function AdminManagementSection({
       onReload();
     } catch {
       setProductMessage(
-        isArabic ? "طھط¹ط°ط± ط¥ط¶ط§ظپط© ط§ظ„ظ…ظ†طھط¬" : "Unable to add the product",
+        isArabic ? "تعذر إضافة المنتج" : "Unable to add the product",
       );
     }
   }
@@ -5400,7 +5400,7 @@ function AdminManagementSection({
       if (error instanceof Error && error.message === "PRODUCT_IN_USE") {
         window.alert(
           isArabic
-            ? "ظ„ط§ ظٹظ…ظƒظ† ط­ط°ظپ ط§ظ„ظ…ظ†طھط¬ ظ„ط£ظ†ظ‡ ظ…ط±طھط¨ط· ط¨ط·ظ„ط¨ط§طھ طھط¬ط±ظٹط¨ظٹط© ط£ظˆ ط¹ط±ظˆط¶ ط£ط³ط¹ط§ط± ط£ظˆ ظ…ط¨ظٹط¹ط§طھ."
+            ? "لا يمكن حذف المنتج لأنه مرتبط بطلبات تجريبية أو عروض أسعار أو مبيعات."
             : "This product cannot be deleted because it is linked to demos, quotes, or sales.",
         );
         return;
@@ -5408,14 +5408,14 @@ function AdminManagementSection({
       if (error instanceof Error && error.message === "DEFAULT_ADMIN_PROTECTED") {
         window.alert(
           isArabic
-            ? "ظ„ط§ ظٹظ…ظƒظ† ط­ط°ظپ ط­ط³ط§ط¨ admin@middar.com ظ„ط£ظ†ظ‡ ط­ط³ط§ط¨ ط£ط³ط§ط³ظٹ."
+            ? "لا يمكن حذف حساب admin@middar.com لأنه حساب أساسي."
             : "You cannot delete admin@middar.com because it is a core account.",
         );
         return;
       }
       window.alert(
         isArabic
-          ? "طھط¹ط°ط± ط§ظ„ط­ط°ظپ. ظ‚ط¯ ظٹظƒظˆظ† ط§ظ„ط³ط¬ظ„ ظ…ط±طھط¨ط·ط§ظ‹ ط¨ط³ط¬ظ„ط§طھ ط£ط®ط±ظ‰."
+          ? "تعذر الحذف. قد يكون السجل مرتبطاً بسجلات أخرى."
           : "Unable to delete this record. It may be linked to other records.",
       );
     }
@@ -5440,11 +5440,11 @@ function AdminManagementSection({
       !industryDraft.slug.trim()
     ) {
       setIndustryMessage(
-        isArabic ? "ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ظ†ط´ط§ط· ظˆط§ظ„ط±ظ…ط²" : "Enter the industry name and code",
+        isArabic ? "أدخل اسم النشاط والرمز" : "Enter the industry name and code",
       );
       return;
     }
-    setIndustryMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setIndustryMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const payload = {
         ...industryDraft,
@@ -5466,7 +5466,7 @@ function AdminManagementSection({
       onReload();
     } catch {
       setIndustryMessage(
-        isArabic ? "طھط¹ط°ط± ط­ظپط¸ ط§ظ„ظ†ط´ط§ط·" : "Unable to save the industry",
+        isArabic ? "تعذر حفظ النشاط" : "Unable to save the industry",
       );
     }
   }
@@ -5474,10 +5474,10 @@ function AdminManagementSection({
   async function uploadMarketingContent() {
     const file = contentUploadFileRef.current?.files?.[0];
     if (!file) {
-      setContentUploadMessage(isArabic ? "ط§ط®طھط± ظ…ظ„ظپظ‹ط§ ط£ظˆظ„ظ‹ط§" : "Choose a file first");
+      setContentUploadMessage(isArabic ? "اختر ملفًا أولًا" : "Choose a file first");
       return;
     }
-    setContentUploadMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط±ظپط¹..." : "Uploading...");
+    setContentUploadMessage(isArabic ? "جاري الرفع..." : "Uploading...");
     const body = new FormData();
     body.append("file", file);
     body.append("title", contentUploadTitle.trim() || file.name);
@@ -5495,9 +5495,9 @@ function AdminManagementSection({
       if (contentUploadFileRef.current) contentUploadFileRef.current.value = "";
       notifyMarketingAssetsChanged();
       onReload();
-      setContentUploadMessage(isArabic ? "طھظ… ط±ظپط¹ ط§ظ„ظ…ظ„ظپ" : "File uploaded");
+      setContentUploadMessage(isArabic ? "تم رفع الملف" : "File uploaded");
     } catch {
-      setContentUploadMessage(isArabic ? "طھط¹ط°ط± ط±ظپط¹ ط§ظ„ظ…ظ„ظپ" : "Unable to upload file");
+      setContentUploadMessage(isArabic ? "تعذر رفع الملف" : "Unable to upload file");
     }
     window.setTimeout(() => setContentUploadMessage(""), 2400);
   }
@@ -5513,7 +5513,7 @@ function AdminManagementSection({
 
   async function saveContentEdit() {
     if (!editingContentRow) return;
-    setContentEditMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..." : "Saving...");
+    setContentEditMessage(isArabic ? "جاري الحفظ..." : "Saving...");
     try {
       const response = await fetch(`/api/v1/data/marketing-assets/${editingContentRow.id}`, {
         method: "PUT",
@@ -5530,7 +5530,7 @@ function AdminManagementSection({
       await loadLandingBrochure();
       setEditingContentRow(null);
     } catch {
-      setContentEditMessage(isArabic ? "طھط¹ط°ط± ط­ظپط¸ ط§ظ„ظ…ظ„ظپ" : "Unable to save file");
+      setContentEditMessage(isArabic ? "تعذر حفظ الملف" : "Unable to save file");
     }
   }
 
@@ -5552,22 +5552,22 @@ function AdminManagementSection({
         setIsLandingPreviewOpen(false);
       }
     } catch {
-      window.alert(isArabic ? "طھط¹ط°ط± طھط؛ظٹظٹط± ط­ط§ظ„ط© ط§ظ„ظ…ظ„ظپ" : "Unable to change file status");
+      window.alert(isArabic ? "تعذر تغيير حالة الملف" : "Unable to change file status");
     }
   }
 
   function formatLandingBrochureSize(value: unknown) {
     const size = Number(value ?? 0);
-    if (!Number.isFinite(size) || size <= 0) return "â€”";
+    if (!Number.isFinite(size) || size <= 0) return "—";
     if (size >= 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)} MB`;
     if (size >= 1024) return `${(size / 1024).toFixed(1)} KB`;
     return `${size} B`;
   }
 
   function landingBrochureDate(value: unknown) {
-    if (!value) return "â€”";
+    if (!value) return "—";
     const date = new Date(String(value));
-    if (Number.isNaN(date.getTime())) return "â€”";
+    if (Number.isNaN(date.getTime())) return "—";
     return date.toISOString().slice(0, 10);
   }
 
@@ -5597,7 +5597,7 @@ function AdminManagementSection({
   async function uploadLandingBrochure() {
     const file = landingBrochureFileRef.current?.files?.[0];
     if (!file) {
-      setLandingBrochureMessage(isArabic ? "ط§ط®طھط± ظ…ظ„ظپ PDF ط£ظˆظ„ط§ظ‹" : "Choose a PDF file first");
+      setLandingBrochureMessage(isArabic ? "اختر ملف PDF أولاً" : "Choose a PDF file first");
       return;
     }
     if (
@@ -5605,12 +5605,12 @@ function AdminManagementSection({
       (!file.type.includes("pdf") && !file.name.toLocaleLowerCase().endsWith(".pdf"))
     ) {
       setLandingBrochureMessage(
-        isArabic ? "ط§ظ„ظ…ظ„ظپ ظٹط¬ط¨ ط£ظ† ظٹظƒظˆظ† PDF ظˆظ„ط§ ظٹطھط¬ط§ظˆط² 20MB" : "The file must be a PDF up to 20MB",
+        isArabic ? "الملف يجب أن يكون PDF ولا يتجاوز 20MB" : "The file must be a PDF up to 20MB",
       );
       return;
     }
 
-    setLandingBrochureMessage(isArabic ? "ط¬ط§ط±ظٹ طھط­ط¯ظٹط« ط§ظ„ط¨ط±ظˆط´ظˆط±..." : "Updating brochure...");
+    setLandingBrochureMessage(isArabic ? "جاري تحديث البروشور..." : "Updating brochure...");
     const body = new FormData();
     body.append("file", file);
     body.append("title", file.name);
@@ -5624,9 +5624,9 @@ function AdminManagementSection({
       if (landingBrochureFileRef.current) landingBrochureFileRef.current.value = "";
       setLandingBrochure(payload.data ?? null);
       onReload();
-      setLandingBrochureMessage(isArabic ? "طھظ… طھط­ط¯ظٹط« ط¨ط±ظˆط´ظˆط± طµظپط­ط© ط§ظ„ظ‡ط¨ظˆط·" : "Landing brochure updated");
+      setLandingBrochureMessage(isArabic ? "تم تحديث بروشور صفحة الهبوط" : "Landing brochure updated");
     } catch {
-      setLandingBrochureMessage(isArabic ? "طھط¹ط°ط± طھط­ط¯ظٹط« ط§ظ„ط¨ط±ظˆط´ظˆط±" : "Unable to update brochure");
+      setLandingBrochureMessage(isArabic ? "تعذر تحديث البروشور" : "Unable to update brochure");
     }
     window.setTimeout(() => setLandingBrochureMessage(""), 2600);
   }
@@ -5635,12 +5635,12 @@ function AdminManagementSection({
     const nextUrl = landingPageUrl.trim();
     if (nextUrl && !/^https?:\/\/\S+\.\S+/i.test(nextUrl)) {
       setLandingBrochureMessage(
-        isArabic ? "ط£ط¯ط®ظ„ ط±ط§ط¨ط·ط§ظ‹ طµط­ظٹط­ط§ظ‹ ظٹط¨ط¯ط£ ط¨ظ€ http ط£ظˆ https" : "Enter a valid URL starting with http or https",
+        isArabic ? "أدخل رابطاً صحيحاً يبدأ بـ http أو https" : "Enter a valid URL starting with http or https",
       );
       return;
     }
 
-    setLandingBrochureMessage(isArabic ? "ط¬ط§ط±ظٹ ط­ظپط¸ ط§ظ„ط±ط§ط¨ط·..." : "Saving link...");
+    setLandingBrochureMessage(isArabic ? "جاري حفظ الرابط..." : "Saving link...");
     try {
       const response = await fetch("/api/v1/admin/landing-brochure", {
         method: "PUT",
@@ -5652,16 +5652,16 @@ function AdminManagementSection({
       setLandingBrochure(payload.data ?? null);
       setLandingPageUrl(String(payload.data?.externalUrl ?? ""));
       onReload();
-      setLandingBrochureMessage(isArabic ? "طھظ… ط­ظپط¸ ط§ظ„ط±ط§ط¨ط·" : "Link saved");
+      setLandingBrochureMessage(isArabic ? "تم حفظ الرابط" : "Link saved");
     } catch {
-      setLandingBrochureMessage(isArabic ? "طھط¹ط°ط± ط­ظپط¸ ط§ظ„ط±ط§ط¨ط·" : "Unable to save link");
+      setLandingBrochureMessage(isArabic ? "تعذر حفظ الرابط" : "Unable to save link");
     }
     window.setTimeout(() => setLandingBrochureMessage(""), 2600);
   }
 
   async function clearLandingPageUrl() {
     setLandingPageUrl("");
-    setLandingBrochureMessage(isArabic ? "ط¬ط§ط±ظٹ ط¥ط²ط§ظ„ط© ط§ظ„ط±ط§ط¨ط·..." : "Clearing link...");
+    setLandingBrochureMessage(isArabic ? "جاري إزالة الرابط..." : "Clearing link...");
     try {
       const response = await fetch("/api/v1/admin/landing-brochure", {
         method: "PUT",
@@ -5672,16 +5672,16 @@ function AdminManagementSection({
       if (!response.ok) throw new Error("CLEAR_FAILED");
       setLandingBrochure(payload.data ?? null);
       onReload();
-      setLandingBrochureMessage(isArabic ? "طھظ…طھ ط¥ط²ط§ظ„ط© ط§ظ„ط±ط§ط¨ط·" : "Link cleared");
+      setLandingBrochureMessage(isArabic ? "تمت إزالة الرابط" : "Link cleared");
     } catch {
-      setLandingBrochureMessage(isArabic ? "طھط¹ط°ط± ط¥ط²ط§ظ„ط© ط§ظ„ط±ط§ط¨ط·" : "Unable to clear link");
+      setLandingBrochureMessage(isArabic ? "تعذر إزالة الرابط" : "Unable to clear link");
     }
     window.setTimeout(() => setLandingBrochureMessage(""), 2600);
   }
 
   async function deleteActiveBrochure() {
     setIsLandingDeleteConfirmOpen(false);
-    setLandingBrochureMessage(isArabic ? "ط¬ط§ط±ظٹ ط§ظ„ط­ط°ظپ..." : "Deleting...");
+    setLandingBrochureMessage(isArabic ? "جاري الحذف..." : "Deleting...");
     try {
       const response = await fetch("/api/v1/admin/landing-brochure", {
         method: "DELETE",
@@ -5690,9 +5690,9 @@ function AdminManagementSection({
       if (!response.ok) throw new Error("DELETE_FAILED");
       setLandingBrochure(payload.data ?? null);
       onReload();
-      setLandingBrochureMessage(isArabic ? "طھظ… ط­ط°ظپ ط§ظ„ط¨ط±ظˆط´ظˆط± ط§ظ„ظ…ط®طµطµ" : "Custom brochure deleted");
+      setLandingBrochureMessage(isArabic ? "تم حذف البروشور المخصص" : "Custom brochure deleted");
     } catch {
-      setLandingBrochureMessage(isArabic ? "طھط¹ط°ط± ط­ط°ظپ ط§ظ„ط¨ط±ظˆط´ظˆط±" : "Unable to delete brochure");
+      setLandingBrochureMessage(isArabic ? "تعذر حذف البروشور" : "Unable to delete brochure");
     }
     window.setTimeout(() => setLandingBrochureMessage(""), 2600);
   }
@@ -5714,7 +5714,7 @@ function AdminManagementSection({
       if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
       onReload();
     } catch {
-      window.alert(isArabic ? "ط·طھط¹ط°ط± طھط­ط¯ظٹط« ط­ط§ظ„ط© ط§ظ„ط­ط³ط§ط¨" : "Unable to update account status");
+      window.alert(isArabic ? "طتعذر تحديث حالة الحساب" : "Unable to update account status");
     }
   }
 
@@ -5723,10 +5723,10 @@ function AdminManagementSection({
       <section className="admin-data-card admin-accounts-workspace" dir={isArabic ? "rtl" : "ltr"}>
         <div className="admin-data-head admin-accounts-head">
           <div className="records-info">
-            <span>{isArabic ? "ط¥ط¯ط§ط±ط© ط§ظ„ط¨ظٹط§ظ†ط§طھ" : "Data Management"}</span>
+            <span>{isArabic ? "إدارة البيانات" : "Data Management"}</span>
             <strong>
               {visibleRows.length.toLocaleString(NUMBER_LOCALE)}{" "}
-              {isArabic ? "ط³ط¬ظ„" : "records"}
+              {isArabic ? "سجل" : "records"}
             </strong>
           </div>
           <div className="admin-data-tools admin-accounts-tools">
@@ -5736,9 +5736,9 @@ function AdminManagementSection({
                 <path d="m15.5 15.5 4 4" />
               </svg>
               <input
-                aria-label={isArabic ? "ط§ظ„ط¨ط­ط«" : "Search"}
+                aria-label={isArabic ? "البحث" : "Search"}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder={isArabic ? "ط§ط¨ط­ط« ط¨ط§ظ„ط§ط³ظ… ط£ظˆ ط§ظ„ط¨ط±ظٹط¯ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ..." : "Search by name or email..."}
+                placeholder={isArabic ? "ابحث بالاسم أو البريد الإلكتروني..." : "Search by name or email..."}
                 type="search"
                 value={query}
               />
@@ -5749,18 +5749,18 @@ function AdminManagementSection({
           <table>
             <thead>
               <tr>
-                <th>{isArabic ? "ط§ظ„ط§ط³ظ…" : "Name"}</th>
-                <th>{isArabic ? "ط§ظ„ط¨ط±ظٹط¯ ط§ظ„ط¥ظ„ظƒطھط±ظˆظ†ظٹ" : "Email"}</th>
-                <th>{isArabic ? "ط§ظ„طµظ„ط§ط­ظٹط©" : "Role"}</th>
-                <th>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</th>
-                <th>{isArabic ? "ط¢ط®ط± ط¯ط®ظˆظ„" : "Last Login"}</th>
+                <th>{isArabic ? "الاسم" : "Name"}</th>
+                <th>{isArabic ? "البريد الإلكتروني" : "Email"}</th>
+                <th>{isArabic ? "الصلاحية" : "Role"}</th>
+                <th>{isArabic ? "الحالة" : "Status"}</th>
+                <th>{isArabic ? "آخر دخول" : "Last Login"}</th>
               </tr>
             </thead>
             <tbody>
               {visibleRows.map((row, index) => (
                 <tr key={`account-${row.id}-${index}`}>
-                  <td>{String(row.name ?? "â€”")}</td>
-                  <td>{String(row.email ?? "â€”")}</td>
+                  <td>{String(row.name ?? "—")}</td>
+                  <td>{String(row.email ?? "—")}</td>
                   <td>
                     <span className={`admin-status admin-status-${String(row.role ?? "affiliate")}`}>
                       {displayAdminValue(row.role, isArabic)}
@@ -5775,13 +5775,13 @@ function AdminManagementSection({
                       {displayAdminValue(row.status, isArabic)}
                     </button>
                   </td>
-                  <td>{String(row.last_login_at ?? "â€”").slice(0, 10)}</td>
+                  <td>{String(row.last_login_at ?? "—").slice(0, 10)}</td>
                 </tr>
               ))}
               {visibleRows.length === 0 ? (
                 <tr>
                   <td className="admin-empty" colSpan={5}>
-                    {isArabic ? "ظ„ط§ طھظˆط¬ط¯ ط­ط³ط§ط¨ط§طھ ظ…ط·ط§ط¨ظ‚ط©" : "No matching accounts"}
+                    {isArabic ? "لا توجد حسابات مطابقة" : "No matching accounts"}
                   </td>
                 </tr>
               ) : null}
@@ -5802,12 +5802,12 @@ function AdminManagementSection({
               <div>
                 <h2>
                   {isArabic
-                    ? "ط¥ط¯ط§ط±ط© ط¨ط±ظˆط´ظˆط± ظˆطµظپط­ط© ط§ظ„ظ‡ط¨ظˆط·"
+                    ? "إدارة بروشور وصفحة الهبوط"
                     : "Landing Page Brochure Manager"}
                 </h2>
                 <p>
                   {isArabic
-                    ? "طھط­ظƒظ… ظپظٹ ط§ظ„ظ…ظ„ظپ ط§ظ„ظ…ط±ظپظ‚ ط£ظˆ ط±ط§ط¨ط· طµظپط­ط© ط§ظ„ظ‡ط¨ظˆط· ط§ظ„ط®ط§ط±ط¬ظٹط© ظˆط¹ط±ط¶ظ‡ط§ ظ„ظ„ط¹ظ…ظ„ط§ط،."
+                    ? "تحكم في الملف المرفق أو رابط صفحة الهبوط الخارجية وعرضها للعملاء."
                     : "Control the attached brochure and optional external landing page link shown to users."}
                 </p>
               </div>
@@ -5815,19 +5815,19 @@ function AdminManagementSection({
                 <span className={`landing-brochure-badge ${landingBrochure?.isActive ? "active" : "inactive"}`}>
                   {landingBrochure?.isDefault
                     ? isArabic
-                      ? "ط§ظ„ظ…ظ„ظپ ط§ظ„ط§ظپطھط±ط§ط¶ظٹ ظ†ط´ط·"
+                      ? "الملف الافتراضي نشط"
                       : "Default file active"
                     : isArabic
-                      ? "ظ†ط´ط· ظˆظٹط¹ط±ط¶ ط§ظ„ط¢ظ†"
+                      ? "نشط ويعرض الآن"
                       : "Active now"}
                 </span>
                 <span className={`landing-brochure-badge link ${landingBrochure?.externalUrl ? "active" : ""}`}>
                   {landingBrochure?.externalUrl
                     ? isArabic
-                      ? "ط±ط§ط¨ط· ط®ط§ط±ط¬ظٹ ظ†ط´ط·"
+                      ? "رابط خارجي نشط"
                       : "External link active"
                     : isArabic
-                      ? "ظ„ط§ ظٹظˆط¬ط¯ ط±ط§ط¨ط· ط®ط§ط±ط¬ظٹ ظ†ط´ط·"
+                      ? "لا يوجد رابط خارجي نشط"
                       : "No external link active"}
                 </span>
               </div>
@@ -5843,16 +5843,16 @@ function AdminManagementSection({
                     <line x1="16" y1="17" x2="8" y2="17" />
                   </svg>
                 </div>
-                <h4>{landingBrochure?.name ?? (isArabic ? "ظ„ط§ ظٹظˆط¬ط¯ ظ…ظ„ظپ ظ†ط´ط·" : "No active file")}</h4>
+                <h4>{landingBrochure?.name ?? (isArabic ? "لا يوجد ملف نشط" : "No active file")}</h4>
                 <p>
-                  {isArabic ? "ط§ظ„ط­ط¬ظ…" : "Size"}: {formatLandingBrochureSize(landingBrochure?.size)}
-                  {" â€¢ "}
-                  {isArabic ? "طھط§ط±ظٹط® ط§ظ„طھط­ط¯ظٹط«" : "Updated"}: {landingBrochureDate(landingBrochure?.updatedAt)}
+                  {isArabic ? "الحجم" : "Size"}: {formatLandingBrochureSize(landingBrochure?.size)}
+                  {" • "}
+                  {isArabic ? "تاريخ التحديث" : "Updated"}: {landingBrochureDate(landingBrochure?.updatedAt)}
                 </p>
                 <div className="landing-brochure-actions">
                   {canPreviewLandingBrochure ? (
                   <button onClick={previewActiveBrochure} type="button">
-                    {isArabic ? "ظ…ط¹ط§ظٹظ†ط© ط³ط±ظٹط¹ط©" : "Preview"}
+                    {isArabic ? "معاينة سريعة" : "Preview"}
                   </button>
                   ) : null}
                   <button
@@ -5861,7 +5861,7 @@ function AdminManagementSection({
                     type="button"
                     disabled={Boolean(landingBrochure?.isDefault)}
                   >
-                    {isArabic ? "ط­ط°ظپ ط§ظ„ط¨ط±ظˆط´ظˆط±" : "Delete brochure"}
+                    {isArabic ? "حذف البروشور" : "Delete brochure"}
                   </button>
                 </div>
               </div>
@@ -5887,21 +5887,21 @@ function AdminManagementSection({
                   </span>
                   <strong>
                     {isArabic
-                      ? "ط§ط¶ط؛ط· ظ‡ظ†ط§ ظ„طھط­ط¯ظٹط« ط£ظˆ طھط؛ظٹظٹط± ظ…ظ„ظپ ط§ظ„ط¨ط±ظˆط´ظˆط±"
+                      ? "اضغط هنا لتحديث أو تغيير ملف البروشور"
                       : "Click here to update or change the brochure file"}
                   </strong>
                   <small>
                     {isArabic
-                      ? "ط§ظ„ظ…ظ„ظپط§طھ ط§ظ„ظ…ظ‚ط¨ظˆظ„ط© ظپظ‚ط·: PDF (ط§ظ„ط­ط¯ ط§ظ„ط£ظ‚طµظ‰: 20MB)"
+                      ? "الملفات المقبولة فقط: PDF (الحد الأقصى: 20MB)"
                       : "Accepted files: PDF only (max 20MB)"}
                   </small>
                 </button>
 
                 <div className="landing-url-input-container">
-                  <label>{isArabic ? "ط±ط§ط¨ط· طµظپط­ط© ط§ظ„ظ‡ط¨ظˆط· ط§ظ„ط®ط§ط±ط¬ظٹط© (ط§ط®طھظٹط§ط±ظٹ):" : "External landing page URL (optional):"}</label>
+                  <label>{isArabic ? "رابط صفحة الهبوط الخارجية (اختياري):" : "External landing page URL (optional):"}</label>
                   <div className="landing-url-row">
                     <div className="landing-url-input-shell">
-                      <span aria-hidden="true">ًں”—</span>
+                      <span aria-hidden="true">🔗</span>
                       <input
                         type="url"
                         placeholder="https://example.com"
@@ -5910,15 +5910,15 @@ function AdminManagementSection({
                       />
                     </div>
                     <button className="save" onClick={() => void saveLandingPageUrl()} type="button">
-                      {isArabic ? "ط­ظپط¸ ط§ظ„ط±ط§ط¨ط·" : "Save link"}
+                      {isArabic ? "حفظ الرابط" : "Save link"}
                     </button>
                     <button className="clear" onClick={() => void clearLandingPageUrl()} type="button">
-                      {isArabic ? "ط¥ط²ط§ظ„ط©" : "Clear"}
+                      {isArabic ? "إزالة" : "Clear"}
                     </button>
                   </div>
                   <p>
                     {isArabic
-                      ? "ظ…ظ„ط§ط­ط¸ط©: ط¥ط°ط§ طھط±ظƒطھ ظ‡ط°ط§ ط§ظ„ط­ظ‚ظ„ ظپط§ط±ط؛ط§ظ‹طŒ ظپظ„ظ† ظٹط¸ظ‡ط± ط²ط± ظ†ط³ط® ط§ظ„ط±ط§ط¨ط· ظپظٹ ظˆط§ط¬ظ‡ط© ط§ظ„ظ…ط³طھط®ط¯ظ…."
+                      ? "ملاحظة: إذا تركت هذا الحقل فارغاً، فلن يظهر زر نسخ الرابط في واجهة المستخدم."
                       : "Note: If this field is empty, the copy link button will not appear in the user view."}
                   </p>
                 </div>
@@ -5939,7 +5939,7 @@ function AdminManagementSection({
               }}
               role="dialog"
               aria-modal="true"
-              aria-label={isArabic ? "طھط£ظƒظٹط¯ ط­ط°ظپ ط§ظ„ط¨ط±ظˆط´ظˆط±" : "Confirm brochure deletion"}
+              aria-label={isArabic ? "تأكيد حذف البروشور" : "Confirm brochure deletion"}
             >
               <div
                 className="landing-delete-confirm-modal"
@@ -5955,10 +5955,10 @@ function AdminManagementSection({
                     <path d="M14 11v5" />
                   </svg>
                 </div>
-                <h3>{isArabic ? "طھط£ظƒظٹط¯ ط­ط°ظپ ط§ظ„ط¨ط±ظˆط´ظˆط±" : "Delete brochure?"}</h3>
+                <h3>{isArabic ? "تأكيد حذف البروشور" : "Delete brochure?"}</h3>
                 <p>
                   {isArabic
-                    ? "ط³ظٹطھظ… ط­ط°ظپ ط§ظ„ط¨ط±ظˆط´ظˆط± ط§ظ„ظ…ط®طµطµ ظˆط§ظ„ط±ط¬ظˆط¹ ظ„ظ„ظ…ظ„ظپ ط§ظ„ط§ظپطھط±ط§ط¶ظٹ. ظ‡ظ„ طھط±ظٹط¯ ط§ظ„ظ…طھط§ط¨ط¹ط©طں"
+                    ? "سيتم حذف البروشور المخصص والرجوع للملف الافتراضي. هل تريد المتابعة؟"
                     : "The custom brochure will be deleted and the default file will be restored. Do you want to continue?"}
                 </p>
                 <div className="landing-delete-confirm-actions">
@@ -5967,14 +5967,14 @@ function AdminManagementSection({
                     onClick={() => setIsLandingDeleteConfirmOpen(false)}
                     type="button"
                   >
-                    {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                    {isArabic ? "إلغاء" : "Cancel"}
                   </button>
                   <button
                     className="danger"
                     onClick={() => void deleteActiveBrochure()}
                     type="button"
                   >
-                    {isArabic ? "طھط£ظƒظٹط¯ ط§ظ„ط­ط°ظپ" : "Delete"}
+                    {isArabic ? "تأكيد الحذف" : "Delete"}
                   </button>
                 </div>
               </div>
@@ -6006,7 +6006,7 @@ function AdminManagementSection({
                   <span>
                     <i aria-hidden="true" />
                     {isArabic
-                      ? "ظˆط¶ط¹ ط§ظ„ظ…ط¹ط§ظٹظ†ط© ط§ظ„ظپظˆط±ظٹط©: ظ‡ظƒط°ط§ ط³طھط¸ظ‡ط± ط§ظ„ط´ط§ط´ط© ظ„ظ„ظ…ط³طھط®ط¯ظ… ط§ظ„ظ†ظ‡ط§ط¦ظٹ"
+                      ? "وضع المعاينة الفورية: هكذا ستظهر الشاشة للمستخدم النهائي"
                       : "Live preview mode: this is how the screen appears to the end user"}
                   </span>
                   <button
@@ -6018,8 +6018,8 @@ function AdminManagementSection({
                     }}
                     type="button"
                   >
-                    {isArabic ? "ط¥ط؛ظ„ط§ظ‚ ط§ظ„ظ…ط¹ط§ظٹظ†ط©" : "Close preview"}
-                    <b aria-hidden="true">أ—</b>
+                    {isArabic ? "إغلاق المعاينة" : "Close preview"}
+                    <b aria-hidden="true">×</b>
                   </button>
                 </div>
                 <div className="landing-preview-body">
@@ -6027,12 +6027,12 @@ function AdminManagementSection({
                     <div className="preview-header">
                       <h2>
                         {isArabic
-                          ? "ط£ظ†ط¸ظ…ط© ط§ظ„ظ…ط¹ط§ط±ط¶ ظˆط§ظ„ظپط¹ط§ظ„ظٹط§طھ"
+                          ? "أنظمة المعارض والفعاليات"
                           : "Exhibitions and Event Systems"}
                       </h2>
                       <p>
                         {isArabic
-                          ? "ط­ظ„ ظ…طھظƒط§ظ…ظ„ ظ„ط¥ط¯ط§ط±ط© ط§ظ„ظ…ط¹ط§ط±ط¶ ظˆط§ظ„ظ…ط¤طھظ…ط±ط§طھ ظˆط­ط¬ظˆط²ط§طھ ط§ظ„ط£ط¬ظ†ط­ط© ظˆط§ظ„ط®ط¯ظ…ط§طھ ط§ظ„ظ„ظˆط¬ط³طھظٹط© ط±ظ‚ظ…ظٹط§ظ‹."
+                          ? "حل متكامل لإدارة المعارض والمؤتمرات وحجوزات الأجنحة والخدمات اللوجستية رقمياً."
                           : "A complete solution for managing exhibitions, conferences, booth bookings, and logistics digitally."}
                       </p>
                     </div>
@@ -6042,7 +6042,7 @@ function AdminManagementSection({
                           className="admin-pdf-preview"
                           minHeight={560}
                           src={landingBrochurePreviewUrl}
-                          title={isArabic ? "ظ…ط¹ط§ظٹظ†ط© ط¨ط±ظˆط´ظˆط± طµظپط­ط© ط§ظ„ظ‡ط¨ظˆط·" : "Landing brochure preview"}
+                          title={isArabic ? "معاينة بروشور صفحة الهبوط" : "Landing brochure preview"}
                         />
                       ) : (
                         <div className="landing-preview-placeholder">
@@ -6052,7 +6052,7 @@ function AdminManagementSection({
                           </svg>
                           <span>
                             {isArabic
-                              ? "ظ„ظ… ظٹطھظ… ط±ظپط¹ ط£ظٹ ط¨ط±ظˆط´ظˆط± طھظپط§ط¹ظ„ظٹ ط­ط§ظ„ظٹط§ظ‹ ظ„ظ…ط´ط§ظ‡ط¯ط© ظ…ط¹ط§ظٹظ†طھظ‡"
+                              ? "لم يتم رفع أي بروشور تفاعلي حالياً لمشاهدة معاينته"
                               : "No interactive brochure is available to preview yet"}
                           </span>
                         </div>
@@ -6067,32 +6067,32 @@ function AdminManagementSection({
 
         <article className="admin-content-upload-card">
           <div>
-            <h3>{isArabic ? "ط±ظپط¹ ظ…ظ„ظپ طھط³ظˆظٹظ‚ظٹ ط¬ط¯ظٹط¯" : "Upload Marketing File"}</h3>
+            <h3>{isArabic ? "رفع ملف تسويقي جديد" : "Upload Marketing File"}</h3>
             <p>
               {isArabic
-                ? "ط£ط¶ظپ ظ…ظ„ظپط§طھ ط§ظ„ظ…ظƒطھط¨ط© ط§ظ„طھط³ظˆظٹظ‚ظٹط© ظ‡ظ†ط§ ظ„طھط¸ظ‡ط± ظ„ظ„ظ…ط³طھط®ط¯ظ…ظٹظ† ظ„ظ„ط¹ط±ط¶ ظˆط§ظ„طھظ†ط²ظٹظ„ ظپظ‚ط·."
+                ? "أضف ملفات المكتبة التسويقية هنا لتظهر للمستخدمين للعرض والتنزيل فقط."
                 : "Add marketing library files here so users can view and download them only."}
             </p>
           </div>
           <div className="admin-content-upload-grid">
             <label>
-              <span>{isArabic ? "ط§ط³ظ… ط§ظ„ظ…ظ„ظپ" : "File Title"}</span>
+              <span>{isArabic ? "اسم الملف" : "File Title"}</span>
               <input
                 onChange={(event) => setContentUploadTitle(event.target.value)}
-                placeholder={isArabic ? "ظ…ط«ط§ظ„: ط¨ط±ظˆط´ظˆط± ط§ظ„ظ…ط¹ط±ط¶" : "Example: Expo brochure"}
+                placeholder={isArabic ? "مثال: بروشور المعرض" : "Example: Expo brochure"}
                 value={contentUploadTitle}
               />
             </label>
             <label>
-              <span>{isArabic ? "ظ…ظ„ط§ط­ط¸ط§طھ" : "Notes"}</span>
+              <span>{isArabic ? "ملاحظات" : "Notes"}</span>
               <input
                 onChange={(event) => setContentUploadDescription(event.target.value)}
-                placeholder={isArabic ? "ظˆطµظپ ظ…ط®طھطµط± ظ„ظ„ظ…ظ„ظپ" : "Short file description"}
+                placeholder={isArabic ? "وصف مختصر للملف" : "Short file description"}
                 value={contentUploadDescription}
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ط®طھظٹط§ط± ط§ظ„ظ…ظ„ظپ" : "Choose File"}</span>
+              <span>{isArabic ? "اختيار الملف" : "Choose File"}</span>
               <div className="admin-custom-file-picker">
                 <input
                   ref={contentUploadFileRef}
@@ -6105,18 +6105,18 @@ function AdminManagementSection({
                   onClick={() => contentUploadFileRef.current?.click()}
                   type="button"
                 >
-                  {isArabic ? "ط§ط®طھظٹط§ط± ظ…ظ„ظپ" : "Choose file"}
+                  {isArabic ? "اختيار ملف" : "Choose file"}
                 </button>
                 <strong>
                   {contentUploadFileName ||
-                    (isArabic ? "ظ„ظ… ظٹطھظ… ط§ط®طھظٹط§ط± ظ…ظ„ظپ" : "No file selected")}
+                    (isArabic ? "لم يتم اختيار ملف" : "No file selected")}
                 </strong>
               </div>
             </label>
           </div>
           <div className="admin-content-upload-actions">
             <button onClick={() => void uploadMarketingContent()} type="button">
-              <span>{isArabic ? "ط±ظپط¹ ط§ظ„ظ…ظ„ظپ" : "Upload File"}</span>
+              <span>{isArabic ? "رفع الملف" : "Upload File"}</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
@@ -6143,7 +6143,7 @@ function AdminManagementSection({
             >
               <div className="admin-edit-head">
                 <div>
-                  <span>{isArabic ? "طھط¹ط¯ظٹظ„ ط§ظ„ظ…ظ„ظپ" : "Edit File Properties"}</span>
+                  <span>{isArabic ? "تعديل الملف" : "Edit File Properties"}</span>
                   <h3>{String(editingContentRow.title ?? editingContentRow.original_name ?? editingContentRow.id)}</h3>
                 </div>
                 <button onClick={() => setEditingContentRow(null)} type="button">
@@ -6151,7 +6151,7 @@ function AdminManagementSection({
                 </button>
               </div>
               <label>
-                <span>{isArabic ? "ط§ط³ظ… ط§ظ„ظ…ظ„ظپ" : "File Name"}</span>
+                <span>{isArabic ? "اسم الملف" : "File Name"}</span>
                 <input
                   onChange={(event) =>
                     setContentEditDraft((current) => ({
@@ -6159,21 +6159,21 @@ function AdminManagementSection({
                       title: event.target.value,
                     }))
                   }
-                  placeholder={isArabic ? "ط§ظƒطھط¨ ط§ط³ظ… ط§ظ„ظ…ظ„ظپ" : "Enter file name"}
+                  placeholder={isArabic ? "اكتب اسم الملف" : "Enter file name"}
                   value={contentEditDraft.title}
                 />
               </label>
               <label>
-                <span>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</span>
+                <span>{isArabic ? "الحالة" : "Status"}</span>
                 <DashboardSelect
-                  ariaLabel={isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}
+                  ariaLabel={isArabic ? "الحالة" : "Status"}
                   menuClassName="admin-edit-select-menu"
                   onValueChange={(status) =>
                     setContentEditDraft((current) => ({ ...current, status }))
                   }
                   options={[
-                    { value: "active", label: isArabic ? "ظ†ط´ط·" : "Active" },
-                    { value: "inactive", label: isArabic ? "ط؛ظٹط± ظ†ط´ط·" : "Inactive" },
+                    { value: "active", label: isArabic ? "نشط" : "Active" },
+                    { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
                   ]}
                   portal
                   value={contentEditDraft.status}
@@ -6186,10 +6186,10 @@ function AdminManagementSection({
                   onClick={() => void saveContentEdit()}
                   type="button"
                 >
-                  {isArabic ? "ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ" : "Save Changes"}
+                  {isArabic ? "حفظ التعديلات" : "Save Changes"}
                 </button>
                 <button onClick={() => setEditingContentRow(null)} type="button">
-                  {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                  {isArabic ? "إلغاء" : "Cancel"}
                 </button>
               </div>
             </section>
@@ -6202,10 +6202,10 @@ function AdminManagementSection({
         className={`admin-data-head ${section === "tickets" ? "admin-ticket-data-head toolbar-container" : ""} ${section === "products" ? "admin-product-data-head" : ""} ${section === "activity" ? "admin-activity-data-head" : ""} ${section === "content" ? "admin-content-data-head" : ""}`}
       >
         <div className={section === "tickets" ? "admin-ticket-summary records-info" : undefined}>
-          <span>{isArabic ? "ط¥ط¯ط§ط±ط© ط§ظ„ط¨ظٹط§ظ†ط§طھ" : "Data Management"}</span>
+          <span>{isArabic ? "إدارة البيانات" : "Data Management"}</span>
           <strong>
             {filteredRows.length.toLocaleString(NUMBER_LOCALE)}{" "}
-            {isArabic ? "ط³ط¬ظ„" : "records"}
+            {isArabic ? "سجل" : "records"}
           </strong>
         </div>
         <div
@@ -6244,15 +6244,15 @@ function AdminManagementSection({
               <path d="m15.5 15.5 4 4" />
             </svg>
             <input
-              aria-label={isArabic ? "ط§ظ„ط¨ط­ط«" : "Search"}
+              aria-label={isArabic ? "البحث" : "Search"}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={
                 section === "tickets"
                   ? isArabic
-                    ? "ط§ط¨ط­ط« ط¨ط±ظ‚ظ… ط§ظ„طھط°ظƒط±ط© ط£ظˆ ط§ظ„ط§ط³ظ…..."
+                    ? "ابحث برقم التذكرة أو الاسم..."
                     : "Search by ticket number..."
                   : isArabic
-                    ? "ط§ط¨ط­ط« ط¨ط§ط³ظ… ط§ظ„ظ…ظ„ظپ..."
+                    ? "ابحث باسم الملف..."
                     : "Search by file name..."
               }
               type="search"
@@ -6283,7 +6283,7 @@ function AdminManagementSection({
               }}
               type="button"
             >
-              {isArabic ? "ط¥ط¶ط§ظپط© ظ…ظ†طھط¬" : "Add Product"}
+              {isArabic ? "إضافة منتج" : "Add Product"}
             </button>
           ) : null}
           {section === "activity" ? (
@@ -6303,7 +6303,7 @@ function AdminManagementSection({
               }}
               type="button"
             >
-              {isArabic ? "ط¥ط¶ط§ظپط© ظ†ط´ط§ط·" : "Add Industry"}
+              {isArabic ? "إضافة نشاط" : "Add Industry"}
             </button>
           ) : null}
           {section === "tickets" ? (
@@ -6320,7 +6320,7 @@ function AdminManagementSection({
               }}
               type="button"
             >
-              {isArabic ? "ظپظ„طھط±ط© ظ…طھظ‚ط¯ظ…ط©" : "Advanced Filter"}
+              {isArabic ? "فلترة متقدمة" : "Advanced Filter"}
             </button>
           ) : null}
           {section === "tickets" ? (
@@ -6337,25 +6337,25 @@ function AdminManagementSection({
               <DashboardSelect
                 ariaLabel={
                   isArabic
-                    ? "ظپظ„طھط±ط© ط§ظ„طھط°ط§ظƒط± ط­ط³ط¨ ط§ظ„ط­ط§ظ„ط©"
+                    ? "فلترة التذاكر حسب الحالة"
                     : "Filter tickets by status"
                 }
                 onValueChange={setTicketStatusFilter}
                 options={[
                   {
                     value: "all",
-                    label: isArabic ? "ظƒظ„ ط§ظ„ط­ط§ظ„ط§طھ" : "All Statuses",
+                    label: isArabic ? "كل الحالات" : "All Statuses",
                   },
-                  { value: "open", label: isArabic ? "ظ…ظپطھظˆط­" : "Open" },
+                  { value: "open", label: isArabic ? "مفتوح" : "Open" },
                   {
                     value: "in_progress",
-                    label: isArabic ? "ظ‚ظٹط¯ ط§ظ„طھظ†ظپظٹط°" : "In Progress",
+                    label: isArabic ? "قيد التنفيذ" : "In Progress",
                   },
                   {
                     value: "resolved",
-                    label: isArabic ? "طھظ… ط§ظ„ط­ظ„" : "Resolved",
+                    label: isArabic ? "تم الحل" : "Resolved",
                   },
-                  { value: "closed", label: isArabic ? "ظ…ط؛ظ„ظ‚" : "Closed" },
+                  { value: "closed", label: isArabic ? "مغلق" : "Closed" },
                 ]}
                 value={ticketStatusFilter}
               />
@@ -6384,16 +6384,16 @@ function AdminManagementSection({
                 }}
                 type="button"
               >
-                {isArabic ? "ط§ظ„ط£ظ†ظˆط§ط¹" : "Types"}
+                {isArabic ? "الأنواع" : "Types"}
               </button>
               {isTicketTypesMenuOpen ? (
                 <div className="admin-ticket-types-dropdown">
                   <div className="admin-ticket-types-head">
                     <div>
-                      <span>{isArabic ? "ط£ظ†ظˆط§ط¹ ط§ظ„طھط°ط§ظƒط±" : "Ticket Types"}</span>
+                      <span>{isArabic ? "أنواع التذاكر" : "Ticket Types"}</span>
                       <strong>
                         {(data.ticketTypes ?? []).length.toLocaleString(NUMBER_LOCALE)}{" "}
-                        {isArabic ? "ظ†ظˆط¹" : "types"}
+                        {isArabic ? "نوع" : "types"}
                       </strong>
                     </div>
                     <button
@@ -6404,7 +6404,7 @@ function AdminManagementSection({
                       }}
                       type="button"
                     >
-                      {isArabic ? "ط¥ط¶ط§ظپط© ظ†ظˆط¹ طھط°ظƒط±ط©" : "Add Ticket Type"}
+                      {isArabic ? "إضافة نوع تذكرة" : "Add Ticket Type"}
                     </button>
                   </div>
                   <div className="admin-ticket-types-list">
@@ -6413,8 +6413,8 @@ function AdminManagementSection({
                         <div>
                           <strong>
                             {isArabic
-                              ? String(ticketType.name_ar ?? "â€”")
-                              : String(ticketType.name_en ?? ticketType.name_ar ?? "â€”")}
+                              ? String(ticketType.name_ar ?? "—")
+                              : String(ticketType.name_en ?? ticketType.name_ar ?? "—")}
                           </strong>
                           <small>{String(ticketType.description ?? "")}</small>
                         </div>
@@ -6429,7 +6429,7 @@ function AdminManagementSection({
                           }}
                           type="button"
                         >
-                          {isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
+                          {isArabic ? "تعديل" : "Edit"}
                         </button>
                       </article>
                     ))}
@@ -6444,10 +6444,10 @@ function AdminManagementSection({
         <div className="admin-ticket-types-panel">
           <div className="admin-ticket-types-head">
             <div>
-              <span>{isArabic ? "ط£ظ†ظˆط§ط¹ ط§ظ„طھط°ط§ظƒط±" : "Ticket Types"}</span>
+              <span>{isArabic ? "أنواع التذاكر" : "Ticket Types"}</span>
               <strong>
                 {(data?.ticketTypes ?? []).length.toLocaleString(NUMBER_LOCALE)}{" "}
-                {isArabic ? "ظ†ظˆط¹" : "types"}
+                {isArabic ? "نوع" : "types"}
               </strong>
             </div>
             <button
@@ -6455,7 +6455,7 @@ function AdminManagementSection({
               onClick={() => openTicketTypeEditor()}
               type="button"
             >
-              {isArabic ? "ط¥ط¶ط§ظپط© ظ†ظˆط¹ طھط°ظƒط±ط©" : "Add Ticket Type"}
+              {isArabic ? "إضافة نوع تذكرة" : "Add Ticket Type"}
             </button>
           </div>
           <div className="admin-ticket-types-list">
@@ -6464,8 +6464,8 @@ function AdminManagementSection({
                 <div>
                   <strong>
                     {isArabic
-                      ? String(ticketType.name_ar ?? "â€”")
-                      : String(ticketType.name_en ?? ticketType.name_ar ?? "â€”")}
+                      ? String(ticketType.name_ar ?? "—")
+                      : String(ticketType.name_en ?? ticketType.name_ar ?? "—")}
                   </strong>
                   <small>{String(ticketType.description ?? "")}</small>
                 </div>
@@ -6477,7 +6477,7 @@ function AdminManagementSection({
                   onClick={() => openTicketTypeEditor(ticketType)}
                   type="button"
                 >
-                  {isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
+                  {isArabic ? "تعديل" : "Edit"}
                 </button>
               </article>
             ))}
@@ -6496,7 +6496,7 @@ function AdminManagementSection({
               section === "activity" ||
               section === "content" ? (
                 <th className="admin-action-column-header">
-                  {isArabic ? "ط¥ط¬ط±ط§ط،" : "Action"}
+                  {isArabic ? "إجراء" : "Action"}
                 </th>
               ) : null}
             </tr>
@@ -6513,8 +6513,8 @@ function AdminManagementSection({
                         <button
                           className={`admin-content-status-toggle admin-status admin-status-${String(row.status ?? "inactive")}`}
                           onClick={() => void toggleMarketingAssetStatus(row)}
-                          aria-label={isArabic ? "طھط¨ط¯ظٹظ„ ط­ط§ظ„ط© ط§ظ„ظ…ظ„ظپ" : "Toggle file status"}
-                          title={isArabic ? "ط§ط¶ط؛ط· ظ„طھط¨ط¯ظٹظ„ ط§ظ„ط­ط§ظ„ط©" : "Click to toggle status"}
+                          aria-label={isArabic ? "تبديل حالة الملف" : "Toggle file status"}
+                          title={isArabic ? "اضغط لتبديل الحالة" : "Click to toggle status"}
                           type="button"
                         >
                           {displayAdminValue(row.status, isArabic)}
@@ -6526,7 +6526,7 @@ function AdminManagementSection({
                           {displayAdminValue(row[key], isArabic)}
                         </span>
                       ) : key.includes("created") || key.includes("login") ? (
-                        String(row[key] ?? "â€”").slice(0, 10)
+                        String(row[key] ?? "—").slice(0, 10)
                       ) : key === "base_price" ? (
                         Number(row[key] ?? 0).toLocaleString(NUMBER_LOCALE)
                       ) : key === "file_size" ? (
@@ -6536,7 +6536,7 @@ function AdminManagementSection({
                       ) : section === "tickets" && key === "user_name" ? (
                         getTicketUserName(row)
                       ) : (
-                        String(row[key] ?? "â€”")
+                        String(row[key] ?? "—")
                       )}
                     </td>
                   ))}
@@ -6552,7 +6552,7 @@ function AdminManagementSection({
                           <svg aria-hidden="true" viewBox="0 0 24 24">
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
-                          {isArabic ? "ظ‚ط¨ظˆظ„ ط§ظ„ط·ظ„ط¨" : "Accept"}
+                          {isArabic ? "قبول الطلب" : "Accept"}
                         </button>
                         <button
                           className="ticket-action-btn assign"
@@ -6563,7 +6563,7 @@ function AdminManagementSection({
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                             <circle cx="12" cy="7" r="4" />
                           </svg>
-                          {isArabic ? "ط¥ط³ظ†ط§ط¯ ظ„ظپظ†ظٹ" : "Assign"}
+                          {isArabic ? "إسناد لفني" : "Assign"}
                         </button>
                         <button
                           className="ticket-action-btn details"
@@ -6574,7 +6574,7 @@ function AdminManagementSection({
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                             <polyline points="14 2 14 8 20 8" />
                           </svg>
-                          {isArabic ? "ط¹ط±ط¶ ط§ظ„طھظپط§طµظٹظ„" : "Details"}
+                          {isArabic ? "عرض التفاصيل" : "Details"}
                         </button>
                         <span className="ticket-action-spacer" />
                         <button
@@ -6589,7 +6589,7 @@ function AdminManagementSection({
                             <line x1="10" y1="11" x2="10" y2="17" />
                             <line x1="14" y1="11" x2="14" y2="17" />
                           </svg>
-                          {isArabic ? "ط¥ظ„ط؛ط§ط، ط§ظ„طھط°ظƒط±ط©" : "Cancel"}
+                          {isArabic ? "إلغاء التذكرة" : "Cancel"}
                         </button>
                       </div>
                     </td>
@@ -6599,8 +6599,8 @@ function AdminManagementSection({
                         <button
                           className="admin-row-edit"
                           onClick={() => openProductEditor(row)}
-                          aria-label={isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
-                          title={isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
+                          aria-label={isArabic ? "تعديل" : "Edit"}
+                          title={isArabic ? "تعديل" : "Edit"}
                           type="button"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -6611,8 +6611,8 @@ function AdminManagementSection({
                         <button
                           className="admin-row-delete"
                           onClick={() => requestProductDeletion(row)}
-                          aria-label={isArabic ? "ط­ط°ظپ" : "Delete"}
-                          title={isArabic ? "ط­ط°ظپ" : "Delete"}
+                          aria-label={isArabic ? "حذف" : "Delete"}
+                          title={isArabic ? "حذف" : "Delete"}
                           type="button"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -6630,8 +6630,8 @@ function AdminManagementSection({
                         <button
                           className="admin-row-edit"
                           onClick={() => openIndustryEditor(row)}
-                          aria-label={isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
-                          title={isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
+                          aria-label={isArabic ? "تعديل" : "Edit"}
+                          title={isArabic ? "تعديل" : "Edit"}
                           type="button"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -6642,8 +6642,8 @@ function AdminManagementSection({
                         <button
                           className="admin-row-delete"
                           onClick={() => requestIndustryDeletion(row)}
-                          aria-label={isArabic ? "ط­ط°ظپ" : "Delete"}
-                          title={isArabic ? "ط­ط°ظپ" : "Delete"}
+                          aria-label={isArabic ? "حذف" : "Delete"}
+                          title={isArabic ? "حذف" : "Delete"}
                           type="button"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -6661,8 +6661,8 @@ function AdminManagementSection({
                         <button
                           className="admin-row-edit"
                           onClick={() => openContentEditor(row)}
-                          aria-label={isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
-                          title={isArabic ? "طھط¹ط¯ظٹظ„" : "Edit"}
+                          aria-label={isArabic ? "تعديل" : "Edit"}
+                          title={isArabic ? "تعديل" : "Edit"}
                           type="button"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -6673,8 +6673,8 @@ function AdminManagementSection({
                         <button
                           className="admin-row-delete"
                           onClick={() => requestMarketingAssetDeletion(row)}
-                          aria-label={isArabic ? "ط­ط°ظپ" : "Delete"}
-                          title={isArabic ? "ط­ط°ظپ" : "Delete"}
+                          aria-label={isArabic ? "حذف" : "Delete"}
+                          title={isArabic ? "حذف" : "Delete"}
                           type="button"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -6704,7 +6704,7 @@ function AdminManagementSection({
                       : 0)
                   }
                 >
-                  {isArabic ? "ظ„ط§ طھظˆط¬ط¯ ط³ط¬ظ„ط§طھ ظ…ط·ط§ط¨ظ‚ط©" : "No matching records"}
+                  {isArabic ? "لا توجد سجلات مطابقة" : "No matching records"}
                 </td>
               </tr>
             ) : null}
@@ -6722,14 +6722,14 @@ function AdminManagementSection({
           <section className="admin-edit-modal" aria-modal="true" role="dialog">
             <div className="admin-edit-head">
               <div>
-                <span>{isArabic ? "ط£ظ†ظˆط§ط¹ ط§ظ„طھط°ط§ظƒط±" : "Ticket Types"}</span>
+                <span>{isArabic ? "أنواع التذاكر" : "Ticket Types"}</span>
                 <h3>
                   {editingTicketType
                     ? isArabic
-                      ? "طھط¹ط¯ظٹظ„ ظ†ظˆط¹ ط§ظ„طھط°ظƒط±ط©"
+                      ? "تعديل نوع التذكرة"
                       : "Edit Ticket Type"
                     : isArabic
-                      ? "ط¥ط¶ط§ظپط© ظ†ظˆط¹ طھط°ظƒط±ط©"
+                      ? "إضافة نوع تذكرة"
                       : "Add Ticket Type"}
                 </h3>
               </div>
@@ -6738,7 +6738,7 @@ function AdminManagementSection({
               </button>
             </div>
             <label>
-              <span>{isArabic ? "ط§ظ„ط§ط³ظ… ط¨ط§ظ„ط¹ط±ط¨ظٹ" : "Arabic Name"}</span>
+              <span>{isArabic ? "الاسم بالعربي" : "Arabic Name"}</span>
               <input
                 onChange={(event) =>
                   setTicketTypeDraft((current) => ({ ...current, name_ar: event.target.value }))
@@ -6747,7 +6747,7 @@ function AdminManagementSection({
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„ط§ط³ظ… ط¨ط§ظ„ط¥ظ†ط¬ظ„ظٹط²ظٹ" : "English Name"}</span>
+              <span>{isArabic ? "الاسم بالإنجليزي" : "English Name"}</span>
               <input
                 onChange={(event) =>
                   setTicketTypeDraft((current) => ({ ...current, name_en: event.target.value }))
@@ -6756,7 +6756,7 @@ function AdminManagementSection({
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„ظˆطµظپ" : "Description"}</span>
+              <span>{isArabic ? "الوصف" : "Description"}</span>
               <textarea
                 className="admin-ticket-notes"
                 onChange={(event) =>
@@ -6766,23 +6766,23 @@ function AdminManagementSection({
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</span>
+              <span>{isArabic ? "الحالة" : "Status"}</span>
               <DashboardSelect
-                ariaLabel={isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}
+                ariaLabel={isArabic ? "الحالة" : "Status"}
                 menuClassName="admin-edit-select-menu"
                 onValueChange={(status) =>
                   setTicketTypeDraft((current) => ({ ...current, status }))
                 }
                 options={[
-                  { value: "active", label: isArabic ? "ظ†ط´ط·" : "Active" },
-                  { value: "inactive", label: isArabic ? "ط؛ظٹط± ظ†ط´ط·" : "Inactive" },
+                  { value: "active", label: isArabic ? "نشط" : "Active" },
+                  { value: "inactive", label: isArabic ? "غير نشط" : "Inactive" },
                 ]}
                 portal
                 value={ticketTypeDraft.status}
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„طھط±طھظٹط¨" : "Order"}</span>
+              <span>{isArabic ? "الترتيب" : "Order"}</span>
               <input
                 min="0"
                 onChange={(event) =>
@@ -6799,10 +6799,10 @@ function AdminManagementSection({
                 onClick={() => void saveTicketType()}
                 type="button"
               >
-                {isArabic ? "ط­ظپط¸" : "Save"}
+                {isArabic ? "حفظ" : "Save"}
               </button>
               <button onClick={() => setIsTicketTypeModalOpen(false)} type="button">
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
           </section>
@@ -6824,7 +6824,7 @@ function AdminManagementSection({
             <div className="admin-edit-head">
               <div>
                 <span>
-                  {isArabic ? "طھط¹ط¯ظٹظ„ طھط°ظƒط±ط© ط§ظ„ط®ط¯ظ…ط©" : "Edit Service Ticket"}
+                  {isArabic ? "تعديل تذكرة الخدمة" : "Edit Service Ticket"}
                 </span>
                 <h3>{String(editingTicket.ticket_number ?? "-")}</h3>
               </div>
@@ -6833,31 +6833,31 @@ function AdminManagementSection({
               </button>
             </div>
             <label>
-              <span>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</span>
+              <span>{isArabic ? "الحالة" : "Status"}</span>
               <DashboardSelect
-                ariaLabel={isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}
+                ariaLabel={isArabic ? "الحالة" : "Status"}
                 menuClassName="admin-edit-select-menu"
                 onValueChange={(status) =>
                   setTicketDraft((current) => ({ ...current, status }))
                 }
                 options={[
-                  { value: "open", label: isArabic ? "ظ…ظپطھظˆط­" : "Open" },
+                  { value: "open", label: isArabic ? "مفتوح" : "Open" },
                   {
                     value: "in_progress",
-                    label: isArabic ? "ظ‚ظٹط¯ ط§ظ„طھظ†ظپظٹط°" : "In Progress",
+                    label: isArabic ? "قيد التنفيذ" : "In Progress",
                   },
                   {
                     value: "resolved",
-                    label: isArabic ? "طھظ… ط§ظ„ط­ظ„" : "Resolved",
+                    label: isArabic ? "تم الحل" : "Resolved",
                   },
-                  { value: "closed", label: isArabic ? "ظ…ط؛ظ„ظ‚" : "Closed" },
+                  { value: "closed", label: isArabic ? "مغلق" : "Closed" },
                 ]}
                 portal
                 value={ticketDraft.status}
               />
             </label>
             <label>
-              <span>{isArabic ? "ظ…ظ„ط§ط­ط¸ط§طھ" : "Notes"}</span>
+              <span>{isArabic ? "ملاحظات" : "Notes"}</span>
               <textarea
                 className="admin-ticket-notes"
                 onChange={(event) =>
@@ -6868,7 +6868,7 @@ function AdminManagementSection({
                 }
                 placeholder={
                   isArabic
-                    ? "ط£ط¶ظپ ظ…ظ„ط§ط­ط¸ط§طھ ط¹ظ„ظ‰ ط§ظ„طھط°ظƒط±ط©..."
+                    ? "أضف ملاحظات على التذكرة..."
                     : "Add notes to this ticket..."
                 }
                 value={ticketDraft.notes}
@@ -6884,14 +6884,14 @@ function AdminManagementSection({
               >
                 {isTicketSaving
                   ? isArabic
-                    ? "ط¬ط§ط±ظٹ ط§ظ„ط­ظپط¸..."
+                    ? "جاري الحفظ..."
                     : "Saving..."
                   : isArabic
-                    ? "ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ"
+                    ? "حفظ التعديلات"
                     : "Save Changes"}
               </button>
               <button onClick={() => setEditingTicket(null)} type="button">
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
           </section>
@@ -6912,7 +6912,7 @@ function AdminManagementSection({
           >
             <div className="admin-edit-head">
               <div>
-                <span>{isArabic ? "ط®ط· ط²ظ…ظ† ط§ظ„طھط°ظƒط±ط©" : "Ticket Timeline"}</span>
+                <span>{isArabic ? "خط زمن التذكرة" : "Ticket Timeline"}</span>
                 <h3>{String(timelineTicket.ticket_number ?? "-")}</h3>
               </div>
               <button onClick={() => setTimelineTicket(null)} type="button">
@@ -6922,7 +6922,7 @@ function AdminManagementSection({
             <div className="admin-ticket-timeline-summary">
               <strong>{String(timelineTicket.subject ?? "-")}</strong>
               <span>
-                {isArabic ? "ط§ظ„ط­ط§ظ„ط© ط§ظ„ط­ط§ظ„ظٹط©:" : "Current status:"}{" "}
+                {isArabic ? "الحالة الحالية:" : "Current status:"}{" "}
                 {displayAdminValue(timelineTicket.status, isArabic)}
               </span>
             </div>
@@ -6954,14 +6954,14 @@ function AdminManagementSection({
               ) : (
                 <p className="admin-ticket-timeline-empty">
                   {isArabic
-                    ? "ظ„ط§ طھظˆط¬ط¯ ط­ط±ظƒط§طھ ظ…ط­ظپظˆط¸ط© ظ„ظ‡ط°ظ‡ ط§ظ„طھط°ظƒط±ط© ط¨ط¹ط¯."
+                    ? "لا توجد حركات محفوظة لهذه التذكرة بعد."
                     : "No saved timeline activity for this ticket yet."}
                 </p>
               )}
             </div>
             <div className="admin-edit-actions">
               <button onClick={() => setTimelineTicket(null)} type="button">
-                {isArabic ? "ط¥ط؛ظ„ط§ظ‚" : "Close"}
+                {isArabic ? "إغلاق" : "Close"}
               </button>
             </div>
           </section>
@@ -6979,14 +6979,14 @@ function AdminManagementSection({
           <section className="admin-edit-modal" aria-modal="true" role="dialog">
             <div className="admin-edit-head">
               <div>
-                <span>{isArabic ? "ط§ظ„ظ…ظ†طھط¬ط§طھ" : "Products"}</span>
+                <span>{isArabic ? "المنتجات" : "Products"}</span>
                 <h3>
                   {editingProduct
                     ? isArabic
-                      ? "طھط¹ط¯ظٹظ„ ط§ظ„ظ…ظ†طھط¬"
+                      ? "تعديل المنتج"
                       : "Edit Product"
                     : isArabic
-                      ? "ط¥ط¶ط§ظپط© ظ…ظ†طھط¬ ط¬ط¯ظٹط¯"
+                      ? "إضافة منتج جديد"
                       : "Add New Product"}
                 </h3>
               </div>
@@ -6998,7 +6998,7 @@ function AdminManagementSection({
               </button>
             </div>
             <label>
-              <span>{isArabic ? "ط§ط³ظ… ط§ظ„ظ…ظ†طھط¬" : "Product Name"}</span>
+              <span>{isArabic ? "اسم المنتج" : "Product Name"}</span>
               <input
                 onChange={(event) =>
                   setProductDraft((current) => ({
@@ -7027,7 +7027,7 @@ function AdminManagementSection({
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„ط±ظ…ط²" : "Code"}</span>
+              <span>{isArabic ? "الرمز" : "Code"}</span>
               <input
                 dir="ltr"
                 onChange={(event) =>
@@ -7040,7 +7040,7 @@ function AdminManagementSection({
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„ط³ط¹ط±" : "Price"}</span>
+              <span>{isArabic ? "السعر" : "Price"}</span>
               <input
                 min="0"
                 onChange={(event) =>
@@ -7054,7 +7054,7 @@ function AdminManagementSection({
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„ظˆطµظپ" : "Description"}</span>
+              <span>{isArabic ? "الوصف" : "Description"}</span>
               <textarea
                 onChange={(event) =>
                   setProductDraft((current) => ({
@@ -7074,17 +7074,17 @@ function AdminManagementSection({
               >
                 {editingProduct
                   ? isArabic
-                    ? "ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ"
+                    ? "حفظ التعديلات"
                     : "Save Changes"
                   : isArabic
-                    ? "ط¥ط¶ط§ظپط© ط§ظ„ظ…ظ†طھط¬"
+                    ? "إضافة المنتج"
                     : "Add Product"}
               </button>
               <button
                 onClick={() => setIsProductModalOpen(false)}
                 type="button"
               >
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
           </section>
@@ -7104,14 +7104,14 @@ function AdminManagementSection({
           <section className="admin-edit-modal" aria-modal="true" role="dialog">
             <div className="admin-edit-head">
               <div>
-                <span>{isArabic ? "ط§ظ„ط£ظ†ط´ط·ط©" : "Industries"}</span>
+                <span>{isArabic ? "الأنشطة" : "Industries"}</span>
                 <h3>
                   {editingIndustry
                     ? isArabic
-                      ? "طھط¹ط¯ظٹظ„ ط§ظ„ظ†ط´ط§ط·"
+                      ? "تعديل النشاط"
                       : "Edit Industry"
                     : isArabic
-                      ? "ط¥ط¶ط§ظپط© ظ†ط´ط§ط· ط¬ط¯ظٹط¯"
+                      ? "إضافة نشاط جديد"
                       : "Add New Industry"}
                 </h3>
               </div>
@@ -7126,7 +7126,7 @@ function AdminManagementSection({
               </button>
             </div>
             <label>
-              <span>{isArabic ? "ط§ط³ظ… ط§ظ„ظ†ط´ط§ط·" : "Industry Name"}</span>
+              <span>{isArabic ? "اسم النشاط" : "Industry Name"}</span>
               <input
                 onChange={(event) =>
                   setIndustryDraft((current) => ({
@@ -7155,7 +7155,7 @@ function AdminManagementSection({
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„ط±ظ…ط²" : "Code"}</span>
+              <span>{isArabic ? "الرمز" : "Code"}</span>
               <input
                 dir="ltr"
                 onChange={(event) =>
@@ -7168,7 +7168,7 @@ function AdminManagementSection({
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„ظˆطµظپ" : "Description"}</span>
+              <span>{isArabic ? "الوصف" : "Description"}</span>
               <textarea
                 onChange={(event) =>
                   setIndustryDraft((current) => ({
@@ -7180,18 +7180,18 @@ function AdminManagementSection({
               />
             </label>
             <label>
-              <span>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</span>
+              <span>{isArabic ? "الحالة" : "Status"}</span>
               <DashboardSelect
-                ariaLabel={isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}
+                ariaLabel={isArabic ? "الحالة" : "Status"}
                 menuClassName="admin-edit-select-menu"
                 onValueChange={(status) =>
                   setIndustryDraft((current) => ({ ...current, status }))
                 }
                 options={[
-                  { value: "active", label: isArabic ? "ظ†ط´ط·" : "Active" },
+                  { value: "active", label: isArabic ? "نشط" : "Active" },
                   {
                     value: "inactive",
-                    label: isArabic ? "ط؛ظٹط± ظ†ط´ط·" : "Inactive",
+                    label: isArabic ? "غير نشط" : "Inactive",
                   },
                 ]}
                 portal
@@ -7207,10 +7207,10 @@ function AdminManagementSection({
               >
                 {editingIndustry
                   ? isArabic
-                    ? "ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ"
+                    ? "حفظ التعديلات"
                     : "Save Changes"
                   : isArabic
-                    ? "ط¥ط¶ط§ظپط© ط§ظ„ظ†ط´ط§ط·"
+                    ? "إضافة النشاط"
                     : "Add Industry"}
               </button>
               <button
@@ -7220,7 +7220,7 @@ function AdminManagementSection({
                 }}
                 type="button"
               >
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
           </section>
@@ -7240,10 +7240,10 @@ function AdminManagementSection({
             role="dialog"
           >
             <div className="admin-delete-icon">!</div>
-            <h3>{isArabic ? "طھط£ظƒظٹط¯ ط§ظ„ط­ط°ظپ" : "Confirm deletion"}</h3>
+            <h3>{isArabic ? "تأكيد الحذف" : "Confirm deletion"}</h3>
             <p>
               {isArabic
-                ? `ظ‡ظ„ طھط±ظٹط¯ ط­ط°ظپ آ«${String(deleteTarget.row.name ?? "")}آ»طں ظ„ط§ ظٹظ…ظƒظ† ط§ظ„طھط±ط§ط¬ط¹ ط¹ظ† ظ‡ط°ط§ ط§ظ„ط¥ط¬ط±ط§ط،.`
+                ? `هل تريد حذف «${String(deleteTarget.row.name ?? "")}»؟ لا يمكن التراجع عن هذا الإجراء.`
                 : `Delete "${String(deleteTarget.row.name ?? "")}"? This action cannot be undone.`}
             </p>
             <div className="admin-delete-actions">
@@ -7255,7 +7255,7 @@ function AdminManagementSection({
                     {isArabic ? "\u062d\u0630\u0641" : "Delete"}
               </button>
               <button onClick={() => setDeleteTarget(null)} type="button">
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
           </section>
@@ -7345,7 +7345,7 @@ function AdminAccountQuotes({
     formData.append("receipt", file);
     setUploadingReceiptId(quoteId);
     setReceiptMessage(
-      isArabic ? "ط¬ط§ط±ظٹ ط±ظپط¹ ط¥ط«ط¨ط§طھ ط§ظ„ط¯ظپط¹..." : "Uploading proof of payment...",
+      isArabic ? "جاري رفع إثبات الدفع..." : "Uploading proof of payment...",
     );
     try {
       const response = await fetch(`/api/v1/admin/quotes/${quoteId}/receipt`, {
@@ -7359,7 +7359,7 @@ function AdminAccountQuotes({
       setAttachedReceiptQuoteIds((current) => new Set(current).add(quoteId));
       setReceiptMessage(
         isArabic
-          ? "طھظ… ط±ط¨ط· ط¥ط«ط¨ط§طھ ط§ظ„ط¯ظپط¹ ط¨ط¹ط±ط¶ ط§ظ„ط³ط¹ط±."
+          ? "تم ربط إثبات الدفع بعرض السعر."
           : "Proof of payment attached to this quote.",
       );
       setReceiptQuote(null);
@@ -7369,14 +7369,14 @@ function AdminAccountQuotes({
       setReceiptMessage(
         code === "INVALID_FILE_TYPE"
           ? isArabic
-            ? "ظٹط±ط¬ظ‰ ط±ظپط¹ طµظˆط±ط© ط£ظˆ ظ…ظ„ظپ PDF ظپظ‚ط·."
+            ? "يرجى رفع صورة أو ملف PDF فقط."
             : "Please upload an image or PDF file."
           : code === "QUOTE_NOT_ACCEPTED"
             ? isArabic
-              ? "ظٹطھط§ط­ ط¥ط«ط¨ط§طھ ط§ظ„ط¯ظپط¹ ظ„ط¹ط±ظˆط¶ ط§ظ„ط£ط³ط¹ط§ط± ط§ظ„ظ…ظ‚ط¨ظˆظ„ط© ظپظ‚ط·."
+              ? "يتاح إثبات الدفع لعروض الأسعار المقبولة فقط."
               : "Proof of payment is available only for accepted quotes."
             : isArabic
-              ? "طھط¹ط°ط± ط±ظپط¹ ط¥ط«ط¨ط§طھ ط§ظ„ط¯ظپط¹."
+              ? "تعذر رفع إثبات الدفع."
               : "Unable to upload proof of payment.",
       );
     } finally {
@@ -7388,7 +7388,7 @@ function AdminAccountQuotes({
   async function createSalesInvoice() {
     if (!invoiceQuote) return;
     setInvoiceMessage(
-      isArabic ? "ط¬ط§ط±ظٹ ط¥ظ†ط´ط§ط، ط§ظ„ظپط§طھظˆط±ط©..." : "Creating invoice...",
+      isArabic ? "جاري إنشاء الفاتورة..." : "Creating invoice...",
     );
     try {
       const response = await fetch("/api/v1/admin/sales", {
@@ -7406,14 +7406,14 @@ function AdminAccountQuotes({
       setInvoiceMessage(
         error instanceof Error && error.message === "SALE_ALREADY_EXISTS"
           ? isArabic
-            ? "طھظ… ط¥ظ†ط´ط§ط، ظپط§طھظˆط±ط© ظ…ط¨ظٹط¹ط§طھ ظ„ظ‡ط°ط§ ط§ظ„ط¹ط±ط¶ ظ…ط³ط¨ظ‚ط§ظ‹"
+            ? "تم إنشاء فاتورة مبيعات لهذا العرض مسبقاً"
             : "A sales invoice already exists for this quote"
           : error instanceof Error && error.message === "QUOTE_NOT_PAID"
             ? isArabic
-              ? "ظ„ط§ ظٹظ…ظƒظ† ط¥ظ†ط´ط§ط، ظپط§طھظˆط±ط© ظ‚ط¨ظ„ ط¯ظپط¹ ط¹ط±ط¶ ط§ظ„ط³ط¹ط±"
+              ? "لا يمكن إنشاء فاتورة قبل دفع عرض السعر"
               : "A sales invoice cannot be created before payment"
             : isArabic
-              ? "طھط¹ط°ط± ط¥ظ†ط´ط§ط، ظپط§طھظˆط±ط© ط§ظ„ظ…ط¨ظٹط¹ط§طھ"
+              ? "تعذر إنشاء فاتورة المبيعات"
               : "Unable to create the sales invoice",
       );
     }
@@ -7423,7 +7423,7 @@ function AdminAccountQuotes({
     <section className="admin-account-quotes">
       <div className="admin-account-section-head">
         <h2 className="admin-account-section-title">
-          {isArabic ? "ط¹ط±ظˆط¶ ط§ظ„ط£ط³ط¹ط§ط±" : "Quotes"}
+          {isArabic ? "عروض الأسعار" : "Quotes"}
         </h2>
         <div className="admin-account-filter-actions">
           <button
@@ -7432,22 +7432,22 @@ function AdminAccountQuotes({
             onClick={() => setIsAdvancedFilter((current) => !current)}
             type="button"
           >
-            {isArabic ? "ظپظ„طھط±ط© ظ…طھظ‚ط¯ظ…ط©" : "Advanced Filter"}
+            {isArabic ? "فلترة متقدمة" : "Advanced Filter"}
           </button>
           <div className="admin-account-user-filter">
             <DashboardSelect
-              ariaLabel={isArabic ? "ظپظ„طھط±ط© ط­ط³ط¨ ط§ظ„ظ…ط³طھط®ط¯ظ…" : "Filter by user"}
+              ariaLabel={isArabic ? "فلترة حسب المستخدم" : "Filter by user"}
               onValueChange={setAccountUserFilter}
               options={[
                 {
                   value: "all",
-                  label: isArabic ? "ظƒظ„ ط§ظ„ظ…ط³طھط®ط¯ظ…ظٹظ†" : "All users",
+                  label: isArabic ? "كل المستخدمين" : "All users",
                 },
                 ...accountUserOptions,
               ]}
               searchable
               searchPlaceholder={
-                isArabic ? "ط§ط¨ط­ط« ط¹ظ† ظ…ط³طھط®ط¯ظ…..." : "Search users..."
+                isArabic ? "ابحث عن مستخدم..." : "Search users..."
               }
               value={accountUserFilter}
             />
@@ -7458,14 +7458,14 @@ function AdminAccountQuotes({
         <table className="admin-account-quotes-table">
           <thead>
             <tr>
-              <th>{isArabic ? "ط±ظ‚ظ… ط§ظ„ط¹ط±ط¶" : "Quote Number"}</th>
-              <th>{isArabic ? "ط§ط³ظ… ط§ظ„ط¹ظ…ظٹظ„" : "Client Name"}</th>
-              <th>{isArabic ? "ط§ظ„ظ…ظ†طھط¬" : "Product"}</th>
-              <th>{isArabic ? "ط§ظ„ظ…ط¨ظ„ط؛" : "Amount"}</th>
-              <th>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</th>
-              <th>{isArabic ? "ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User"}</th>
-              <th>{isArabic ? "ط§ظ„طھط§ط±ظٹط®" : "Date"}</th>
-              <th>{isArabic ? "ط¥ط¬ط±ط§ط،" : "Action"}</th>
+              <th>{isArabic ? "رقم العرض" : "Quote Number"}</th>
+              <th>{isArabic ? "اسم العميل" : "Client Name"}</th>
+              <th>{isArabic ? "المنتج" : "Product"}</th>
+              <th>{isArabic ? "المبلغ" : "Amount"}</th>
+              <th>{isArabic ? "الحالة" : "Status"}</th>
+              <th>{isArabic ? "المستخدم" : "User"}</th>
+              <th>{isArabic ? "التاريخ" : "Date"}</th>
+              <th>{isArabic ? "إجراء" : "Action"}</th>
             </tr>
           </thead>
           <tbody>
@@ -7483,9 +7483,9 @@ function AdminAccountQuotes({
               const isUploading = uploadingReceiptId === quote.id;
               return (
                 <tr key={quote.id}>
-                  <td>{String(quote.quote_number ?? "â€”")}</td>
-                  <td>{String(quote.customer_name ?? "â€”")}</td>
-                  <td>{String(quote.product_name ?? "â€”")}</td>
+                  <td>{String(quote.quote_number ?? "—")}</td>
+                  <td>{String(quote.customer_name ?? "—")}</td>
+                  <td>{String(quote.product_name ?? "—")}</td>
                   <td>{`${Number(quote.amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(quote.currency ?? "SAR")}`}</td>
                   <td>
                     <span
@@ -7494,8 +7494,8 @@ function AdminAccountQuotes({
                       {displayAdminValue(quote.status, isArabic)}
                     </span>
                   </td>
-                  <td>{String(quote.affiliate_user_name ?? "â€”")}</td>
-                  <td>{String(quote.created_at ?? "â€”").slice(0, 10)}</td>
+                  <td>{String(quote.affiliate_user_name ?? "—")}</td>
+                  <td>{String(quote.created_at ?? "—").slice(0, 10)}</td>
                   <td>
                     <div className="admin-quote-action-row">
                       <button
@@ -7509,17 +7509,17 @@ function AdminAccountQuotes({
                           canCreateInvoice
                             ? undefined
                             : isArabic
-                              ? "ظٹطھط§ط­ ط¨ط¹ط¯ ط§ظ„ط¯ظپط¹"
+                              ? "يتاح بعد الدفع"
                               : "Available after payment"
                         }
                         type="button"
                       >
                         {hasSalesInvoice
                           ? isArabic
-                            ? "طھظ… ط¥ظ†ط´ط§ط، ظپط§طھظˆط±ط© ظ…ط¨ظٹط¹ط§طھ"
+                            ? "تم إنشاء فاتورة مبيعات"
                             : "Sales Invoice Created"
                           : isArabic
-                            ? "ط¥ظ†ط´ط§ط، ظپط§طھظˆط±ط© ظ…ط¨ظٹط¹ط§طھ"
+                            ? "إنشاء فاتورة مبيعات"
                             : "Create Sales Invoice"}
                       </button>
                       <button
@@ -7530,7 +7530,7 @@ function AdminAccountQuotes({
                           canUploadReceipt
                             ? undefined
                             : isArabic
-                              ? "ظٹطھط§ط­ ظ„ط¹ط±ظˆط¶ ط§ظ„ط£ط³ط¹ط§ط± ط§ظ„ظ…ظ‚ط¨ظˆظ„ط© ظپظ‚ط·"
+                              ? "يتاح لعروض الأسعار المقبولة فقط"
                               : "Available only for accepted quotes"
                         }
                         type="button"
@@ -7538,14 +7538,14 @@ function AdminAccountQuotes({
                         <span aria-hidden="true">?</span>
                         {isUploading
                           ? isArabic
-                            ? "ط¬ط§ط±ظٹ ط§ظ„ط±ظپط¹..."
+                            ? "جاري الرفع..."
                             : "Uploading..."
                           : hasReceipt
                             ? isArabic
-                              ? "طھظ… ط¥ط«ط¨ط§طھ ط§ظ„ط¯ظپط¹"
+                              ? "تم إثبات الدفع"
                               : "Payment Proven"
                             : isArabic
-                              ? "ط¥ط«ط¨ط§طھ ط§ظ„ط¯ظپط¹"
+                              ? "إثبات الدفع"
                               : "Proof of Payment"}
                       </button>
                     </div>
@@ -7556,7 +7556,7 @@ function AdminAccountQuotes({
             {rows.length === 0 ? (
               <tr>
                 <td className="admin-empty" colSpan={8}>
-                  {isArabic ? "ظ„ط§ طھظˆط¬ط¯ ط¹ط±ظˆط¶" : "No quotes found"}
+                  {isArabic ? "لا توجد عروض" : "No quotes found"}
                 </td>
               </tr>
             ) : null}
@@ -7578,7 +7578,7 @@ function AdminAccountQuotes({
       ) : null}
       <div className="admin-account-quote-footer">
         <div className="admin-account-total">
-          {isArabic ? "ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ:" : "Total:"}{" "}
+          {isArabic ? "الإجمالي:" : "Total:"}{" "}
           <strong>{total.toLocaleString(NUMBER_LOCALE)} SAR</strong>
         </div>
       </div>
@@ -7607,10 +7607,10 @@ function AdminAccountQuotes({
           >
             <div className="admin-edit-head">
               <div>
-                <span>{isArabic ? "ظپط§طھظˆط±ط© ظ…ط¨ظٹط¹ط§طھ" : "Sales Invoice"}</span>
+                <span>{isArabic ? "فاتورة مبيعات" : "Sales Invoice"}</span>
                 <h3>
                   {isArabic
-                    ? "طھط£ظƒظٹط¯ ط¥ظ†ط´ط§ط، ظپط§طھظˆط±ط© ط§ظ„ظ…ط¨ظٹط¹ط§طھ"
+                    ? "تأكيد إنشاء فاتورة المبيعات"
                     : "Confirm Sales Invoice"}
                 </h3>
               </div>
@@ -7620,47 +7620,47 @@ function AdminAccountQuotes({
             </div>
             <div className="admin-invoice-details">
               <div>
-                <span>{isArabic ? "ط±ظ‚ظ… ط§ظ„ظ…ط¨ظٹط¹ط§طھ" : "Sales Number"}</span>
+                <span>{isArabic ? "رقم المبيعات" : "Sales Number"}</span>
                 <strong>
-                  {isArabic ? "ظٹظڈظ†ط´ط£ طھظ„ظ‚ط§ط¦ظٹط§ظ‹" : "Generated automatically"}
+                  {isArabic ? "يُنشأ تلقائياً" : "Generated automatically"}
                 </strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ط³ظ… ط§ظ„ط¹ظ…ظٹظ„" : "Client Name"}</span>
-                <strong>{String(invoiceQuote.customer_name ?? "â€”")}</strong>
+                <span>{isArabic ? "اسم العميل" : "Client Name"}</span>
+                <strong>{String(invoiceQuote.customer_name ?? "—")}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„ظ…ظ†طھط¬" : "Product"}</span>
-                <strong>{String(invoiceQuote.product_name ?? "â€”")}</strong>
+                <span>{isArabic ? "المنتج" : "Product"}</span>
+                <strong>{String(invoiceQuote.product_name ?? "—")}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„ظ…ط¨ظ„ط؛" : "Amount"}</span>
+                <span>{isArabic ? "المبلغ" : "Amount"}</span>
                 <strong>{`${Number(invoiceQuote.amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(invoiceQuote.currency ?? "SAR")}`}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</span>
-                <strong>{isArabic ? "ظ‚ظٹط¯ ط§ظ„ط§ظ†طھط¸ط§ط±" : "Pending"}</strong>
+                <span>{isArabic ? "الحالة" : "Status"}</span>
+                <strong>{isArabic ? "قيد الانتظار" : "Pending"}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User"}</span>
+                <span>{isArabic ? "المستخدم" : "User"}</span>
                 <strong>
-                  {String(invoiceQuote.affiliate_user_name ?? "â€”")}
+                  {String(invoiceQuote.affiliate_user_name ?? "—")}
                 </strong>
               </div>
               <div>
-                <span>{isArabic ? "ط±ظ‚ظ… ط§ظ„ط¹ط±ط¶" : "Quote Number"}</span>
-                <strong>{String(invoiceQuote.quote_number ?? "â€”")}</strong>
+                <span>{isArabic ? "رقم العرض" : "Quote Number"}</span>
+                <strong>{String(invoiceQuote.quote_number ?? "—")}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„طھط§ط±ظٹط®" : "Date"}</span>
+                <span>{isArabic ? "التاريخ" : "Date"}</span>
                 <strong>
                   {new Date().toLocaleDateString(isArabic ? ARABIC_DATE_LOCALE : NUMBER_LOCALE)}
                 </strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„ط¥ظٹطµط§ظ„" : "Receipt"}</span>
+                <span>{isArabic ? "الإيصال" : "Receipt"}</span>
                 <strong>
-                  {isArabic ? "ظٹظڈظ†ط´ط£ ظ…ط¹ ط§ظ„ظپط§طھظˆط±ط©" : "Created with invoice"}
+                  {isArabic ? "يُنشأ مع الفاتورة" : "Created with invoice"}
                 </strong>
               </div>
             </div>
@@ -7673,10 +7673,10 @@ function AdminAccountQuotes({
                 onClick={() => void createSalesInvoice()}
                 type="button"
               >
-                {isArabic ? "ط¥ظ†ط´ط§ط، ط§ظ„ظپط§طھظˆط±ط©" : "Create Invoice"}
+                {isArabic ? "إنشاء الفاتورة" : "Create Invoice"}
               </button>
               <button onClick={() => setInvoiceQuote(null)} type="button">
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
           </section>
@@ -7704,7 +7704,7 @@ function AdminSalesList({
   async function createCommission() {
     if (!commissionSale) return;
     setCommissionMessage(
-      isArabic ? "ط¬ط§ط±ظٹ ط¥ظ†ط´ط§ط، ط§ظ„ط¹ظ…ظˆظ„ط©..." : "Creating commission...",
+      isArabic ? "جاري إنشاء العمولة..." : "Creating commission...",
     );
     try {
       const response = await fetch("/api/v1/admin/commissions", {
@@ -7727,10 +7727,10 @@ function AdminSalesList({
       setCommissionMessage(
         error instanceof Error && error.message === "COMMISSION_ALREADY_EXISTS"
           ? isArabic
-            ? "طھظ… ط¥ظ†ط´ط§ط، ط¹ظ…ظˆظ„ط© ظ„ظ‡ط°ظ‡ ط§ظ„ظ…ط¨ظٹط¹ط§طھ ظ…ط³ط¨ظ‚ط§ظ‹"
+            ? "تم إنشاء عمولة لهذه المبيعات مسبقاً"
             : "A commission already exists for this sale"
           : isArabic
-            ? "طھط¹ط°ط± ط¥ظ†ط´ط§ط، ط§ظ„ط¹ظ…ظˆظ„ط©"
+            ? "تعذر إنشاء العمولة"
             : "Unable to create the commission",
       );
     }
@@ -7741,27 +7741,27 @@ function AdminSalesList({
     : 0;
   const commissionLevel = commissionSale
     ? commissionLevelForSalesCount(commissionSale.affiliate_sales_count)
-    : "ظ…ط¨طھط¯ط¦";
+    : "مبتدئ";
   const total = data.reduce(
     (sum, sale) => sum + Number(sale.sale_amount ?? 0),
     0,
   );
   return (
     <section className="admin-sales-list">
-      <h2>{isArabic ? "ظ‚ط§ط¦ظ…ط© ط§ظ„ظ…ط¨ظٹط¹ط§طھ" : "Sales List"}</h2>
+      <h2>{isArabic ? "قائمة المبيعات" : "Sales List"}</h2>
       <div className="admin-table-wrap">
         <table className="admin-account-quotes-table">
           <thead>
             <tr>
-              <th>{isArabic ? "ط±ظ‚ظ… ط§ظ„ظ…ط¨ظٹط¹ط§طھ" : "Sales Number"}</th>
-              <th>{isArabic ? "ط§ط³ظ… ط§ظ„ط¹ظ…ظٹظ„" : "Client Name"}</th>
-              <th>{isArabic ? "ط§ظ„ظ…ظ†طھط¬" : "Product"}</th>
-              <th>{isArabic ? "ط§ظ„ظ…ط¨ظ„ط؛" : "Amount"}</th>
-              <th>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</th>
-              <th>{isArabic ? "ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User"}</th>
-              <th>{isArabic ? "ط±ظ‚ظ… ط§ظ„ط¹ط±ط¶" : "Quote Number"}</th>
-              <th>{isArabic ? "ط§ظ„طھط§ط±ظٹط®" : "Date"}</th>
-              <th>{isArabic ? "ط¥ظ†ط´ط§ط، ط§ظ„ط¹ظ…ظˆظ„ط§طھ" : "Create Commission"}</th>
+              <th>{isArabic ? "رقم المبيعات" : "Sales Number"}</th>
+              <th>{isArabic ? "اسم العميل" : "Client Name"}</th>
+              <th>{isArabic ? "المنتج" : "Product"}</th>
+              <th>{isArabic ? "المبلغ" : "Amount"}</th>
+              <th>{isArabic ? "الحالة" : "Status"}</th>
+              <th>{isArabic ? "المستخدم" : "User"}</th>
+              <th>{isArabic ? "رقم العرض" : "Quote Number"}</th>
+              <th>{isArabic ? "التاريخ" : "Date"}</th>
+              <th>{isArabic ? "إنشاء العمولات" : "Create Commission"}</th>
             </tr>
           </thead>
           <tbody>
@@ -7771,8 +7771,8 @@ function AdminSalesList({
               return (
                 <tr key={sale.id}>
                   <td>{String(sale.sales_invoice_number ?? `S-${sale.id}`)}</td>
-                  <td>{String(sale.customer_name ?? "â€”")}</td>
-                  <td>{String(sale.product_name ?? "â€”")}</td>
+                  <td>{String(sale.customer_name ?? "—")}</td>
+                  <td>{String(sale.product_name ?? "—")}</td>
                   <td>{`${Number(sale.sale_amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(sale.currency ?? "SAR")}`}</td>
                   <td>
                     <span
@@ -7781,10 +7781,10 @@ function AdminSalesList({
                       {displayAdminValue(sale.status, isArabic)}
                     </span>
                   </td>
-                  <td>{String(sale.affiliate_user_name ?? "â€”")}</td>
-                  <td>{String(sale.quote_number ?? "â€”")}</td>
+                  <td>{String(sale.affiliate_user_name ?? "—")}</td>
+                  <td>{String(sale.quote_number ?? "—")}</td>
                   <td>
-                    {String(sale.sold_at ?? sale.created_at ?? "â€”").slice(
+                    {String(sale.sold_at ?? sale.created_at ?? "—").slice(
                       0,
                       10,
                     )}
@@ -7804,10 +7804,10 @@ function AdminSalesList({
                     >
                       {canCreateCommission
                         ? isArabic
-                          ? "ط¥ظ†ط´ط§ط، ط§ظ„ط¹ظ…ظˆظ„ط§طھ"
+                          ? "إنشاء العمولات"
                           : "Create Commission"
                         : isArabic
-                          ? "طھظ… ط¥ظ†ط´ط§ط، ط§ظ„ط¹ظ…ظˆظ„ط©"
+                          ? "تم إنشاء العمولة"
                           : "Commission Created"}
                     </button>
                   </td>
@@ -7817,7 +7817,7 @@ function AdminSalesList({
             {data.length === 0 ? (
               <tr>
                 <td className="admin-empty" colSpan={9}>
-                  {isArabic ? "ظ„ط§ طھظˆط¬ط¯ ظ…ط¨ظٹط¹ط§طھ" : "No sales found"}
+                  {isArabic ? "لا توجد مبيعات" : "No sales found"}
                 </td>
               </tr>
             ) : null}
@@ -7826,7 +7826,7 @@ function AdminSalesList({
       </div>
       <div className="admin-account-quote-footer">
         <div className="admin-account-total">
-          {isArabic ? "ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ:" : "Total:"}{" "}
+          {isArabic ? "الإجمالي:" : "Total:"}{" "}
           <strong>{total.toLocaleString(NUMBER_LOCALE)} SAR</strong>
         </div>
       </div>
@@ -7845,10 +7845,10 @@ function AdminSalesList({
           >
             <div className="admin-edit-head">
               <div>
-                <span>{isArabic ? "ط¹ظ…ظˆظ„ط© ط§ظ„ظ…ط¨ظٹط¹ط§طھ" : "Sales Commission"}</span>
+                <span>{isArabic ? "عمولة المبيعات" : "Sales Commission"}</span>
                 <h3>
                   {isArabic
-                    ? "طھط£ظƒظٹط¯ ط¥ظ†ط´ط§ط، ط§ظ„ط¹ظ…ظˆظ„ط©"
+                    ? "تأكيد إنشاء العمولة"
                     : "Confirm Commission Creation"}
                 </h3>
               </div>
@@ -7858,7 +7858,7 @@ function AdminSalesList({
             </div>
             <div className="admin-invoice-details">
               <div>
-                <span>{isArabic ? "ط±ظ‚ظ… ط§ظ„ظ…ط¨ظٹط¹ط§طھ" : "Sales Number"}</span>
+                <span>{isArabic ? "رقم المبيعات" : "Sales Number"}</span>
                 <strong>
                   {String(
                     commissionSale.sales_invoice_number ??
@@ -7867,46 +7867,46 @@ function AdminSalesList({
                 </strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ط³ظ… ط§ظ„ط¹ظ…ظٹظ„" : "Client Name"}</span>
-                <strong>{String(commissionSale.customer_name ?? "â€”")}</strong>
+                <span>{isArabic ? "اسم العميل" : "Client Name"}</span>
+                <strong>{String(commissionSale.customer_name ?? "—")}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„ظ…ظ†طھط¬" : "Product"}</span>
-                <strong>{String(commissionSale.product_name ?? "â€”")}</strong>
+                <span>{isArabic ? "المنتج" : "Product"}</span>
+                <strong>{String(commissionSale.product_name ?? "—")}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ظ…ط¨ظ„ط؛ ط§ظ„ظ…ط¨ظٹط¹ط§طھ" : "Sales Amount"}</span>
+                <span>{isArabic ? "مبلغ المبيعات" : "Sales Amount"}</span>
                 <strong>{`${Number(commissionSale.sale_amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(commissionSale.currency ?? "SAR")}`}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User"}</span>
+                <span>{isArabic ? "المستخدم" : "User"}</span>
                 <strong>
-                  {String(commissionSale.affiliate_user_name ?? "â€”")}
+                  {String(commissionSale.affiliate_user_name ?? "—")}
                 </strong>
               </div>
               <div>
-                <span>{isArabic ? "ط¹ط¯ط¯ ط§ظ„ظ…ط¨ظٹط¹ط§طھ" : "Sales Count"}</span>
+                <span>{isArabic ? "عدد المبيعات" : "Sales Count"}</span>
                 <strong>
                   {String(commissionSale.affiliate_sales_count ?? 0)}
                 </strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„ظ…ط³طھظˆظ‰" : "Level"}</span>
+                <span>{isArabic ? "المستوى" : "Level"}</span>
                 <strong>{commissionLevel}</strong>
               </div>
               <div>
                 <span>
-                  {isArabic ? "ظ†ط³ط¨ط© ط§ظ„ط¹ظ…ظˆظ„ط©" : "Commission Percentage"}
+                  {isArabic ? "نسبة العمولة" : "Commission Percentage"}
                 </span>
                 <strong>{`${commissionPercent}%`}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ظ…ط¨ظ„ط؛ ط§ظ„ط¹ظ…ظˆظ„ط©" : "Commission Amount"}</span>
+                <span>{isArabic ? "مبلغ العمولة" : "Commission Amount"}</span>
                 <strong>{`${commissionAmount.toLocaleString(NUMBER_LOCALE, { maximumFractionDigits: 2 })} ${String(commissionSale.currency ?? "SAR")}`}</strong>
               </div>
               <div>
-                <span>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</span>
-                <strong>{isArabic ? "ظ‚ظٹط¯ ط§ظ„ط§ظ†طھط¸ط§ط±" : "Pending"}</strong>
+                <span>{isArabic ? "الحالة" : "Status"}</span>
+                <strong>{isArabic ? "قيد الانتظار" : "Pending"}</strong>
               </div>
             </div>
             {commissionMessage ? (
@@ -7918,10 +7918,10 @@ function AdminSalesList({
                 onClick={() => void createCommission()}
                 type="button"
               >
-                {isArabic ? "ط¥ظ†ط´ط§ط، ط§ظ„ط¹ظ…ظˆظ„ط©" : "Create Commission"}
+                {isArabic ? "إنشاء العمولة" : "Create Commission"}
               </button>
               <button onClick={() => setCommissionSale(null)} type="button">
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
           </section>
@@ -7962,7 +7962,7 @@ function AdminCommissionList({
       onReload();
     } catch {
       setApprovalMessage(
-        isArabic ? "طھط¹ط°ط± طھط¹ظ…ظٹط¯ ط§ظ„ط¹ظ…ظˆظ„ط©" : "Unable to approve the commission",
+        isArabic ? "تعذر تعميد العمولة" : "Unable to approve the commission",
       );
     }
   }
@@ -7987,7 +7987,7 @@ function AdminCommissionList({
     } catch {
       setPaymentMessage(
         isArabic
-          ? "طھط¹ط°ط± ط±ط¨ط· ظ…ط±ط¬ط¹ ط§ظ„ط¯ظپط¹ ط¨ط§ظ„ط¹ظ…ظˆظ„ط©."
+          ? "تعذر ربط مرجع الدفع بالعمولة."
           : "Unable to link the payment reference.",
       );
     } finally {
@@ -7997,22 +7997,22 @@ function AdminCommissionList({
 
   return (
     <section className="admin-sales-list admin-commission-list">
-      <h2>{isArabic ? "ظ‚ط§ط¦ظ…ط© ط§ظ„ط¹ظ…ظˆظ„ط§طھ" : "Commissions List"}</h2>
+      <h2>{isArabic ? "قائمة العمولات" : "Commissions List"}</h2>
       <div className="admin-table-wrap">
         <table className="admin-account-quotes-table">
           <thead>
             <tr>
-              <th>{isArabic ? "ط§ظ„ط±ظ‚ظ…" : "ID"}</th>
-              <th>{isArabic ? "ط±ظ‚ظ… ط§ظ„ظ…ط¨ظٹط¹ط§طھ" : "Sales Number"}</th>
-              <th>{isArabic ? "ط§ظ„ظ…ط³طھط®ط¯ظ…" : "User"}</th>
-              <th>{isArabic ? "ظ†ظˆط¹ ط§ظ„ط¹ظ…ظˆظ„ط©" : "Commission Type"}</th>
-              <th>{isArabic ? "ط§ظ„ظ…ط¨ظ„ط؛" : "Amount"}</th>
-              <th>{isArabic ? "ط§ظ„ظ†ط³ط¨ط©" : "Commission Percentage"}</th>
-              <th>{isArabic ? "ط§ظ„ط­ط§ظ„ط©" : "Status"}</th>
-              <th>{isArabic ? "طھط§ط±ظٹط® ط§ظ„ظپط§طھظˆط±ط©" : "Invoice Date"}</th>
-              <th>{isArabic ? "طھط§ط±ظٹط® ط§ظ„طھط¹ظ…ظٹط¯" : "Approval Date"}</th>
-              <th>{isArabic ? "طھط§ط±ظٹط® ط§ظ„ط³ط¯ط§ط¯" : "Payment Date"}</th>
-              <th>{isArabic ? "طھط¹ظ…ظٹط¯ ط§ظ„ط¹ظ…ظˆظ„ط§طھ" : "Approve Commissions"}</th>
+              <th>{isArabic ? "الرقم" : "ID"}</th>
+              <th>{isArabic ? "رقم المبيعات" : "Sales Number"}</th>
+              <th>{isArabic ? "المستخدم" : "User"}</th>
+              <th>{isArabic ? "نوع العمولة" : "Commission Type"}</th>
+              <th>{isArabic ? "المبلغ" : "Amount"}</th>
+              <th>{isArabic ? "النسبة" : "Commission Percentage"}</th>
+              <th>{isArabic ? "الحالة" : "Status"}</th>
+              <th>{isArabic ? "تاريخ الفاتورة" : "Invoice Date"}</th>
+              <th>{isArabic ? "تاريخ التعميد" : "Approval Date"}</th>
+              <th>{isArabic ? "تاريخ السداد" : "Payment Date"}</th>
+              <th>{isArabic ? "تعميد العمولات" : "Approve Commissions"}</th>
             </tr>
           </thead>
           <tbody>
@@ -8026,11 +8026,11 @@ function AdminCommissionList({
                   <td>
                     {String(
                       commission.sales_invoice_number ??
-                        `S-${String(commission.sale_id ?? "â€”")}`,
+                        `S-${String(commission.sale_id ?? "—")}`,
                     )}
                   </td>
-                  <td>{String(commission.affiliate_user_name ?? "â€”")}</td>
-                  <td>{String(commission.commission_type ?? "â€”")}</td>
+                  <td>{String(commission.affiliate_user_name ?? "—")}</td>
+                  <td>{String(commission.commission_type ?? "—")}</td>
                   <td>{`${Number(commission.commission_amount ?? 0).toLocaleString(NUMBER_LOCALE)} ${String(commission.currency ?? "SAR")}`}</td>
                   <td>{`${Number(commission.commission_percent ?? 0)}%`}</td>
                   <td>
@@ -8040,9 +8040,9 @@ function AdminCommissionList({
                       {displayAdminValue(commission.status, isArabic)}
                     </span>
                   </td>
-                  <td>{String(commission.created_at ?? "â€”").slice(0, 10)}</td>
-                  <td>{String(commission.approved_at ?? "â€”").slice(0, 10)}</td>
-                  <td>{String(commission.paid_at ?? "â€”").slice(0, 10)}</td>
+                  <td>{String(commission.created_at ?? "—").slice(0, 10)}</td>
+                  <td>{String(commission.approved_at ?? "—").slice(0, 10)}</td>
+                  <td>{String(commission.paid_at ?? "—").slice(0, 10)}</td>
                   <td>
                     {canApprove ? (
                       <button
@@ -8050,7 +8050,7 @@ function AdminCommissionList({
                         onClick={() => void approveCommission(commission.id)}
                         type="button"
                       >
-                        {isArabic ? "طھط¹ظ…ظٹط¯ ط§ظ„ط¹ظ…ظˆظ„ط§طھ" : "Approve Commissions"}
+                        {isArabic ? "تعميد العمولات" : "Approve Commissions"}
                       </button>
                     ) : null}
                     {canLinkPayment ? (
@@ -8068,10 +8068,10 @@ function AdminCommissionList({
                         <span aria-hidden="true">?</span>
                         {commission.payment_reference
                           ? isArabic
-                            ? "طھظ… ط±ط¨ط· ط§ظ„ط¯ظپط¹"
+                            ? "تم ربط الدفع"
                             : "Payment Linked"
                           : isArabic
-                            ? "ط±ط¨ط· ط§ظ„ط¯ظپط¹"
+                            ? "ربط الدفع"
                             : "Link Payment"}
                       </button>
                     ) : null}
@@ -8082,7 +8082,7 @@ function AdminCommissionList({
             {data.length === 0 ? (
               <tr>
                 <td className="admin-empty" colSpan={11}>
-                  {isArabic ? "ظ„ط§ طھظˆط¬ط¯ ط¹ظ…ظˆظ„ط§طھ" : "No commissions found"}
+                  {isArabic ? "لا توجد عمولات" : "No commissions found"}
                 </td>
               </tr>
             ) : null}
@@ -8091,7 +8091,7 @@ function AdminCommissionList({
       </div>
       <div className="admin-account-quote-footer">
         <div className="admin-account-total">
-          {isArabic ? "ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ:" : "Total:"}{" "}
+          {isArabic ? "الإجمالي:" : "Total:"}{" "}
           <strong>{total.toLocaleString(NUMBER_LOCALE)} SAR</strong>
         </div>
       </div>
@@ -8114,8 +8114,8 @@ function AdminCommissionList({
           >
             <div className="admin-edit-head">
               <div>
-                <span>{isArabic ? "ط¯ظپط¹ط© ط§ظ„ط¹ظ…ظˆظ„ط©" : "Commission Payment"}</span>
-                <h3>{isArabic ? "ط±ط¨ط· ط§ظ„ط¯ظپط¹" : "Link Payment"}</h3>
+                <span>{isArabic ? "دفعة العمولة" : "Commission Payment"}</span>
+                <h3>{isArabic ? "ربط الدفع" : "Link Payment"}</h3>
               </div>
               <button onClick={() => setPaymentCommission(null)} type="button">
                 X
@@ -8123,16 +8123,16 @@ function AdminCommissionList({
             </div>
             <p className="admin-payment-link-copy">
               {isArabic
-                ? `ط£ط¯ط®ظ„ ط±ظ‚ظ… ط§ظ„طھط­ظˆظٹظ„ ط£ظˆ ظ…ط±ط¬ط¹ ط§ظ„ط¹ظ…ظ„ظٹط© ظ„ظ„ط¹ظ…ظˆظ„ط© ط±ظ‚ظ… ${paymentCommission.id}.`
+                ? `أدخل رقم التحويل أو مرجع العملية للعمولة رقم ${paymentCommission.id}.`
                 : `Enter the bank transfer or transaction reference for commission #${paymentCommission.id}.`}
             </p>
             <label>
-              <span>{isArabic ? "ظ…ط±ط¬ط¹ ط§ظ„ط¯ظپط¹" : "Payment Reference"}</span>
+              <span>{isArabic ? "مرجع الدفع" : "Payment Reference"}</span>
               <input
                 autoFocus
                 onChange={(event) => setPaymentReference(event.target.value)}
                 placeholder={
-                  isArabic ? "ظ…ط«ط§ظ„: TXN-123456" : "Example: TXN-123456"
+                  isArabic ? "مثال: TXN-123456" : "Example: TXN-123456"
                 }
                 value={paymentReference}
               />
@@ -8149,14 +8149,14 @@ function AdminCommissionList({
               >
                 {isLinkingPayment
                   ? isArabic
-                    ? "ط¬ط§ط±ظچ ط§ظ„ط­ظپط¸..."
+                    ? "جارٍ الحفظ..."
                     : "Saving..."
                   : isArabic
-                    ? "ط­ظپط¸ ط§ظ„ط±ط¨ط·"
+                    ? "حفظ الربط"
                     : "Save Link"}
               </button>
               <button onClick={() => setPaymentCommission(null)} type="button">
-                {isArabic ? "ط¥ظ„ط؛ط§ط،" : "Cancel"}
+                {isArabic ? "إلغاء" : "Cancel"}
               </button>
             </div>
           </section>
@@ -8165,4 +8165,3 @@ function AdminCommissionList({
     </section>
   );
 }
-
