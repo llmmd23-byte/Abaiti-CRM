@@ -3430,6 +3430,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
   const [contractFormOpen, setContractFormOpen] = useState(false);
+  const skipNextRentalAutoSaveRef = useRef(false);
 
   const text = isArabic
     ? {
@@ -3752,6 +3753,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   }
 
   function editContract(contract: BackendRow) {
+    skipNextRentalAutoSaveRef.current = true;
     setContractFormOpen(true);
     setEditingContractId(Number(contract.id));
     setContractNumber(String(contract.contract_number ?? ""));
@@ -3908,19 +3910,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     printWindow.document.close();
   }
 
-  async function saveContract() {
-    if (!companyName.trim() || !contactName.trim() || !rentalItem.trim()) {
-      setSaveStatus(text.validation);
-      return;
-    }
-    const normalizedBooth = boothNumber.trim().toUpperCase();
-    if (normalizedBooth && boothReservationStatuses.has(normalizedBooth)) {
-      setSaveStatus(isArabic ? "هذا البوث غير متاح حالياً" : "This booth is not available now");
-      window.setTimeout(() => setSaveStatus(""), 2200);
-      return;
-    }
-    setSaveStatus(text.saving);
-    const payload = {
+  function rentalContractPayload() {
+    return {
       contract_number: contractNumber.trim() || null,
       lead_id: leadId ? Number(leadId) : null,
       event_name: eventName.trim() || null,
@@ -3956,6 +3947,85 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       status: contractStatus,
       notes: notes.trim() || null,
     };
+  }
+
+  useEffect(() => {
+    if (!editingContractId || !contractFormOpen) return;
+    if (skipNextRentalAutoSaveRef.current) {
+      skipNextRentalAutoSaveRef.current = false;
+      return;
+    }
+    if (!companyName.trim() || !contactName.trim() || !rentalItem.trim()) return;
+    const timeout = window.setTimeout(() => {
+      setSaveStatus(text.saving);
+      updateBackend("rental-contracts", editingContractId, rentalContractPayload())
+        .then(async () => {
+          setSaveStatus(text.updated);
+          await contracts.reload();
+          await rentalBooths.reload();
+          window.setTimeout(() => setSaveStatus(""), 1600);
+        })
+        .catch(() => {
+          setSaveStatus(text.failed);
+          window.setTimeout(() => setSaveStatus(""), 2200);
+        });
+    }, 900);
+    return () => window.clearTimeout(timeout);
+  }, [
+    address,
+    amounts.grandTotal,
+    amounts.subtotal,
+    amounts.vat,
+    boothNumber,
+    boothSize,
+    city,
+    companyName,
+    contactName,
+    contractDate,
+    contractFormOpen,
+    contractNumber,
+    contractStatus,
+    country,
+    editingContractId,
+    email,
+    eventDates,
+    eventLocation,
+    eventName,
+    firstPartyCr,
+    firstPartyRepresentative,
+    leadId,
+    leaseEndDate,
+    leaseStartDate,
+    lessorName,
+    notes,
+    participationCategory,
+    paymentStatus,
+    phone,
+    quantity,
+    rentalItem,
+    rentalLocation,
+    secondPartyCr,
+    secondPartyRepresentative,
+    tenantName,
+    text.failed,
+    text.saving,
+    text.updated,
+    unitPrice,
+  ]);
+
+  async function saveContract() {
+    if (!companyName.trim() || !contactName.trim() || !rentalItem.trim()) {
+      setSaveStatus(text.validation);
+      return;
+    }
+    const normalizedBooth = boothNumber.trim().toUpperCase();
+    if (normalizedBooth && boothReservationStatuses.has(normalizedBooth)) {
+      setSaveStatus(isArabic ? "هذا البوث غير متاح حالياً" : "This booth is not available now");
+      window.setTimeout(() => setSaveStatus(""), 2200);
+      return;
+    }
+    setSaveStatus(text.saving);
+    const payload = rentalContractPayload();
     try {
       if (editingContractId) {
         await updateBackend("rental-contracts", editingContractId, payload);
