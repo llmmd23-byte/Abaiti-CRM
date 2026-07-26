@@ -3422,6 +3422,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [contractDate, setContractDate] = useState(() => dateAfterDays(0));
   const [notes, setNotes] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("pending_payment");
+  const [contractStatus, setContractStatus] = useState("draft");
   const [search, setSearch] = useState("");
   const [boothPickerOpen, setBoothPickerOpen] = useState(false);
   const [boothMapQuery, setBoothMapQuery] = useState("");
@@ -3458,6 +3459,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         paymentStatus: "حالة السداد",
         pendingPayment: "بانتظار الدفع",
         paid: "مدفوع",
+        status: "الحالة",
         contractDate: "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0639\u0642\u062f",
         notes: "\u0645\u0644\u0627\u062d\u0638\u0627\u062a \u0648\u0634\u0631\u0648\u0637",
         save: "\u062d\u0641\u0638 \u0627\u0644\u0639\u0642\u062f",
@@ -3515,6 +3517,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         paymentStatus: "Payment status",
         pendingPayment: "Pending payment",
         paid: "Paid",
+        status: "Status",
         contractDate: "Contract date",
         notes: "Notes and terms",
         save: "Save contract",
@@ -3726,6 +3729,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setContractDate(dateAfterDays(0));
     setNotes("");
     setPaymentStatus("pending_payment");
+    setContractStatus("draft");
   }
 
   function editContract(contract: BackendRow) {
@@ -3760,6 +3764,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setContractDate(cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date));
     setNotes(String(contract.notes ?? ""));
     setPaymentStatus(String(contract.payment_status ?? "pending_payment"));
+    setContractStatus(String(contract.status ?? "draft"));
     window.scrollTo({top: 0, behavior: "smooth"});
   }
 
@@ -3928,6 +3933,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       grand_total: roundMoney(amounts.grandTotal),
       payment_status: paymentStatus,
       contract_date: contractDate || null,
+      status: contractStatus,
       notes: notes.trim() || null,
     };
     try {
@@ -4133,6 +4139,20 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                 {value: "paid", label: text.paid},
               ]}
               value={paymentStatus}
+            />
+          </label>
+          <label className="quote-field">
+            <span>{text.status}</span>
+            <DashboardSelect
+              ariaLabel={text.status}
+              onValueChange={setContractStatus}
+              options={[
+                {value: "draft", label: text.draft},
+                {value: "sent", label: text.sent},
+                {value: "signed", label: text.signed},
+                {value: "cancelled", label: text.cancelled},
+              ]}
+              value={contractStatus}
             />
           </label>
           <label className="quote-field"><span>{text.quantity}</span><input inputMode="decimal" min="0" onChange={(event) => setQuantity(event.target.value)} type="number" value={quantity} /></label>
