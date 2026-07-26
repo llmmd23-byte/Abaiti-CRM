@@ -3953,6 +3953,21 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     window.setTimeout(() => setSaveStatus(""), 2200);
   }
 
+  async function markFormPaymentPaid() {
+    setPaymentStatus("paid");
+    if (!editingContractId) return;
+    setSaveStatus(text.saving);
+    try {
+      await updateBackend("rental-contracts", editingContractId, {payment_status: "paid"});
+      setSaveStatus(text.updated);
+      await contracts.reload();
+      await rentalBooths.reload();
+    } catch {
+      setSaveStatus(text.failed);
+    }
+    window.setTimeout(() => setSaveStatus(""), 2200);
+  }
+
   return (
     <div className="quotes-page-grid">
       <article className="quote-card quote-form-card rental-contract-form-card">
@@ -4164,7 +4179,11 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         </div>
         <label className="quote-details-field"><span>{text.address}</span><textarea onChange={(event) => setAddress(event.target.value)} value={address} /></label>
         <label className="quote-details-field"><span>{text.notes}</span><textarea onChange={(event) => setNotes(event.target.value)} value={notes} /></label>
-        <div className="quote-action-row"><button className="button button-primary" onClick={() => void saveContract()} type="button">{editingContractId ? text.update : text.save}</button>{saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}</div>
+        <div className="quote-action-row">
+          <button className="button button-primary" onClick={() => void saveContract()} type="button">{editingContractId ? text.update : text.save}</button>
+          <button className="button rental-form-paid-button" onClick={() => void markFormPaymentPaid()} type="button">{text.paid}</button>
+          {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
+        </div>
       </article>
 
       <article className="quote-card quote-history-card">

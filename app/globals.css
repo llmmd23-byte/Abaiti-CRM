@@ -9425,6 +9425,24 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
   margin-top: 2px;
 }
 
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .rental-form-paid-button {
+  min-height: 52px;
+  padding: 13px 22px;
+  border: 1px solid #86efac;
+  border-radius: 10px;
+  color: #166534;
+  background: #dcfce7;
+  box-shadow: none;
+  font-weight: 900;
+}
+
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .rental-form-paid-button:hover,
+.dashboard-route-shell .dashboard-main .rental-contract-form-card .rental-form-paid-button:focus-visible {
+  border-color: #4ade80;
+  background: #bbf7d0;
+  color: #14532d;
+}
+
 .dashboard-route-shell .dashboard-main .quote-history-card .responsive-table {
   width: 100%;
   overflow-x: visible;
