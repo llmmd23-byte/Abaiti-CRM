@@ -7,7 +7,12 @@ export async function GET(_request: Request, {params}: {params: Promise<{resourc
   const session = await apiSession();
   if (session instanceof NextResponse) return session;
   try {
-    return NextResponse.json({data: await listResource((await params).resource, session)});
+    const resource = (await params).resource;
+    const response = NextResponse.json({data: await listResource(resource, session)});
+    if (resource === "marketing-assets") {
+      response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    }
+    return response;
   } catch (error) {
     return apiError(error);
   }

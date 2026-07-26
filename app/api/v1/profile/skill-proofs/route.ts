@@ -10,8 +10,10 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 
 function storedFiles(value: unknown) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return [];
   try {
-    const parsed = JSON.parse(String(value ?? "[]"));
+    const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
   } catch {
     return [];

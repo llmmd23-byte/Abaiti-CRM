@@ -308,6 +308,26 @@ export default function SettingsDashboard() {
   const [securityStatus, setSecurityStatus] = useState("");
   const [notificationDraft, setNotificationDraft] = useState<NotificationSettings>(defaultNotificationSettings);
   const [notificationStatus, setNotificationStatus] = useState("");
+  function parseSkillProofUrls(value: unknown) {
+    const raw = String(value ?? "").trim();
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed)
+        ? parsed.filter((url): url is string => typeof url === "string")
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function mapSkillProofUrls(urls: string[]) {
+    return urls.map((url, index) => ({
+      name: `Skill proof ${index + 1}`,
+      url,
+    }));
+  }
+
   useEffect(() => {
     if (!profile.data) return;
     setProfileDraft({
@@ -324,14 +344,7 @@ export default function SettingsDashboard() {
       skills_experience: String(profile.data.skills_experience ?? ""),
       skills_courses: String(profile.data.skills_courses ?? "")
     });
-    try {
-      const storedProofs = JSON.parse(String(profile.data.skills_proof_files ?? "[]"));
-      setSkillProofs(Array.isArray(storedProofs)
-        ? storedProofs.filter((url): url is string => typeof url === "string").map((url, index) => ({name: `Skill proof ${index + 1}`, url}))
-        : []);
-    } catch {
-      setSkillProofs([]);
-    }
+    setSkillProofs(mapSkillProofUrls(parseSkillProofUrls(profile.data.skills_proof_files)));
     setPreferredLocale(String(profile.data.preferred_locale ?? locale) === "en" ? "en" : "ar");
   }, [profile.data]);
   useEffect(() => {
@@ -638,10 +651,7 @@ export default function SettingsDashboard() {
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "UPLOAD_FAILED");
       setSkillsStatus(isArabic ? "\u062a\u0645 \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631" : "Images uploaded");
-      const storedProofs: unknown = JSON.parse(String(body.data?.skills_proof_files ?? "[]"));
-      setSkillProofs(Array.isArray(storedProofs)
-        ? storedProofs.filter((url): url is string => typeof url === "string").map((url, index) => ({name: `Skill proof ${index + 1}`, url}))
-        : []);
+      setSkillProofs(mapSkillProofUrls(parseSkillProofUrls(body.data?.skills_proof_files)));
     } catch {
       setSkillsStatus(isArabic ? "\u062a\u0639\u0630\u0631 \u0631\u0641\u0639 \u0627\u0644\u0635\u0648\u0631" : "Image upload failed");
     }

@@ -1,6 +1,13 @@
 "use client";
 
-import {useEffect, useId, useRef, useState, type CSSProperties} from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import {createPortal} from "react-dom";
 
 export type DashboardSelectOption = {
@@ -44,13 +51,21 @@ export default function DashboardSelect({
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [searchQuery, setSearchQuery] = useState("");
   const selectedValue = value ?? internalValue;
-  const selectedIndex = options.findIndex((option) => option.value === selectedValue);
+  const selectedIndex = useMemo(
+    () => options.findIndex((option) => option.value === selectedValue),
+    [options, selectedValue],
+  );
   const [activeIndex, setActiveIndex] = useState(selectedIndex >= 0 ? selectedIndex : 0);
   const [portalStyle, setPortalStyle] = useState<CSSProperties>({});
-  const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : undefined;
-  const visibleOptions = searchable && searchQuery.trim()
-    ? options.filter((option) => option.label.toLocaleLowerCase().includes(searchQuery.trim().toLocaleLowerCase()))
-    : options;
+  const selectedOption = useMemo(
+    () => (selectedIndex >= 0 ? options[selectedIndex] : undefined),
+    [options, selectedIndex],
+  );
+  const visibleOptions = useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase();
+    if (!searchable || !query) return options;
+    return options.filter((option) => option.label.toLocaleLowerCase().includes(query));
+  }, [options, searchable, searchQuery]);
 
   function updatePortalPosition() {
     if (!portal || !triggerRef.current) return;
@@ -76,11 +91,13 @@ export default function DashboardSelect({
       maxHeight: menuHeight,
       overflowY: "auto",
       transform: "none",
-      zIndex: portal ? 2000 : 1000
+      zIndex: portal ? 2600 : 1000
     });
   }
 
   useEffect(() => {
+    if (!isOpen) return;
+
     function closeOnOutsidePress(event: PointerEvent) {
       if (!rootRef.current?.contains(event.target as Node) && !menuRef.current?.contains(event.target as Node)) {
         setIsOpen(false);
@@ -89,7 +106,7 @@ export default function DashboardSelect({
 
     document.addEventListener("pointerdown", closeOnOutsidePress);
     return () => document.removeEventListener("pointerdown", closeOnOutsidePress);
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!portal || !isOpen) return;

@@ -76,6 +76,9 @@ export async function GET(_request: Request, {params}: Context) {
     if (!asset) {
       return NextResponse.json({error: "NOT_FOUND"}, {status: 404});
     }
+    if (String(asset.status ?? "active") !== "active") {
+      return NextResponse.json({error: "NOT_FOUND"}, {status: 404});
+    }
 
     const filePath = marketingAssetPath(asset.file_path);
     if (!filePath && !Buffer.isBuffer(asset.file_data)) {
