@@ -218,11 +218,17 @@ const resources: Record<BackendResource, ResourceDefinition> = {
       "total_amount",
       "currency",
       "payment_method",
+      "payment_status",
       "contract_date",
       "status",
       "notes",
     ],
-    defaults: { status: "draft", currency: "SAR", payment_method: "bank_transfer" },
+    defaults: {
+      status: "draft",
+      currency: "SAR",
+      payment_method: "bank_transfer",
+      payment_status: "pending_payment",
+    },
   },
   "sponsorship-contracts": {
     table: "sponsorship_contracts",
@@ -770,6 +776,7 @@ async function ensureParticipationContractsTable() {
       total_amount DECIMAL(12,2) NULL,
       currency CHAR(3) NOT NULL DEFAULT 'SAR',
       payment_method VARCHAR(80) NOT NULL DEFAULT 'bank_transfer',
+      payment_status ENUM('pending_payment', 'paid') NOT NULL DEFAULT 'pending_payment',
       contract_date DATE NULL,
       status ENUM('draft', 'sent', 'signed', 'cancelled') NOT NULL DEFAULT 'draft',
       notes TEXT NULL,
@@ -918,6 +925,7 @@ async function ensureRentalContractsTable() {
     ["booth_number", "ALTER TABLE rental_contracts ADD COLUMN booth_number VARCHAR(80) NULL AFTER second_party_representative"],
     ["participation_category", "ALTER TABLE rental_contracts ADD COLUMN participation_category VARCHAR(120) NULL AFTER booth_number"],
     ["booth_size", "ALTER TABLE rental_contracts ADD COLUMN booth_size VARCHAR(80) NULL AFTER participation_category"],
+    ["payment_status", "ALTER TABLE rental_contracts ADD COLUMN payment_status ENUM('pending_payment', 'paid') NOT NULL DEFAULT 'pending_payment' AFTER payment_method"],
   ];
   for (const [column, statement] of rentalExtraColumns) {
     if (!(await columnExists("rental_contracts", column))) {
@@ -960,6 +968,7 @@ async function ensureRentalBoothsTable() {
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       rental_contract_id BIGINT UNSIGNED NOT NULL,
       booth_id BIGINT UNSIGNED NOT NULL,
+      status ENUM('pending_payment', 'booked') NOT NULL DEFAULT 'pending_payment',
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (id),
       UNIQUE KEY uq_rental_booths_booth (booth_id),
@@ -971,8 +980,13 @@ async function ensureRentalBoothsTable() {
       CONSTRAINT fk_rental_booths_booth
         FOREIGN KEY (booth_id) REFERENCES booth(id)
         ON DELETE RESTRICT ON UPDATE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
   );
+  if (!(await columnExists("rental_booths", "status"))) {
+    await db.execute(
+      "ALTER TABLE rental_booths ADD COLUMN status ENUM('pending_payment', 'booked') NOT NULL DEFAULT 'pending_payment' AFTER booth_id",
+    );
+  }
   if (await columnExists("rental_booths", "booth_number")) {
     await db.execute("DROP TABLE IF EXISTS rental_booths_next");
     await db.execute(
@@ -980,6 +994,7 @@ async function ensureRentalBoothsTable() {
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         rental_contract_id BIGINT UNSIGNED NOT NULL,
         booth_id BIGINT UNSIGNED NOT NULL,
+        status ENUM('pending_payment', 'booked') NOT NULL DEFAULT 'pending_payment',
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         UNIQUE KEY uq_rental_booths_next_booth (booth_id),
@@ -1008,8 +1023,11 @@ async function ensureRentalBoothsTable() {
           booth_dimensions = COALESCE(booth.booth_dimensions, VALUES(booth_dimensions))`,
     );
     await db.execute(
-      `INSERT IGNORE INTO rental_booths_next (rental_contract_id, booth_id, created_at)
-        SELECT rb.rental_contract_id, b.id, COALESCE(rb.created_at, CURRENT_TIMESTAMP)
+      `INSERT IGNORE INTO rental_booths_next (rental_contract_id, booth_id, status, created_at)
+        SELECT rb.rental_contract_id,
+               b.id,
+               CASE WHEN COALESCE(rc.payment_status, 'pending_payment') = 'paid' THEN 'booked' ELSE 'pending_payment' END,
+               COALESCE(rb.created_at, CURRENT_TIMESTAMP)
           FROM rental_booths rb
           JOIN booth b ON b.booth_number = UPPER(TRIM(rb.booth_number))
           JOIN rental_contracts rc ON rc.id = rb.rental_contract_id
@@ -1147,13 +1165,18 @@ async function syncRentalBoothsFromContracts() {
          OR TRIM(rc.booth_number) = ''`,
   );
   await db.execute(
-    `INSERT IGNORE INTO rental_booths (rental_contract_id, booth_id)
-      SELECT rc.id, b.id
+    `INSERT INTO rental_booths (rental_contract_id, booth_id, status)
+      SELECT rc.id,
+             b.id,
+             CASE WHEN COALESCE(rc.payment_status, 'pending_payment') = 'paid' THEN 'booked' ELSE 'pending_payment' END
         FROM rental_contracts rc
         JOIN booth b ON b.booth_number = UPPER(TRIM(rc.booth_number))
        WHERE rc.booth_number IS NOT NULL
          AND TRIM(rc.booth_number) <> ''
-         AND COALESCE(rc.status, 'draft') <> 'cancelled'`,
+         AND COALESCE(rc.status, 'draft') <> 'cancelled'
+      ON DUPLICATE KEY UPDATE
+        rental_contract_id = VALUES(rental_contract_id),
+        status = VALUES(status)`,
   );
 }
 
@@ -1185,7 +1208,7 @@ async function assertRentalBoothAvailable(
 async function syncRentalBoothForContract(contractId: number) {
   await ensureRentalBoothsTable();
   const [rows] = await db.execute<RowDataPacket[]>(
-    `SELECT booth_number, booth_size, status
+    `SELECT booth_number, booth_size, status, payment_status
        FROM rental_contracts
       WHERE id = ?
       LIMIT 1`,
@@ -1208,10 +1231,18 @@ async function syncRentalBoothForContract(contractId: number) {
     ],
   );
   await db.execute(
-    `INSERT INTO rental_booths (rental_contract_id, booth_id)
-      SELECT ?, id FROM booth WHERE booth_number = ?
-      ON DUPLICATE KEY UPDATE rental_contract_id = VALUES(rental_contract_id)`,
-    [contractId, boothNumber],
+    `INSERT INTO rental_booths (rental_contract_id, booth_id, status)
+      SELECT ?, id, ? FROM booth WHERE booth_number = ?
+      ON DUPLICATE KEY UPDATE
+        rental_contract_id = VALUES(rental_contract_id),
+        status = VALUES(status)`,
+    [
+      contractId,
+      String(contract?.payment_status ?? "pending_payment") === "paid"
+        ? "booked"
+        : "pending_payment",
+      boothNumber,
+    ],
   );
 }
 
@@ -2118,7 +2149,7 @@ export async function listResource(resource: string, session: MiddarSession) {
               rb.rental_contract_id,
               rb.booth_id,
               rb.created_at,
-              'booked' AS status,
+              rb.status,
               b.booth_number,
               b.booth_size,
               b.booth_dimensions,
@@ -2127,7 +2158,8 @@ export async function listResource(resource: string, session: MiddarSession) {
               b.location_zone,
               rc.contract_number,
               rc.company_name,
-              rc.contact_name
+              rc.contact_name,
+              rc.payment_status
          FROM rental_booths rb
          JOIN booth b ON b.id = rb.booth_id
          LEFT JOIN rental_contracts rc ON rc.id = rb.rental_contract_id
@@ -2524,6 +2556,9 @@ export async function createResource(
     data.subtotal = subtotal;
     data.vat_amount = vatAmount;
     data.grand_total = grandTotal;
+    if (!["pending_payment", "paid"].includes(String(data.payment_status ?? ""))) {
+      data.payment_status = "pending_payment";
+    }
     if (data.booth_number) {
       data.booth_number = normalizedBoothNumber(data.booth_number);
       await assertRentalBoothAvailable(data.booth_number);
@@ -2991,6 +3026,12 @@ export async function updateResource(
     data.subtotal = subtotal;
     data.vat_amount = vatAmount;
     data.grand_total = grandTotal;
+    if (
+      data.payment_status !== undefined &&
+      !["pending_payment", "paid"].includes(String(data.payment_status))
+    ) {
+      data.payment_status = "pending_payment";
+    }
     if (data.booth_number !== undefined && data.booth_number !== null) {
       data.booth_number = normalizedBoothNumber(data.booth_number);
       await assertRentalBoothAvailable(data.booth_number, id);

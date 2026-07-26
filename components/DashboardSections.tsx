@@ -3421,6 +3421,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [quantity, setQuantity] = useState("1");
   const [contractDate, setContractDate] = useState(() => dateAfterDays(0));
   const [notes, setNotes] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState("pending_payment");
   const [search, setSearch] = useState("");
   const [boothPickerOpen, setBoothPickerOpen] = useState(false);
   const [boothMapQuery, setBoothMapQuery] = useState("");
@@ -3454,6 +3455,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         quantity: "\u0627\u0644\u0643\u0645\u064a\u0629 / \u0627\u0644\u0645\u062f\u0629",
         subtotal: "\u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a \u0642\u0628\u0644 \u0627\u0644\u0636\u0631\u064a\u0628\u0629",
         vatAmount: "\u0636\u0631\u064a\u0628\u0629 \u0627\u0644\u0642\u064a\u0645\u0629 \u0627\u0644\u0645\u0636\u0627\u0641\u0629 15%",
+        paymentStatus: "حالة السداد",
+        pendingPayment: "بانتظار الدفع",
+        paid: "مدفوع",
         contractDate: "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0639\u0642\u062f",
         notes: "\u0645\u0644\u0627\u062d\u0638\u0627\u062a \u0648\u0634\u0631\u0648\u0637",
         save: "\u062d\u0641\u0638 \u0627\u0644\u0639\u0642\u062f",
@@ -3508,6 +3512,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         quantity: "Quantity / period",
         subtotal: "Total before VAT",
         vatAmount: "VAT 15%",
+        paymentStatus: "Payment status",
+        pendingPayment: "Pending payment",
+        paid: "Paid",
         contractDate: "Contract date",
         notes: "Notes and terms",
         save: "Save contract",
@@ -3583,19 +3590,26 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     },
     [contracts.data, search],
   );
-  const bookedBooths = useMemo(() => {
-    const booths = new Set<string>();
+  const boothReservationStatuses = useMemo(() => {
+    const booths = new Map<string, string>();
     for (const booth of rentalBooths.data ?? []) {
-      if (String(booth.status ?? "").toLowerCase() !== "booked") continue;
       if (editingContractId && Number(booth.rental_contract_id) === editingContractId) continue;
       const value = String(booth.booth_number ?? "").trim().toUpperCase();
-      if (value) booths.add(value);
+      const status = String(booth.status ?? "pending_payment").toLowerCase();
+      if (value && ["pending_payment", "booked"].includes(status)) booths.set(value, status);
     }
     for (const contract of contracts.data ?? []) {
       if (editingContractId && Number(contract.id) === editingContractId) continue;
       if (String(contract.status ?? "").toLowerCase() === "cancelled") continue;
       const value = String(contract.booth_number ?? "").trim().toUpperCase();
-      if (value) booths.add(value);
+      if (value && !booths.has(value)) {
+        booths.set(
+          value,
+          String(contract.payment_status ?? "pending_payment") === "paid"
+            ? "booked"
+            : "pending_payment",
+        );
+      }
     }
     return booths;
   }, [contracts.data, editingContractId, rentalBooths.data]);
@@ -3654,8 +3668,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   }, [boothCatalogByNumber, boothMapQuery, boothMapZone]);
   function selectBooth(nextBooth: string) {
     const normalizedBooth = nextBooth.trim().toUpperCase();
-    if (bookedBooths.has(normalizedBooth)) {
-      setSaveStatus(isArabic ? "هذا البوث محجوز مسبقاً" : "This booth is already booked");
+    if (boothReservationStatuses.has(normalizedBooth)) {
+      setSaveStatus(isArabic ? "هذا البوث غير متاح حالياً" : "This booth is not available now");
       window.setTimeout(() => setSaveStatus(""), 2200);
       return;
     }
@@ -3711,6 +3725,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setQuantity("1");
     setContractDate(dateAfterDays(0));
     setNotes("");
+    setPaymentStatus("pending_payment");
   }
 
   function editContract(contract: BackendRow) {
@@ -3744,6 +3759,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setQuantity(contract.quantity == null ? "1" : String(contract.quantity));
     setContractDate(cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date));
     setNotes(String(contract.notes ?? ""));
+    setPaymentStatus(String(contract.payment_status ?? "pending_payment"));
     window.scrollTo({top: 0, behavior: "smooth"});
   }
 
@@ -3873,8 +3889,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       return;
     }
     const normalizedBooth = boothNumber.trim().toUpperCase();
-    if (normalizedBooth && bookedBooths.has(normalizedBooth)) {
-      setSaveStatus(isArabic ? "هذا البوث محجوز مسبقاً" : "This booth is already booked");
+    if (normalizedBooth && boothReservationStatuses.has(normalizedBooth)) {
+      setSaveStatus(isArabic ? "هذا البوث غير متاح حالياً" : "This booth is not available now");
       window.setTimeout(() => setSaveStatus(""), 2200);
       return;
     }
@@ -3910,6 +3926,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       subtotal: roundMoney(amounts.subtotal),
       vat_amount: roundMoney(amounts.vat),
       grand_total: roundMoney(amounts.grandTotal),
+      payment_status: paymentStatus,
       contract_date: contractDate || null,
       notes: notes.trim() || null,
     };
@@ -4000,6 +4017,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                   </div>
                   <div className="admin-booth-map-legend" aria-label={isArabic ? "دليل ألوان البوثات" : "Booth color legend"}>
                     <span>{isArabic ? "متاح" : "Available"}<i className="available" aria-hidden="true" /></span>
+                    <span>{isArabic ? "بانتظار الدفع" : "Pending payment"}<i className="pending-payment" aria-hidden="true" /></span>
                     <span>{isArabic ? "محجوز" : "Booked"}<i className="booked" aria-hidden="true" /></span>
                     <span>{isArabic ? "مختار" : "Selected"}<i className="selected" aria-hidden="true" /></span>
                   </div>
@@ -4054,7 +4072,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                     {visibleBoothMapLayout.map((layoutBooth) => {
                       const normalizedBooth = layoutBooth.id.toUpperCase();
                       const catalogBooth = boothCatalogByNumber.get(normalizedBooth);
-                      const isBooked = bookedBooths.has(normalizedBooth);
+                      const reservationStatus = boothReservationStatuses.get(normalizedBooth);
+                      const isBooked = reservationStatus === "booked";
+                      const isPendingPayment = reservationStatus === "pending_payment";
                       const isSelected = boothNumber.trim().toUpperCase() === normalizedBooth;
                       const boothSizeText = String(
                         catalogBooth?.booth_size ??
@@ -4070,13 +4090,13 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                       return (
                         <button
                           aria-pressed={isSelected}
-                          className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${isBooked ? "is-booked" : ""} ${isSelected ? "is-selected" : ""}`}
-                          disabled={isBooked}
+                          className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${isPendingPayment ? "is-pending-payment" : ""} ${isBooked ? "is-booked" : ""} ${isSelected ? "is-selected" : ""}`}
+                          disabled={Boolean(reservationStatus)}
                           dir="ltr"
                           key={layoutBooth.id}
                           onClick={() => {
                             selectBooth(layoutBooth.id);
-                            if (!isBooked) setBoothPickerOpen(false);
+                            if (!reservationStatus) setBoothPickerOpen(false);
                           }}
                           style={{
                             left: `${layoutBooth.left}%`,
@@ -4103,6 +4123,18 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.leaseStartDate}</span><input onChange={(event) => setLeaseStartDate(event.target.value)} type="date" value={leaseStartDate} /></label>
           <label className="quote-field"><span>{text.leaseEndDate}</span><input onChange={(event) => setLeaseEndDate(event.target.value)} type="date" value={leaseEndDate} /></label>
           <label className="quote-field"><span>{text.contractDate}</span><input onChange={(event) => setContractDate(event.target.value)} type="date" value={contractDate} /></label>
+          <label className="quote-field">
+            <span>{text.paymentStatus}</span>
+            <DashboardSelect
+              ariaLabel={text.paymentStatus}
+              onValueChange={setPaymentStatus}
+              options={[
+                {value: "pending_payment", label: text.pendingPayment},
+                {value: "paid", label: text.paid},
+              ]}
+              value={paymentStatus}
+            />
+          </label>
           <label className="quote-field"><span>{text.quantity}</span><input inputMode="decimal" min="0" onChange={(event) => setQuantity(event.target.value)} type="number" value={quantity} /></label>
           <label className="quote-field"><span>{text.subtotal}</span><input readOnly value={amounts.subtotal.toLocaleString(NUMBER_LOCALE)} /></label>
           <label className="quote-field"><span>{text.vatAmount}</span><input readOnly value={amounts.vat.toLocaleString(NUMBER_LOCALE)} /></label>
@@ -4118,13 +4150,14 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <article className="quote-card quote-history-card">
         <div className="card-title"><div><h3>{text.listTitle}</h3><span>{text.listSubtitle}</span></div></div>
         <div className="contract-smart-filter-row"><div className="contract-smart-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" /><path d="m15.5 15.5 4 4" /></svg><input onChange={(event) => setSearch(event.target.value)} placeholder={isArabic ? "\u0627\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645\u060c \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u062c\u0648\u0627\u0644..." : "Search by name, company, mobile..."} type="search" value={search} /><strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong></div></div>
-        <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{isArabic ? "\u0627\u0644\u062d\u0627\u0644\u0629" : "Status"}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
+        <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.paymentStatus}</th><th>{isArabic ? "\u0627\u0644\u062d\u0627\u0644\u0629" : "Status"}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
           {filteredContracts.map((contract) => {
             const statusValue = String(contract.status ?? "draft");
-            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "-")}</td><td>{String(contract.company_name ?? "-")}</td><td>{String(contract.rental_item ?? "-")}</td><td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button><button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button></div></td></tr>;
+            const paymentValue = String(contract.payment_status ?? "pending_payment");
+            return <tr key={contract.id}><td>{String(contract.contract_number ?? contract.id)}</td><td>{String(contract.customer_name ?? "-")}</td><td>{String(contract.company_name ?? "-")}</td><td>{String(contract.rental_item ?? "-")}</td><td><span className={`quote-status ${paymentValue}`}>{paymentValue === "paid" ? text.paid : text.pendingPayment}</span></td><td><span className={`quote-status ${statusValue}`}>{statusLabels[statusValue] ?? statusValue}</span></td><td>{cleanDate(contract.contract_date)}</td><td><div className="contract-table-actions"><button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button><button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button></div></td></tr>;
           })}
-          {!contracts.loading && !filteredContracts.length ? <tr><td className="quote-history-empty" colSpan={7}>{text.noContracts}</td></tr> : null}
-          {contracts.loading ? <tr><td className="quote-history-empty" colSpan={7}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td></tr> : null}
+          {!contracts.loading && !filteredContracts.length ? <tr><td className="quote-history-empty" colSpan={8}>{text.noContracts}</td></tr> : null}
+          {contracts.loading ? <tr><td className="quote-history-empty" colSpan={8}>{isArabic ? "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0645\u064a\u0644..." : "Loading..."}</td></tr> : null}
         </tbody></table></div>
       </article>
     </div>
