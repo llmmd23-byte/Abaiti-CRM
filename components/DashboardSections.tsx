@@ -3975,7 +3975,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
       <article className="quote-card quote-form-card rental-contract-form-card">
         <div className="card-title"><h3>{text.formTitle}</h3><span>{text.formSubtitle}</span></div>
         <div className="form-grid">
-          <label className="quote-field"><span>{text.contractNumber}</span><input onChange={(event) => setContractNumber(event.target.value)} placeholder={isArabic ? "يتم توليده تلقائياً عند تركه فارغاً" : "Auto-generated if left empty"} value={contractNumber} /></label>
+          <label className="quote-field"><span>{text.contractNumber}</span><input onChange={(event) => setContractNumber(event.target.value)} placeholder={isArabic ? "تلقائياً" : "Automatic"} value={contractNumber} /></label>
           <label className="quote-field"><span>{text.eventName}</span><input onChange={(event) => setEventName(event.target.value)} value={eventName} /></label>
           <label className="quote-field"><span>{text.eventDates}</span><input onChange={(event) => setEventDates(event.target.value)} value={eventDates} /></label>
           <label className="quote-field"><span>{text.eventLocation}</span><input onChange={(event) => setEventLocation(event.target.value)} value={eventLocation} /></label>
