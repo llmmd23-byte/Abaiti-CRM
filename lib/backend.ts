@@ -483,7 +483,7 @@ const definitionFor = (resource: string) => {
 };
 
 const canManageGlobal = (session: MiddarSession) =>
-  isAdminSession(session) || session.role === "sales";
+  isAdminSession(session);
 
 async function ownerFilter(
   definition: ResourceDefinition,
@@ -495,6 +495,13 @@ async function ownerFilter(
   const ownerIds = await ownerIdsForScope(session, definition.permissionKey);
   if (!ownerIds) return { clause: "", params: [] as SqlValue[] };
   const column = `${qualifier}${definition.ownerField}`;
+  if (definition.table === "leads") {
+    const assignedColumn = `${qualifier}assigned_user_id`;
+    return {
+      clause: ` WHERE (${column} IN (${ownerIds.map(() => "?").join(", ")}) OR ${assignedColumn} IN (${ownerIds.map(() => "?").join(", ")}))`,
+      params: [...ownerIds, ...ownerIds],
+    };
+  }
   return {
     clause: ` WHERE ${column} IN (${ownerIds.map(() => "?").join(", ")})`,
     params: ownerIds,
@@ -510,6 +517,12 @@ async function ownerGuard(
   if (canManageGlobal(session)) return { clause: "", params: [] as SqlValue[] };
   const ownerIds = await ownerIdsForScope(session, definition.permissionKey);
   if (!ownerIds) return { clause: "", params: [] as SqlValue[] };
+  if (definition.table === "leads") {
+    return {
+      clause: `${prefix}(${definition.ownerField} IN (${ownerIds.map(() => "?").join(", ")}) OR assigned_user_id IN (${ownerIds.map(() => "?").join(", ")}))`,
+      params: [...ownerIds, ...ownerIds],
+    };
+  }
   return {
     clause: `${prefix}${definition.ownerField} IN (${ownerIds.map(() => "?").join(", ")})`,
     params: ownerIds,
@@ -717,6 +730,11 @@ async function ensureLeadPlaceUrlColumn() {
   if (!(await columnExists("leads", "place_url"))) {
     await db.execute(
       "ALTER TABLE leads ADD COLUMN place_url VARCHAR(255) NULL AFTER website",
+    );
+  }
+  if (!(await columnExists("leads", "assigned_user_id"))) {
+    await db.execute(
+      "ALTER TABLE leads ADD COLUMN assigned_user_id BIGINT UNSIGNED NULL AFTER affiliate_user_id",
     );
   }
 }

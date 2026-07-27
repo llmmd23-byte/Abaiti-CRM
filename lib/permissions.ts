@@ -721,7 +721,11 @@ export async function ownerIdsForScope(
     const ids = rows.map((row) => Number(row.id)).filter(Number.isFinite);
     return ids.length ? ids : [Number(session.sub)];
   }
-  if (scope === "team") return teamUserIds(session);
+  if (scope === "team") {
+    return String(session.role ?? "").toLowerCase() === "leader"
+      ? teamUserIds(session)
+      : [Number(session.sub)];
+  }
   return [Number(session.sub)];
 }
 
