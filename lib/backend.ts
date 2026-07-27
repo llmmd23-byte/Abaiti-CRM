@@ -491,6 +491,7 @@ async function ownerFilter(
   qualifier = "",
 ) {
   if (!definition.ownerField) return { clause: "", params: [] as SqlValue[] };
+  if (canManageGlobal(session)) return { clause: "", params: [] as SqlValue[] };
   const ownerIds = await ownerIdsForScope(session, definition.permissionKey);
   if (!ownerIds) return { clause: "", params: [] as SqlValue[] };
   const column = `${qualifier}${definition.ownerField}`;
@@ -506,6 +507,7 @@ async function ownerGuard(
   prefix = " AND ",
 ) {
   if (!definition.ownerField) return { clause: "", params: [] as SqlValue[] };
+  if (canManageGlobal(session)) return { clause: "", params: [] as SqlValue[] };
   const ownerIds = await ownerIdsForScope(session, definition.permissionKey);
   if (!ownerIds) return { clause: "", params: [] as SqlValue[] };
   return {
