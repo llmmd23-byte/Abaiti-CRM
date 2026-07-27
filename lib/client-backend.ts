@@ -11,8 +11,15 @@ export function useBackend<T>(path: string) {
     if (!hasLoadedData.current) setLoading(true);
     setError("");
     try {
-      const response = await fetch(path, {cache: "no-store"});
-      const body = await response.json();
+      const response = await fetch(path, {cache: "no-store", credentials: "same-origin"});
+      const body = await readResponseBody(response);
+      if (response.status === 401) {
+        if (typeof window !== "undefined") {
+          const next = `${window.location.pathname}${window.location.search}`;
+          window.location.href = `/${window.location.pathname.split("/")[1] || "ar"}/signin?next=${encodeURIComponent(next)}`;
+        }
+        throw new Error("UNAUTHORIZED");
+      }
       if (!response.ok) throw new Error(body.error ?? "REQUEST_FAILED");
       hasLoadedData.current = true;
       setData(body.data);
@@ -26,16 +33,30 @@ export function useBackend<T>(path: string) {
   return {data, error, loading, reload};
 }
 
+async function readResponseBody(response: Response) {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    return response.json().catch(() => ({error: "INVALID_JSON"}));
+  }
+  const text = await response.text().catch(() => "");
+  return {error: text ? "INVALID_RESPONSE" : "REQUEST_FAILED"};
+}
+
 async function request<T>(path: string, method: "POST" | "PUT", body: Record<string, unknown>) {
-  const response = await fetch(path, {method, headers: {"Content-Type": "application/json; charset=utf-8"}, body: JSON.stringify(body)});
-  const payload = await response.json();
+  const response = await fetch(path, {
+    method,
+    headers: {"Content-Type": "application/json; charset=utf-8"},
+    body: JSON.stringify(body),
+    credentials: "same-origin",
+  });
+  const payload = await readResponseBody(response);
   if (!response.ok) throw new Error(payload.error ?? "REQUEST_FAILED");
   return payload.data as T;
 }
 
 async function deleteRequest(path: string) {
-  const response = await fetch(path, {method: "DELETE"});
-  const payload = await response.json().catch(() => ({}));
+  const response = await fetch(path, {method: "DELETE", credentials: "same-origin"});
+  const payload = await readResponseBody(response);
   if (!response.ok) throw new Error(payload.error ?? "REQUEST_FAILED");
   return payload as {success?: boolean};
 }
