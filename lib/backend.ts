@@ -2223,7 +2223,7 @@ export async function listResource(resource: string, session: MiddarSession) {
          FROM tags t
          JOIN tag_types tt ON tt.id = t.tag_type_id
         ${scopedWhere}
-        ORDER BY t.created_at DESC LIMIT 250`,
+        ORDER BY t.created_at DESC`,
       scopedParams,
     );
     return rows;
@@ -2238,7 +2238,7 @@ export async function listResource(resource: string, session: MiddarSession) {
          JOIN tags t ON t.id = lta.tag_id
          JOIN tag_types tt ON tt.id = t.tag_type_id
         ${scopedWhere}
-        ORDER BY lta.created_at DESC LIMIT 250`,
+        ORDER BY lta.created_at DESC`,
       scopedParams,
     );
     return rows;

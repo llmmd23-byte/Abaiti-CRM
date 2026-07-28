@@ -448,13 +448,7 @@ export function CustomersView() {
   ];
   const currentUserId = Number(currentUser?.userid ?? 0);
   const currentUserRole = String(currentUser?.role ?? "").toLocaleLowerCase();
-  const canSeeTeamCustomers =
-    currentUserRole === "leader" ||
-    currentUser?.permissions?.["table.leads"]?.data_scope === "team" ||
-    (currentUserId > 0 &&
-      (data ?? []).some(
-        (row) => Number(row.affiliate_user_id ?? currentUserId) !== currentUserId,
-      ));
+  const canSeeTeamCustomers = currentUserRole === "leader";
   const customerOwnerFilterOptions = [
     { value: "all", label: isArabic ? "كل العملاء" : "All Customers" },
     { value: "own", label: isArabic ? "عملائي" : "My Customers" },
@@ -553,6 +547,12 @@ export function CustomersView() {
     () =>
       (data ?? []).filter((row) => {
         const ownerId = Number(row.affiliate_user_id ?? currentUserId);
+        const assignedUserId = Number(row.assigned_user_id ?? 0);
+        const isOwnedByCurrentUser = currentUserId > 0 && ownerId === currentUserId;
+        const isAssignedToCurrentUser =
+          currentUserId > 0 && assignedUserId === currentUserId;
+        const isCurrentUserCustomer =
+          isOwnedByCurrentUser || isAssignedToCurrentUser;
         const ownerKey = Number.isInteger(ownerId) && ownerId > 0
           ? `id:${ownerId}`
           : `name:${String(row.affiliate_user_name ?? "").trim()}`;
@@ -560,7 +560,7 @@ export function CustomersView() {
           canSeeTeamCustomers &&
           currentUserId > 0 &&
           customerOwnerFilter === "own" &&
-          ownerId !== currentUserId
+          !isCurrentUserCustomer
         ) {
           return false;
         }
@@ -568,7 +568,7 @@ export function CustomersView() {
           canSeeTeamCustomers &&
           currentUserId > 0 &&
           customerOwnerFilter === "team" &&
-          ownerId === currentUserId
+          isCurrentUserCustomer
         ) {
           return false;
         }
@@ -577,7 +577,8 @@ export function CustomersView() {
           currentUserId > 0 &&
           customerOwnerFilter === "team" &&
           customerTeamUserFilter !== "all" &&
-          ownerId !== Number(customerTeamUserFilter)
+          ownerId !== Number(customerTeamUserFilter) &&
+          assignedUserId !== Number(customerTeamUserFilter)
         ) {
           return false;
         }
@@ -693,6 +694,12 @@ export function CustomersView() {
       setCustomerTeamUserFilter("all");
     }
   }, [customerOwnerFilter, customerTeamUserFilter]);
+
+  useEffect(() => {
+    if (canSeeTeamCustomers && customerOwnerFilter === "own") {
+      setCustomerOwnerFilter("all");
+    }
+  }, [canSeeTeamCustomers, customerOwnerFilter]);
 
   useEffect(() => {
     if (customerPage > customerTotalPages) setCustomerPage(customerTotalPages);
@@ -1092,9 +1099,6 @@ export function CustomersView() {
           tag_name: tagName,
           tag_color: tagDraft.tag_color,
         }));
-      if (isNewTag) {
-        await rebalanceAllTagGradients(createdTag, typeId);
-      }
       await leadTags.reload();
       setTagDraft((current) => ({
         ...current,
@@ -1197,9 +1201,6 @@ export function CustomersView() {
             tag_name: normalizedTagName,
             tag_color: tagDraft.tag_color,
           }));
-        if (isNewTag && tagTypeId) {
-          await rebalanceAllTagGradients(tag, Number(tagTypeId), tagDraft.type_color);
-        }
       }
       await createBackend("lead-tag-assignments", {
         lead_id: tagsLead.id,
