@@ -250,6 +250,7 @@ export function CustomersView() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerDateFilter, setCustomerDateFilter] =
     useState<CustomerDateFilter>("all");
+  const [customerStageFilter, setCustomerStageFilter] = useState("all");
   const [customerTagTypeFilter, setCustomerTagTypeFilter] = useState("all");
   const [customerTagFilter, setCustomerTagFilter] = useState("all");
   const [customerAddedByFilter, setCustomerAddedByFilter] = useState("all");
@@ -423,6 +424,13 @@ export function CustomersView() {
     { value: "week", label: isArabic ? "هذا الأسبوع" : "This Week" },
     { value: "month", label: isArabic ? "هذا الشهر" : "This Month" },
   ];
+  const customerStageFilterOptions = [
+    { value: "all", label: isArabic ? "كل الحالات" : "All Statuses" },
+    ...stageOrder.map((stage) => ({
+      value: stage,
+      label: stageLabels[stage][isArabic ? "ar" : "en"],
+    })),
+  ];
   const customerTagTypeFilterOptions = [
     {
       value: "all",
@@ -588,6 +596,12 @@ export function CustomersView() {
         ) {
           return false;
         }
+        if (
+          customerStageFilter !== "all" &&
+          String(row.stage ?? "new") !== customerStageFilter
+        ) {
+          return false;
+        }
         if (!matchesCustomerDateFilter(row.created_at)) return false;
         const rowTagIds = (leadTagAssignments.data ?? [])
           .filter((assignment) => Number(assignment.lead_id) === Number(row.id))
@@ -631,6 +645,7 @@ export function CustomersView() {
       canSeeTeamCustomers,
       currentUserId,
       customerOwnerFilter,
+      customerStageFilter,
       customerTagFilter,
       customerTagTypeFilter,
       customerAddedByFilter,
@@ -681,6 +696,7 @@ export function CustomersView() {
   }, [
     customerSearch,
     customerDateFilter,
+    customerStageFilter,
     customerTagTypeFilter,
     customerTagFilter,
     customerAddedByFilter,
@@ -2155,6 +2171,19 @@ export function CustomersView() {
               options={customerAddedByFilterOptions}
               portal
               value={customerAddedByFilter}
+            />
+          </div>
+          <div className="customer-date-filter">
+            <DashboardSelect
+              ariaLabel={
+                isArabic
+                  ? "فلترة العملاء حسب الحالة"
+                  : "Filter customers by status"
+              }
+              onValueChange={setCustomerStageFilter}
+              options={customerStageFilterOptions}
+              portal
+              value={customerStageFilter}
             />
           </div>
           <div className="customer-tag-filters">
