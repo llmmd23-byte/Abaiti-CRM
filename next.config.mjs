@@ -10,7 +10,6 @@ const nextConfig = {
       {
         source: "/api/:path*",
         headers: [
-          {key: "Content-Type", value: "application/json; charset=utf-8"},
           {key: "Cache-Control", value: "no-store, no-cache, must-revalidate"},
           {key: "Pragma", value: "no-cache"},
           {key: "Expires", value: "0"},
