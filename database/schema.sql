@@ -66,6 +66,23 @@ CREATE TABLE IF NOT EXISTS users (
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS teams (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  company_id BIGINT UNSIGNED NULL,
+  leader_user_id BIGINT UNSIGNED NOT NULL,
+  name_ar VARCHAR(160) NOT NULL,
+  name_en VARCHAR(160) NOT NULL,
+  description TEXT NULL,
+  status ENUM('active','inactive') NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_teams_leader_user (leader_user_id),
+  KEY idx_teams_company_status (company_id, status),
+  CONSTRAINT fk_teams_leader_user FOREIGN KEY (leader_user_id) REFERENCES users(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS permissions (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   subject_type ENUM('role','user') NOT NULL DEFAULT 'role',

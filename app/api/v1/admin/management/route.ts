@@ -391,6 +391,27 @@ async function ensureTagTables() {
   }
 }
 
+async function ensureTeamsTable() {
+  await db.execute(
+    `CREATE TABLE IF NOT EXISTS teams (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      company_id BIGINT UNSIGNED NULL,
+      leader_user_id BIGINT UNSIGNED NOT NULL,
+      name_ar VARCHAR(160) NOT NULL,
+      name_en VARCHAR(160) NOT NULL,
+      description TEXT NULL,
+      status ENUM('active','inactive') NOT NULL DEFAULT 'active',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      UNIQUE KEY uq_teams_leader_user (leader_user_id),
+      KEY idx_teams_company_status (company_id, status),
+      CONSTRAINT fk_teams_leader_user FOREIGN KEY (leader_user_id) REFERENCES users(id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+  );
+}
+
 async function ensureAdminManagementSchema() {
   globalForAdminManagement.adminManagementSchemaReady ??= (async () => {
     await addColumnIfMissing(
@@ -461,6 +482,7 @@ async function ensureAdminManagementSchema() {
     await ensureSupportTicketsUserRelation();
     await ensureSupportTicketEventsTable();
     await ensureTagTables();
+    await ensureTeamsTable();
   })().catch((error) => {
     globalForAdminManagement.adminManagementSchemaReady = undefined;
     throw error;
@@ -480,6 +502,7 @@ export async function GET() {
       hasPermission(session, "page.admin.dashboard", "can_view"),
       hasPermission(session, "page.admin.tickets", "can_view"),
       hasPermission(session, "page.admin.accounts", "can_view"),
+      hasPermission(session, "page.admin.teams", "can_view"),
       hasPermission(session, "page.admin.products", "can_view"),
       hasPermission(session, "page.admin.industries", "can_view"),
       hasPermission(session, "page.admin.permissions", "can_view"),
@@ -509,7 +532,23 @@ export async function GET() {
   const userScopeClause = (alias: string) =>
     `(${alias}.CompanyID = ? OR ${alias}.id = ? OR ${alias}.CompanyID IS NULL)`;
   const userScopeParams = [scopedCompanyId, adminUserId];
+  const teamNamePrefixAr = "\u0641\u0631\u064a\u0642 ";
   await ensureSupportTicketTypesTable(scopedCompanyId);
+  await db.execute(
+    `INSERT IGNORE INTO teams (company_id, leader_user_id, name_ar, name_en, status)
+     SELECT
+       COALESCE(leader.CompanyID, leader.id),
+       leader.id,
+       CONCAT(?, COALESCE(NULLIF(leader.name, ''), leader.email)),
+       CONCAT('Team ', COALESCE(NULLIF(leader.name, ''), leader.email)),
+       'active'
+       FROM users leader
+      WHERE (${userScopeClause("leader")})
+        AND EXISTS (
+          SELECT 1 FROM users member WHERE member.manager_id = leader.id
+        )`,
+    [teamNamePrefixAr, ...userScopeParams],
+  );
 
   const [users] = await db.execute<RowDataPacket[]>(
     `SELECT u.id,u.name,u.email,u.username,u.phone,u.role_id,COALESCE(r.slug,'affiliate') role,COALESCE(r.role_type,'user') role_type,
@@ -538,6 +577,40 @@ export async function GET() {
   );
   const [roles] = await db.execute<RowDataPacket[]>(
     "SELECT id,slug,name_ar,name_en,role_type,is_system,is_active FROM roles WHERE is_active = 1 ORDER BY role_type ASC,id ASC",
+  );
+  const [teams] = await db.execute<RowDataPacket[]>(
+    `SELECT
+        t.id,
+        t.company_id,
+        t.leader_user_id,
+        t.name_ar,
+        t.name_en,
+        t.description,
+        t.status,
+        t.created_at,
+        t.updated_at,
+        leader.name leader_name,
+        leader.email leader_email,
+        COALESCE(r.slug, 'affiliate') leader_role,
+        COUNT(member.id) members_count,
+        GROUP_CONCAT(
+          DISTINCT CONCAT(
+            COALESCE(NULLIF(member.name, ''), member.email),
+            '||',
+            member.email,
+            '||',
+            member.id
+          )
+          ORDER BY member.name SEPARATOR '##'
+        ) members_summary
+       FROM teams t
+       JOIN users leader ON leader.id = t.leader_user_id
+       LEFT JOIN roles r ON r.id = leader.role_id
+       LEFT JOIN users member ON member.manager_id = leader.id
+      WHERE ${userScopeClause("leader")}
+      GROUP BY t.id,t.company_id,t.leader_user_id,t.name_ar,t.name_en,t.description,t.status,t.created_at,t.updated_at,leader.name,leader.email,r.slug
+      ORDER BY t.created_at DESC`,
+    userScopeParams,
   );
   const [tickets] = await db.execute<RowDataPacket[]>(
     `SELECT t.id,t.ticket_number,t.category,t.subject,t.details,t.notes,t.status,t.user_id,
@@ -666,6 +739,7 @@ export async function GET() {
       users,
       userStats,
       roles,
+      teams,
       tickets,
       ticketTypes,
       products,

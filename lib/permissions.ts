@@ -62,6 +62,7 @@ export const pagePermissions = [
   "page.admin.dashboard",
   "page.admin.tickets",
   "page.admin.accounts",
+  "page.admin.teams",
   "page.admin.booths",
   "page.admin.products",
   "page.admin.tags",
@@ -113,6 +114,7 @@ export const tablePermissions = [
   "table.support_ticket_types",
   "table.support_ticket_events",
   "table.team_members",
+  "table.teams",
   "table.social_accounts",
   "table.payout_methods",
 ];
@@ -151,6 +153,7 @@ export const adminPermissionKeys = allPermissionKeys.filter(
     key === "table.support_tickets" ||
     key === "table.support_ticket_types" ||
     key === "table.support_ticket_events" ||
+    key === "table.teams" ||
     key === "commission.percentage",
 );
 

@@ -2987,6 +2987,234 @@ html[dir="ltr"] .dashboard-main {
   box-shadow: 0 0 0 3px rgba(23, 185, 178, 0.1);
 }
 
+.admin-teams-section {
+  display: grid;
+  gap: 22px;
+}
+
+.admin-teams-head {
+  margin-bottom: 0;
+}
+
+.admin-add-team {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 13px;
+  background: #11293d;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px rgba(17, 41, 61, 0.18);
+}
+
+.admin-add-team:hover {
+  background: #0f3b58;
+}
+
+.admin-add-team-member {
+  display: inline-flex;
+  width: 220px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  padding: 8px 12px;
+  border: 1px solid #cfe9ef;
+  border-radius: 12px;
+  background: #f0fbfd;
+  color: #08768d;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.admin-add-team-member:hover {
+  border-color: #9ee7f1;
+  background: #e6f9fc;
+}
+
+@media (max-width: 360px) {
+  .admin-add-team-member {
+    width: 100%;
+  }
+}
+
+.admin-teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+}
+
+.admin-team-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid #dce9f2;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+  box-shadow: 0 14px 34px rgba(15, 41, 66, 0.08);
+}
+
+.admin-team-card-head,
+.admin-team-members-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-team-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-team-icon-btn {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d7e7ef;
+  border-radius: 10px;
+  background: #fff;
+  color: #08768d;
+  cursor: pointer;
+}
+
+.admin-team-icon-btn svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-team-icon-btn:hover {
+  border-color: #9ee7f1;
+  background: #e6f9fc;
+}
+
+.admin-team-icon-btn.danger {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.admin-team-icon-btn.danger:hover {
+  background: #fef2f2;
+}
+
+.admin-team-card-head span,
+.admin-team-leader span,
+.admin-team-members-head span {
+  color: #00a7a3;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.admin-team-card h2 {
+  margin: 4px 0 0;
+  color: #102a43;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.admin-team-leader {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid #cfe9ef;
+  border-radius: 14px;
+  background: #f0fbfd;
+}
+
+.admin-team-leader strong {
+  color: #0f2d4a;
+  font-size: 16px;
+}
+
+.admin-team-leader small,
+.admin-team-member small {
+  color: #64748b;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.admin-team-members-head strong {
+  display: inline-flex;
+  min-width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #11293d;
+  color: #fff;
+  font-size: 13px;
+}
+
+.admin-team-members {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-team-member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid #e6eef5;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.admin-team-member > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.admin-team-member span {
+  color: #102a43;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.admin-team-empty,
+.admin-team-empty-state,
+.admin-team-message {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.admin-team-message {
+  border-style: solid;
+  background: #f0fbfd;
+  color: #0f6f80;
+}
+
+.admin-team-create-modal .admin-basic-select {
+  min-height: 44px;
+  border-radius: 12px;
+}
+
 .admin-data-tools {
   display: flex;
   flex-wrap: nowrap;

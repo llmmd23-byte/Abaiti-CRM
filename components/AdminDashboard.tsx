@@ -26,6 +26,7 @@ type AdminSection =
   | "dashboard"
   | "tickets"
   | "accounts"
+  | "teams"
   | "products"
   | "booths"
   | "tags"
@@ -83,6 +84,7 @@ type LandingBrochure = {
 type ManagementData = {
   users: AdminRow[];
   userStats: AdminRow[];
+  teams: AdminRow[];
   roles: Array<{
     id: number;
     slug: string;
@@ -107,6 +109,7 @@ type ManagementData = {
 const EMPTY_MANAGEMENT_DATA: ManagementData = {
   users: [],
   userStats: [],
+  teams: [],
   roles: [],
   tickets: [],
   ticketTypes: [],
@@ -137,6 +140,7 @@ const navItems = [
   [{ ar: "\u0644\u0648\u062d\u0629 \u0627\u0644\u062a\u062d\u0643\u0645", en: "Dashboard" }, "dashboard"],
   [{ ar: "\u062a\u0630\u0627\u0643\u0631 \u0627\u0644\u062e\u062f\u0645\u0629", en: "Service Tickets" }, "tickets"],
   [{ ar: "\u0627\u0644\u062d\u0633\u0627\u0628\u0627\u062a", en: "Accounts" }, "accounts"],
+  [{ ar: "\u0627\u0644\u0641\u0631\u0642", en: "Teams" }, "teams"],
   [{ ar: "\u0627\u0644\u0628\u0648\u062b\u0627\u062a", en: "Booths" }, "booths"],
   [{ ar: "\u0627\u0644\u0648\u0633\u0648\u0645", en: "Tags" }, "tags"],
   [{ ar: "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0627\u062a", en: "Permissions" }, "permissions"],
@@ -314,6 +318,13 @@ function AdminIcon({ name }: { name: string }) {
         <>
           <circle cx="9" cy="8" r="3" />
           <path d="M3 20v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2M17 8h4M19 6v4" />
+        </>
+      ) : name === "teams" ? (
+        <>
+          <circle cx="12" cy="7" r="3" />
+          <circle cx="6" cy="15" r="2.5" />
+          <circle cx="18" cy="15" r="2.5" />
+          <path d="M12 10v2M8 15h8M3 21v-1a4 4 0 0 1 4-4M21 21v-1a4 4 0 0 0-4-4M8 21v-1a4 4 0 0 1 8 0v1" />
         </>
       ) : name === "products" ? (
         <>
@@ -3290,6 +3301,7 @@ const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
   "page.admin.dashboard": { ar: "صفحة الأدمن - لوحة التحكم", en: "Admin - Dashboard Page" },
   "page.admin.tickets": { ar: "صفحة الأدمن - تذاكر الخدمة", en: "Admin - Service Tickets Page" },
   "page.admin.accounts": { ar: "صفحة الأدمن - الحسابات", en: "Admin - Accounts Page" },
+  "page.admin.teams": { ar: "\u0635\u0641\u062d\u0629 \u0627\u0644\u0623\u062f\u0645\u0646 - \u0627\u0644\u0641\u0631\u0642", en: "Admin - Teams Page" },
   "page.admin.booths": { ar: "صفحة الأدمن - البوثات", en: "Admin - Booths Page" },
   "page.admin.products": { ar: "صفحة الأدمن - المنتجات", en: "Admin - Products Page" },
   "page.admin.tags": { ar: "صفحة الأدمن - الوسوم", en: "Admin - Tags Page" },
@@ -3338,6 +3350,7 @@ const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
   "table.support_ticket_types": { ar: "جدول أنواع تذاكر الخدمة", en: "Support Ticket Types Table" },
   "table.support_ticket_events": { ar: "جدول خط زمن التذاكر", en: "Ticket Timeline Table" },
   "table.team_members": { ar: "جدول أعضاء الفريق", en: "Team Members Table" },
+  "table.teams": { ar: "\u062c\u062f\u0648\u0644 \u0627\u0644\u0641\u0631\u0642", en: "Teams Table" },
   "table.social_accounts": { ar: "جدول حسابات التواصل", en: "Social Accounts Table" },
   "table.payout_methods": { ar: "جدول الحسابات البنكية", en: "Bank Accounts Table" },
   "data.team_members": { ar: "رؤية بيانات أعضاء الفريق", en: "View Team Members Data" },
@@ -3402,6 +3415,7 @@ function permissionCategoryForKey(key: string) {
       "table.store",
       "table.stock",
       "table.team_members",
+      "table.teams",
       "table.social_accounts",
       "table.payout_methods",
       "data.team_members",
@@ -4856,6 +4870,19 @@ function AdminManagementSection({
   const [editingTicketType, setEditingTicketType] = useState<AdminRow | null>(null);
   const [isTicketTypesMenuOpen, setIsTicketTypesMenuOpen] = useState(false);
   const [isTicketTypeModalOpen, setIsTicketTypeModalOpen] = useState(false);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<AdminRow | null>(null);
+  const [teamDraft, setTeamDraft] = useState({
+    leader_user_id: "",
+    name_ar: "",
+    name_en: "",
+    description: "",
+    status: "active",
+  });
+  const [teamMessage, setTeamMessage] = useState("");
+  const [memberTeam, setMemberTeam] = useState<AdminRow | null>(null);
+  const [memberUserId, setMemberUserId] = useState("");
+  const [memberMessage, setMemberMessage] = useState("");
   const [ticketTypeDraft, setTicketTypeDraft] = useState({
     name_ar: "",
     name_en: "",
@@ -5005,7 +5032,7 @@ function AdminManagementSection({
       ],
     },
   } satisfies Record<
-    Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths">,
+    Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams">,
     { rows: AdminRow[]; columns: string[][] }
   >;
   const config =
@@ -5021,7 +5048,7 @@ function AdminManagementSection({
             ["created_at", isArabic ? "تاريخ الرفع" : "Upload Date"],
           ],
         }
-      : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths">] ?? {
+      : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams">] ?? {
           rows: [],
           columns: [],
         };
@@ -5091,6 +5118,508 @@ function AdminManagementSection({
         ) : null}
       </section>
     );
+
+  if (section === "teams") {
+    const teamRows = (managementData.teams ?? []).filter((team) => {
+      if (!normalizedQuery) return true;
+      return Object.values(team).some((value) =>
+        String(value ?? "").toLocaleLowerCase().includes(normalizedQuery),
+      );
+    });
+
+    const parseTeamMembers = (value: unknown) =>
+      String(value ?? "")
+        .split("##")
+        .map((item) => {
+          const [name, email, id] = item.split("||");
+          return {
+            id: Number(id),
+            name: String(name ?? "").trim(),
+            email: String(email ?? "").trim(),
+          };
+        })
+        .filter((member) => member.id > 0 && (member.name || member.email));
+    const leaderIdsWithTeams = new Set(
+      (managementData.teams ?? []).map((team) => Number(team.leader_user_id)),
+    );
+    const leaderOptions = (managementData.users ?? [])
+      .filter((user) => !leaderIdsWithTeams.has(Number(user.id)))
+      .map((user) => ({
+        value: String(user.id),
+        label: String(user.name ?? user.email ?? `${isArabic ? "\u0645\u0633\u062a\u062e\u062f\u0645" : "User"} #${user.id}`),
+      }));
+    const teamModalLeaderOptions = (managementData.users ?? [])
+      .filter(
+        (user) =>
+          !leaderIdsWithTeams.has(Number(user.id)) ||
+          Number(user.id) === Number(editingTeam?.leader_user_id),
+      )
+      .map((user) => ({
+        value: String(user.id),
+        label: String(user.name ?? user.email ?? `${isArabic ? "\u0645\u0633\u062a\u062e\u062f\u0645" : "User"} #${user.id}`),
+      }));
+
+    function openTeamCreator() {
+      setEditingTeam(null);
+      setTeamDraft({
+        leader_user_id: leaderOptions[0]?.value ?? "",
+        name_ar: "",
+        name_en: "",
+        description: "",
+        status: "active",
+      });
+      setTeamMessage("");
+      setIsTeamModalOpen(true);
+    }
+
+    function openTeamEditor(team: AdminRow) {
+      setEditingTeam(team);
+      setTeamDraft({
+        leader_user_id: String(team.leader_user_id ?? ""),
+        name_ar: String(team.name_ar ?? ""),
+        name_en: String(team.name_en ?? ""),
+        description: String(team.description ?? ""),
+        status: String(team.status ?? "active"),
+      });
+      setTeamMessage("");
+      setIsTeamModalOpen(true);
+    }
+
+    async function saveTeam() {
+      if (!teamDraft.leader_user_id) {
+        setTeamMessage(isArabic ? "\u0627\u062e\u062a\u0631 \u0642\u0627\u0626\u062f \u0627\u0644\u0641\u0631\u064a\u0642" : "Choose a team leader");
+        return;
+      }
+      setTeamMessage(isArabic ? "\u062c\u0627\u0631\u064a \u062d\u0641\u0638 \u0627\u0644\u0641\u0631\u064a\u0642..." : "Saving team...");
+      try {
+        const response = await fetch(
+          editingTeam ? `/api/v1/admin/teams/${editingTeam.id}` : "/api/v1/admin/teams",
+          {
+          method: editingTeam ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({
+            leader_user_id: Number(teamDraft.leader_user_id),
+            name_ar: teamDraft.name_ar.trim(),
+            name_en: teamDraft.name_en.trim(),
+            description: teamDraft.description.trim(),
+            status: teamDraft.status,
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
+        setIsTeamModalOpen(false);
+        setEditingTeam(null);
+        setTeamMessage("");
+        onReload();
+      } catch (error) {
+        const code = error instanceof Error ? error.message : "";
+        setTeamMessage(
+          code === "LEADER_ALREADY_HAS_TEAM"
+            ? isArabic
+              ? "\u0647\u0630\u0627 \u0627\u0644\u0642\u0627\u0626\u062f \u0645\u0631\u062a\u0628\u0637 \u0628\u0641\u0631\u064a\u0642 \u0645\u0633\u0628\u0642\u0627\u064b"
+              : "This leader already has a team"
+            : isArabic
+              ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u0627\u0644\u0641\u0631\u064a\u0642"
+              : "Unable to save team",
+        );
+      }
+    }
+
+    async function deleteTeam(team: AdminRow) {
+      const ok = window.confirm(
+        isArabic
+          ? "\u0647\u0644 \u062a\u0631\u064a\u062f \u062d\u0630\u0641 \u0627\u0644\u0641\u0631\u064a\u0642\u061f \u0633\u064a\u062a\u0645 \u0641\u0643 \u0631\u0628\u0637 \u0623\u0639\u0636\u0627\u0626\u0647 \u0645\u0646 \u0627\u0644\u0642\u0627\u0626\u062f."
+          : "Delete this team? Its members will be unlinked from the leader.",
+      );
+      if (!ok) return;
+      try {
+        const response = await fetch(`/api/v1/admin/teams/${team.id}`, {
+          method: "DELETE",
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(String(payload.error ?? "DELETE_FAILED"));
+        onReload();
+      } catch {
+        window.alert(isArabic ? "\u062a\u0639\u0630\u0631 \u062d\u0630\u0641 \u0627\u0644\u0641\u0631\u064a\u0642" : "Unable to delete team");
+      }
+    }
+
+    function openMemberCreator(team: AdminRow) {
+      const members = parseTeamMembers(team.members_summary);
+      const blockedIds = new Set([
+        Number(team.leader_user_id),
+        ...members.map((member) => member.id),
+      ]);
+      const firstAvailableUser = (managementData.users ?? []).find(
+        (user) => !blockedIds.has(Number(user.id)),
+      );
+      setMemberTeam(team);
+      setMemberUserId(firstAvailableUser ? String(firstAvailableUser.id) : "");
+      setMemberMessage("");
+    }
+
+    async function saveTeamMember() {
+      if (!memberTeam || !memberUserId) {
+        setMemberMessage(isArabic ? "\u0627\u062e\u062a\u0631 \u0627\u0644\u0639\u0636\u0648" : "Choose a member");
+        return;
+      }
+      setMemberMessage(isArabic ? "\u062c\u0627\u0631\u064a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0639\u0636\u0648..." : "Adding member...");
+      try {
+        const response = await fetch(`/api/v1/admin/teams/${memberTeam.id}/members`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({ user_id: Number(memberUserId) }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(String(payload.error ?? "SAVE_FAILED"));
+        setMemberTeam(null);
+        setMemberUserId("");
+        setMemberMessage("");
+        onReload();
+      } catch (error) {
+        const code = error instanceof Error ? error.message : "";
+        setMemberMessage(
+          code === "USER_IS_TEAM_LEADER"
+            ? isArabic
+              ? "\u0644\u0627 \u064a\u0645\u0643\u0646 \u0625\u0636\u0627\u0641\u0629 \u0642\u0627\u0626\u062f \u0641\u0631\u064a\u0642 \u0643\u0639\u0636\u0648"
+              : "A team leader cannot be added as a member"
+            : isArabic
+              ? "\u062a\u0639\u0630\u0631 \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0639\u0636\u0648"
+              : "Unable to add member",
+        );
+      }
+    }
+
+    async function deleteTeamMember(team: AdminRow, memberId: number) {
+      const ok = window.confirm(
+        isArabic
+          ? "\u0647\u0644 \u062a\u0631\u064a\u062f \u062d\u0630\u0641 \u0627\u0644\u0639\u0636\u0648 \u0645\u0646 \u0647\u0630\u0627 \u0627\u0644\u0641\u0631\u064a\u0642\u061f"
+          : "Remove this member from the team?",
+      );
+      if (!ok) return;
+      try {
+        const response = await fetch(`/api/v1/admin/teams/${team.id}/members`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+          body: JSON.stringify({ user_id: memberId }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(String(payload.error ?? "DELETE_FAILED"));
+        onReload();
+      } catch {
+        window.alert(isArabic ? "\u062a\u0639\u0630\u0631 \u062d\u0630\u0641 \u0627\u0644\u0639\u0636\u0648" : "Unable to remove member");
+      }
+    }
+
+    return (
+      <section className="admin-data-card admin-teams-section" dir={isArabic ? "rtl" : "ltr"}>
+        <div className="admin-data-head admin-teams-head">
+          <div className="records-info">
+            <span>{isArabic ? "\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0641\u0631\u0642" : "Team Management"}</span>
+            <strong>
+              {teamRows.length.toLocaleString(NUMBER_LOCALE)}{" "}
+              {isArabic ? "\u0641\u0631\u064a\u0642" : "teams"}
+            </strong>
+          </div>
+          <div className="admin-data-tools">
+            <button
+              className="admin-add-team"
+              onClick={openTeamCreator}
+              type="button"
+            >
+              {isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u0641\u0631\u064a\u0642 \u062c\u062f\u064a\u062f" : "Add New Team"}
+            </button>
+            <div className="admin-record-search-bar search-box">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="10.8" cy="10.8" r="6.2" />
+                <path d="m15.5 15.5 4 4" />
+              </svg>
+              <input
+                aria-label={isArabic ? "\u0627\u0644\u0628\u062d\u062b \u0641\u064a \u0627\u0644\u0641\u0631\u0642" : "Search teams"}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={isArabic ? "\u0627\u0628\u062d\u062b \u0628\u0627\u0633\u0645 \u0627\u0644\u0641\u0631\u064a\u0642 \u0623\u0648 \u0627\u0644\u0642\u0627\u0626\u062f \u0623\u0648 \u0627\u0644\u0639\u0636\u0648..." : "Search by team, leader, or member..."}
+                type="search"
+                value={query}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="admin-teams-grid">
+          {teamRows.map((team) => {
+            const members = parseTeamMembers(team.members_summary);
+            const teamName = String((isArabic ? team.name_ar : team.name_en) ?? team.name_ar ?? team.name_en ?? "");
+            const leaderName = String(team.leader_name ?? team.leader_email ?? "");
+            return (
+              <article className="admin-team-card" key={team.id}>
+                <div className="admin-team-card-head">
+                  <div>
+                    <span>{isArabic ? "\u0627\u0644\u0641\u0631\u064a\u0642" : "Team"}</span>
+                    <h2>{teamName || `${isArabic ? "\u0641\u0631\u064a\u0642" : "Team"} #${team.id}`}</h2>
+                  </div>
+                  <div className="admin-team-card-actions">
+                    <span className={`admin-status admin-status-${String(team.status ?? "active")}`}>
+                      {displayAdminValue(team.status, isArabic)}
+                    </span>
+                    <button
+                      aria-label={isArabic ? "\u062a\u0639\u062f\u064a\u0644 \u0627\u0644\u0641\u0631\u064a\u0642" : "Edit team"}
+                      className="admin-team-icon-btn"
+                      onClick={() => openTeamEditor(team)}
+                      title={isArabic ? "\u062a\u0639\u062f\u064a\u0644" : "Edit"}
+                      type="button"
+                    >
+                      <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+                        <path d="M13.5 6.5 17.5 10.5" />
+                      </svg>
+                    </button>
+                    <button
+                      aria-label={isArabic ? "\u062d\u0630\u0641 \u0627\u0644\u0641\u0631\u064a\u0642" : "Delete team"}
+                      className="admin-team-icon-btn danger"
+                      onClick={() => void deleteTeam(team)}
+                      title={isArabic ? "\u062d\u0630\u0641" : "Delete"}
+                      type="button"
+                    >
+                      <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div className="admin-team-leader">
+                  <span>{isArabic ? "\u0642\u0627\u0626\u062f \u0627\u0644\u0641\u0631\u064a\u0642" : "Team Leader"}</span>
+                  <strong>{leaderName || "—"}</strong>
+                  <small>{String(team.leader_email ?? "")}</small>
+                </div>
+                <div className="admin-team-members-head">
+                  <span>{isArabic ? "\u0623\u0639\u0636\u0627\u0621 \u0627\u0644\u0641\u0631\u064a\u0642" : "Team Members"}</span>
+                  <strong>
+                    {Number(team.members_count ?? members.length).toLocaleString(NUMBER_LOCALE)}
+                  </strong>
+                </div>
+                <button
+                  className="admin-add-team-member"
+                  onClick={() => openMemberCreator(team)}
+                  type="button"
+                >
+                  {isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u0639\u0636\u0648 \u062c\u062f\u064a\u062f" : "Add New Member"}
+                </button>
+                <div className="admin-team-members">
+                  {members.length ? (
+                    members.map((member) => (
+                      <div className="admin-team-member" key={member.id}>
+                        <div>
+                          <span>{member.name || member.email}</span>
+                          <small>{member.email}</small>
+                        </div>
+                        <button
+                          aria-label={isArabic ? "\u062d\u0630\u0641 \u0627\u0644\u0639\u0636\u0648" : "Remove member"}
+                          className="admin-team-icon-btn danger"
+                          onClick={() => void deleteTeamMember(team, member.id)}
+                          title={isArabic ? "\u062d\u0630\u0641" : "Remove"}
+                          type="button"
+                        >
+                          <svg aria-hidden="true" viewBox="0 0 24 24">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="admin-team-empty">
+                      {isArabic ? "\u0644\u0627 \u064a\u0648\u062c\u062f \u0623\u0639\u0636\u0627\u0621 \u0645\u0631\u062a\u0628\u0637\u0648\u0646 \u0628\u0647\u0630\u0627 \u0627\u0644\u0642\u0627\u0626\u062f" : "No members assigned to this leader"}
+                    </p>
+                  )}
+                </div>
+              </article>
+            );
+          })}
+          {teamRows.length === 0 ? (
+            <div className="admin-team-empty-state">
+              {isArabic ? "\u0644\u0627 \u062a\u0648\u062c\u062f \u0641\u0631\u0642 \u0645\u0637\u0627\u0628\u0642\u0629" : "No matching teams"}
+            </div>
+          ) : null}
+        </div>
+        {memberTeam ? (
+          <div
+            className="admin-edit-overlay"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setMemberTeam(null);
+            }}
+            role="presentation"
+          >
+            <section
+              className="admin-edit-modal admin-team-create-modal"
+              dir={isArabic ? "rtl" : "ltr"}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="admin-edit-head">
+                <div>
+                  <span>{isArabic ? "\u0623\u0639\u0636\u0627\u0621 \u0627\u0644\u0641\u0631\u064a\u0642" : "Team Members"}</span>
+                  <h3>{isArabic ? "\u0625\u0636\u0627\u0641\u0629 \u0639\u0636\u0648 \u062c\u062f\u064a\u062f" : "Add New Member"}</h3>
+                </div>
+                <button onClick={() => setMemberTeam(null)} type="button">
+                  X
+                </button>
+              </div>
+              <label>
+                <span>{isArabic ? "\u0627\u0644\u0639\u0636\u0648" : "Member"}</span>
+                <select
+                  className="admin-basic-select"
+                  onChange={(event) => setMemberUserId(event.target.value)}
+                  value={memberUserId}
+                >
+                  {(() => {
+                    const members = parseTeamMembers(memberTeam.members_summary);
+                    const blockedIds = new Set([
+                      Number(memberTeam.leader_user_id),
+                      ...members.map((member) => member.id),
+                    ]);
+                    const options = (managementData.users ?? []).filter(
+                      (user) => !blockedIds.has(Number(user.id)),
+                    );
+                    return options.length ? (
+                      options.map((user) => (
+                        <option key={user.id} value={String(user.id)}>
+                          {String(user.name ?? user.email ?? `${isArabic ? "\u0645\u0633\u062a\u062e\u062f\u0645" : "User"} #${user.id}`)}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">
+                        {isArabic ? "\u0644\u0627 \u064a\u0648\u062c\u062f \u0623\u0639\u0636\u0627\u0621 \u0645\u062a\u0627\u062d\u0648\u0646" : "No available members"}
+                      </option>
+                    );
+                  })()}
+                </select>
+              </label>
+              {memberMessage ? <p className="admin-team-message">{memberMessage}</p> : null}
+              <div className="admin-edit-actions">
+                <button className="primary" disabled={!memberUserId} onClick={() => void saveTeamMember()} type="button">
+                  {isArabic ? "\u062d\u0641\u0638 \u0627\u0644\u0639\u0636\u0648" : "Save Member"}
+                </button>
+                <button onClick={() => setMemberTeam(null)} type="button">
+                  {isArabic ? "\u0625\u0644\u063a\u0627\u0621" : "Cancel"}
+                </button>
+              </div>
+            </section>
+          </div>
+        ) : null}
+        {isTeamModalOpen ? (
+          <div
+            className="admin-edit-overlay"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setIsTeamModalOpen(false);
+            }}
+            role="presentation"
+          >
+            <section
+              className="admin-edit-modal admin-team-create-modal"
+              dir={isArabic ? "rtl" : "ltr"}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="admin-edit-head">
+                <div>
+                  <span>{isArabic ? "\u0627\u0644\u0641\u0631\u0642" : "Teams"}</span>
+                  <h3>
+                    {editingTeam
+                      ? isArabic
+                        ? "\u062a\u0639\u062f\u064a\u0644 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0641\u0631\u064a\u0642"
+                        : "Edit Team"
+                      : isArabic
+                        ? "\u0625\u0636\u0627\u0641\u0629 \u0641\u0631\u064a\u0642 \u062c\u062f\u064a\u062f"
+                        : "Add New Team"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsTeamModalOpen(false);
+                    setEditingTeam(null);
+                  }}
+                  type="button"
+                >
+                  X
+                </button>
+              </div>
+              <label>
+                <span>{isArabic ? "\u0642\u0627\u0626\u062f \u0627\u0644\u0641\u0631\u064a\u0642" : "Team Leader"}</span>
+                <select
+                  className="admin-basic-select"
+                  onChange={(event) =>
+                    setTeamDraft((current) => ({
+                      ...current,
+                      leader_user_id: event.target.value,
+                    }))
+                  }
+                  value={teamDraft.leader_user_id}
+                >
+                  {teamModalLeaderOptions.length ? (
+                    teamModalLeaderOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">
+                      {isArabic ? "\u0644\u0627 \u064a\u0648\u062c\u062f \u0642\u0627\u062f\u0629 \u0645\u062a\u0627\u062d\u0648\u0646" : "No available leaders"}
+                    </option>
+                  )}
+                </select>
+              </label>
+              <label>
+                <span>{isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u0641\u0631\u064a\u0642 \u0628\u0627\u0644\u0639\u0631\u0628\u064a" : "Arabic Team Name"}</span>
+                <input
+                  onChange={(event) =>
+                    setTeamDraft((current) => ({ ...current, name_ar: event.target.value }))
+                  }
+                  placeholder={isArabic ? "\u064a\u062a\u0645 \u0625\u0646\u0634\u0627\u0624\u0647 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b \u0625\u0630\u0627 \u062a\u0631\u0643\u062a\u0647 \u0641\u0627\u0631\u063a\u0627\u064b" : "Created automatically if left empty"}
+                  value={teamDraft.name_ar}
+                />
+              </label>
+              <label>
+                <span>{isArabic ? "\u0627\u0633\u0645 \u0627\u0644\u0641\u0631\u064a\u0642 \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a" : "English Team Name"}</span>
+                <input
+                  onChange={(event) =>
+                    setTeamDraft((current) => ({ ...current, name_en: event.target.value }))
+                  }
+                  placeholder={isArabic ? "\u064a\u062a\u0645 \u0625\u0646\u0634\u0627\u0624\u0647 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b \u0625\u0630\u0627 \u062a\u0631\u0643\u062a\u0647 \u0641\u0627\u0631\u063a\u0627\u064b" : "Created automatically if left empty"}
+                  value={teamDraft.name_en}
+                />
+              </label>
+              <label>
+                <span>{isArabic ? "\u0627\u0644\u0648\u0635\u0641" : "Description"}</span>
+                <textarea
+                  onChange={(event) =>
+                    setTeamDraft((current) => ({ ...current, description: event.target.value }))
+                  }
+                  value={teamDraft.description}
+                />
+              </label>
+              {teamMessage ? <p className="admin-team-message">{teamMessage}</p> : null}
+              <div className="admin-edit-actions">
+                <button className="primary" disabled={!teamModalLeaderOptions.length} onClick={() => void saveTeam()} type="button">
+                  {isArabic ? "\u062d\u0641\u0638 \u0627\u0644\u0641\u0631\u064a\u0642" : "Save Team"}
+                </button>
+                <button
+                  onClick={() => {
+                    setIsTeamModalOpen(false);
+                    setEditingTeam(null);
+                  }}
+                  type="button"
+                >
+                  {isArabic ? "\u0625\u0644\u063a\u0627\u0621" : "Cancel"}
+                </button>
+              </div>
+            </section>
+          </div>
+        ) : null}
+      </section>
+    );
+  }
 
   function getTicketUserName(row: AdminRow) {
     const directName = String(row.user_name ?? row.affiliate_user_name ?? "").trim();
