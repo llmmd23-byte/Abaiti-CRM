@@ -503,8 +503,11 @@ export async function GET() {
       hasPermission(session, "page.admin.tickets", "can_view"),
       hasPermission(session, "page.admin.accounts", "can_view"),
       hasPermission(session, "page.admin.teams", "can_view"),
+      hasPermission(session, "page.admin.booths", "can_view"),
+      hasPermission(session, "page.admin.tags", "can_view"),
       hasPermission(session, "page.admin.products", "can_view"),
-      hasPermission(session, "page.admin.industries", "can_view"),
+      hasPermission(session, "page.admin.activities", "can_view"),
+      hasPermission(session, "page.admin.content", "can_view"),
       hasPermission(session, "page.admin.permissions", "can_view"),
     ])
   ).some(Boolean);
@@ -733,25 +736,51 @@ export async function GET() {
       ORDER BY tt.created_at DESC,t.tag_name ASC`,
     [scopedCompanyId],
   );
+  const [
+    canViewDashboard,
+    canViewTickets,
+    canViewAccounts,
+    canViewTeams,
+    canViewProducts,
+    canViewBooths,
+    canViewTags,
+    canViewActivities,
+    canViewContent,
+    canViewPermissions,
+  ] = await Promise.all([
+    hasPermission(session, "page.admin.dashboard", "can_view"),
+    hasPermission(session, "page.admin.tickets", "can_view"),
+    hasPermission(session, "page.admin.accounts", "can_view"),
+    hasPermission(session, "page.admin.teams", "can_view"),
+    hasPermission(session, "page.admin.products", "can_view"),
+    hasPermission(session, "page.admin.booths", "can_view"),
+    hasPermission(session, "page.admin.tags", "can_view"),
+    hasPermission(session, "page.admin.activities", "can_view"),
+    hasPermission(session, "page.admin.content", "can_view"),
+    hasPermission(session, "page.admin.permissions", "can_view"),
+  ]);
+  const includeUserDirectory =
+    canViewDashboard || canViewTickets || canViewAccounts || canViewTeams || canViewPermissions;
+  const includeDashboardRows = canViewDashboard;
 
   return NextResponse.json({
     data: {
-      users,
-      userStats,
-      roles,
-      teams,
-      tickets,
-      ticketTypes,
-      products,
-      content,
-      industries,
-      clients,
-      demos,
-      quotes,
-      sales,
-      commissions,
-      ticketEvents,
-      tagStats,
+      users: includeUserDirectory ? users : [],
+      userStats: canViewDashboard || canViewAccounts ? userStats : [],
+      roles: canViewAccounts || canViewTeams || canViewPermissions ? roles : [],
+      teams: canViewTeams ? teams : [],
+      tickets: canViewTickets ? tickets : [],
+      ticketTypes: canViewTickets ? ticketTypes : [],
+      products: canViewProducts ? products : [],
+      content: canViewContent ? content : [],
+      industries: canViewActivities || includeDashboardRows ? industries : [],
+      clients: includeDashboardRows ? clients : [],
+      demos: includeDashboardRows ? demos : [],
+      quotes: includeDashboardRows ? quotes : [],
+      sales: includeDashboardRows ? sales : [],
+      commissions: includeDashboardRows ? commissions : [],
+      ticketEvents: canViewTickets ? ticketEvents : [],
+      tagStats: canViewTags || includeDashboardRows ? tagStats : [],
     },
   });
 }

@@ -438,7 +438,7 @@ export default function LeadRequestForm({
         email: leadRequest.email.trim() || null,
         phone: leadRequest.phone.trim(),
         source: "\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0639\u0645\u064a\u0644 \u0645\u0646 \u0642\u0628\u0644 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645",
-        industry_id: Number(leadRequest.industryId),
+        industry_id: leadRequest.industryId ? Number(leadRequest.industryId) : null,
         address: leadRequest.address.trim() || null,
         requirements: leadRequest.requirements.trim() || null,
         stage: "new",

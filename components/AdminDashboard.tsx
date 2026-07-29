@@ -163,6 +163,7 @@ const adminValueLabels: Record<string, { ar: string; en: string }> = {
   affiliate: { ar: "مسوق", en: "Affiliate" },
   sales: { ar: "مبيعات", en: "Sales" },
   support: { ar: "دعم", en: "Support" },
+  observer: { ar: "\u0645\u062a\u0627\u0628\u0639", en: "Observer" },
   new: { ar: "\u062c\u062f\u064a\u062f", en: "New" },
   interested: { ar: "مهتم", en: "Interested" },
   proposal: { ar: "عرض مقدم", en: "Proposal" },
@@ -373,9 +374,11 @@ function AdminIcon({ name }: { name: string }) {
 export default function AdminDashboard({
   initialSection = "dashboard",
   currentAccount,
+  isReadOnly = false,
 }: {
   initialSection?: AdminSection;
   currentAccount?: CurrentAccount;
+  isReadOnly?: boolean;
 } = {}) {
   const locale = useLocale();
   const isArabic = locale === "ar";
@@ -397,6 +400,34 @@ export default function AdminDashboard({
   const [activeSection, setActiveSection] = useState<AdminSection>(initialSection);
   const [management, setManagement] = useState<ManagementData | null>(null);
   const [managementError, setManagementError] = useState("");
+  const allowedSections = useMemo(
+    () =>
+      new Set<AdminSection>(
+        isReadOnly
+          ? ["dashboard", "accounts", "booths", "tags"]
+          : [
+              "dashboard",
+              "tickets",
+              "accounts",
+              "teams",
+              "products",
+              "booths",
+              "tags",
+              "activity",
+              "content",
+              "permissions",
+            ],
+      ),
+    [isReadOnly],
+  );
+  const visibleNavItems = useMemo(
+    () => navItems.filter(([, section]) => allowedSections.has(section)),
+    [allowedSections],
+  );
+  const visibleSettingsNavItems = useMemo(
+    () => settingsNavItems.filter(([, section]) => allowedSections.has(section)),
+    [allowedSections],
+  );
 
   function loadManagement() {
     const controller = new AbortController();
@@ -466,13 +497,17 @@ export default function AdminDashboard({
   }, []);
 
   useEffect(() => {
+    if (!allowedSections.has(activeSection)) {
+      setActiveSection("dashboard");
+      return;
+    }
     const params = new URLSearchParams();
     params.set("section", activeSection);
     const nextUrl = `${window.location.pathname}?${params.toString()}`;
     if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
       window.history.replaceState(null, "", nextUrl);
     }
-  }, [activeSection]);
+  }, [activeSection, allowedSections]);
 
   const series = summary?.series[activeMetric] ?? [];
   const maxValue = Math.max(1, ...series.map((item) => item.value));
@@ -582,7 +617,7 @@ export default function AdminDashboard({
           />
         </Link>
         <nav>
-          {navItems.map(([label, icon]) => (
+          {visibleNavItems.map(([label, icon]) => (
             <button
               className={activeSection === icon ? "active" : ""}
               key={icon}
@@ -595,12 +630,13 @@ export default function AdminDashboard({
               {label[language]}
             </button>
           ))}
+          {visibleSettingsNavItems.length ? (
           <details className="admin-nav-dropdown">
             <summary
               className={settingsSections.has(activeSection) ? "active" : ""}
               onClick={() => {
                 if (!settingsSections.has(activeSection)) {
-                  setActiveSection("products");
+                  setActiveSection(visibleSettingsNavItems[0]?.[1] ?? "dashboard");
                 }
               }}
             >
@@ -613,7 +649,7 @@ export default function AdminDashboard({
               </span>
             </summary>
             <div className="admin-nav-dropdown-menu">
-              {settingsNavItems.map(([label, icon]) => (
+              {visibleSettingsNavItems.map(([label, icon]) => (
                 <button
                   className={activeSection === icon ? "active" : ""}
                   key={icon}
@@ -628,6 +664,7 @@ export default function AdminDashboard({
               ))}
             </div>
           </details>
+          ) : null}
         </nav>
         <div className="admin-sidebar-footer">
           <div
@@ -862,6 +899,7 @@ export default function AdminDashboard({
               metric={activeMetric}
               data={management}
               isArabic={isArabic}
+              isReadOnly={isReadOnly}
               onReload={() => {
                 loadManagement();
                 loadSummary();
@@ -936,6 +974,7 @@ export default function AdminDashboard({
             data={management}
             error={managementError}
             isArabic={isArabic}
+            isReadOnly={isReadOnly}
           />
         )}
       </main>
@@ -947,11 +986,13 @@ function AdminMetricList({
   metric,
   data,
   isArabic,
+  isReadOnly = false,
   onReload,
 }: {
   metric: MetricKey;
   data: ManagementData | null;
   isArabic: boolean;
+  isReadOnly?: boolean;
   onReload: () => void;
 }) {
   const [search, setSearch] = useState("");
@@ -1770,7 +1811,7 @@ function AdminMetricList({
               {visibleRows.length.toLocaleString(NUMBER_LOCALE)}
             </strong>
           ) : null}
-          {metric === "users" ? (
+          {metric === "users" && !isReadOnly ? (
             <button
               className="admin-add-user-btn add-user-btn"
               onClick={openCreateUserModal}
@@ -1787,7 +1828,7 @@ function AdminMetricList({
           ) : null}
         </div>
       </div>
-      {metric === "clients" ? (
+      {metric === "clients" && !isReadOnly ? (
         <div className="admin-client-transfer-bar">
           <label className="admin-client-select-all">
             <input
@@ -1884,7 +1925,7 @@ function AdminMetricList({
         <table className={metric === "clients" ? "admin-clients-table" : undefined}>
           <thead>
             <tr>
-              {metric === "clients" ? (
+              {metric === "clients" && !isReadOnly ? (
                 <th className="admin-client-select-column">
                   <input
                     aria-label={isArabic ? "\u062a\u062d\u062f\u064a\u062f \u0643\u0644 \u0627\u0644\u0639\u0645\u0644\u0627\u0621" : "Select all clients"}
@@ -1898,13 +1939,13 @@ function AdminMetricList({
               {config.columns.map(([key, label]) => (
                 <th data-field={key} key={key}>{label}</th>
               ))}
-              <th>{isArabic ? "إجراء" : "Action"}</th>
+              {!isReadOnly ? <th>{isArabic ? "إجراء" : "Action"}</th> : null}
             </tr>
           </thead>
           <tbody>
             {visibleRows.map((row, index) => (
               <tr key={`${metric}-${row.id}-${index}`}>
-                {metric === "clients" ? (
+                {metric === "clients" && !isReadOnly ? (
                   <td className="admin-client-select-column">
                     <input
                       aria-label={isArabic ? "\u062a\u062d\u062f\u064a\u062f \u0627\u0644\u0639\u0645\u064a\u0644" : "Select client"}
@@ -2006,6 +2047,7 @@ function AdminMetricList({
                     </td>
                   );
                 })}
+                {!isReadOnly ? (
                 <td>
                   <div className="admin-row-action-group">
                     <button
@@ -2026,11 +2068,12 @@ function AdminMetricList({
                     ) : null}
                   </div>
                 </td>
+                ) : null}
               </tr>
             ))}
             {visibleRows.length === 0 ? (
               <tr>
-                <td className="admin-empty" colSpan={config.columns.length + (metric === "clients" ? 2 : 1)}>
+                <td className="admin-empty" colSpan={config.columns.length + (metric === "clients" && !isReadOnly ? 1 : 0) + (isReadOnly ? 0 : 1)}>
                   {isArabic ? "لا توجد بيانات مطابقة" : "No matching data"}
                 </td>
               </tr>
@@ -2605,10 +2648,12 @@ function AdminMetricList({
 function AdminTagsSection({
   data,
   isArabic,
+  isReadOnly = false,
   onReload,
 }: {
   data: ManagementData;
   isArabic: boolean;
+  isReadOnly?: boolean;
   onReload: () => void;
 }) {
   const groupedTypes = Array.from(
@@ -3087,6 +3132,7 @@ function AdminTagsSection({
                     </button>
                   ) : null}
 
+                  {!isReadOnly ? (
                   <button
                     className="admin-action-btn admin-tag-card-edit"
                     onClick={() => {
@@ -3097,6 +3143,7 @@ function AdminTagsSection({
                   >
                     {isArabic ? "تعديل" : "Edit"}
                   </button>
+                  ) : null}
                 </article>
               );
             })
@@ -3455,6 +3502,8 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   );
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
+  const [isRoleSaving, setIsRoleSaving] = useState(false);
+  const [isRoleDetailsSaving, setIsRoleDetailsSaving] = useState(false);
   const [roleDraft, setRoleDraft] = useState({
     name_ar: "",
     name_en: "",
@@ -3612,12 +3661,26 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
   }
 
   async function createRole() {
+    const nameAr = roleDraft.name_ar.trim();
+    const nameEn = roleDraft.name_en.trim();
+    if (!nameAr && !nameEn) {
+      setMessage(isArabic ? "أدخل اسم الدور أولاً" : "Enter the role name first");
+      return;
+    }
+    if (isRoleSaving) return;
+    const payload = {
+      ...roleDraft,
+      name_ar: nameAr || nameEn,
+      name_en: nameEn || nameAr,
+      slug: roleDraft.slug.trim(),
+    };
+    setIsRoleSaving(true);
     setMessage(isArabic ? "جاري إنشاء الدور..." : "Creating role...");
     try {
       const response = await fetch("/api/v1/admin/permissions", {
         method: "POST",
         headers: { "Content-Type": "application/json; charset=utf-8" },
-        body: JSON.stringify(roleDraft),
+        body: JSON.stringify(payload),
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(String(body.error ?? "CREATE_FAILED"));
@@ -3638,6 +3701,8 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
             ? "تعذر إنشاء الدور"
             : "Unable to create role",
       );
+    } finally {
+      setIsRoleSaving(false);
     }
   }
 
@@ -3654,6 +3719,15 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
 
   async function saveRoleDetails() {
     if (!editingRole) return;
+    const nameAr = roleEditDraft.name_ar.trim();
+    const nameEn = roleEditDraft.name_en.trim();
+    const nextSlug = roleEditDraft.slug.trim();
+    if (!nextSlug || (!nameAr && !nameEn)) {
+      setMessage(isArabic ? "أدخل رمز الدور والاسم أولاً" : "Enter the role code and name first");
+      return;
+    }
+    if (isRoleDetailsSaving) return;
+    setIsRoleDetailsSaving(true);
     setMessage(isArabic ? "\u062c\u0627\u0631\u064a \u062d\u0641\u0638 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062f\u0648\u0631..." : "Saving role details...");
     try {
       const response = await fetch("/api/v1/admin/permissions", {
@@ -3661,16 +3735,15 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
         headers: { "Content-Type": "application/json; charset=utf-8" },
         body: JSON.stringify({
           slug: editingRole.slug,
-          new_slug: roleEditDraft.slug,
-          name_ar: roleEditDraft.name_ar,
-          name_en: roleEditDraft.name_en,
+          new_slug: nextSlug,
+          name_ar: nameAr || nameEn,
+          name_en: nameEn || nameAr,
         }),
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(String(body.error ?? "SAVE_FAILED"));
       setEditingRole(null);
       await loadPermissions();
-      const nextSlug = roleEditDraft.slug.trim();
       if (subjectType === "role" && subjectId === editingRole.slug && nextSlug) {
         setSubject(`role:${nextSlug}`);
       }
@@ -3690,6 +3763,8 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
             ? "\u062a\u0639\u0630\u0631 \u062d\u0641\u0638 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u062f\u0648\u0631"
             : "Unable to save role details",
       );
+    } finally {
+      setIsRoleDetailsSaving(false);
     }
   }
 
@@ -3832,7 +3907,12 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
           ]}
           value={roleDraft.role_type}
         />
-        <button className="admin-create-role-btn" onClick={createRole} type="button">
+        <button
+          className="admin-create-role-btn"
+          disabled={isRoleSaving}
+          onClick={() => void createRole()}
+          type="button"
+        >
           {isArabic ? "إنشاء الدور" : "Create Role"}
         </button>
       </div>
@@ -3989,6 +4069,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
             <div className="admin-edit-actions">
               <button
                 className="primary"
+                disabled={isRoleDetailsSaving}
                 onClick={() => void saveRoleDetails()}
                 type="button"
               >
@@ -4345,7 +4426,13 @@ function boothSort(first: AdminRow, second: AdminRow) {
   );
 }
 
-function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
+function AdminBoothsSection({
+  isArabic,
+  isReadOnly = false,
+}: {
+  isArabic: boolean;
+  isReadOnly?: boolean;
+}) {
   const [booths, setBooths] = useState<AdminRow[]>([]);
   const [bookings, setBookings] = useState<AdminRow[]>([]);
   const [selectedBooth, setSelectedBooth] = useState<AdminRow | null>(null);
@@ -4503,6 +4590,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
   }
 
   async function saveBooth() {
+    if (isReadOnly) return;
     if (!selectedBooth || isSaving) return;
     if (!draft.booth_number.trim()) {
       setMessage(isArabic ? "رقم البوث مطلوب" : "Booth number is required");
@@ -4794,6 +4882,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                       onChange={(event) =>
                         setDraft((current) => ({ ...current, [field]: event.target.value }))
                       }
+                      readOnly={isReadOnly}
                       value={draft[field as keyof typeof draft]}
                     />
                   </label>
@@ -4802,6 +4891,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   <span>{isArabic ? "الحالة" : "Status"}</span>
                   <select
                     className="admin-basic-select"
+                    disabled={isReadOnly}
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, status: event.target.value }))
                     }
@@ -4817,11 +4907,13 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, notes: event.target.value }))
                     }
+                    readOnly={isReadOnly}
                     value={draft.notes}
                   />
                 </label>
               </div>
               {message ? <p className="admin-booth-message">{message}</p> : null}
+              {!isReadOnly ? (
               <div className="admin-edit-actions">
                 <button className="secondary" onClick={cancelBoothEdit} type="button">
                   {isArabic ? "إلغاء التعديل" : "Reset"}
@@ -4830,6 +4922,7 @@ function AdminBoothsSection({ isArabic }: { isArabic: boolean }) {
                   {isSaving ? (isArabic ? "جاري الحفظ..." : "Saving...") : (isArabic ? "حفظ بيانات البوث" : "Save booth")}
                 </button>
               </div>
+              ) : null}
             </>
           ) : (
             <div className="admin-booth-editor-empty">
@@ -4849,6 +4942,7 @@ function AdminManagementSection({
   data,
   error,
   isArabic,
+  isReadOnly = false,
   onReload,
   onRowUpdated,
 }: {
@@ -4856,6 +4950,7 @@ function AdminManagementSection({
   data: ManagementData | null;
   error: string;
   isArabic: boolean;
+  isReadOnly?: boolean;
   onReload: () => void;
   onRowUpdated: (resource: "tickets", row: AdminRow) => void;
 }) {
@@ -5098,11 +5193,11 @@ function AdminManagementSection({
   }
 
   if (section === "tags") {
-    return <AdminTagsSection data={managementData} isArabic={isArabic} onReload={onReload} />;
+    return <AdminTagsSection data={managementData} isArabic={isArabic} isReadOnly={isReadOnly} onReload={onReload} />;
   }
 
   if (section === "booths") {
-    return <AdminBoothsSection isArabic={isArabic} />;
+    return <AdminBoothsSection isArabic={isArabic} isReadOnly={isReadOnly} />;
   }
 
   if (!data)

@@ -130,6 +130,18 @@ export const allPermissionKeys = [
   ...specialPermissions,
 ];
 
+const observerPermissionKeys = [
+  "page.admin.dashboard",
+  "page.admin.accounts",
+  "page.admin.booths",
+  "page.admin.tags",
+  "table.users",
+  "table.tag_types",
+  "table.tags",
+  "table.booths",
+  "table.rental_booths",
+] as const;
+
 export const adminPermissionKeys = allPermissionKeys.filter(
   (key) =>
     key.startsWith("page.admin.") ||
@@ -326,6 +338,12 @@ const roleSeeds: Record<string, PermissionSeed[]> = {
       scope: "company",
     },
   ],
+  observer: observerPermissionKeys.map((key) => ({
+    key,
+    view: true,
+    dashboard: key.startsWith("page.admin."),
+    scope: "company" as const,
+  })),
 };
 
 const globalForPermissions = globalThis as typeof globalThis & {
@@ -422,6 +440,20 @@ async function backfillRoleTypePermissions() {
     "SELECT id,slug,name_ar,name_en,role_type FROM roles WHERE is_active = 1",
   );
   for (const role of roles) {
+    if (role.slug === "observer") {
+      for (const key of observerPermissionKeys) {
+        await db.execute(
+          `INSERT INTO permissions
+             (subject_type, subject_id, role_id, permission_key, can_view, can_create, can_edit, can_delete,
+              can_approve, can_reports, can_dashboard, data_scope)
+           VALUES ('role', ?, ?, ?, 1, 0, 0, 0, 0, 0, ?, 'company')
+           ON DUPLICATE KEY UPDATE
+             role_id = COALESCE(role_id, VALUES(role_id))`,
+          [role.slug, role.id, key, key.startsWith("page.admin.") ? 1 : 0],
+        );
+      }
+      continue;
+    }
     const keys = permissionKeysByRoleType[role.role_type] ?? [];
     for (const key of keys) {
       const seed = defaultSeedForRoleType(role.role_type, key);
@@ -471,6 +503,7 @@ export async function ensureRolesTable() {
     ["sales", "مبيعات", "Sales"],
     ["Leader", "قائد فريق", "Team Leader"],
     ["support", "دعم", "Support"],
+    ["observer", "\u0645\u062a\u0627\u0628\u0639", "Observer"],
   ];
   for (const role of roleRows) {
     await db.execute(
@@ -484,7 +517,7 @@ export async function ensureRolesTable() {
     );
   }
   await db.execute(
-    "UPDATE roles SET role_type = 'admin' WHERE slug IN ('admin','support')",
+    "UPDATE roles SET role_type = 'admin' WHERE slug IN ('admin','support','observer')",
   );
   await db.execute(
     "UPDATE roles SET role_type = 'user' WHERE slug IN ('affiliate','sales','Leader')",
@@ -587,6 +620,30 @@ export async function ensurePermissionsTable() {
     }
     await backfillRoleTypePermissions();
     await db.execute(
+      `DELETE p FROM permissions p
+        JOIN roles r ON r.id = p.role_id OR r.slug = p.subject_id
+       WHERE p.subject_type = 'role'
+         AND r.slug = 'observer'
+         AND p.permission_key NOT IN (${observerPermissionKeys.map(() => "?").join(",")})`,
+      [...observerPermissionKeys],
+    );
+    await db.execute(
+      `UPDATE permissions p
+        JOIN roles r ON r.id = p.role_id OR r.slug = p.subject_id
+         SET p.can_view = 1,
+             p.can_create = 0,
+             p.can_edit = 0,
+             p.can_delete = 0,
+             p.can_approve = 0,
+             p.can_reports = 0,
+             p.can_dashboard = IF(p.permission_key LIKE 'page.admin.%', 1, 0),
+             p.data_scope = 'company'
+       WHERE p.subject_type = 'role'
+         AND r.slug = 'observer'
+         AND p.permission_key IN (${observerPermissionKeys.map(() => "?").join(",")})`,
+      [...observerPermissionKeys],
+    );
+    await db.execute(
       `UPDATE permissions p
          JOIN roles r ON r.id = p.role_id OR r.slug = p.subject_id
           SET p.can_delete = 1
@@ -659,6 +716,7 @@ export async function getPermission(
 ) {
   const rows = await permissionRows(session, permissionKey);
   if (rows[0]) return rows[0];
+  if (String(session.role ?? "").toLowerCase() === "observer") return null;
   if (isAdminSession(session)) return adminFallback(permissionKey);
   return null;
 }
@@ -739,7 +797,10 @@ export async function getSessionPermissions(session: MiddarSession) {
   for (const row of rows) {
     if (!byKey.has(row.permission_key)) byKey.set(row.permission_key, row);
   }
-  if (isAdminSession(session)) {
+  if (
+    isAdminSession(session) &&
+    String(session.role ?? "").toLowerCase() !== "observer"
+  ) {
     for (const key of allPermissionKeys) {
       if (!byKey.has(key)) byKey.set(key, adminFallback(key));
     }

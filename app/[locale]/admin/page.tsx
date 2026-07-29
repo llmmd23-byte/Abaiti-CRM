@@ -15,6 +15,8 @@ const validAdminSections = new Set([
   "permissions",
 ]);
 
+const observerSections = new Set(["dashboard", "accounts", "booths", "tags"]);
+
 export default async function AdminPage({
   params,
   searchParams,
@@ -27,7 +29,13 @@ export default async function AdminPage({
   if (!session) redirect(`/${locale}/signin`);
   if (!isAdminSession(session)) redirect(`/${locale}/dashboard`);
   const query = await searchParams;
-  const initialSection = validAdminSections.has(String(query?.section ?? "dashboard"))
+  const isObserver = String(session.role ?? "").toLowerCase() === "observer";
+  const sectionSet = isObserver ? observerSections : validAdminSections;
+  const requestedSection = String(query?.section ?? "dashboard");
+  if (isObserver && !sectionSet.has(requestedSection)) {
+    redirect(`/${locale}/admin?section=dashboard`);
+  }
+  const initialSection = sectionSet.has(requestedSection)
     ? (String(query?.section ?? "dashboard") as
         | "dashboard"
         | "tickets"
@@ -127,6 +135,7 @@ export default async function AdminPage({
           email: session.email,
           role: session.role,
         }}
+        isReadOnly={isObserver}
       />
     </>
   );

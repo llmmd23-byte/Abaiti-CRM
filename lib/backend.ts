@@ -1991,6 +1991,9 @@ async function recordSupportTicketEvent({
 export async function listResource(resource: string, session: MiddarSession) {
   const definition = definitionFor(resource);
   if (resource === "marketing-assets") {
+    if (String(session.role ?? "").toLowerCase() === "observer") {
+      throw new Error("FORBIDDEN");
+    }
     await ensureResourceTable(resource);
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT id,user_id,title,asset_type,original_name,mime_type,file_size,file_path,
@@ -2424,6 +2427,15 @@ export async function createResource(
   if (definition.writable.length === 0) throw new Error("READ_ONLY_RESOURCE");
 
   const data = cleanPayload(definition, payload);
+  if (resource === "leads") {
+    if (data.industry_id !== undefined && data.industry_id !== null) {
+      const industryId = Number(data.industry_id);
+      data.industry_id = Number.isInteger(industryId) && industryId > 0 ? industryId : null;
+    }
+    if (!String(data.name ?? "").trim()) {
+      data.name = String(data.company_name ?? "").trim();
+    }
+  }
   if (resource === "lead-contacts" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
   if (resource === "stores" && data.phone)
@@ -2454,8 +2466,10 @@ export async function createResource(
     data.tag_id = Number(data.tag_id);
   }
   if (resource === "support-ticket-types") {
-    data.name_ar = String(data.name_ar ?? "").trim().slice(0, 120);
-    data.name_en = String(data.name_en ?? "").trim().slice(0, 120);
+    const nameAr = String(data.name_ar ?? "").trim().slice(0, 120);
+    const nameEn = String(data.name_en ?? "").trim().slice(0, 120);
+    data.name_ar = nameAr || nameEn;
+    data.name_en = nameEn || nameAr;
     data.description = String(data.description ?? "").trim() || null;
     data.sort_order = Number(data.sort_order ?? 0);
     data.company_id = await companyIdForSession(session);
@@ -2759,6 +2773,9 @@ export async function getResource(
 ) {
   const definition = definitionFor(resource);
   if (resource === "marketing-assets") {
+    if (String(session.role ?? "").toLowerCase() === "observer") {
+      throw new Error("FORBIDDEN");
+    }
     await ensureResourceTable(resource);
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT * FROM marketing_assets WHERE id = ? LIMIT 1`,
@@ -2922,6 +2939,12 @@ export async function updateResource(
   if (resource === "support-ticket-types") {
     if (data.name_ar !== undefined) data.name_ar = String(data.name_ar ?? "").trim().slice(0, 120);
     if (data.name_en !== undefined) data.name_en = String(data.name_en ?? "").trim().slice(0, 120);
+    if (data.name_ar !== undefined || data.name_en !== undefined) {
+      const nameAr = String(data.name_ar ?? existing.name_ar ?? "").trim().slice(0, 120);
+      const nameEn = String(data.name_en ?? existing.name_en ?? "").trim().slice(0, 120);
+      data.name_ar = nameAr || nameEn;
+      data.name_en = nameEn || nameAr;
+    }
     if (data.description !== undefined) data.description = String(data.description ?? "").trim() || null;
     if (data.sort_order !== undefined) data.sort_order = Number(data.sort_order ?? 0);
   }

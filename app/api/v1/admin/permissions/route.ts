@@ -138,8 +138,10 @@ export async function POST(request: Request) {
 
   await ensurePermissionsTable();
   const body = await request.json().catch(() => ({}));
-  const nameAr = String(body.name_ar ?? "").trim().slice(0, 120);
-  const nameEn = String(body.name_en ?? "").trim().slice(0, 120);
+  const rawNameAr = String(body.name_ar ?? "").trim().slice(0, 120);
+  const rawNameEn = String(body.name_en ?? "").trim().slice(0, 120);
+  const nameAr = rawNameAr || rawNameEn;
+  const nameEn = rawNameEn || rawNameAr;
   const requestedSlug = slugifyRole(String(body.slug ?? nameEn ?? nameAr));
   const roleType = String(body.role_type ?? "user") as RoleType;
 
@@ -285,8 +287,10 @@ export async function PATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
   const slug = String(body.slug ?? "").trim();
   const nextSlug = slugifyRole(String(body.new_slug ?? slug));
-  const nameAr = String(body.name_ar ?? "").trim().slice(0, 120);
-  const nameEn = String(body.name_en ?? "").trim().slice(0, 120);
+  const rawNameAr = String(body.name_ar ?? "").trim().slice(0, 120);
+  const rawNameEn = String(body.name_en ?? "").trim().slice(0, 120);
+  const nameAr = rawNameAr || rawNameEn;
+  const nameEn = rawNameEn || rawNameAr;
   if (!slug || !nextSlug || !nameAr || !nameEn) {
     return NextResponse.json({ error: "VALIDATION_ERROR" }, { status: 422 });
   }
