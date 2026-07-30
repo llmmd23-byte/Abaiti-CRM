@@ -1181,7 +1181,7 @@ textarea {
 
 .sidebar {
   position: sticky;
-  top: 0;
+  top: 4%;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -8017,6 +8017,30 @@ html[dir="ltr"] .user-stats-card {
 .leads-hub-panel .card-title {
   align-items: center;
   flex-wrap: wrap;
+}
+
+.customers-directory-card {
+  width: min(100%, 1480px);
+  margin-inline: auto;
+}
+
+.customers-directory-card > .card-title {
+  justify-content: center;
+  text-align: center;
+}
+
+.customers-directory-card > .card-title > div {
+  width: 100%;
+}
+
+.customers-directory-card .customer-filter-controls {
+  flex-basis: 100%;
+  justify-content: center;
+}
+
+.customers-directory-card .customers-list-table {
+  width: 100%;
+  margin-inline: auto;
 }
 
 .customer-search-bar:focus-within {
@@ -22592,7 +22616,7 @@ html[dir="rtl"]
 }
 
 .admin-booths-toolbar {
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
 }
 
@@ -22608,34 +22632,37 @@ html[dir="rtl"]
 
 .admin-booth-zone-filter {
   display: flex;
-  flex: 1 1 360px;
+  flex: 0 1 auto;
   flex-wrap: wrap;
   gap: 8px;
-  justify-content: center;
+  justify-content: flex-start;
   order: 2;
 }
 
 .admin-booth-zone-filter button {
-  border: 1px solid #dbeafe;
+  border: 1px solid #cbd5e1;
   border-radius: 999px;
-  background: #ffffff;
+  background: #f8fafc;
   color: #0f2d4a;
   cursor: pointer;
   font-size: 13px;
   font-weight: 800;
-  min-height: 48px;
-  padding: 10px 16px;
+  min-height: 42px;
+  min-width: 92px;
+  padding: 8px 16px;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .admin-booth-zone-filter button:hover,
 .admin-booth-zone-filter button.active {
-  border-color: #1a748b;
-  background: #e6f7ff;
-  color: #1a748b;
+  border-color: #2563eb;
+  background: #dbeafe;
+  color: #1d4ed8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.14);
 }
 
 .admin-booth-map-legend {
+  display: none !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -22650,6 +22677,7 @@ html[dir="rtl"]
   font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
+  direction: ltr;
 }
 
 .admin-booth-map-legend span {
@@ -22682,32 +22710,100 @@ html[dir="rtl"]
   background: #0d6efd;
 }
 
+.admin-booth-map-legend i.category-a {
+  background: #4c8bf5;
+}
+
+.admin-booth-map-legend i.category-b {
+  background: #5bbe6f;
+}
+
+.admin-booth-map-legend i.category-c {
+  background: #f6d348;
+}
+
 .admin-booths-workspace {
   align-items: stretch;
   gap: 18px;
+  justify-content: center;
+}
+
+.admin-booth-zone-filter {
+  direction: inherit;
 }
 
 .admin-booths-layout {
-  flex: 1 1 auto;
+  flex: 0 1 1066px;
+  width: min(100%, 1066px);
+  max-width: 1066px;
   min-width: 0;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   background: #f8fafc;
   display: flex;
   justify-content: center;
-  padding: 12px;
-  overflow: auto;
+  padding: 12px 12px 112px;
+  overflow: visible;
+}
+
+.admin-floor-map-viewport {
+  position: relative;
+  width: min(100%, 1040px);
+  min-width: 0;
+  height: auto;
+  aspect-ratio: 16 / 21;
+  min-height: 700px;
+  max-height: 1240px;
+  overflow: hidden;
+  border: 1px solid #a8c2cd;
+  border-radius: 16px;
+  background: #e9f2f5;
+  box-shadow: 0 14px 30px rgba(15, 45, 74, 0.12);
+  cursor: grab;
+  touch-action: none;
+}
+
+/* Keep the extended entrance inside the white map card. */
+.admin-booths-layout .admin-floor-map-viewport {
+  margin-bottom: 0;
+}
+
+.admin-floor-map-label.entrance {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .admin-booths-layout {
+    flex-basis: 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .admin-floor-map-viewport {
+    aspect-ratio: 4 / 3;
+    min-height: 360px;
+  }
+}
+
+.admin-floor-map-viewport.is-panning {
+  cursor: grabbing;
 }
 
 .admin-floor-map-canvas {
   position: relative;
-  width: min(100%, 92vh, 1040px);
-  min-width: 760px;
-  aspect-ratio: 5967 / 5662;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   border: 1px solid #cbd5e1;
   border-radius: 12px;
-  background: linear-gradient(180deg, #f4f7fb 0 15%, #ffffff 15% 74%, #eff6ff 74% 100%);
+  background:
+    linear-gradient(rgba(39, 88, 105, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(39, 88, 105, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, #eaf4f8 0%, #ffffff 16%, #ffffff 84%, #eef7f8 100%);
+  background-size: 24px 24px, 24px 24px, auto;
   box-shadow: inset 0 0 0 8px #ffffff;
+  transform-origin: center center;
+  transition: transform 0.16s ease;
 }
 
 .admin-floor-map-canvas::before,
@@ -22723,6 +22819,219 @@ html[dir="rtl"]
 
 .admin-floor-map-canvas::after {
   display: none;
+}
+
+.ree-map-outer-border,
+.ree-map-entrance,
+.ree-map-corridor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ree-map-outer-border {
+  display: none;
+}
+
+.ree-map-stepped-boundary {
+  display: none;
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ree-map-stepped-wall,
+.ree-map-rotunda,
+.ree-map-stairs {
+  fill: none;
+  stroke: #111111;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 0.28;
+}
+
+.ree-map-seating {
+  display: none;
+  position: absolute;
+  z-index: 2;
+  /* Place the four tables in the left 6m gap between C3 and B8/B3. */
+  left: 12%;
+  top: 20%;
+  display: grid;
+  grid-template-columns: repeat(2, 18px);
+  gap: 6px;
+  pointer-events: none;
+}
+
+.ree-map-table {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.ree-map-table b {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%);
+  border: 1px solid #a66b9c;
+  border-radius: 50%;
+  background: #f4c7e6;
+}
+
+.ree-map-table .chair {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border: 1px solid #a66b9c;
+  border-radius: 50%;
+  background: #f8d9ee;
+}
+
+.ree-map-table .chair-top { left: 7px; top: 0; }
+.ree-map-table .chair-right { right: 0; top: 7px; }
+.ree-map-table .chair-bottom { left: 7px; bottom: 0; }
+.ree-map-table .chair-left { left: 0; top: 7px; }
+
+.ree-map-rotunda {
+  fill: none;
+  stroke-width: 0.28;
+}
+
+.ree-map-stairs {
+  fill: none;
+  stroke-width: 0.24;
+}
+
+.ree-map-entrance {
+  display: none;
+  left: 39%;
+  bottom: -8%;
+  width: 22%;
+  height: 12%;
+  display: grid;
+  place-content: center;
+  gap: 1px;
+  z-index: 1;
+  border: 2px solid #1c5266;
+  border-radius: 50% 50% 0 0;
+  background: transparent;
+  color: #164455;
+  font-size: clamp(7px, 0.7vw, 11px);
+  text-align: center;
+}
+
+.ree-map-entrance::before,
+.ree-map-entrance::after {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 18%;
+  height: 8%;
+  border: 2px solid #1c5266;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  content: "";
+  transform: translateX(-105%);
+}
+
+.ree-map-entrance::after {
+  transform: translateX(5%);
+}
+
+.ree-map-walkway {
+  display: none;
+}
+
+.ree-map-walkway.walkway-left,
+.ree-map-walkway.walkway-right {
+  top: 82%;
+  width: 18%;
+  height: 6.7%;
+  border-width: 2px 0;
+}
+
+.ree-map-walkway.walkway-left { left: 21%; }
+.ree-map-walkway.walkway-right { right: 21%; }
+
+.ree-map-walkway.walkway-left-vertical,
+.ree-map-walkway.walkway-right-vertical {
+  top: 66%;
+  width: 6.7%;
+  height: 16%;
+  border-width: 0 2px;
+}
+
+.ree-map-walkway.walkway-left-vertical { left: 32%; }
+.ree-map-walkway.walkway-right-vertical { right: 32%; }
+
+.ree-map-walkway.walkway-left::after,
+.ree-map-walkway.walkway-right::after {
+  position: absolute;
+  top: 50%;
+  color: #47717e;
+  content: "6.7m";
+  font-size: clamp(6px, 0.55vw, 9px);
+  font-weight: 800;
+  transform: translateY(-50%);
+}
+
+.ree-map-walkway.walkway-left::after { left: 35%; }
+.ree-map-walkway.walkway-right::after { right: 35%; }
+
+.ree-map-walkway.walkway-left-vertical::after,
+.ree-map-walkway.walkway-right-vertical::after {
+  position: absolute;
+  top: 50%;
+  color: #47717e;
+  content: "12.8m";
+  font-size: clamp(6px, 0.55vw, 9px);
+  font-weight: 800;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%);
+}
+
+.ree-map-walkway.walkway-left-vertical::after { left: 18%; }
+.ree-map-walkway.walkway-right-vertical::after { right: 18%; }
+
+.ree-map-entrance span,
+.ree-map-entrance small {
+  font-size: clamp(6px, 0.58vw, 9px);
+  font-weight: 800;
+}
+
+.ree-map-corridor {
+  color: #47717e;
+  font-size: clamp(6px, 0.55vw, 9px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ree-map-corridor.corridor-horizontal {
+  left: 31%;
+  top: 53%;
+  width: 38%;
+  height: 5%;
+  border-top: 1px dashed rgba(28, 82, 102, 0.46);
+  border-bottom: 1px dashed rgba(28, 82, 102, 0.46);
+  text-align: center;
+}
+
+.ree-map-corridor.corridor-vertical {
+  display: none;
+  right: 8%;
+  top: 34%;
+  writing-mode: vertical-rl;
 }
 
 .admin-floor-map-label,
@@ -22759,6 +23068,12 @@ html[dir="rtl"]
 
 .admin-floor-map-label.exit {
   right: 18%;
+}
+
+.admin-floor-map-label.top,
+.admin-floor-map-label.entrance,
+.admin-floor-map-label.exit {
+  display: none;
 }
 
 .admin-floor-map-label.right {
@@ -22888,6 +23203,71 @@ html[dir="rtl"]
   transition: box-shadow 0.15s ease, transform 0.15s ease, background 0.15s ease;
 }
 
+.admin-map-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 12px 0 10px;
+  color: #335767;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-map-controls button {
+  min-width: 32px;
+  min-height: 30px;
+  border: 1px solid #b7cdd5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #164455;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-map-controls button:hover {
+  border-color: #1a748b;
+  background: #eef8fa;
+}
+
+.admin-map-controls button:last-of-type {
+  padding: 0 10px;
+}
+
+.admin-map-controls small {
+  margin-inline-start: 6px;
+  color: #6a8791;
+  font-weight: 700;
+}
+
+.admin-booth-map-tile.category-a {
+  border-color: #1e5bb8;
+  background: rgba(76, 139, 245, 0.68);
+}
+
+.admin-booth-map-tile.category-b {
+  border-color: #277342;
+  background: rgba(91, 190, 111, 0.68);
+}
+
+.admin-booth-map-tile.category-c {
+  border-color: #b88705;
+  background: rgba(246, 211, 72, 0.72);
+}
+
+.admin-booth-map-tile::after {
+  content: "";
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  background: #2f9e44;
+  box-shadow: 0 0 0 1px rgba(15, 45, 74, 0.2);
+}
+
 .admin-booth-map-tile.is-feature-area {
   z-index: 2;
   border: 1.5px solid rgba(26, 116, 139, 0.42);
@@ -22929,7 +23309,7 @@ html[dir="rtl"]
 
 .admin-booth-map-tile strong {
   display: block;
-  font-size: clamp(6px, 0.64vw, 10px);
+  font-size: clamp(8px, 0.78vw, 13px);
   line-height: 1;
   transform: scale(0.92);
   white-space: nowrap;
@@ -22937,11 +23317,39 @@ html[dir="rtl"]
 
 .admin-booth-map-tile span {
   display: block;
-  font-size: clamp(5px, 0.5vw, 7px);
+  font-size: clamp(7px, 0.62vw, 10px);
   font-weight: 800;
   line-height: 1;
   opacity: 0.86;
   white-space: nowrap;
+}
+
+.admin-booth-map-tile.is-polished-booth {
+  border-width: 0.75px;
+  border-radius: 4px;
+}
+
+.admin-booth-map-tile.is-polished-booth strong {
+  font-size: clamp(7px, 0.7vw, 11px);
+}
+
+.admin-booth-map-tile.is-polished-booth span {
+  font-size: clamp(6px, 0.56vw, 9px);
+}
+
+.admin-booth-map-tile strong .admin-booth-map-size {
+  display: inline;
+  margin-inline-start: 2px;
+  font-size: 0.82em;
+  font-weight: 800;
+}
+
+.admin-booth-map-tile.is-narrow strong {
+  font-size: clamp(6px, 0.62vw, 9px);
+}
+
+.admin-booth-map-tile.is-narrow span {
+  font-size: clamp(5px, 0.5vw, 8px);
 }
 
 .admin-booth-map-tile:hover {
@@ -22956,16 +23364,28 @@ html[dir="rtl"]
   color: #000000;
 }
 
+.admin-booth-map-tile.is-booked::after {
+  background: #c92a2a;
+}
+
 .admin-booth-map-tile.is-pending-payment {
   border-color: rgba(180, 83, 9, 0.86);
   background: rgba(250, 204, 21, 0.76);
   color: #000000;
 }
 
+.admin-booth-map-tile.is-pending-payment::after {
+  background: #e67700;
+}
+
 .admin-booth-map-tile.is-inactive {
   border-color: rgba(100, 116, 139, 0.66);
   background: rgba(203, 213, 225, 0.74);
   color: #000000;
+}
+
+.admin-booth-map-tile.is-inactive::after {
+  background: #868e96;
 }
 
 .admin-booth-map-tile.is-selected {

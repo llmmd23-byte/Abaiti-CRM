@@ -3415,15 +3415,6 @@ const permissionCategoryLabels: Record<string, { ar: string; en: string; order: 
   other: { ar: "صلاحيات أخرى", en: "Other Permissions", order: 90 },
 };
 
-const hiddenPermissionKeys = new Set([
-  "page.user.participation_contracts",
-  "page.user.sponsorship_contracts",
-  "page.user.sales_orders",
-  "table.participation_contracts",
-  "table.sponsorship_contracts",
-  "table.sales_orders",
-]);
-
 function permissionCategoryForKey(key: string) {
   if (key.startsWith("page.admin.")) return "admin_pages";
   if (key.startsWith("page.user.")) return "user_pages";
@@ -3441,9 +3432,12 @@ function permissionCategoryForKey(key: string) {
     return "customers";
   if (
     [
+      "table.participation_contracts",
+      "table.sponsorship_contracts",
       "table.rental_contracts",
       "table.rental_booths",
       "table.booths",
+      "table.sales_orders",
     ].includes(key)
   )
     return "contracts";
@@ -3593,7 +3587,6 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       .map((permission) => [permission.permission_key, permission]),
   );
   const filteredKeys = availablePermissionKeys.filter((key) => {
-    if (hiddenPermissionKeys.has(key)) return false;
     const label = permissionKeyLabels[key]?.[language] ?? key;
     const normalized = query.trim().toLocaleLowerCase();
     return normalized
@@ -4393,7 +4386,125 @@ export const PPT_BOOTH_LAYOUT = [
   { id: "TP01", left: 44.582, top: 4.416, width: 9.261, height: 9.761 },
 ] as const;
 
-export const FLOOR_MAP_AREA_LABELS = [
+// REE JED layout normalized from the supplied one-page PDF.
+export const LEGACY_REE_JED_BOOTH_LAYOUT = [
+  { id: "C8", left: 3.858, top: 7.227, width: 4.3, height: 4.6 },
+  { id: "C9", left: 17.639, top: 7.227, width: 4.3, height: 4.6 },
+  { id: "C10", left: 22.727, top: 7.227, width: 4.3, height: 4.6 },
+  { id: "C11", left: 27.273, top: 7.227, width: 4.3, height: 4.6 },
+  { id: "C12", left: 36.577, top: 7.227, width: 4.3, height: 4.6 },
+  { id: "C13", left: 44.483, top: 7.251, width: 4.3, height: 4.6 },
+  { id: "C14", left: 53.986, top: 7.275, width: 4.3, height: 4.6 },
+  { id: "C15", left: 66.903, top: 7.227, width: 4.3, height: 4.6 },
+  { id: "C16", left: 71.449, top: 7.227, width: 4.3, height: 4.6 },
+  { id: "C17", left: 75.994, top: 7.227, width: 4.3, height: 4.6 },
+  { id: "C18", left: 80.54, top: 7.227, width: 4.3, height: 4.6 },
+  { id: "C19", left: 90.108, top: 11.256, width: 4.3, height: 4.6 },
+  { id: "C4", left: 18.099, top: 14.526, width: 4.3, height: 4.6 },
+  { id: "C5", left: 32.375, top: 14.526, width: 4.3, height: 4.6 },
+  { id: "C6", left: 46.588, top: 14.502, width: 4.3, height: 4.6 },
+  { id: "C7", left: 68.79, top: 14.502, width: 4.3, height: 4.6 },
+  { id: "C3", left: 3.858, top: 16.469, width: 4.3, height: 4.6 },
+  { id: "C20", left: 90.33, top: 22.322, width: 4.3, height: 4.6 },
+  { id: "C1", left: 46.588, top: 25.735, width: 4.3, height: 4.6 },
+  { id: "C2", left: 68.79, top: 25.735, width: 4.3, height: 4.6 },
+  { id: "C21", left: 90.438, top: 34.905, width: 4.3, height: 4.6 },
+  { id: "C22", left: 90.506, top: 42.844, width: 4.3, height: 4.6 },
+  { id: "C23", left: 90.267, top: 54.81, width: 4.3, height: 4.6 },
+  { id: "B8", left: 18.338, top: 25.592, width: 4.3, height: 4.8 },
+  { id: "B9", left: 32.588, top: 25.735, width: 4.3, height: 4.8 },
+  { id: "B3", left: 4.074, top: 37.607, width: 4.3, height: 4.8 },
+  { id: "B4", left: 18.312, top: 36.967, width: 4.3, height: 4.8 },
+  { id: "B5", left: 32.588, top: 36.967, width: 4.3, height: 4.8 },
+  { id: "B6", left: 46.832, top: 37.18, width: 4.3, height: 4.8 },
+  { id: "B7", left: 69.006, top: 37.109, width: 4.3, height: 4.8 },
+  { id: "B2", left: 4.074, top: 48.175, width: 4.3, height: 4.8 },
+  { id: "B1", left: 4.074, top: 60.095, width: 4.3, height: 4.8 },
+  { id: "A4", left: 18.312, top: 45, width: 4.3, height: 20 },
+  { id: "A5", left: 32.588, top: 45, width: 4.3, height: 20 },
+  { id: "A8", left: 46.827, top: 48.175, width: 4.3, height: 4.8 },
+  { id: "A9", left: 69.003, top: 48.175, width: 4.3, height: 4.8 },
+  { id: "A6", left: 46.827, top: 60.047, width: 4.3, height: 4.8 },
+  { id: "A7", left: 69.003, top: 60.047, width: 4.3, height: 4.8 },
+  { id: "A1", left: 10.716, top: 73.27, width: 4.3, height: 4.8 },
+  { id: "A2", left: 41.577, top: 75.877, width: 4.3, height: 4.8 },
+  { id: "A3", left: 72.241, top: 73.152, width: 4.3, height: 4.8 },
+  { id: "B109", left: 3.727, top: 89.526, width: 5, height: 3 },
+  { id: "B110", left: 11.636, top: 85.569, width: 5, height: 3 },
+  { id: "B111", left: 19.571, top: 85.569, width: 5, height: 3 },
+  { id: "A100", left: 27.517, top: 86.588, width: 5, height: 3 },
+  { id: "A101", left: 46.974, top: 89.265, width: 5, height: 3 },
+  { id: "A102", left: 66.884, top: 85.806, width: 5, height: 3 },
+  { id: "A103", left: 74.747, top: 85.782, width: 5, height: 3 },
+  { id: "B104", left: 82.69, top: 85.545, width: 5, height: 3 },
+  { id: "B105", left: 89.636, top: 95.427, width: 5, height: 3 },
+  { id: "B106", left: 81.736, top: 95.403, width: 5, height: 3 },
+  { id: "B107", left: 18.71, top: 95.64, width: 5, height: 3 },
+  { id: "B108", left: 10.801, top: 95.64, width: 5, height: 3 },
+] as const;
+
+// Landscape layout aligned to the supplied REE JED plan.
+export const REE_JED_BOOTH_LAYOUT = [
+  { id: "C8", left: 5, top: 5, width: 6, height: 5 },
+  { id: "C9", left: 14, top: 5, width: 3, height: 3 },
+  { id: "C10", left: 17, top: 5, width: 3, height: 3 },
+  { id: "C11", left: 20, top: 5, width: 3, height: 3 },
+  { id: "C12", left: 28, top: 5, width: 5, height: 3 },
+  { id: "C13", left: 33, top: 5, width: 6, height: 3 },
+  { id: "C14", left: 39, top: 5, width: 5, height: 3 },
+  { id: "C15", left: 49, top: 5, width: 3, height: 3 },
+  { id: "C16", left: 52, top: 5, width: 3, height: 3 },
+  { id: "C17", left: 55, top: 5, width: 3, height: 3 },
+  { id: "C18", left: 58, top: 5, width: 3, height: 3 },
+  { id: "C19", left: 61, top: 12, width: 3, height: 4 },
+  { id: "C20", left: 61, top: 19, width: 3, height: 6 },
+  { id: "C21", left: 61, top: 28, width: 3, height: 6 },
+  { id: "C22", left: 61, top: 37, width: 3, height: 6 },
+  { id: "C23", left: 61, top: 46, width: 3, height: 10 },
+  { id: "C3", left: 5, top: 12, width: 6, height: 6 },
+  { id: "C4", left: 14, top: 11, width: 6, height: 6 },
+  { id: "C5", left: 23, top: 11, width: 6, height: 6 },
+  { id: "C6", left: 35, top: 11, width: 10, height: 6 },
+  { id: "C7", left: 48, top: 11, width: 10, height: 6 },
+  { id: "C1", left: 35, top: 23, width: 10, height: 6 },
+  { id: "C2", left: 48, top: 23, width: 10, height: 6 },
+  { id: "B3", left: 5, top: 35, width: 6, height: 6 },
+  { id: "B8", left: 14, top: 23, width: 6, height: 6 },
+  { id: "B9", left: 23, top: 23, width: 6, height: 6 },
+  { id: "B4", left: 14, top: 35, width: 6, height: 6 },
+  { id: "B5", left: 23, top: 35, width: 6, height: 6 },
+  { id: "B6", left: 35, top: 35, width: 10, height: 6 },
+  { id: "B7", left: 48, top: 35, width: 10, height: 6 },
+  { id: "B2", left: 5, top: 47, width: 6, height: 6 },
+  { id: "B1", left: 5, top: 59, width: 6, height: 6 },
+  { id: "A4", left: 14, top: 47, width: 6, height: 18 },
+  { id: "A5", left: 26, top: 47, width: 6, height: 18 },
+  { id: "A8", left: 35, top: 47, width: 10, height: 6 },
+  { id: "A9", left: 48, top: 47, width: 10, height: 6 },
+  { id: "A6", left: 35, top: 59, width: 10, height: 6 },
+  { id: "A7", left: 48, top: 59, width: 10, height: 6 },
+  { id: "A1", left: 18, top: 71, width: 10, height: 6 },
+  { id: "A2", left: 35, top: 71, width: 10, height: 6 },
+  { id: "A3", left: 51, top: 71, width: 8, height: 6 },
+  { id: "B109", left: 8, top: 80, width: 3, height: 4 },
+  { id: "B110", left: 14, top: 80, width: 4, height: 4 },
+  { id: "B111", left: 21, top: 80, width: 4, height: 4 },
+  { id: "A100", left: 28, top: 80, width: 4, height: 3 },
+  { id: "A101", left: 35, top: 80, width: 10, height: 3 },
+  { id: "A102", left: 49, top: 80, width: 4, height: 3 },
+  { id: "A103", left: 53, top: 80, width: 4, height: 3 },
+  { id: "B104", left: 57, top: 80, width: 4, height: 4 },
+  { id: "B105", left: 65, top: 87, width: 4, height: 4 },
+  { id: "B106", left: 57, top: 87, width: 4, height: 4 },
+  { id: "B107", left: 21, top: 88, width: 4, height: 4 },
+  { id: "B108", left: 14, top: 88, width: 4, height: 4 },
+] as const;
+
+// The active booth coordinates occupy this portion of the drawing width.
+// Normalize them at render time so the map uses the available canvas evenly.
+const REE_MAP_CONTENT_WIDTH = 76;
+
+export const LEGACY_FLOOR_MAP_AREA_LABELS = [
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.235, top: 16.719, width: 43.18, height: 4.486 },
   { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 49.8, top: 16.719, width: 37.6, height: 4.237 },
   { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 86.906, top: 19.21, width: 8.812, height: 42.352 },
@@ -4402,7 +4513,7 @@ export const FLOOR_MAP_AREA_LABELS = [
   { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.235, top: 75.199, width: 43.355, height: 22.454 },
 ] as const;
 
-export const FLOOR_MAP_ZONES = [
+export const LEGACY_FLOOR_MAP_ZONES = [
   { key: "all", labelAr: "كل الأقسام", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
   { key: "prefunction", labelAr: "قاعة ما قبل الفعالية", labelEn: "Pre-Function Hall", left: 11.2, top: 4.6, width: 76.4, height: 9.2 },
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.0, top: 17.0, width: 47.8, height: 56.8 },
@@ -4412,13 +4523,28 @@ export const FLOOR_MAP_ZONES = [
   { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.8, top: 75.6, width: 41.8, height: 21.0 },
 ] as const;
 
+export const FLOOR_MAP_AREA_LABELS = [
+  { key: "ree-layout", labelAr: "REE JED", labelEn: "REE JED Booth Layout", left: 3, top: 1, width: 94, height: 5 },
+] as const;
+
+export const LEGACY_REE_FLOOR_MAP_ZONES = [
+  { key: "all", labelAr: "الكل", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
+  { key: "ree", labelAr: "منطقة المعرض", labelEn: "Exhibition Layout", left: 1, top: 1, width: 98, height: 98 },
+] as const;
+
+export const FLOOR_MAP_ZONES = [
+  { key: "all", labelAr: "الكل", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
+  { key: "a", labelAr: "بوثات A", labelEn: "A booths", left: 1, top: 58, width: 98, height: 40 },
+  { key: "b", labelAr: "بوثات B", labelEn: "B booths", left: 1, top: 24, width: 98, height: 74 },
+  { key: "c", labelAr: "بوثات C", labelEn: "C booths", left: 1, top: 5, width: 98, height: 55 },
+] as const;
+
 export function floorMapZoneForBooth(boothId: string) {
-  if (boothId.startsWith("ST") || boothId.startsWith("TP")) return "prefunction";
-  if (boothId.startsWith("M") || boothId === "ACADEMY" || boothId.startsWith("SB") || boothId.endsWith("SB")) return "traders";
-  if (boothId.startsWith("RL") || boothId === "GLASS HOUSE") return "roasting";
-  if (boothId.startsWith("FL")) return "farmers";
-  if (boothId.startsWith("IN")) return "innovation";
-  return "stage";
+  const normalized = boothId.trim().toUpperCase();
+  if (normalized.startsWith("C")) return "c";
+  if (normalized.startsWith("A")) return "a";
+  if (normalized.startsWith("B")) return "b";
+  return "all";
 }
 
 function boothPrefix(value: unknown) {
@@ -4458,6 +4584,47 @@ function AdminBoothsSection({
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [mapZoom, setMapZoom] = useState(1);
+  const [mapPan, setMapPan] = useState({ x: 0, y: 0 });
+  const mapPanStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  const [isPanningMap, setIsPanningMap] = useState(false);
+
+  function resetMapView() {
+    setMapZoom(1);
+    setMapPan({ x: 0, y: 0 });
+  }
+
+  function changeMapZoom(delta: number) {
+    setMapZoom((current) => Math.min(2.2, Math.max(0.75, Number((current + delta).toFixed(2)))));
+  }
+
+  function startMapPan(event: React.PointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest("button")) return;
+    mapPanStart.current = { x: event.clientX, y: event.clientY, panX: mapPan.x, panY: mapPan.y };
+    setIsPanningMap(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function moveMapPan(event: React.PointerEvent<HTMLDivElement>) {
+    if (!isPanningMap) return;
+    const viewport = event.currentTarget.getBoundingClientRect();
+    const maxX = Math.max(0, (viewport.width * (mapZoom - 1)) / 2);
+    const maxY = Math.max(0, (viewport.height * (mapZoom - 1)) / 2);
+    const nextX = mapPanStart.current.panX + event.clientX - mapPanStart.current.x;
+    const nextY = mapPanStart.current.panY + event.clientY - mapPanStart.current.y;
+    setMapPan({
+      x: Math.min(maxX, Math.max(-maxX, nextX)),
+      y: Math.min(maxY, Math.max(-maxY, nextY)),
+    });
+  }
+
+  function stopMapPan(event: React.PointerEvent<HTMLDivElement>) {
+    if (!isPanningMap) return;
+    setIsPanningMap(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
 
   async function loadBooths() {
     setIsLoading(true);
@@ -4543,11 +4710,11 @@ function AdminBoothsSection({
     [filteredBooths],
   );
   const layoutBoothIds = useMemo(
-    () => new Set<string>(PPT_BOOTH_LAYOUT.map((booth) => booth.id)),
+    () => new Set<string>(REE_JED_BOOTH_LAYOUT.map((booth) => booth.id)),
     [],
   );
   const visibleLayoutBooths = useMemo(
-    () => PPT_BOOTH_LAYOUT,
+    () => REE_JED_BOOTH_LAYOUT,
     [],
   );
   const unplacedBooths = useMemo(
@@ -4692,6 +4859,18 @@ function AdminBoothsSection({
               {isArabic ? "محجوز" : "Booked"}
               <i className="booked" aria-hidden="true" />
             </span>
+            <span>
+              Category A
+              <i className="category-a" aria-hidden="true" />
+            </span>
+            <span>
+              Category B
+              <i className="category-b" aria-hidden="true" />
+            </span>
+            <span>
+              Category C
+              <i className="category-c" aria-hidden="true" />
+            </span>
           </div>
         </div>
       </div>
@@ -4711,7 +4890,10 @@ function AdminBoothsSection({
           />
         </div>
         <div className="admin-booth-zone-filter" role="listbox" aria-label={isArabic ? "فلترة الأقسام" : "Zone filter"}>
-          {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "stage").map((zone) => (
+          {[...FLOOR_MAP_ZONES].sort((first, second) => {
+            const order = { a: 0, b: 1, c: 2, all: 3 } as Record<string, number>;
+            return order[first.key] - order[second.key];
+          }).map((zone) => (
             <button
               aria-selected={activeZone === zone.key}
               className={activeZone === zone.key ? "active" : ""}
@@ -4728,13 +4910,50 @@ function AdminBoothsSection({
         </button>
       </div>
 
+      <div className="admin-map-controls" aria-label={isArabic ? "أدوات الخريطة" : "Map controls"}>
+        <button onClick={() => changeMapZoom(-0.15)} type="button" aria-label="Zoom out">-</button>
+        <span>{Math.round(mapZoom * 100)}%</span>
+        <button onClick={() => changeMapZoom(0.15)} type="button" aria-label="Zoom in">+</button>
+        <button onClick={resetMapView} type="button">{isArabic ? "إعادة الضبط" : "Reset view"}</button>
+        <small>{isArabic ? "اسحب الخريطة للتنقل" : "Drag to pan"}</small>
+      </div>
+
       <div className="admin-booths-workspace">
         <div className="admin-booths-layout" aria-busy={isLoading}>
           {isLoading ? (
             <div className="admin-booths-empty">{isArabic ? "جاري تحميل الخريطة..." : "Loading layout..."}</div>
           ) : visibleLayoutBooths.length ? (
             <>
-              <div className="admin-floor-map-canvas">
+              <div
+                className={`admin-floor-map-viewport ${isPanningMap ? "is-panning" : ""}`}
+                onWheel={(event) => {
+                  event.preventDefault();
+                  changeMapZoom(event.deltaY > 0 ? -0.1 : 0.1);
+                }}
+                onPointerDown={startMapPan}
+                onPointerMove={moveMapPan}
+                onPointerUp={stopMapPan}
+                onPointerCancel={stopMapPan}
+              >
+              <div
+                className="admin-floor-map-canvas"
+                style={{ transform: `translate(${mapPan.x}px, ${mapPan.y}px) scale(${mapZoom})` }}
+              >
+                <div className="ree-map-outer-border" aria-hidden="true" />
+                <svg className="ree-map-stepped-boundary" viewBox="0 0 100 130" preserveAspectRatio="none" aria-hidden="true">
+                  <path
+                    className="ree-map-stepped-wall"
+                    d="M0 0 H84 M0 0 V81 H28 V112 H43 M84 0 V81 H78 V112 H57"
+                  />
+                  <circle className="ree-map-rotunda" cx="50" cy="112" r="7.2" />
+                  <path className="ree-map-stairs" d="M47.5 103 V96 H52.5 V103 M50 96 V103" />
+                </svg>
+                <div className="ree-map-walkway walkway-left" aria-hidden="true" />
+                <div className="ree-map-walkway walkway-right" aria-hidden="true" />
+                <div className="ree-map-walkway walkway-left-vertical" aria-hidden="true" />
+                <div className="ree-map-walkway walkway-right-vertical" aria-hidden="true" />
+                <div className="ree-map-corridor corridor-horizontal" aria-hidden="true">4M / 6M CORRIDOR</div>
+                <div className="ree-map-corridor corridor-vertical" aria-hidden="true">3m</div>
                 <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
                   {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}
                 </div>
@@ -4778,13 +4997,15 @@ function AdminBoothsSection({
                   const isBooked = bookingStatus === "booked";
                   const isInactive = String(booth?.status ?? "available") === "inactive";
                   const isSelected = booth && Number(selectedBooth?.id) === Number(booth.id);
-                  const isFeatureArea = layoutBooth.id === "ACADEMY" || layoutBooth.id === "GLASS HOUSE";
+                  const isPolishedBooth = ["C4", "C5", "C6", "C7"].includes(String(layoutBooth.id));
+                  const boothCategory = String(booth?.booth_category ?? layoutBooth.id.charAt(0)).trim().toLowerCase();
+                  const isFeatureArea = (layoutBooth.id as string) === "ACADEMY" || (layoutBooth.id as string) === "GLASS HOUSE";
                   const boothMapLabel =
-                    layoutBooth.id === "ACADEMY"
+                    (layoutBooth.id as string) === "ACADEMY"
                       ? isArabic
                         ? "الأكاديمية"
                         : "Academy"
-                      : layoutBooth.id === "GLASS HOUSE"
+                      : (layoutBooth.id as string) === "GLASS HOUSE"
                         ? isArabic
                           ? "جلاس هاوس"
                           : "Glass House"
@@ -4792,27 +5013,29 @@ function AdminBoothsSection({
                   const boothMapSize = String(
                     booth?.booth_size ?? booth?.booth_dimensions ?? "",
                   ).trim();
+                  const boothMapSizeLabel = boothMapSize.replace(/\s+/g, "").replace(/x/g, "X");
                   return (
                     <button
-                      className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${hasSearch && !isSearchMatch ? "is-search-dimmed" : ""} ${hasSearch && isSearchMatch ? "is-search-match" : ""} ${activeZone !== "all" && activeZone !== layoutZone ? "is-zone-dimmed" : ""} ${activeZone === layoutZone ? "is-zone-focused" : ""} ${isPendingPayment ? "is-pending-payment" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
+                      className={`admin-booth-map-tile category-${boothCategory} ${layoutBooth.width < 5 ? "is-narrow" : ""} ${isPolishedBooth ? "is-polished-booth" : ""} ${isFeatureArea ? "is-feature-area" : ""} ${hasSearch && !isSearchMatch ? "is-search-dimmed" : ""} ${hasSearch && isSearchMatch ? "is-search-match" : ""} ${activeZone !== "all" && activeZone !== layoutZone ? "is-zone-dimmed" : ""} ${activeZone === layoutZone ? "is-zone-focused" : ""} ${isPendingPayment ? "is-pending-payment" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
                       disabled={isMissing}
                       dir="ltr"
                       key={layoutBooth.id}
                       onClick={() => booth && selectBooth(booth)}
                       style={{
-                        left: `${layoutBooth.left}%`,
+                        left: `${(layoutBooth.left / REE_MAP_CONTENT_WIDTH) * 100}%`,
                         top: `${layoutBooth.top}%`,
-                        width: `${layoutBooth.width}%`,
+                        width: `${(layoutBooth.width / REE_MAP_CONTENT_WIDTH) * 100}%`,
                         height: `${layoutBooth.height}%`,
                       }}
                       title={layoutBooth.id}
                       type="button"
                     >
                       <strong>{boothMapLabel}</strong>
-                      {boothMapSize ? <span>{boothMapSize}</span> : null}
+                      {boothMapSizeLabel ? <span>{boothMapSizeLabel}</span> : null}
                     </button>
                   );
                 })}
+              </div>
               </div>
               {unplacedBooths.length ? (
                 <section className="admin-unplaced-booths">
