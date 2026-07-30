@@ -3415,6 +3415,15 @@ const permissionCategoryLabels: Record<string, { ar: string; en: string; order: 
   other: { ar: "صلاحيات أخرى", en: "Other Permissions", order: 90 },
 };
 
+const hiddenPermissionKeys = new Set([
+  "page.user.participation_contracts",
+  "page.user.sponsorship_contracts",
+  "page.user.sales_orders",
+  "table.participation_contracts",
+  "table.sponsorship_contracts",
+  "table.sales_orders",
+]);
+
 function permissionCategoryForKey(key: string) {
   if (key.startsWith("page.admin.")) return "admin_pages";
   if (key.startsWith("page.user.")) return "user_pages";
@@ -3432,12 +3441,9 @@ function permissionCategoryForKey(key: string) {
     return "customers";
   if (
     [
-      "table.participation_contracts",
-      "table.sponsorship_contracts",
       "table.rental_contracts",
       "table.rental_booths",
       "table.booths",
-      "table.sales_orders",
     ].includes(key)
   )
     return "contracts";
@@ -3587,6 +3593,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       .map((permission) => [permission.permission_key, permission]),
   );
   const filteredKeys = availablePermissionKeys.filter((key) => {
+    if (hiddenPermissionKeys.has(key)) return false;
     const label = permissionKeyLabels[key]?.[language] ?? key;
     const normalized = query.trim().toLocaleLowerCase();
     return normalized

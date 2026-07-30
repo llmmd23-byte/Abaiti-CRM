@@ -253,6 +253,21 @@ function cleanDate(value: unknown) {
   return String(value ?? "").slice(0, 10) || "-";
 }
 
+function decodeEscapedText(value: unknown, fallback = "-") {
+  const raw = String(value ?? "").trim();
+  const textValue = raw || fallback;
+  if (!textValue.includes("\\u")) return textValue;
+  return textValue.replace(/\\u([0-9a-fA-F]{4})/g, (_, code: string) =>
+    String.fromCharCode(Number.parseInt(code, 16)),
+  );
+}
+
+function decodeTextMap<T extends Record<string, string>>(values: T): T {
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [key, decodeEscapedText(value, "")]),
+  ) as T;
+}
+
 function parseDatabaseDate(value: unknown) {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
@@ -1135,7 +1150,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   const [locationFilter, setLocationFilter] = useState("all");
   const [contractTypeFilter, setContractTypeFilter] = useState("all");
 
-  const text = isArabic
+  const text = decodeTextMap(isArabic
     ? {
         formTitle: "إضافة بيانات العقد",
         formSubtitle: "بيانات العارض والمشاركة كما تظهر في عقد المشاركة",
@@ -1229,7 +1244,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
         sent: "Sent",
         signed: "Signed",
         cancelled: "Cancelled",
-      };
+      });
 
   const computedTotal = useMemo(() => {
     const space = Number(spaceSqm);
@@ -1346,7 +1361,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   }
 
   function escapePrintValue(value: unknown) {
-    return String(value ?? "—")
+    return decodeEscapedText(value, "—")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;")
@@ -1940,7 +1955,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
               menuClassName="contract-lead-select-menu"
               onValueChange={applyLeadData}
               options={(leads.data ?? []).map((lead) => ({
-                label: String(lead.company_name ?? lead.name ?? lead.id),
+                label: decodeEscapedText(lead.company_name ?? lead.name ?? lead.id),
                 value: String(lead.id),
               }))}
               placeholder=""
@@ -3433,7 +3448,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const skipNextRentalAutoSaveRef = useRef(false);
   const rentalAutoSaveSnapshotRef = useRef("");
 
-  const text = isArabic
+  const text = decodeTextMap(isArabic
     ? {
         formTitle: "\u0625\u0636\u0627\u0641\u0629 \u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0642\u062f \u0627\u0644\u062a\u0623\u062c\u064a\u0631\u064a",
         formSubtitle: "\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0639\u0642\u062f \u0645\u0631\u062a\u0628\u0637\u0629 \u0628\u0627\u0644\u0639\u0645\u0644\u0627\u0621 \u0627\u0644\u0645\u0647\u062a\u0645\u064a\u0646",
@@ -3554,7 +3569,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         sent: "Sent",
         signed: "Signed",
         cancelled: "Cancelled",
-      };
+      });
 
   const amounts = useMemo(() => {
     const grandTotal = roundMoney(Number(unitPrice || 0) * Number(quantity || 0));
@@ -3581,6 +3596,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     signed: text.signed,
     cancelled: text.cancelled,
   };
+  const contractText = (value: unknown, fallback = "-") => decodeEscapedText(value, fallback);
   const filteredContracts = useMemo(
     () => {
       const query = search.trim().toLocaleLowerCase();
@@ -3594,7 +3610,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           contract.rental_item,
           contract.phone,
         ].some((value) =>
-          String(value ?? "").toLocaleLowerCase().includes(query),
+          contractText(value, "").toLocaleLowerCase().includes(query),
         ),
       );
     },
@@ -3694,14 +3710,14 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     setLeadId(nextLeadId);
     const lead = (leads.data ?? []).find((item) => String(item.id) === nextLeadId);
     if (!lead) return;
-    const company = String(lead.company_name ?? lead.name ?? "");
+    const company = contractText(lead.company_name ?? lead.name, "");
     setCompanyName(company);
     setTenantName(company);
-    setContactName(String(lead.name ?? ""));
-    setSecondPartyRepresentative(String(lead.name ?? ""));
-    setEmail(String(lead.email ?? ""));
-    setPhone(String(lead.phone ?? ""));
-    setAddress(String(lead.address ?? ""));
+    setContactName(contractText(lead.name, ""));
+    setSecondPartyRepresentative(contractText(lead.name, ""));
+    setEmail(contractText(lead.email, ""));
+    setPhone(contractText(lead.phone, ""));
+    setAddress(contractText(lead.address, ""));
   }
 
   function resetContractForm() {
@@ -3794,35 +3810,35 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     });
     setContractFormOpen(true);
     setEditingContractId(Number(contract.id));
-    setContractNumber(String(contract.contract_number ?? ""));
+    setContractNumber(contractText(contract.contract_number, ""));
     setLeadId(contract.lead_id ? String(contract.lead_id) : "");
-    setEventName(String(contract.event_name ?? (isArabic ? "المعرض الدولي لصناع القهوة والشوكولاتة" : "International Coffee and Chocolate Makers Exhibition")));
-    setEventDates(String(contract.event_dates ?? (isArabic ? "8-10 أكتوبر 2026م (27-29 ربيع الآخر 1448هـ)" : "8-10 October 2026")));
-    setEventLocation(String(contract.event_location ?? (isArabic ? "فندق جدة هيلتون - القاعة الكبرى" : "Jeddah Hilton Hotel - Grand Hall")));
-    setCompanyName(String(contract.company_name ?? ""));
-    setContactName(String(contract.contact_name ?? ""));
-    setEmail(String(contract.email ?? ""));
-    setPhone(String(contract.phone ?? ""));
-    setAddress(String(contract.address ?? ""));
-    setCity(String(contract.city ?? ""));
-    setCountry(String(contract.country ?? "Saudi Arabia"));
-    setLessorName(String(contract.lessor_name ?? (isArabic ? "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات" : "Netaq Al Aamal Exhibitions & Conferences")));
-    setFirstPartyCr(String(contract.first_party_cr ?? ""));
-    setFirstPartyRepresentative(String(contract.first_party_representative ?? ""));
-    setTenantName(String(contract.tenant_name ?? contract.company_name ?? ""));
-    setSecondPartyCr(String(contract.second_party_cr ?? ""));
-    setSecondPartyRepresentative(String(contract.second_party_representative ?? ""));
-    setBoothNumber(String(contract.booth_number ?? "RL13"));
-    setParticipationCategory(String(contract.participation_category ?? (isArabic ? "كلاسيك (Classic)" : "Classic")));
-    setBoothSize(String(contract.booth_size ?? (isArabic ? "3x3 متر" : "3x3 m")));
-    setRentalItem(String(contract.rental_item ?? ""));
-    setRentalLocation(String(contract.rental_location ?? ""));
+    setEventName(contractText(contract.event_name, isArabic ? "المعرض الدولي لصناع القهوة والشوكولاتة" : "International Coffee and Chocolate Makers Exhibition"));
+    setEventDates(contractText(contract.event_dates, isArabic ? "8-10 أكتوبر 2026م (27-29 ربيع الآخر 1448هـ)" : "8-10 October 2026"));
+    setEventLocation(contractText(contract.event_location, isArabic ? "فندق جدة هيلتون - القاعة الكبرى" : "Jeddah Hilton Hotel - Grand Hall"));
+    setCompanyName(contractText(contract.company_name, ""));
+    setContactName(contractText(contract.contact_name, ""));
+    setEmail(contractText(contract.email, ""));
+    setPhone(contractText(contract.phone, ""));
+    setAddress(contractText(contract.address, ""));
+    setCity(contractText(contract.city, ""));
+    setCountry(contractText(contract.country, "Saudi Arabia"));
+    setLessorName(contractText(contract.lessor_name, isArabic ? "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات" : "Netaq Al Aamal Exhibitions & Conferences"));
+    setFirstPartyCr(contractText(contract.first_party_cr, ""));
+    setFirstPartyRepresentative(contractText(contract.first_party_representative, ""));
+    setTenantName(contractText(contract.tenant_name ?? contract.company_name, ""));
+    setSecondPartyCr(contractText(contract.second_party_cr, ""));
+    setSecondPartyRepresentative(contractText(contract.second_party_representative, ""));
+    setBoothNumber(contractText(contract.booth_number, "RL13"));
+    setParticipationCategory(contractText(contract.participation_category, isArabic ? "كلاسيك (Classic)" : "Classic"));
+    setBoothSize(contractText(contract.booth_size, isArabic ? "3x3 متر" : "3x3 m"));
+    setRentalItem(contractText(contract.rental_item, ""));
+    setRentalLocation(contractText(contract.rental_location, ""));
     setLeaseStartDate(cleanDate(contract.lease_start_date) === "—" ? dateAfterDays(0) : cleanDate(contract.lease_start_date));
     setLeaseEndDate(cleanDate(contract.lease_end_date) === "—" ? dateAfterDays(3) : cleanDate(contract.lease_end_date));
     setUnitPrice(contract.unit_price == null ? "" : String(contract.unit_price));
     setQuantity(contract.quantity == null ? "1" : String(contract.quantity));
     setContractDate(cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date));
-    setNotes(String(contract.notes ?? ""));
+    setNotes(contractText(contract.notes, ""));
     setPaymentStatus(String(contract.payment_status ?? "pending_payment"));
     setContractStatus(String(contract.status ?? "draft"));
     window.scrollTo({top: 0, behavior: "smooth"});
@@ -3844,17 +3860,17 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     const money = (value: number) => `${value.toLocaleString(NUMBER_LOCALE)} ${currency}`;
     const contractDate = cleanDate(contract.contract_date);
     const lessorName =
-      String(contract.lessor_name ?? "").trim() ||
+      contractText(contract.lessor_name, "").trim() ||
       "شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات";
-    const tenantName = String(contract.tenant_name ?? contract.company_name ?? "").trim();
-    const representative = String(contract.contact_name ?? "").trim();
-    const rentalItem = String(contract.rental_item ?? "").trim();
-    const rentalLocation = String(contract.rental_location ?? "").trim();
+    const tenantName = contractText(contract.tenant_name ?? contract.company_name, "").trim();
+    const representative = contractText(contract.contact_name, "").trim();
+    const rentalItem = contractText(contract.rental_item, "").trim();
+    const rentalLocation = contractText(contract.rental_location, "").trim();
     const leaseStart = cleanDate(contract.lease_start_date);
     const leaseEnd = cleanDate(contract.lease_end_date);
     const quantity = Number(contract.quantity ?? 1);
     const displayValue = (value: unknown) => {
-      const textValue = String(value ?? "").trim();
+      const textValue = contractText(value, "").trim();
       return textValue || "-";
     };
     const leasePeriod = [leaseStart, leaseEnd].filter(Boolean).join(" - ") || "-";
@@ -4340,8 +4356,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
             {text.addContract}
           </button>
         </div>
-        <div className="contract-smart-filter-row"><div className="contract-smart-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" /><path d="m15.5 15.5 4 4" /></svg><input onChange={(event) => setSearch(event.target.value)} placeholder={isArabic ? "\u0627\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645\u060c \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u062c\u0648\u0627\u0644..." : "Search by name, company, mobile..."} type="search" value={search} /><strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong></div></div>
-        <div className="quote-history-table"><table><thead><tr><th>{isArabic ? "\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f" : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.paymentStatus}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
+        <div className="contract-smart-filter-row"><div className="contract-smart-search"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2" /><path d="m15.5 15.5 4 4" /></svg><input onChange={(event) => setSearch(event.target.value)} placeholder={isArabic ? decodeEscapedText("\u0627\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645\u060c \u0627\u0644\u0634\u0631\u0643\u0629\u060c \u0627\u0644\u062c\u0648\u0627\u0644...") : "Search by name, company, mobile..."} type="search" value={search} /><strong>{filteredContracts.length.toLocaleString(NUMBER_LOCALE)}</strong></div></div>
+        <div className="quote-history-table"><table><thead><tr><th>{isArabic ? decodeEscapedText("\u0631\u0642\u0645 \u0627\u0644\u0639\u0642\u062f") : "Contract #"}</th><th>{text.customer}</th><th>{text.companyName}</th><th>{text.rentalItem}</th><th>{text.paymentStatus}</th><th>{text.contractDate}</th><th>{text.actions}</th></tr></thead><tbody>
           {filteredContracts.map((contract) => {
             const paymentValue = String(contract.payment_status ?? "pending_payment");
             const paymentLabel =
@@ -4350,10 +4366,10 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                 : text.pendingPayment;
             return (
               <tr key={contract.id}>
-                <td>{String(contract.contract_number ?? contract.id)}</td>
-                <td>{String(contract.customer_name ?? "-")}</td>
-                <td>{String(contract.company_name ?? "-")}</td>
-                <td>{String(contract.rental_item ?? "-")}</td>
+                <td>{contractText(contract.contract_number ?? contract.id)}</td>
+                <td>{contractText(contract.customer_name)}</td>
+                <td>{contractText(contract.company_name)}</td>
+                <td>{contractText(contract.rental_item)}</td>
                 <td>
                   <div className="rental-payment-cell">
                     <span className={`quote-status ${paymentValue}`}>{paymentLabel}</span>

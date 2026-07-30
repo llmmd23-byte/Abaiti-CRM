@@ -150,24 +150,6 @@ const coreGrowthItems: NavItem[] = [
   },
   {key: "quotes", href: "/dashboard/quotes", label: "portal.salesTools", icon: "quotes"},
   {
-    key: "participationContracts",
-    href: "/dashboard/participation-contracts",
-    label: "portal.participationContracts",
-    icon: "quotes"
-  },
-  {
-    key: "sponsorshipContracts",
-    href: "/dashboard/sponsorship-contracts",
-    label: "portal.sponsorshipContracts",
-    icon: "quotes"
-  },
-  {
-    key: "salesOrders",
-    href: "/dashboard/sales-orders",
-    label: "portal.salesOrders",
-    icon: "quotes"
-  },
-  {
     key: "rentalContracts",
     href: "/dashboard/rental-contracts",
     label: "portal.rentalContracts",
