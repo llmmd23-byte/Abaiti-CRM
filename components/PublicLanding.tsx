@@ -17,7 +17,7 @@ export function PublicHeader({nav, action}: {nav: ReactNode; action?: ReactNode}
       <Link className="col-start-3 row-start-1 inline-flex items-center justify-self-end" href="/" aria-label="Middar home">
         <Image
           className="block h-auto w-[clamp(168px,20vw,258px)] object-contain"
-          src="/middar-logo-eng.png"
+          src="/middar-logo-transparent-v2.png"
           alt="Middar logo"
           width={747}
           height={211}

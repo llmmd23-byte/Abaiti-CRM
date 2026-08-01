@@ -23,7 +23,7 @@ export default async function HomePage({
         <Link className="brand" href="/" aria-label={t("brand.home")}>
           <Image
             className="brand-logo"
-            src="/middar-logo-eng.png"
+            src="/middar-logo-transparent-v2.png"
             alt={`${t("brand.name")} logo`}
             width={747}
             height={211}

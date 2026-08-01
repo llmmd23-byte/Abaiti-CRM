@@ -776,7 +776,7 @@ export default function AdminDashboard({
             alt="Middar"
             height={63}
             priority
-            src="/middar-logo-eng.png"
+            src="/middar-logo-transparent-v2.png"
             width={220}
           />
         </Link>
