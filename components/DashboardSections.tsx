@@ -1343,6 +1343,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   const [notes, setNotes] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
+  const [contractFormOpen, setContractFormOpen] = useState(false);
   const [participationSearch, setParticipationSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [contractTypeFilter, setContractTypeFilter] = useState("all");
@@ -1377,6 +1378,8 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
         formSubtitle: "بيانات العارض والمشاركة كما تظهر في عقد المشاركة",
         listTitle: "قائمة العقود",
         listSubtitle: "العقود التي تم إدخالها من حسابك",
+        addContract: "إضافة عقد",
+        backToList: "رجوع للقائمة",
         customer: "العميل المهتم",
         customerPlaceholder: "اختر العميل المهتم",
         customerSearch: "ابحث باسم العميل أو الشركة",
@@ -1424,6 +1427,8 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
         formSubtitle: "Exhibitor and participation details from the participation contract",
         listTitle: "Contracts list",
         listSubtitle: "Contracts entered from your account",
+        addContract: "Add contract",
+        backToList: "Back to list",
         customer: "Interested customer",
         customerPlaceholder: "Select interested customer",
         customerSearch: "Search by customer or company",
@@ -1553,6 +1558,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
 
   function editContract(contract: BackendRow) {
     setEditingContractId(Number(contract.id));
+    setContractFormOpen(true);
     setLeadId(contract.lead_id ? String(contract.lead_id) : "");
     setCompanyName(String(contract.company_name ?? ""));
     setBrandName(String(contract.brand_name ?? ""));
@@ -2165,6 +2171,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
         setSaveStatus(text.saved);
       }
       resetContractForm();
+      setContractFormOpen(false);
       await contracts.reload();
     } catch {
       setSaveStatus(text.failed);
@@ -2174,10 +2181,16 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
 
   return (
     <div className="quotes-page-grid">
+      {contractFormOpen ? (
       <article className="quote-card quote-form-card">
         <div className="card-title">
-          <h3>{text.formTitle}</h3>
-          <span>{text.formSubtitle}</span>
+          <div>
+            <h3>{text.formTitle}</h3>
+            <span>{text.formSubtitle}</span>
+          </div>
+          <button className="contract-filter-reset rental-back-button" onClick={() => { resetContractForm(); setSaveStatus(""); setContractFormOpen(false); }} type="button">
+            {text.backToList}
+          </button>
         </div>
         <div className="form-grid">
           <label className="quote-field quote-field-customer contract-lead-select-field">
@@ -2293,13 +2306,16 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
           {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
         </div>
       </article>
-
+      ) : (
       <article className="quote-card quote-history-card">
         <div className="card-title">
           <div>
             <h3>{text.listTitle}</h3>
             <span>{text.listSubtitle}</span>
           </div>
+          <button className="button button-primary rental-list-add-button" onClick={() => { resetContractForm(); setSaveStatus(""); setContractFormOpen(true); window.scrollTo({top: 0, behavior: "smooth"}); }} type="button">
+            {text.addContract}
+          </button>
         </div>
         <div className="contract-summary-grid">
           <div className="contract-summary-card">
@@ -2445,6 +2461,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
           </table>
         </div>
       </article>
+      )}
     </div>
   );
 }
@@ -2479,6 +2496,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   const [notes, setNotes] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
+  const [contractFormOpen, setContractFormOpen] = useState(false);
   const [sponsorshipSearch, setSponsorshipSearch] = useState("");
   const [sponsorshipCategoryFilter, setSponsorshipCategoryFilter] = useState("all");
   const [sponsorshipContractTypeFilter, setSponsorshipContractTypeFilter] = useState("all");
@@ -2519,6 +2537,8 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
         formSubtitle: "بيانات عقد الرعاية مرتبطة مباشرة بالعملاء المهتمين",
         listTitle: "قائمة العقود",
         listSubtitle: "عقود الرعاية التي تم إدخالها من حسابك",
+        addContract: "إضافة عقد",
+        backToList: "رجوع للقائمة",
         customer: "العميل المهتم",
         customerPlaceholder: "اختر العميل المهتم",
         customerSearch: "ابحث باسم العميل أو الشركة",
@@ -2572,6 +2592,8 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
         formSubtitle: "Sponsorship contract details linked to interested customers",
         listTitle: "Contracts list",
         listSubtitle: "Sponsorship contracts entered from your account",
+        addContract: "Add contract",
+        backToList: "Back to list",
         customer: "Interested customer",
         customerPlaceholder: "Select interested customer",
         customerSearch: "Search by customer or company",
@@ -2757,6 +2779,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
 
   function editContract(contract: BackendRow) {
     setEditingContractId(Number(contract.id));
+    setContractFormOpen(true);
     setLeadId(contract.lead_id ? String(contract.lead_id) : "");
     setCompanyName(String(contract.company_name ?? ""));
     setBrandName(String(contract.brand_name ?? ""));
@@ -3025,6 +3048,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
         setSaveStatus(text.saved);
       }
       resetContractForm();
+      setContractFormOpen(false);
       await contracts.reload();
     } catch {
       setSaveStatus(text.failed);
@@ -3034,10 +3058,16 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
 
   return (
     <div className="quotes-page-grid">
+      {contractFormOpen ? (
       <article className="quote-card quote-form-card">
         <div className="card-title">
-          <h3>{text.formTitle}</h3>
-          <span>{text.formSubtitle}</span>
+          <div>
+            <h3>{text.formTitle}</h3>
+            <span>{text.formSubtitle}</span>
+          </div>
+          <button className="contract-filter-reset rental-back-button" onClick={() => { resetContractForm(); setSaveStatus(""); setContractFormOpen(false); }} type="button">
+            {text.backToList}
+          </button>
         </div>
         <div className="form-grid">
           <label className="quote-field quote-field-customer contract-lead-select-field">
@@ -3115,13 +3145,16 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
           {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
         </div>
       </article>
-
+      ) : (
       <article className="quote-card quote-history-card">
         <div className="card-title">
           <div>
             <h3>{text.listTitle}</h3>
             <span>{text.listSubtitle}</span>
           </div>
+          <button className="button button-primary rental-list-add-button" onClick={() => { resetContractForm(); setSaveStatus(""); setContractFormOpen(true); window.scrollTo({top: 0, behavior: "smooth"}); }} type="button">
+            {text.addContract}
+          </button>
         </div>
         <div className="contract-summary-grid">
           <div className="contract-summary-card">
@@ -3260,6 +3293,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
           </table>
         </div>
       </article>
+      )}
     </div>
   );
 }
