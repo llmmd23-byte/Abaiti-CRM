@@ -6,8 +6,6 @@ import {db} from "@/lib/db";
 import {getSessionUserCompanyId} from "@/lib/permissions";
 
 const INDUSTRY_SLUG = "events-exhibitions";
-const DEFAULT_BROCHURE_URL = "/api/v1/landing-brochure#toolbar=0&navpanes=0";
-
 async function ensureLandingUrlColumns() {
   const [columns] = await db.execute<RowDataPacket[]>(
     "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'industries' AND COLUMN_NAME IN ('landing_url','external_url')",
@@ -65,12 +63,19 @@ export async function GET() {
     );
     const row = rows[0];
     const companyAssetId = companySettings?.landing_page_asset_id;
+    const [activeAssets] = await db.execute<RowDataPacket[]>(
+      `SELECT id FROM marketing_assets
+        WHERE description = 'landing-page-brochure' AND status = 'active'
+        ORDER BY updated_at DESC, created_at DESC, id DESC
+        LIMIT 1`,
+    );
+    const hasActiveBrochure = Boolean(companyAssetId || activeAssets[0]?.id);
     const companyExternalUrl = String(
       companySettings?.landing_page_external_url ?? "",
     ).trim();
     return NextResponse.json({
       data: {
-        landingUrl: DEFAULT_BROCHURE_URL,
+        landingUrl: hasActiveBrochure ? "/api/v1/landing-brochure#toolbar=0&navpanes=0" : "",
         externalUrl: companyExternalUrl || String(row?.external_url ?? "").trim(),
       },
     });
@@ -79,7 +84,7 @@ export async function GET() {
     return NextResponse.json(
       {
         data: {
-          landingUrl: DEFAULT_BROCHURE_URL,
+          landingUrl: "",
           externalUrl: "",
         },
       },

@@ -58,14 +58,12 @@ const catalogCopy = {
   }
 };
 
-const DEFAULT_PUBLIC_BROCHURE_URL =
-  "/api/v1/landing-brochure#toolbar=0&navpanes=0";
 const industryLinks = {
-  EVENTS_EXHIBITIONS: DEFAULT_PUBLIC_BROCHURE_URL
+  EVENTS_EXHIBITIONS: ""
 } as const;
 
 function publicBrochureUrl(value: unknown) {
-  return DEFAULT_PUBLIC_BROCHURE_URL;
+  return String(value ?? "").trim();
 }
 
 const industriesData: Industry[] = [
@@ -524,7 +522,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
               </div>
             </div>
 
-            <div className="landing-sector-frame">
+            {primaryIndustry.url ? <div className="landing-sector-frame">
               <div className="landing-sector-frame-stack">
                 {primaryExternalUrl ? (
                   <>
@@ -555,7 +553,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                   </>
                 )}
               </div>
-            </div>
+            </div> : null}
           </div>
         ) : null}
 
