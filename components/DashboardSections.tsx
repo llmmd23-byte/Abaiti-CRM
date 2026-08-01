@@ -1154,7 +1154,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
         address: "العنوان",
         city: "المدينة",
         country: "الدولة",
-        standNumber: "رقم الجناح",
+        standNumber: "رقم البوث",
         locationCategory: "فئة الموقع",
         packageType: "نوع المشاركة",
         spaceSqm: "المساحة بالمتر",
@@ -1448,7 +1448,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
       <tr><td colspan="2"><span class="label-ar">اسم الشركة كما يظهر في السجل التجاري:</span><span class="label-en">Company Name (as in CR):</span>${printInput(contract.company_name)}</td></tr>
       <tr>
         <td><span class="label-ar">العلامة التجارية:</span><span class="label-en">Brand Name:</span>${printInput(contract.brand_name)}</td>
-        <td><span class="label-ar">رقم الجناح:</span><span class="label-en">Stand Number:</span>${printInput(contract.stand_number)}</td>
+<td><span class="label-ar">رقم البوث:</span><span class="label-en">Stand Number:</span>${printInput(contract.stand_number)}</td>
       </tr>
       <tr><td colspan="2"><span class="label-ar">العنوان:</span><span class="label-en">Address:</span>${printInput(contract.address)}</td></tr>
       <tr>
@@ -1820,7 +1820,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
             <section class="section">
               <div class="section-title"><span>PARTICIPATION</span><span>المشاركة</span></div>
               <div class="participation-grid">
-                <div><span>Stand Number / رقم الجناح</span><strong>${escapePrintValue(contract.stand_number)}</strong></div>
+<div><span>Stand Number / رقم البوث</span><strong>${escapePrintValue(contract.stand_number)}</strong></div>
                 <div><span>Location / فئة الموقع</span><strong>${escapePrintValue(contract.location_category)}</strong></div>
                 <div><span>Space / المساحة</span><strong>${escapePrintValue(contract.space_sqm)} sqm</strong></div>
                 <div><span>Status / الحالة</span><strong>${escapePrintValue(statusLabels[statusValue] ?? statusValue)}</strong></div>
@@ -2229,7 +2229,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
         address: "العنوان",
         city: "المدينة",
         country: "الدولة",
-        standNumber: "رقم الجناح",
+        standNumber: "رقم البوث",
         sponsorshipCategory: "فئة الرعاية",
         packageType: "نوع العقد",
         spaceSqm: "المساحة بالمتر",
@@ -2496,7 +2496,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
     const checked = (value: string) =>
       String(contract.sponsorship_category ?? "") === value ? "checked" : "";
     const companyAddressRow = printIncludesParticipation
-      ? `<tr>${field("العنوان", "Address", contract.address)}${field("رقم الجناح", "Stand No.", contract.stand_number)}</tr>`
+? `<tr>${field("العنوان", "Address", contract.address)}${field("رقم البوث", "Stand No.", contract.stand_number)}</tr>`
       : `<tr>${field("العنوان", "Address", contract.address)}${field("رقم العقد", "Contract No.", contract.contract_number)}</tr>`;
     const participationFeeRows = printIncludesParticipation
       ? `
@@ -2947,7 +2947,7 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
         city: "المدينة",
         country: "الدولة",
         exhibitionName: "المعرض",
-        standNumber: "رقم الجناح",
+        standNumber: "رقم البوث",
         itemDescription: "الوصف",
         uom: "الوحدة",
         unitPrice: "سعر الوحدة",
@@ -3168,7 +3168,7 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
       </div>
       <div class="info-row">
         <div class="info-cell label">رقم الأمر<br><span class="en-text">Order No.</span></div><div class="info-cell">${escapePrintValue(order.order_number)}</div>
-        <div class="info-cell label-left">رقم الجناح<br><span class="en-text">Stand Number</span></div><div class="info-cell">${escapePrintValue(order.stand_number)}</div>
+<div class="info-cell label-left">رقم البوث<br><span class="en-text">Stand Number</span></div><div class="info-cell">${escapePrintValue(order.stand_number)}</div>
       </div>
       <div class="info-row">
         <div class="info-cell label">التواصل<br><span class="en-text">Contact</span></div><div class="info-cell">${escapePrintValue(order.contact_name)} - ${escapePrintValue(order.phone)}</div>
@@ -4138,7 +4138,16 @@ export function RentalContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
           <label className="quote-field rental-booth-number-field">
             <span>{text.boothNumber}</span>
-            <button className="rental-booth-open-map" onClick={() => setBoothPickerOpen(true)} type="button">
+            <button
+              aria-haspopup="dialog"
+              className="rental-booth-open-map"
+              onClick={() => {
+                setBoothMapQuery("");
+                setBoothMapZone("all");
+                setBoothPickerOpen(true);
+              }}
+              type="button"
+            >
               <strong>{boothNumber || (isArabic ? "اختيار البوث" : "Choose booth")}</strong>
               <span>{isArabic ? "خريطة" : "Map"}</span>
             </button>

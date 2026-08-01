@@ -6299,6 +6299,11 @@ html[dir="ltr"] .dashboard-main {
   justify-content: center;
   order: 0;
   width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  box-shadow: 0 2px 8px rgba(15, 45, 74, 0.06);
 }
 
 .rental-booth-modal-zone-filter button {
@@ -22825,7 +22830,7 @@ html[dir="rtl"]
   min-width: 0;
   height: auto;
   /* Match the SVG viewBox so the lower entrance is part of the viewport. */
-  aspect-ratio: 61 / 122;
+  aspect-ratio: 61 / 114;
   min-height: 760px;
   max-height: 1320px;
   overflow: hidden;
@@ -22857,7 +22862,7 @@ html[dir="rtl"]
   }
 
   .admin-floor-map-viewport {
-    aspect-ratio: 61 / 122;
+    aspect-ratio: 61 / 114;
     min-height: 620px;
   }
 
@@ -22950,6 +22955,7 @@ html[dir="rtl"]
   pointer-events: none;
   clip-path: inset(2% 10.5% 12% 3%);
 }
+
 
 /* Subtle circulation bands sit beneath the booths and guide the eye from the entrance. */
 .ree-map-walkway {
@@ -23109,6 +23115,8 @@ html[dir="rtl"]
 .ree-map-rotunda {
   fill: none;
   stroke-width: 0.28;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .ree-map-stairs {

@@ -4643,13 +4643,13 @@ function AdminBoothsSection({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [mapZoom, setMapZoom] = useState(1);
-  const [mapPan, setMapPan] = useState({ x: 30, y: 0 });
+  const [mapPan, setMapPan] = useState({ x: 40, y: 0 });
   const mapPanStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   const [isPanningMap, setIsPanningMap] = useState(false);
 
   function resetMapView() {
     setMapZoom(1);
-    setMapPan({ x: 30, y: 0 });
+    setMapPan({ x: 40, y: 0 });
   }
 
   function changeMapZoom(delta: number) {
@@ -4988,17 +4988,16 @@ function AdminBoothsSection({
                   <div className="ree-map-walkway walkway-zone walkway-zone-b" />
                   <div className="ree-map-walkway walkway-zone walkway-zone-c" />
                 </div>
-                <svg className="ree-map-stepped-boundary" viewBox="0 0 61 122" preserveAspectRatio="none" aria-hidden="true">
+                <svg className="ree-map-stepped-boundary" viewBox="0 0 61 114" preserveAspectRatio="none" aria-hidden="true">
                   <path
                     className="ree-map-stepped-wall"
-                    d="M1 1 H54 M1 1 V103 H14 V111 H20.5 M54 1 V103 H47 V111 H40.5"
+                    d="M1 1 H54 M1 1 V103 H14 V111 H23 M54 1 V103 H47 V111 H38"
                   />
                   <path
                     className="ree-map-stepped-wall ree-map-inner-wall"
-                    d="M2 2 H53 M2 2 V102 H15 V110 H20.5 M53 2 V102 H46 V110 H40.5"
+                    d="M2 2 H53 M2 2 V102 H15 V110 H23 M53 2 V102 H46 V110 H38"
                   />
-                  <circle className="ree-map-rotunda" cx="30.5" cy="109" r="10" />
-                  <path className="ree-map-stairs" d="M28.5 99 V95 H32.5 V99 H28.5 Z M30.5 95 V99" />
+                  <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
                 </svg>
                 <div className="ree-map-seating" aria-hidden="true">
                   {["table-1", "table-2", "table-3", "table-4"].map((table) => (
