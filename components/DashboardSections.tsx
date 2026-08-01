@@ -1174,6 +1174,8 @@ function BoothMapPicker({
               <div className="admin-booth-map-legend">
                 <span>{isArabic ? "متاح" : "Available"}<i className="available" aria-hidden="true" /></span>
                 <span>{isArabic ? "مختار" : "Selected"}<i className="selected" aria-hidden="true" /></span>
+                <span>{isArabic ? "بانتظار الدفع" : "Pending payment"}<i className="pending-payment" aria-hidden="true" /></span>
+                <span>{isArabic ? "محجوز" : "Booked"}<i className="booked" aria-hidden="true" /></span>
               </div>
             </div>
             <div className="admin-booth-zone-filter rental-booth-modal-zone-filter" role="listbox">
@@ -1190,7 +1192,7 @@ function BoothMapPicker({
               ))}
             </div>
             <div className="rental-booth-modal-map">
-              <div className="admin-floor-map-canvas">
+              <div className="admin-floor-map-canvas" dir="ltr">
                 <div className="ree-map-outer-border" aria-hidden="true" />
                 <svg className="ree-map-stepped-boundary" viewBox="0 0 61 114" preserveAspectRatio="none" aria-hidden="true">
                   <path className="ree-map-stepped-wall" d="M1 1 H54 M1 1 V95 H19 V111 H23 M54 1 V95 H42 V111 H38" />
@@ -1204,6 +1206,7 @@ function BoothMapPicker({
                     <button
                       aria-pressed={selected}
                       className={`admin-booth-map-tile category-${booth.id.charAt(0).toLowerCase()} ${booth.width < 5 ? "is-narrow" : ""} ${["C4", "C5", "C6", "C7"].includes(booth.id) ? "is-polished-booth" : ""} ${selected ? "is-selected" : ""}`}
+                      dir="ltr"
                       key={booth.id}
                       onClick={() => {
                         onChange(booth.id);

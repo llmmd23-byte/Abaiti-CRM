@@ -6254,6 +6254,7 @@ html[dir="ltr"] .dashboard-main {
   gap: 12px;
   overflow: hidden;
   padding: 14px;
+  direction: rtl;
 }
 
 .rental-booth-modal-head,
@@ -6262,6 +6263,11 @@ html[dir="ltr"] .dashboard-main {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.rental-booth-modal-toolbar {
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .rental-booth-modal-head span {
@@ -6290,7 +6296,12 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .rental-booth-modal-toolbar .admin-record-search-bar {
-  max-width: 420px;
+  width: 100%;
+  max-width: none;
+}
+
+.rental-booth-modal-toolbar .admin-record-search-bar input {
+  width: 100%;
 }
 
 .rental-booth-modal-zone-filter {
@@ -6313,20 +6324,49 @@ html[dir="ltr"] .dashboard-main {
 }
 
 .rental-booth-modal-map {
-  overflow: auto;
+  max-height: 70vh;
+  overflow-x: auto;
+  overflow-y: auto;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   background: #f8fafc;
   padding: 12px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.rental-booth-modal-map::-webkit-scrollbar {
+  display: none;
 }
 
 .rental-booth-modal-map .admin-floor-map-canvas {
   margin: 0 auto;
-  width: 100%;
-  max-width: 100%;
-  min-height: 460px;
-  height: min(68vh, 760px);
+  width: min(760px, 100%);
+  max-width: none;
+  min-height: 0;
+  height: auto;
   aspect-ratio: 61 / 114;
+  flex: 0 0 auto;
+}
+
+.rental-booth-modal-map .admin-booth-map-tile strong {
+  position: relative;
+  z-index: 2;
+  display: block;
+  color: #000000 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  font-size: clamp(8px, 0.78vw, 13px);
+  font-weight: 900;
+}
+
+.rental-booth-modal-toolbar .admin-booth-map-legend {
+  order: -1;
+  align-self: flex-start;
+  margin-inline: 0;
 }
 
 .rental-booth-modal-map .admin-floor-zone-container {
