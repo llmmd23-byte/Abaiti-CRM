@@ -343,7 +343,10 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const [activeTab, setActiveTab] = useState<MarketingTab>("sectors");
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
-  const {data: landingPageSettings} = useBackend<LandingPageSettings>("/api/v1/landing-page-settings");
+  const {
+    data: landingPageSettings,
+    loading: landingPageSettingsLoading,
+  } = useBackend<LandingPageSettings>("/api/v1/landing-page-settings");
   const {
     data: marketingAssetsData,
     loading: marketingAssetsLoading,
@@ -373,10 +376,13 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                 ...industry.subtitle,
                 ar: String(live.description ?? industry.subtitle.ar),
               },
-              url:
-                industry.id === "events-exhibitions"
-                  ? publicBrochureUrl(landingPageSettings?.landingUrl ?? live.landing_url)
-                  : industry.url,
+               // Do not render the cached database URL while the current landing settings load.
+               url:
+                 industry.id === "events-exhibitions"
+                   ? landingPageSettingsLoading
+                     ? ""
+                     : publicBrochureUrl(landingPageSettings?.landingUrl ?? live.landing_url)
+                   : industry.url,
               externalUrl:
                 industry.id === "events-exhibitions"
                   ? String(landingPageSettings?.externalUrl ?? live.external_url ?? "").trim() || undefined
@@ -384,12 +390,12 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
             }
           : industry;
       }),
-    [landingPageSettings, liveIndustries],
+    [landingPageSettings, landingPageSettingsLoading, liveIndustries],
   );
   const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
-  const primaryExternalUrl =
-    String(landingPageSettings?.externalUrl ?? "").trim() ||
-    primaryIndustry.externalUrl;
+  const primaryExternalUrl = landingPageSettingsLoading
+    ? ""
+    : String(landingPageSettings?.externalUrl ?? "").trim() || primaryIndustry.externalUrl;
   const visibleMarketingAssets = useMemo(
     () =>
       (marketingAssetsData ?? []).filter((asset) => {
