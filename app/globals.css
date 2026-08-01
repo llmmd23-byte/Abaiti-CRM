@@ -24266,3 +24266,7 @@ html[dir="rtl"]
   background: rgba(0, 200, 232, 0.16) !important;
   color: #00e0ff !important;
 }
+/* Keep the replacement logo legible on both light and dark surfaces. */
+img[src*="middar-logo-eng"] {
+  filter: drop-shadow(0 0 0.8px rgba(255, 255, 255, 0.96)) drop-shadow(0 0 1.6px rgba(255, 255, 255, 0.55)) !important;
+}

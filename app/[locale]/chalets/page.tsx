@@ -30,7 +30,7 @@ export default async function ChaletsLandingPage({
 
         <nav className="chalets-old-nav" aria-label="التنقل">
           <Link className="chalets-old-brand" href="/">
-            <Image alt="Middar" height={211} priority src="/middar-logo-transparent-v2.png" unoptimized width={747} />
+            <Image alt="Middar" height={211} priority src="/middar-logo-eng.png" unoptimized width={747} />
           </Link>
           <div className="chalets-old-links">
             <Link href="/">الرئيسية</Link>
@@ -195,7 +195,7 @@ export default async function ChaletsLandingPage({
 
       <footer className="chalets-old-footer">
         <div className="chalets-old-container">
-          <Image alt="Middar" height={211} src="/middar-logo-transparent-v2.png" unoptimized width={747} />
+          <Image alt="Middar" height={211} src="/middar-logo-eng.png" unoptimized width={747} />
           <nav>
             <Link href="/">الرئيسية</Link>
             <Link href="/pricing">الأسعار</Link>

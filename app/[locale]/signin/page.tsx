@@ -89,7 +89,7 @@ export default async function SignInPage({params}: {params: Promise<{locale: str
 
             priority
 
-            src="/middar-logo-transparent-v2.png"
+            src="/middar-logo-eng.png"
 
             width={256}
 

@@ -407,7 +407,7 @@ export default function DashboardShell({
             className="sidebar-official-logo"
             height={63}
             priority
-            src="/middar-logo-transparent-v2.png"
+            src="/middar-logo-eng.png"
             width={220}
           />
         </Link>
