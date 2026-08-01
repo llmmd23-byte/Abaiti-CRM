@@ -4741,7 +4741,7 @@ const newDGroups = [
 ] as const;
 
 export const NEW_BOOTH_LAYOUT = [
-  {id: "AA4", left: 57, top: 3, width: 19, height: 13},
+  {id: "AA4", left: 50, top: 3, width: 19, height: 13},
   {id: "A4", left: 87, top: 18, width: 8, height: 10},
   {id: "A5", left: 87, top: 29, width: 8, height: 10},
   {id: "A6", left: 87, top: 40, width: 8, height: 10},
