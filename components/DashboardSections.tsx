@@ -22,7 +22,12 @@ type ContractSettings = {
   pricePerSqm: number;
   registrationFee: number;
   city: string;
+  contractTypeScope: "sponsorship" | "participation" | "both";
 };
+
+function appliesToContract(settings: ContractSettings | null, type: "sponsorship" | "participation") {
+  return Boolean(settings && (settings.contractTypeScope === "both" || settings.contractTypeScope === type));
+}
 const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
 type UserTrendPeriod = "week" | "month" | "year";
@@ -1290,7 +1295,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
   const contracts = useBackend<BackendRow[]>("/api/v1/data/participation-contracts");
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
-  const contractSettings = useBackend<ContractSettings>("/api/v1/contract-settings");
+  const contractSettings = useBackend<ContractSettings>("/api/v1/contract-settings?type=participation");
   const [leadId, setLeadId] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [brandName, setBrandName] = useState("");
@@ -1315,13 +1320,29 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   const [participationSearch, setParticipationSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [contractTypeFilter, setContractTypeFilter] = useState("all");
+  const appliedContractSettingsRef = useRef("");
 
   useEffect(() => {
     const settings = contractSettings.data;
-    if (!settings || editingContractId) return;
-    if (!pricePerSqm || pricePerSqm === "0") setPricePerSqm(String(settings.pricePerSqm));
-    if (!city) setCity(settings.city);
-  }, [city, contractSettings.data, editingContractId, pricePerSqm]);
+    if (!settings || !appliesToContract(settings, "participation") || editingContractId) return;
+    const snapshot = JSON.stringify(settings);
+    if (appliedContractSettingsRef.current === snapshot) return;
+    appliedContractSettingsRef.current = snapshot;
+    setPricePerSqm(String(settings.pricePerSqm));
+    setCity(settings.city);
+  }, [contractSettings.data, editingContractId]);
+
+  useEffect(() => {
+    const refreshSettings = () => {
+      if (document.visibilityState === "visible") void contractSettings.reload();
+    };
+    window.addEventListener("focus", refreshSettings);
+    document.addEventListener("visibilitychange", refreshSettings);
+    return () => {
+      window.removeEventListener("focus", refreshSettings);
+      document.removeEventListener("visibilitychange", refreshSettings);
+    };
+  }, [contractSettings.reload]);
 
   const text = isArabic
     ? {
@@ -2389,7 +2410,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
   const contracts = useBackend<BackendRow[]>("/api/v1/data/sponsorship-contracts");
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
-  const contractSettings = useBackend<ContractSettings>("/api/v1/contract-settings");
+  const contractSettings = useBackend<ContractSettings>("/api/v1/contract-settings?type=sponsorship");
   const [leadId, setLeadId] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [brandName, setBrandName] = useState("");
@@ -2418,14 +2439,35 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   const [sponsorshipSearch, setSponsorshipSearch] = useState("");
   const [sponsorshipCategoryFilter, setSponsorshipCategoryFilter] = useState("all");
   const [sponsorshipContractTypeFilter, setSponsorshipContractTypeFilter] = useState("all");
+  const appliedContractSettingsRef = useRef("");
 
   useEffect(() => {
     const settings = contractSettings.data;
-    if (!settings || editingContractId) return;
-    if (!pricePerSqm || pricePerSqm === "0") setPricePerSqm(String(settings.pricePerSqm));
-    if (!registrationFee || registrationFee === "0") setRegistrationFee(String(settings.registrationFee));
-    if (!city) setCity(settings.city);
-  }, [city, contractSettings.data, editingContractId, pricePerSqm, registrationFee]);
+    if (!settings || !appliesToContract(settings, "sponsorship") || editingContractId) return;
+    const snapshot = JSON.stringify(settings);
+    if (appliedContractSettingsRef.current === snapshot) return;
+    appliedContractSettingsRef.current = snapshot;
+    const defaultCategory = settings.sponsorshipCategories[0];
+    setPricePerSqm(String(settings.pricePerSqm));
+    setRegistrationFee(String(settings.registrationFee));
+    setCity(settings.city);
+    if (defaultCategory) {
+      setSponsorshipCategory(defaultCategory.name);
+      setSponsorshipAmount(String(defaultCategory.amount));
+    }
+  }, [contractSettings.data, editingContractId]);
+
+  useEffect(() => {
+    const refreshSettings = () => {
+      if (document.visibilityState === "visible") void contractSettings.reload();
+    };
+    window.addEventListener("focus", refreshSettings);
+    document.addEventListener("visibilitychange", refreshSettings);
+    return () => {
+      window.removeEventListener("focus", refreshSettings);
+      document.removeEventListener("visibilitychange", refreshSettings);
+    };
+  }, [contractSettings.reload]);
 
   const text = isArabic
     ? {
@@ -2555,7 +2597,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
 
   useEffect(() => {
     const settings = contractSettings.data;
-    if (!settings || editingContractId) return;
+    if (!settings || !appliesToContract(settings, "sponsorship") || editingContractId) return;
     const selectedCategory = settings.sponsorshipCategories.find((item) => item.name === sponsorshipCategory);
     if (selectedCategory) {
       setSponsorshipAmount(String(selectedCategory.amount));
@@ -2567,7 +2609,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
 
   useEffect(() => {
     const settings = contractSettings.data;
-    if (!settings || editingContractId || amounts.subtotal <= 0) return;
+    if (!settings || !appliesToContract(settings, "sponsorship") || editingContractId || amounts.subtotal <= 0) return;
     const vat = amounts.subtotal * (Number(settings.vatRate) / 100);
     setVatAmount(vat.toFixed(2));
     setGrandTotal((amounts.subtotal + vat).toFixed(2));

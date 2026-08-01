@@ -384,6 +384,7 @@ type ContractSettingsDraft = {
   pricePerSqm: string;
   registrationFee: string;
   city: string;
+  contractTypeScope: "sponsorship" | "participation" | "both";
 };
 
 const EMPTY_CONTRACT_SETTINGS: ContractSettingsDraft = {
@@ -396,7 +397,21 @@ const EMPTY_CONTRACT_SETTINGS: ContractSettingsDraft = {
   pricePerSqm: "0",
   registrationFee: "0",
   city: "Jeddah",
+  contractTypeScope: "both",
 };
+
+function contractSettingsDraftFromValue(settings: Record<string, unknown> | undefined, scope: ContractSettingsDraft["contractTypeScope"]): ContractSettingsDraft {
+  return {
+    vatRate: String(settings?.vatRate ?? 15),
+    sponsorshipCategories: Array.isArray(settings?.sponsorshipCategories)
+      ? (settings.sponsorshipCategories as Array<{name?: string; amount?: number}>).map((item) => ({name: String(item.name ?? ""), amount: String(item.amount ?? 0)}))
+      : EMPTY_CONTRACT_SETTINGS.sponsorshipCategories,
+    pricePerSqm: String(settings?.pricePerSqm ?? 0),
+    registrationFee: String(settings?.registrationFee ?? 0),
+    city: String(settings?.city ?? "Jeddah"),
+    contractTypeScope: scope,
+  };
+}
 
 function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
   const [draft, setDraft] = useState<ContractSettingsDraft>(EMPTY_CONTRACT_SETTINGS);
@@ -405,6 +420,11 @@ function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
   const [message, setMessage] = useState("");
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categoryDraft, setCategoryDraft] = useState({name: "", amount: "0"});
+  const [scopeDrafts, setScopeDrafts] = useState<Record<ContractSettingsDraft["contractTypeScope"], ContractSettingsDraft>>({
+    sponsorship: {...EMPTY_CONTRACT_SETTINGS, contractTypeScope: "sponsorship"},
+    participation: {...EMPTY_CONTRACT_SETTINGS, contractTypeScope: "participation"},
+    both: EMPTY_CONTRACT_SETTINGS,
+  });
 
   useEffect(() => {
     fetch("/api/v1/contract-settings", {cache: "no-store"})
@@ -412,16 +432,15 @@ function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
       .then((body) => {
         const settings = body.data;
         if (!settings) return;
-        setDraft({
-          vatRate: String(settings.vatRate ?? 15),
-          sponsorshipCategories: (settings.sponsorshipCategories ?? []).map((item: {name?: string; amount?: number}) => ({
-            name: String(item.name ?? ""),
-            amount: String(item.amount ?? 0),
-          })),
-          pricePerSqm: String(settings.pricePerSqm ?? 0),
-          registrationFee: String(settings.registrationFee ?? 0),
-          city: String(settings.city ?? "Jeddah"),
-        });
+        const scopes = body.scopes ?? {};
+        const nextScopes = {
+          sponsorship: contractSettingsDraftFromValue(scopes.sponsorship, "sponsorship"),
+          participation: contractSettingsDraftFromValue(scopes.participation, "participation"),
+          both: contractSettingsDraftFromValue(scopes.both, "both"),
+        };
+        setScopeDrafts(nextScopes);
+        const selectedScope = ["sponsorship", "participation", "both"].includes(String(settings.contractTypeScope)) ? settings.contractTypeScope : "both";
+        setDraft(nextScopes[selectedScope as ContractSettingsDraft["contractTypeScope"]]);
       })
       .catch(() => setMessage(isArabic ? "تعذر تحميل إعدادات العقود" : "Unable to load contract settings"))
       .finally(() => setLoading(false));
@@ -443,9 +462,11 @@ function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
           pricePerSqm: Number(draft.pricePerSqm) || 0,
           registrationFee: Number(draft.registrationFee) || 0,
           city: draft.city,
+          contractTypeScope: draft.contractTypeScope,
         }),
       });
       if (!response.ok) throw new Error("SAVE_FAILED");
+      setScopeDrafts({...scopeDrafts, [draft.contractTypeScope]: draft});
       setMessage(isArabic ? "تم حفظ إعدادات العقود" : "Contract settings saved");
     } catch {
       setMessage(isArabic ? "تعذر حفظ إعدادات العقود" : "Unable to save contract settings");
@@ -464,6 +485,19 @@ function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
           <h2>{isArabic ? "القيم الافتراضية لنماذج العقود" : "Contract form defaults"}</h2>
         </div>
         <p>{isArabic ? "تُستخدم هذه القيم تلقائياً في نماذج عقود المستخدمين." : "These values are used automatically in user contract forms."}</p>
+      </div>
+      <div className="contract-settings-scope" role="radiogroup" aria-label={isArabic ? "تطبيق الإعدادات على" : "Apply settings to"}>
+        <strong>{isArabic ? "تطبيق الإعدادات على:" : "Apply settings to:"}</strong>
+        {([
+          ["sponsorship", isArabic ? "عقد الرعاية" : "Sponsorship contract"],
+          ["participation", isArabic ? "عقد المشاركة" : "Participation contract"],
+          ["both", isArabic ? "كلا العقدين" : "Both contracts"],
+        ] as const).map(([value, label]) => (
+          <label className={draft.contractTypeScope === value ? "active" : ""} key={value}>
+            <input checked={draft.contractTypeScope === value} name="contract-type-scope" onChange={() => setDraft(scopeDrafts[value])} type="radio" value={value} />
+            <span>{label}</span>
+          </label>
+        ))}
       </div>
       <div className="contract-settings-grid">
         <label><span>{isArabic ? "نسبة ضريبة القيمة المضافة (%)" : "VAT rate (%)"}</span><input min="0" max="100" onChange={(event) => setDraft({...draft, vatRate: event.target.value})} type="number" value={draft.vatRate} /></label>
