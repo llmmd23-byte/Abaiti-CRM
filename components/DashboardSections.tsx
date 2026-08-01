@@ -3,14 +3,11 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  FLOOR_MAP_AREA_LABELS,
   FLOOR_MAP_ZONES,
   NEW_BOOTH_DIMENSION_OVERRIDES,
   NEW_BOOTH_LAYOUT,
   NEW_BOOTH_MAP_HEIGHT,
-  NEW_BOOTH_MAP_WIDTH,
   NEW_RESERVED_BOOTH_LAYOUT,
-  PPT_BOOTH_LAYOUT,
   floorMapZoneForBooth,
 } from "@/components/AdminDashboard";
 import DashboardSelect from "@/components/DashboardSelect";
@@ -3978,7 +3975,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   }, [boothCatalog.data]);
   const visibleBoothMapLayout = useMemo(() => {
     const queryValue = boothMapQuery.trim().toUpperCase();
-    return PPT_BOOTH_LAYOUT.filter((booth) => {
+    return NEW_BOOTH_LAYOUT.filter((booth) => {
       if (boothMapZone !== "all" && floorMapZoneForBooth(booth.id) !== boothMapZone) return false;
       if (!queryValue) return true;
       const boothId = booth.id.toUpperCase();
@@ -4541,37 +4538,33 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                   ))}
                 </div>
                 <div className="rental-booth-modal-map">
-                  <div className="admin-floor-map-canvas">
-                    <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
-                      {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}
+                  <div className="admin-floor-map-canvas" dir="ltr">
+                    <div className="new-government-booth-card" aria-label={isArabic ? "جهة حكومية" : "Government entity"}>
+                      <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
+                      <div>
+                        <img src="/contract-assets/jazli-event-logo.png" alt="" />
+                        <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
+                      </div>
                     </div>
-                    <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
-                    {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "all").map((zone) => (
+                    <div className="new-government-booth-card new-government-booth-card-left is-reserved" aria-label={isArabic ? "جهة حكومية محجوزة" : "Reserved government entity"}>
+                      <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
+                      <div>
+                        <img src="/contract-assets/jazli-event-logo.png" alt="" />
+                        <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
+                      </div>
+                    </div>
+                    {NEW_RESERVED_BOOTH_LAYOUT.map((reserved) => (
                       <div
-                        className={`admin-floor-zone-container ${zone.key}`}
-                        key={zone.key}
+                        aria-label={isArabic ? "بوث محجوز" : "Reserved booth"}
+                        className="admin-booth-map-tile is-reserved"
+                        key={reserved.id}
                         style={{
-                          left: `${zone.left}%`,
-                          top: `${zone.top}%`,
-                          width: `${zone.width}%`,
-                          height: `${zone.height}%`,
+                          left: `${reserved.left}%`,
+                          top: `${(reserved.top / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
+                          width: `${reserved.width}%`,
+                          height: `${(reserved.height / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
                         }}
                       />
-                    ))}
-                    {FLOOR_MAP_AREA_LABELS.map((area) => (
-                      <div
-                        className={`admin-floor-map-area-label ${area.key}`}
-                        dir={isArabic ? "rtl" : "ltr"}
-                        key={area.key}
-                        style={{
-                          left: `${area.left}%`,
-                          top: `${area.top}%`,
-                          width: `${area.width}%`,
-                          height: `${area.height}%`,
-                        }}
-                      >
-                        {isArabic ? area.labelAr : area.labelEn}
-                      </div>
                     ))}
                     {visibleBoothMapLayout.map((layoutBooth) => {
                       const normalizedBooth = layoutBooth.id.toUpperCase();
@@ -4594,7 +4587,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                       return (
                         <button
                           aria-pressed={isSelected}
-                          className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${isPendingPayment ? "is-pending-payment" : ""} ${isBooked ? "is-booked" : ""} ${isSelected ? "is-selected" : ""}`}
+                          className={`admin-booth-map-tile category-${normalizedBooth === "C12" || normalizedBooth === "C13" ? "government" : normalizedBooth.charAt(0).toLowerCase()} booth-${normalizedBooth.toLowerCase()} ${["A4", "A5", "A6", "C14"].includes(normalizedBooth) ? "booth-gray" : ""} ${normalizedBooth === "C14" ? "booth-c14" : ""} ${["C12", "C13"].includes(normalizedBooth) ? "booth-gov" : ""} ${normalizedBooth === "C15" ? "booth-c15" : ""} ${normalizedBooth === "C16" ? "booth-c16" : ""} ${isFeatureArea ? "is-feature-area" : ""} ${isPendingPayment ? "is-pending-payment" : ""} ${isBooked ? "is-booked" : ""} ${isSelected ? "is-selected" : ""}`}
                           disabled={Boolean(reservationStatus)}
                           dir="ltr"
                           key={layoutBooth.id}
@@ -4604,9 +4597,9 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                           }}
                           style={{
                             left: `${layoutBooth.left}%`,
-                            top: `${layoutBooth.top}%`,
+                            top: `${(layoutBooth.top / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
                             width: `${layoutBooth.width}%`,
-                            height: `${layoutBooth.height}%`,
+                            height: `${(layoutBooth.height / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
                           }}
                           type="button"
                         >
