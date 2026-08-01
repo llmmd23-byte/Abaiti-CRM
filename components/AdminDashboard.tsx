@@ -4745,7 +4745,7 @@ export const NEW_BOOTH_LAYOUT = [
   {id: "A4", left: 87, top: 18, width: 8, height: 10},
   {id: "A5", left: 87, top: 29, width: 8, height: 10},
   {id: "A6", left: 87, top: 40, width: 8, height: 10},
-  {id: "B4", left: 15, top: 27, width: 18, height: 11},
+  {id: "B4", left: 18, top: 27, width: 18, height: 11},
   {id: "B5", left: 37, top: 27, width: 18, height: 11},
   {id: "C12", left: 36, top: 48, width: 10, height: 14},
   {id: "C13", left: 46, top: 48, width: 10, height: 14},
@@ -5254,8 +5254,8 @@ function AdminBoothsSection({
                     <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
                   </div>
                 </div>
-                <div className="new-government-booth-card new-government-booth-card-left is-reserved" aria-label={isArabic ? "ط¬ظ‡ط© ط­ظƒظˆظ…ظٹط© ظ…ط­ط¬ظˆط²ط©" : "Reserved government entity"}>
-                  <span>{isArabic ? "ط¬ظ‡ط© ط­ظƒظˆظ…ظٹط©" : "Government entity"}</span>
+                <div className="new-government-booth-card new-government-booth-card-left is-reserved" aria-label={isArabic ? "\u062c\u0647\u0629 \u062d\u0643\u0648\u0645\u064a\u0629 \u0645\u062d\u062c\u0648\u0632\u0629" : "Reserved government entity"}>
+                  <span>{isArabic ? "\u062c\u0647\u0629 \u062d\u0643\u0648\u0645\u064a\u0629" : "Government entity"}</span>
                   <div>
                     <img src="/contract-assets/jazli-event-logo.png" alt="" />
                     <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
