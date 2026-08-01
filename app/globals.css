@@ -23885,6 +23885,128 @@ html[dir="rtl"]
   color: #1e293b !important;
 }
 
+/* Final booth palette overrides. */
+.admin-floor-map-canvas .admin-booth-map-tile.booth-aa4 {
+  background-color: #fde08d !important;
+  border: 1px solid #e0c270 !important;
+  color: #2c2c2c !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-gray {
+  background-color: #bdbdbd !important;
+  border: 1px solid #9e9e9e !important;
+  color: #1a1a1a !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-b4,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-b5 {
+  background-color: #a88247 !important;
+  border: 1px solid #8a6833 !important;
+  color: #ffffff !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-gov,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-c15,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-c16 {
+  background-color: #a17357 !important;
+  border: 1px solid #845a40 !important;
+  color: #ffffff !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d1,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d2,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d3,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d4,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d17,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d18,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d19,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d20,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d21,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d22,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d23,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d24,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d37,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d38,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d39,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d40,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d41,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d42,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d43,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d44,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d46,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d47,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d48 {
+  background-color: #3f9298 !important;
+  border: 1px solid #2e6e73 !important;
+  color: #ffffff !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-aa4 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-aa4 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-gray strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-gray span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d1 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d1 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d2 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d2 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d3 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d3 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d4 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d4 span {
+  color: inherit !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-b4 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-b4 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-b5 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-b5 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-gov strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-gov span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-c15 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-c15 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-c16 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-c16 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d17 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d17 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d18 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d18 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d19 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d19 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d20 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d20 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d21 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d21 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d22 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d22 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d23 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d23 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d24 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d24 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d37 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d37 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d38 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d38 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d39 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d39 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d40 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d40 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d41 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d41 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d42 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d42 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d43 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d43 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d44 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d44 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d46 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d46 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d47 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d47 span,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d48 strong,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d48 span {
+  color: #ffffff !important;
+}
+
 .admin-booth-map-tile.is-missing {
   cursor: not-allowed;
   opacity: 0.45;
@@ -23893,9 +24015,9 @@ html[dir="rtl"]
 /* Reserved footprints are rendered as disabled background tiles with no label. */
 .admin-booth-map-tile.is-reserved {
   z-index: 3 !important;
-  border: 1px solid #475569 !important;
+  border: 1px solid #3d3d3d !important;
   border-radius: 2px;
-  background: repeating-linear-gradient(135deg, #64748b 0 5px, #475569 5px 7px) !important;
+  background: #5a5a5a !important;
   box-shadow: none;
   cursor: not-allowed;
   pointer-events: none;
