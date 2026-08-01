@@ -23653,13 +23653,19 @@ html[dir="rtl"]
 }
 
 .admin-booth-map-tile.category-b {
-  border-color: #277342;
-  background: rgba(91, 190, 111, 0.68);
+  border-color: #92400e;
+  background: #b45309;
 }
 
 .admin-booth-map-tile.category-c {
   border-color: #b88705;
   background: rgba(246, 211, 72, 0.72);
+}
+
+.admin-booth-map-tile.category-government {
+  border-color: #451a03;
+  background: #78350f;
+  color: #ffffff;
 }
 
 .admin-booth-map-tile.category-aa {

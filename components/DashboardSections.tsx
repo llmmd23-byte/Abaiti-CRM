@@ -1281,7 +1281,7 @@ function BoothMapPicker({
                   return (
                     <button
                       aria-pressed={selected}
-                      className={`admin-booth-map-tile category-${booth.id.charAt(0).toLowerCase()} ${booth.width < 5 ? "is-narrow" : ""} ${["C4", "C5", "C6", "C7"].includes(booth.id) ? "is-polished-booth" : ""} ${reservationStatus === "booked" ? "is-booked" : ""} ${reservationStatus === "pending_payment" ? "is-pending-payment" : ""} ${selected ? "is-selected" : ""}`}
+                      className={`admin-booth-map-tile category-${["C12", "C13"].includes(booth.id) ? "government" : booth.id.charAt(0).toLowerCase()} ${booth.width < 5 ? "is-narrow" : ""} ${["C4", "C5", "C6", "C7"].includes(booth.id) ? "is-polished-booth" : ""} ${reservationStatus === "booked" ? "is-booked" : ""} ${reservationStatus === "pending_payment" ? "is-pending-payment" : ""} ${selected ? "is-selected" : ""}`}
                       aria-disabled={!boothAvailabilityReady || Boolean(reservationStatus)}
                       disabled={!boothAvailabilityReady || Boolean(reservationStatus)}
                       dir="ltr"
