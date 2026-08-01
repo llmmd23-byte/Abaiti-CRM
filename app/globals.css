@@ -24007,6 +24007,12 @@ html[dir="rtl"]
   color: #ffffff !important;
 }
 
+/* Keep booth numbers and dimensions readable across every category. */
+.admin-floor-map-canvas .admin-booth-map-tile:not(.is-reserved) strong,
+.admin-floor-map-canvas .admin-booth-map-tile:not(.is-reserved) span {
+  color: #000000 !important;
+}
+
 .admin-booth-map-tile.is-missing {
   cursor: not-allowed;
   opacity: 0.45;
