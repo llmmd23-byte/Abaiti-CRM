@@ -23648,34 +23648,39 @@ html[dir="rtl"]
 }
 
 .admin-booth-map-tile.category-a {
-  border-color: #1e5bb8;
-  background: rgba(76, 139, 245, 0.68);
+  border: 1px solid #2563eb !important;
+  background: #60a5fa !important;
+  color: #ffffff;
 }
 
 .admin-booth-map-tile.category-b {
-  border-color: #92400e;
-  background: #b45309;
+  border: 1px solid #d97706 !important;
+  background: #f59e0b !important;
+  color: #ffffff;
 }
 
 .admin-booth-map-tile.category-c {
-  border-color: #b88705;
-  background: rgba(246, 211, 72, 0.72);
+  border: 1px solid #d97706 !important;
+  background: #fbbf24 !important;
+  color: #1e293b;
 }
 
 .admin-booth-map-tile.category-government {
-  border-color: #451a03;
-  background: #78350f;
+  border: 1px solid #451a03 !important;
+  background: #78350f !important;
   color: #ffffff;
 }
 
 .admin-booth-map-tile.category-aa {
-  border-color: #b45309;
-  background: #f6d58a;
+  border: 1px solid #1d4ed8 !important;
+  background: #3b82f6 !important;
+  color: #ffffff;
 }
 
 .admin-booth-map-tile.category-d {
-  border-color: #0e7490;
-  background: #4aa3ad;
+  border: 1px solid #0d9488 !important;
+  background: #2dd4bf !important;
+  color: #0f172a;
 }
 
 .admin-booth-map-tile::after {
@@ -23853,6 +23858,33 @@ html[dir="rtl"]
   color: #000000 !important;
 }
 
+.admin-floor-map-canvas .admin-booth-map-tile.category-aa,
+.admin-floor-map-canvas .admin-booth-map-tile.category-a,
+.admin-floor-map-canvas .admin-booth-map-tile.category-b,
+.admin-floor-map-canvas .admin-booth-map-tile.category-government {
+  color: #ffffff !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.category-aa strong,
+.admin-floor-map-canvas .admin-booth-map-tile.category-aa span,
+.admin-floor-map-canvas .admin-booth-map-tile.category-a strong,
+.admin-floor-map-canvas .admin-booth-map-tile.category-a span,
+.admin-floor-map-canvas .admin-booth-map-tile.category-b strong,
+.admin-floor-map-canvas .admin-booth-map-tile.category-b span,
+.admin-floor-map-canvas .admin-booth-map-tile.category-government strong,
+.admin-floor-map-canvas .admin-booth-map-tile.category-government span {
+  color: #ffffff !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.category-c,
+.admin-floor-map-canvas .admin-booth-map-tile.category-d,
+.admin-floor-map-canvas .admin-booth-map-tile.category-c strong,
+.admin-floor-map-canvas .admin-booth-map-tile.category-c span,
+.admin-floor-map-canvas .admin-booth-map-tile.category-d strong,
+.admin-floor-map-canvas .admin-booth-map-tile.category-d span {
+  color: #1e293b !important;
+}
+
 .admin-booth-map-tile.is-missing {
   cursor: not-allowed;
   opacity: 0.45;
@@ -23886,9 +23918,9 @@ html[dir="rtl"]
   align-items: center;
   justify-content: center;
   gap: 4px;
-  border: 1px solid #78350f;
+  border: 1px solid #451a03;
   border-radius: 2px;
-  background: #a66b4f;
+  background: #78350f;
   color: #ffffff;
   pointer-events: none;
   text-align: center;
