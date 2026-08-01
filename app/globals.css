@@ -24796,3 +24796,23 @@ html[dir="rtl"]
   background: rgba(0, 200, 232, 0.16) !important;
   color: #00e0ff !important;
 }
+
+/* Keep the dashboard scrollbar on the right while preserving RTL content. */
+.dashboard-route-shell .sidebar {
+  direction: ltr;
+}
+
+.dashboard-route-shell[dir="rtl"] .sidebar > * {
+  direction: rtl;
+}
+
+@media (max-width: 900px) {
+  .dashboard-route-shell .sidebar-nav,
+  .dashboard-route-shell .sidebar-nav.is-open {
+    direction: ltr;
+  }
+
+  .dashboard-route-shell[dir="rtl"] .sidebar-nav > * {
+    direction: rtl;
+  }
+}
