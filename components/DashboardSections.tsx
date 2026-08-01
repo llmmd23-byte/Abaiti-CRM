@@ -1346,6 +1346,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   const [participationSearch, setParticipationSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [contractTypeFilter, setContractTypeFilter] = useState("all");
+  const [participationStatusFilter, setParticipationStatusFilter] = useState("all");
   const appliedContractSettingsRef = useRef("");
 
   useEffect(() => {
@@ -1502,13 +1503,15 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
         ].some((value) => String(value ?? "").toLocaleLowerCase().includes(query));
       const matchesLocation = locationFilter === "all" || String(contract.location_category ?? "") === locationFilter;
       const matchesContractType = contractTypeFilter === "all" || String(contract.package_type ?? "") === contractTypeFilter;
-      return matchesSearch && matchesLocation && matchesContractType;
+      const matchesStatus = participationStatusFilter === "all" || String(contract.status ?? "draft") === participationStatusFilter;
+      return matchesSearch && matchesLocation && matchesContractType && matchesStatus;
     });
-  }, [contractTypeFilter, contracts.data, locationFilter, participationSearch]);
+  }, [contractTypeFilter, contracts.data, locationFilter, participationSearch, participationStatusFilter]);
   const resetContractFilters = () => {
     setParticipationSearch("");
     setLocationFilter("all");
     setContractTypeFilter("all");
+    setParticipationStatusFilter("all");
   };
   const participationContractStats = useMemo(() => {
     const rows = contracts.data ?? [];
@@ -2343,6 +2346,20 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
           </div>
           <div className="contract-smart-select">
             <DashboardSelect
+              ariaLabel={isArabic ? "حالة العقد" : "Contract status"}
+              onValueChange={setParticipationStatusFilter}
+              options={[
+                {label: isArabic ? "كل الحالات" : "All statuses", value: "all"},
+                {label: text.draft, value: "draft"},
+                {label: text.sent, value: "sent"},
+                {label: text.signed, value: "signed"},
+                {label: text.cancelled, value: "cancelled"},
+              ]}
+              value={participationStatusFilter}
+            />
+          </div>
+          <div className="contract-smart-select">
+            <DashboardSelect
               ariaLabel={text.locationCategory}
               onValueChange={setLocationFilter}
               options={[
@@ -2465,6 +2482,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   const [sponsorshipSearch, setSponsorshipSearch] = useState("");
   const [sponsorshipCategoryFilter, setSponsorshipCategoryFilter] = useState("all");
   const [sponsorshipContractTypeFilter, setSponsorshipContractTypeFilter] = useState("all");
+  const [sponsorshipStatusFilter, setSponsorshipStatusFilter] = useState("all");
   const appliedContractSettingsRef = useRef("");
 
   useEffect(() => {
@@ -2685,13 +2703,15 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
       const matchesContractType =
         sponsorshipContractTypeFilter === "all" ||
         String(contract.package_type ?? "") === sponsorshipContractTypeFilter;
-      return matchesSearch && matchesCategory && matchesContractType;
+      const matchesStatus = sponsorshipStatusFilter === "all" || String(contract.status ?? "draft") === sponsorshipStatusFilter;
+      return matchesSearch && matchesCategory && matchesContractType && matchesStatus;
     });
-  }, [contracts.data, sponsorshipCategoryFilter, sponsorshipContractTypeFilter, sponsorshipSearch]);
+  }, [contracts.data, sponsorshipCategoryFilter, sponsorshipContractTypeFilter, sponsorshipSearch, sponsorshipStatusFilter]);
   const resetSponsorshipFilters = () => {
     setSponsorshipSearch("");
     setSponsorshipCategoryFilter("all");
     setSponsorshipContractTypeFilter("all");
+    setSponsorshipStatusFilter("all");
   };
   const sponsorshipContractStats = useMemo(() => {
     const rows = contracts.data ?? [];
@@ -3145,6 +3165,20 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
               value={sponsorshipSearch}
             />
             <strong>{filteredSponsorshipContracts.length.toLocaleString(NUMBER_LOCALE)}</strong>
+          </div>
+          <div className="contract-smart-select">
+            <DashboardSelect
+              ariaLabel={isArabic ? "حالة العقد" : "Contract status"}
+              onValueChange={setSponsorshipStatusFilter}
+              options={[
+                {label: isArabic ? "كل الحالات" : "All statuses", value: "all"},
+                {label: text.draft, value: "draft"},
+                {label: text.sent, value: "sent"},
+                {label: text.signed, value: "signed"},
+                {label: text.cancelled, value: "cancelled"},
+              ]}
+              value={sponsorshipStatusFilter}
+            />
           </div>
           <div className="contract-smart-select">
             <DashboardSelect
