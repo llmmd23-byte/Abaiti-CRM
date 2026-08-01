@@ -4733,9 +4733,9 @@ export const NEW_BOOTH_MAP_HEIGHT = 136;
 
 const newDGroups = [
   {start: 1, count: 4, left: 8, top: 82, columns: 1},
-  {start: 17, count: 4, left: 33, top: 68, columns: 2},
+  {start: 17, count: 4, left: 29, top: 68, columns: 2},
   {start: 21, count: 4, left: 52, top: 68, columns: 2},
-  {start: 37, count: 4, left: 33, top: 101, columns: 2},
+  {start: 37, count: 4, left: 29, top: 101, columns: 2},
   {start: 41, count: 4, left: 52, top: 101, columns: 2},
   {start: 46, count: 3, left: 87, top: 98, columns: 1},
 ] as const;
@@ -4745,7 +4745,7 @@ export const NEW_BOOTH_LAYOUT = [
   {id: "A4", left: 87, top: 18, width: 8, height: 10},
   {id: "A5", left: 87, top: 29, width: 8, height: 10},
   {id: "A6", left: 87, top: 40, width: 8, height: 10},
-  {id: "B4", left: 32, top: 27, width: 18, height: 11},
+  {id: "B4", left: 29, top: 27, width: 18, height: 11},
   {id: "B5", left: 51, top: 27, width: 18, height: 11},
   {id: "C12", left: 50, top: 48, width: 10, height: 14},
   {id: "C13", left: 60, top: 48, width: 10, height: 14},
