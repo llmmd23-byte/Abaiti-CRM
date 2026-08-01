@@ -22718,7 +22718,7 @@ html[dir="rtl"]
 /* Keep the admin "added by" filter clean with no dark corner artifacts. */
 .admin-shell .admin-client-added-by-filter {
   overflow: hidden !important;
-  border: 1px solid #1a748b !important;
+  border: 1px solid #dbe5ec !important;
   border-radius: 14px !important;
   background: #ffffff !important;
   box-shadow: none !important;
