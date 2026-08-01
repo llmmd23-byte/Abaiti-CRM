@@ -24067,7 +24067,7 @@ html[dir="rtl"]
 .new-government-booth-card {
   position: absolute;
   z-index: 2;
-  left: 36%;
+  left: 50%;
   top: 35.3%;
   width: 20%;
   height: 10.3%;
@@ -24104,7 +24104,7 @@ html[dir="rtl"]
 }
 
 .new-government-booth-card-left {
-  left: 17%;
+  left: 31%;
   background: repeating-linear-gradient(135deg, #64748b 0 5px, #475569 5px 7px);
   border-color: #3d3d3d;
   color: #ffffff;
