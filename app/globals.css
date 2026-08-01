@@ -5927,6 +5927,17 @@ html[dir="ltr"] .dashboard-main {
   background: #0096b4;
 }
 
+.contract-table-action.danger {
+  color: #b42318;
+  border-color: rgba(180, 35, 24, 0.22);
+}
+
+.contract-table-action.danger:hover {
+  color: #ffffff;
+  border-color: #b42318;
+  background: #b42318;
+}
+
 .quote-flow-menu > .quote-flow-option + .quote-flow-option {
   margin-top: 12px;
 }
@@ -6368,6 +6379,39 @@ html[dir="ltr"] .dashboard-main {
   align-self: flex-start;
   margin-inline: 0;
 }
+
+.booth-status-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  direction: rtl;
+}
+
+.booth-status-summary span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 1px solid #dbe5f1;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.booth-status-summary b {
+  font-size: 13px;
+}
+
+.booth-status-summary .total { color: #1d4ed8; background: #eff6ff; border-color: #bfdbfe; }
+.booth-status-summary .booked { color: #b91c1c; background: #fff1f2; border-color: #fecdd3; }
+.booth-status-summary .pending { color: #a16207; background: #fffbeb; border-color: #fde68a; }
+.booth-status-summary .inactive { color: #64748b; background: #f8fafc; border-color: #e2e8f0; }
 
 .rental-booth-modal-map .admin-floor-zone-container {
   transform: scale(0.972);
@@ -17504,6 +17548,11 @@ html[dir="ltr"] .landing-main .hero {
   color: #991b1b;
   font-size: 13px;
   font-weight: 800;
+}
+
+/* Keep lead records available to existing contracts while hiding the selector from user forms. */
+.dashboard-route-shell .dashboard-main .quote-field-customer {
+  display: none;
 }
 
 .admin-user-delete-section > span {

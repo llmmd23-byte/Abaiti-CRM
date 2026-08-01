@@ -28,6 +28,7 @@ export type BackendResource =
   | "sponsorship-contracts"
   | "rental-contracts"
   | "rental-booths"
+  | "booth-availability"
   | "booths"
   | "sales-orders"
   | "sales"
@@ -314,6 +315,11 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   "rental-booths": {
     table: "rental_booths",
     permissionKey: "table.rental_booths",
+    writable: [],
+  },
+  "booth-availability": {
+    table: "booth",
+    permissionKey: "table.booths",
     writable: [],
   },
   booths: {
@@ -2044,6 +2050,34 @@ export async function listResource(resource: string, session: MiddarSession) {
     await closeExpiredQuotes();
   }
 
+  if (resource === "booth-availability") {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT UPPER(TRIM(stand_number)) booth_number,
+              CASE WHEN payment_status = 'paid' THEN 'booked' ELSE 'pending_payment' END status
+         FROM participation_contracts
+        WHERE stand_number IS NOT NULL AND TRIM(stand_number) <> ''
+          AND COALESCE(status, '') <> 'cancelled'
+       UNION ALL
+       SELECT UPPER(TRIM(stand_number)) booth_number,
+              CASE WHEN payment_status = 'paid' THEN 'booked' ELSE 'pending_payment' END status
+         FROM sponsorship_contracts
+        WHERE stand_number IS NOT NULL AND TRIM(stand_number) <> ''
+          AND COALESCE(status, '') <> 'cancelled'
+       UNION ALL
+       SELECT UPPER(TRIM(stand_number)) booth_number, 'pending_payment' status
+         FROM sales_orders
+        WHERE stand_number IS NOT NULL AND TRIM(stand_number) <> ''
+          AND COALESCE(status, '') <> 'cancelled'
+       UNION ALL
+       SELECT UPPER(TRIM(booth_number)) booth_number,
+              CASE WHEN payment_status = 'paid' THEN 'booked' ELSE 'pending_payment' END status
+         FROM rental_contracts
+        WHERE booth_number IS NOT NULL AND TRIM(booth_number) <> ''
+          AND COALESCE(status, '') <> 'cancelled'`,
+    );
+    return rows;
+  }
+
   const { clause: where, params } =
     resource === "lead-tag-types" || resource === "support-ticket-types"
       ? await tagTypeCompanyFilter(session)
@@ -2392,6 +2426,56 @@ const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   "educational-assets": ["title", "asset_type"],
 };
 
+async function assertBoothReservationAvailable(
+  resource: string,
+  data: Record<string, unknown>,
+  currentId?: number,
+) {
+  const reservationField =
+    resource === "rental-contracts"
+      ? "booth_number"
+      : ["participation-contracts", "sponsorship-contracts", "sales-orders"].includes(resource)
+        ? "stand_number"
+        : null;
+  if (!reservationField || data[reservationField] === undefined) return;
+
+  const boothNumber = String(data[reservationField] ?? "").trim().toUpperCase();
+  if (!boothNumber) return;
+
+  const sources = [
+    ["participation_contracts", "stand_number"],
+    ["sponsorship_contracts", "stand_number"],
+    ["sales_orders", "stand_number"],
+    ["rental_contracts", "booth_number"],
+  ] as const;
+  const currentTable =
+    resource === "participation-contracts"
+      ? "participation_contracts"
+      : resource === "sponsorship-contracts"
+        ? "sponsorship_contracts"
+        : resource === "sales-orders"
+          ? "sales_orders"
+          : resource === "rental-contracts"
+            ? "rental_contracts"
+            : null;
+  for (const [table, column] of sources) {
+    if (!(await tableExists(table))) continue;
+    const excludeCurrent = Boolean(currentId && table === currentTable);
+    const idClause = excludeCurrent ? " AND id <> ?" : "";
+    const params: Array<string | number> = excludeCurrent
+      ? [boothNumber, currentId as number]
+      : [boothNumber];
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT id FROM ${table}
+        WHERE UPPER(TRIM(${column})) = ?
+          AND COALESCE(status, '') <> 'cancelled'${idClause}
+        LIMIT 1`,
+      params,
+    );
+    if (rows.length) throw new Error("BOOTH_NOT_AVAILABLE");
+  }
+}
+
 export async function createResource(
   resource: string,
   payload: Record<string, unknown>,
@@ -2430,6 +2514,7 @@ export async function createResource(
   if (definition.writable.length === 0) throw new Error("READ_ONLY_RESOURCE");
 
   const data = cleanPayload(definition, payload);
+  await assertBoothReservationAvailable(resource, data);
   if (resource === "leads") {
     if (data.industry_id !== undefined && data.industry_id !== null) {
       const industryId = Number(data.industry_id);
@@ -2909,6 +2994,7 @@ export async function updateResource(
       throw new Error("FORBIDDEN_QUOTE_STATUS");
   }
   const data = cleanPayload(definition, payload);
+  await assertBoothReservationAvailable(resource, data, id);
   if (resource === "lead-contacts" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
   if (resource === "stores" && data.phone)

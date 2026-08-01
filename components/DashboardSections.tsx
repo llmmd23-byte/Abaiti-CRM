@@ -13,7 +13,7 @@ import {
   floorMapZoneForBooth,
 } from "@/components/AdminDashboard";
 import DashboardSelect from "@/components/DashboardSelect";
-import { createBackend, updateBackend, useBackend } from "@/lib/client-backend";
+import { createBackend, deleteBackend, updateBackend, useBackend } from "@/lib/client-backend";
 
 type BackendRow = Record<string, unknown> & { id: number };
 const NUMBER_LOCALE = "en-US";
@@ -284,7 +284,17 @@ function formatUserDateTime(value: unknown, isArabic: boolean) {
   }).format(date);
 }
 
-function ContractActionIcon({type}: {type: "edit" | "print"}) {
+function ContractActionIcon({type}: {type: "edit" | "print" | "delete"}) {
+  if (type === "delete") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M3 6h18" />
+        <path d="M8 6V4h8v2" />
+        <path d="M19 6l-1 15H6L5 6" />
+        <path d="M10 11v6M14 11v6" />
+      </svg>
+    );
+  }
   if (type === "print") {
     return (
       <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -1127,6 +1137,27 @@ function BoothMapPicker({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [zone, setZone] = useState("all");
+  const rentalBooths = useBackend<BackendRow[]>("/api/v1/data/booth-availability");
+  const reservationStatuses = useMemo(() => {
+    const statuses = new Map<string, string>();
+    for (const booth of rentalBooths.data ?? []) {
+      const number = String(booth.booth_number ?? "").trim().toUpperCase();
+      const status = String(booth.status ?? "").trim().toLowerCase();
+      if (number && ["booked", "pending_payment"].includes(status)) statuses.set(number, status);
+    }
+    return statuses;
+  }, [rentalBooths.data]);
+  const boothStatusSummary = useMemo(() => {
+    let booked = 0;
+    let pending = 0;
+    let inactive = 0;
+    for (const status of reservationStatuses.values()) {
+      if (status === "booked") booked += 1;
+      if (status === "pending_payment") pending += 1;
+      if (status === "inactive") inactive += 1;
+    }
+    return { total: REE_JED_BOOTH_LAYOUT.length, booked, pending, inactive };
+  }, [reservationStatuses]);
   const visibleBooths = useMemo(() => {
     const normalizedQuery = query.trim().toUpperCase();
     return REE_JED_BOOTH_LAYOUT.filter((booth) => {
@@ -1138,6 +1169,7 @@ function BoothMapPicker({
   const openPicker = () => {
     setQuery("");
     setZone("all");
+    void rentalBooths.reload();
     setOpen(true);
   };
 
@@ -1178,15 +1210,22 @@ function BoothMapPicker({
                 <span>{isArabic ? "محجوز" : "Booked"}<i className="booked" aria-hidden="true" /></span>
               </div>
             </div>
+            <div className="booth-status-summary" aria-label={isArabic ? "ملخص حالات البوثات" : "Booth status summary"}>
+              <span className="total"><b>{boothStatusSummary.total}</b> {isArabic ? "بوث" : "Booths"}</span>
+              <span className="booked"><b>{boothStatusSummary.booked}</b> {isArabic ? "محجوز" : "Booked"}</span>
+              <span className="pending"><b>{boothStatusSummary.pending}</b> {isArabic ? "بانتظار الدفع" : "Pending payment"}</span>
+              <span className="inactive"><b>{boothStatusSummary.inactive}</b> {isArabic ? "غير نشط" : "Inactive"}</span>
+            </div>
             <div className="admin-booth-zone-filter rental-booth-modal-zone-filter" role="listbox">
               {FLOOR_MAP_ZONES.map((item) => (
                 <button
                   aria-selected={zone === item.key}
-                  className={zone === item.key ? "active" : ""}
+                  className={`admin-booth-zone-filter-button ${zone === item.key ? "active" : ""} ${item.key === "all" ? "zone-all" : ""}`}
                   key={item.key}
                   onClick={() => setZone(item.key)}
                   type="button"
                 >
+                  {item.key !== "all" ? <i className={`zone-filter-color zone-${item.key}`} aria-hidden="true" /> : null}
                   {isArabic ? item.labelAr : item.labelEn}
                 </button>
               ))}
@@ -1200,15 +1239,19 @@ function BoothMapPicker({
                   <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
                 </svg>
                 {visibleBooths.map((booth) => {
-                  const selected = value.trim().toUpperCase() === booth.id.toUpperCase();
+                  const boothNumber = booth.id.toUpperCase();
+                  const reservationStatus = reservationStatuses.get(boothNumber);
+                  const selected = value.trim().toUpperCase() === boothNumber;
                   const boothSize = REE_JED_DIMENSION_OVERRIDES[booth.id] ?? "";
                   return (
                     <button
                       aria-pressed={selected}
-                      className={`admin-booth-map-tile category-${booth.id.charAt(0).toLowerCase()} ${booth.width < 5 ? "is-narrow" : ""} ${["C4", "C5", "C6", "C7"].includes(booth.id) ? "is-polished-booth" : ""} ${selected ? "is-selected" : ""}`}
+                      className={`admin-booth-map-tile category-${booth.id.charAt(0).toLowerCase()} ${booth.width < 5 ? "is-narrow" : ""} ${["C4", "C5", "C6", "C7"].includes(booth.id) ? "is-polished-booth" : ""} ${reservationStatus === "booked" ? "is-booked" : ""} ${reservationStatus === "pending_payment" ? "is-pending-payment" : ""} ${selected ? "is-selected" : ""}`}
+                      disabled={Boolean(reservationStatus)}
                       dir="ltr"
                       key={booth.id}
                       onClick={() => {
+                        if (reservationStatus) return;
                         onChange(booth.id);
                         setOpen(false);
                       }}
@@ -1463,6 +1506,23 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
     setContractDate(cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date));
     setNotes(String(contract.notes ?? ""));
     window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  async function deleteContract(contract: BackendRow) {
+    const confirmed = window.confirm(
+      isArabic ? "هل تريد حذف هذا العقد نهائياً؟" : "Delete this contract permanently?",
+    );
+    if (!confirmed) return;
+    setSaveStatus(isArabic ? "جاري حذف العقد..." : "Deleting contract...");
+    try {
+      await deleteBackend("participation-contracts", Number(contract.id));
+      if (editingContractId === Number(contract.id)) resetContractForm();
+      await contracts.reload();
+      setSaveStatus(isArabic ? "تم حذف العقد" : "Contract deleted");
+    } catch {
+      setSaveStatus(isArabic ? "تعذر حذف العقد" : "Unable to delete contract");
+    }
+    window.setTimeout(() => setSaveStatus(""), 2200);
   }
 
   function escapePrintValue(value: unknown) {
@@ -2279,6 +2339,9 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
                         <button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button">
                           <ContractActionIcon type="edit" />
                         </button>
+                        <button aria-label={isArabic ? "حذف" : "Delete"} className="contract-table-action icon danger" onClick={() => void deleteContract(contract)} title={isArabic ? "حذف العقد" : "Delete contract"} type="button">
+                          <ContractActionIcon type="delete" />
+                        </button>
                         <button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button">
                           <ContractActionIcon type="print" />
                         </button>
@@ -2584,6 +2647,23 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
     setContractDate(cleanDate(contract.contract_date) === "—" ? dateAfterDays(0) : cleanDate(contract.contract_date));
     setNotes(String(contract.notes ?? ""));
     window.scrollTo({top: 0, behavior: "smooth"});
+  }
+
+  async function deleteContract(contract: BackendRow) {
+    const confirmed = window.confirm(
+      isArabic ? "هل تريد حذف هذا العقد نهائياً؟" : "Delete this contract permanently?",
+    );
+    if (!confirmed) return;
+    setSaveStatus(isArabic ? "جاري حذف العقد..." : "Deleting contract...");
+    try {
+      await deleteBackend("sponsorship-contracts", Number(contract.id));
+      if (editingContractId === Number(contract.id)) resetContractForm();
+      await contracts.reload();
+      setSaveStatus(isArabic ? "تم حذف العقد" : "Contract deleted");
+    } catch {
+      setSaveStatus(isArabic ? "تعذر حذف العقد" : "Unable to delete contract");
+    }
+    window.setTimeout(() => setSaveStatus(""), 2200);
   }
 
   function escapePrintValue(value: unknown) {
@@ -3015,6 +3095,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
                     <td>
                       <div className="contract-table-actions">
                         <button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button>
+                        <button aria-label={isArabic ? "حذف" : "Delete"} className="contract-table-action icon danger" onClick={() => void deleteContract(contract)} title={isArabic ? "حذف العقد" : "Delete contract"} type="button"><ContractActionIcon type="delete" /></button>
                         <button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button>
                       </div>
                     </td>
@@ -3934,6 +4015,23 @@ export function RentalContractsPanel({locale}: {locale: string}) {
     window.scrollTo({top: 0, behavior: "smooth"});
   }
 
+  async function deleteContract(contract: BackendRow) {
+    const confirmed = window.confirm(
+      isArabic ? "هل تريد حذف هذا العقد نهائياً؟" : "Delete this contract permanently?",
+    );
+    if (!confirmed) return;
+    setSaveStatus(isArabic ? "جاري حذف العقد..." : "Deleting contract...");
+    try {
+      await deleteBackend("rental-contracts", Number(contract.id));
+      if (editingContractId === Number(contract.id)) resetContractForm();
+      await contracts.reload();
+      setSaveStatus(isArabic ? "تم حذف العقد" : "Contract deleted");
+    } catch {
+      setSaveStatus(isArabic ? "تعذر حذف العقد" : "Unable to delete contract");
+    }
+    window.setTimeout(() => setSaveStatus(""), 2200);
+  }
+
   function escapePrintValue(value: unknown) {
     return String(value ?? "—")
       .replaceAll("&", "&amp;")
@@ -4485,6 +4583,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                 <td>
                   <div className="contract-table-actions">
                     <button aria-label={text.edit} className="contract-table-action icon" onClick={() => editContract(contract)} title={text.edit} type="button"><ContractActionIcon type="edit" /></button>
+                    <button aria-label={isArabic ? "حذف" : "Delete"} className="contract-table-action icon danger" onClick={() => void deleteContract(contract)} title={isArabic ? "حذف العقد" : "Delete contract"} type="button"><ContractActionIcon type="delete" /></button>
                     <button aria-label={text.print} className="contract-table-action primary icon" onClick={() => printContract(contract)} title={text.print} type="button"><ContractActionIcon type="print" /></button>
                   </div>
                 </td>
