@@ -22859,11 +22859,30 @@ html[dir="rtl"]
   border-radius: 50%;
 }
 
-.zone-filter-color.zone-a { background: #6f9ff0; }
-.zone-filter-color.zone-b { background: #86cf9b; }
-.zone-filter-color.zone-c { background: #f6d348; }
-.zone-filter-color.zone-aa,
-.zone-filter-color.zone-d { background: #f8fafc; }
+.zone-filter-color.zone-aa {
+  background: #fde08d;
+  border-color: #e0c270;
+}
+
+.zone-filter-color.zone-a {
+  background: #bdbdbd;
+  border-color: #9e9e9e;
+}
+
+.zone-filter-color.zone-b {
+  background: #a88247;
+  border-color: #8a6833;
+}
+
+.zone-filter-color.zone-c {
+  background: #a17357;
+  border-color: #845a40;
+}
+
+.zone-filter-color.zone-d {
+  background: #3f9298;
+  border-color: #2e6e73;
+}
 
 .admin-booth-zone-filter button:hover,
 .admin-booth-zone-filter button.active {
@@ -22875,6 +22894,14 @@ html[dir="rtl"]
 
 .admin-booth-zone-filter button.zone-all {
   order: -1;
+}
+
+.admin-booth-zone-filter button.zone-all.active,
+.admin-booth-zone-filter button.zone-all:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  color: #475569;
+  box-shadow: 0 2px 8px rgba(71, 85, 105, 0.12);
 }
 
 .admin-booth-map-legend {
