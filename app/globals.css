@@ -22862,6 +22862,8 @@ html[dir="rtl"]
 .zone-filter-color.zone-a { background: #6f9ff0; }
 .zone-filter-color.zone-b { background: #86cf9b; }
 .zone-filter-color.zone-c { background: #f6d348; }
+.zone-filter-color.zone-aa,
+.zone-filter-color.zone-d { background: #f8fafc; }
 
 .admin-booth-zone-filter button:hover,
 .admin-booth-zone-filter button.active {
@@ -24033,6 +24035,43 @@ html[dir="rtl"]
 .admin-booth-map-tile.is-reserved::after,
 .admin-booth-map-tile.is-reserved::before {
   display: none;
+}
+
+/* Match the booth palette to the category legend. */
+.admin-floor-map-canvas .admin-booth-map-tile.booth-aa4,
+.admin-floor-map-canvas .admin-booth-map-tile.category-aa {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #000000 !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-gray {
+  background-color: #6f9ff0 !important;
+  border-color: #2563eb !important;
+  color: #000000 !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-b4,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-b5 {
+  background-color: #86cf9b !important;
+  border-color: #4f9f68 !important;
+  color: #000000 !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-c14,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-gov,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-c15,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-c16,
+.admin-floor-map-canvas .admin-booth-map-tile.category-c {
+  background-color: #f6d348 !important;
+  border-color: #c5a51e !important;
+  color: #000000 !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.category-d {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #000000 !important;
 }
 
 .new-government-booth-card {
