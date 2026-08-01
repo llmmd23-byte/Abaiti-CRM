@@ -23128,7 +23128,7 @@ html[dir="rtl"]
   display: block;
   overflow: hidden;
   pointer-events: none;
-  clip-path: inset(2% 10.5% 12% 3%);
+  clip-path: inset(2% 5% 2% 4%);
 }
 
 
@@ -23664,6 +23664,16 @@ html[dir="rtl"]
 .admin-booth-map-tile.category-c {
   border-color: #b88705;
   background: rgba(246, 211, 72, 0.72);
+}
+
+.admin-booth-map-tile.category-aa {
+  border-color: #b45309;
+  background: #f6d58a;
+}
+
+.admin-booth-map-tile.category-d {
+  border-color: #0e7490;
+  background: #4aa3ad;
 }
 
 .admin-booth-map-tile::after {

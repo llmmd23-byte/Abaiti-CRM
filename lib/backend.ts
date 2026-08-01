@@ -1139,7 +1139,7 @@ const newBoothCatalog = [
   {number: "C14", size: "380x200 cm", status: "available"},
   {number: "C15", size: "380x200 cm", status: "available"},
   {number: "C16", size: "380x200 cm", status: "available"},
-  ...Array.from({length: 48}, (_, index) => ({number: `D${index + 1}`, size: "300x300 cm", status: "available"})),
+  ...Array.from({length: 48}, (_, index) => ({number: `D${index + 1}`, size: "300x300 cm", status: index === 44 ? "reserved" : "available"})),
   {number: "RES_TOP_01", size: null, status: "reserved"},
   {number: "RES_TOP_02", size: null, status: "reserved"},
   ...Array.from({length: 8}, (_, index) => ({number: `RES_LEFT_${String(index + 1).padStart(2, "0")}`, size: null, status: "reserved"})),

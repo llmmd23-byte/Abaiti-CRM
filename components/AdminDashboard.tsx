@@ -4755,18 +4755,19 @@ export const NEW_BOOTH_LAYOUT = [
     Array.from({length: group.count}, (_, index) => {
       const row = Math.floor(index / group.columns);
       const column = index % group.columns;
-      return {
+    return {
         id: `D${group.start + index}`,
         left: group.left + column * 8,
         top: group.top + row * 7,
         width: 8,
         height: 6,
       };
-    }),
+    }).filter((booth) => booth.id !== "D45"),
   ),
 ] as const;
 
 export const NEW_RESERVED_BOOTH_LAYOUT = [
+  {id: "D45", left: 87, top: 91, width: 8, height: 6},
   {id: "RES_TOP_01", left: 4, top: 2, width: 19, height: 16},
   {id: "RES_TOP_02", left: 29, top: 2, width: 19, height: 16},
   ...Array.from({length: 8}, (_, index) => ({
