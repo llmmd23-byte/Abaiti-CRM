@@ -23688,12 +23688,13 @@ html[dir="rtl"]
   position: absolute;
   right: 3px;
   top: 3px;
-  width: 5px;
-  height: 5px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  width: 7px;
+  height: 7px;
+  border: 2px solid #ffffff;
   border-radius: 50%;
   background: #2f9e44;
-  box-shadow: 0 0 0 1px rgba(15, 45, 74, 0.2);
+  box-shadow: 0 0 0 1px rgba(15, 45, 74, 0.55);
+  z-index: 2;
 }
 
 .admin-booth-map-tile.is-feature-area {
