@@ -2120,7 +2120,7 @@ export function CustomersView() {
   }
 
   return (
-    <article className="table-card expanded-table-card">
+    <article className="table-card expanded-table-card customers-directory-card">
       <div className="card-title">
         <div>
           <h3>{t("dashboardPages.customers.tableTitle")}</h3>

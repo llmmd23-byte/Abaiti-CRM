@@ -28,6 +28,7 @@ export type BackendResource =
   | "sponsorship-contracts"
   | "rental-contracts"
   | "rental-booths"
+  | "booth-availability"
   | "booths"
   | "sales-orders"
   | "sales"
@@ -314,6 +315,11 @@ const resources: Record<BackendResource, ResourceDefinition> = {
   "rental-booths": {
     table: "rental_booths",
     permissionKey: "table.rental_booths",
+    writable: [],
+  },
+  "booth-availability": {
+    table: "booth",
+    permissionKey: "table.booths",
     writable: [],
   },
   booths: {
@@ -1081,7 +1087,7 @@ async function ensureBoothTable() {
       booth_category VARCHAR(120) NULL,
       hall VARCHAR(120) NULL,
       location_zone VARCHAR(120) NULL,
-      status ENUM('available', 'inactive') NOT NULL DEFAULT 'available',
+      status ENUM('available', 'inactive', 'reserved') NOT NULL DEFAULT 'available',
       notes TEXT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -1096,6 +1102,9 @@ async function ensureBoothTable() {
       "ALTER TABLE booth ADD COLUMN booth_dimensions VARCHAR(120) NULL AFTER booth_size",
     );
   }
+  await db.execute(
+    "ALTER TABLE booth MODIFY COLUMN status ENUM('available', 'inactive', 'reserved') NOT NULL DEFAULT 'available'",
+  );
   await db.execute(
     "UPDATE booth SET booth_size = REPLACE(booth_size, '?', '') WHERE booth_size LIKE '%?%'",
   );
@@ -1118,47 +1127,44 @@ async function syncBoothCatalogFromRentalBooths() {
   );
 }
 
-const defaultBoothCatalog: Array<{number: string; size: string}> = [
-  ["ST04", "25m?"], ["ST03", "25m?"], ["TP01", "36m?"], ["ST02", "25m?"], ["ST01", "25m?"],
-  ["FL1", ""], ["FL24", ""], ["RL3", "9m?"], ["M25", "9m?"], ["M19", "9m?"], ["M13", "9m?"], ["M05", "9m?"],
-  ["RL1", "18m?"], ["RL2", "18m?"], ["M33", "12m?"], ["M01", "18m?"], ["FL2", ""], ["FL23", ""],
-  ["M26", "9m?"], ["M20", "9m?"], ["M14", "9m?"], ["M06", "9m?"], ["RL4", "9m?"], ["FL3", ""], ["FL22", ""],
-  ["M34", "12m?"], ["FL4", ""], ["FL21", ""], ["RL34", "9m?"], ["M29", "9m?"], ["M07", "9m?"], ["M21", "9m?"],
-  ["M15", "9m?"], ["RL5", "9m?"], ["FL5", ""], ["FL20", ""], ["RL6", "9m?"], ["RL35", "12m?"], ["RL32", "12m?"],
-  ["FL6", ""], ["FL19", ""], ["M02", "18m?"], ["SB1", ""], ["ACADEMY", "100m"], ["GLASS HOUSE", "60m"], ["FL7", ""], ["FL18", ""], ["RL7", "9m?"],
-  ["M08", "12m?"], ["SB2", ""], ["RL36", "9m?"], ["RL31", "9m?"], ["FL8", ""], ["FL17", ""], ["SB3", ""],
-  ["RL8", "9m?"], ["FL9", ""], ["FL16", ""], ["M09", "12m?"], ["SB4", ""], ["FL10", ""], ["FL15", ""],
-  ["RL9", "9m?"], ["RL29", "9m?"], ["RL30", "12m?"], ["RL15", "9m?"], ["RL13", "9m?"], ["M03", "18m?"], ["SB5", ""],
-  ["FL11", ""], ["FL14", ""], ["SB6", ""], ["RL26", "12m?"], ["RL25", "9m?"], ["RL33", "9m?"], ["RL16", "9m?"], ["RL14", "9m?"],
-  ["RL10", "9m?"], ["FL12", ""], ["FL13", ""], ["M30", "9m?"], ["M22", "9m?"], ["M16", "9m?"], ["M10", "9m?"],
-  ["SB7", ""], ["SB8", ""], ["M31", "9m?"], ["M23", "9m?"], ["M17", "9m?"], ["M11", "9m?"], ["RL21", "9m?"],
-  ["RL19", "9m?"], ["RL27", "9m?"], ["RL28", "12m?"], ["SB9", ""], ["1SB", ""], ["M04", "18m?"], ["RL22", "9m?"], ["RL20", "9m?"],
-  ["M32", "9m?"], ["M24", "9m?"], ["M18", "9m?"], ["M12", "9m?"], ["RL24", "12m?"], ["RL23", "9m?"],
-  ["IN2", "12m?"], ["IN3", "12m?"], ["IN4", "12m?"], ["IN5", "12m?"], ["IN6", "12m?"], ["IN1", "18m?"],
-  ["IN11", "12m?"], ["IN10", "12m?"], ["IN9", "12m?"], ["IN8", "12m?"], ["IN7", "9m?"], ["IN12", "9m?"],
-  ["IN13", "9m?"], ["IN14", "9m?"], ["IN15", "9m?"], ["IN16", "9m?"], ["IN17", "9m?"], ["IN18", "9m?"],
-  ["IN19", "9m?"], ["IN20", "9m?"],
-].map(([number, size]) => ({number, size}));
+const newBoothCatalog = [
+  {number: "AA4", size: "6x4 m", status: "available"},
+  {number: "A4", size: "380x200 cm", status: "available"},
+  {number: "A5", size: "380x200 cm", status: "available"},
+  {number: "A6", size: "380x200 cm", status: "available"},
+  {number: "B4", size: "6x3 m", status: "available"},
+  {number: "B5", size: "6x3 m", status: "available"},
+  {number: "C12", size: "3x3 m", status: "available", category: "government"},
+  {number: "C13", size: "3x3 m", status: "available", category: "government"},
+  {number: "C14", size: "380x200 cm", status: "available"},
+  {number: "C15", size: "380x200 cm", status: "available"},
+  {number: "C16", size: "380x200 cm", status: "available"},
+  ...Array.from({length: 48}, (_, index) => ({number: `D${index + 1}`, size: "300x300 cm", status: "available"})),
+  {number: "RES_TOP_01", size: null, status: "reserved"},
+  {number: "RES_TOP_02", size: null, status: "reserved"},
+  ...Array.from({length: 8}, (_, index) => ({number: `RES_LEFT_${String(index + 1).padStart(2, "0")}`, size: null, status: "reserved"})),
+  ...Array.from({length: 8}, (_, index) => ({number: `RES_RIGHT_${String(index + 1).padStart(2, "0")}`, size: null, status: "reserved"})),
+];
 
 async function seedDefaultBoothCatalog() {
   await ensureBoothTable();
-  const placeholders = defaultBoothCatalog.map(() => "(?, ?, ?, 'available')").join(", ");
-  const values = defaultBoothCatalog.flatMap((booth) => {
-    const size = booth.size.replace("?", "") || null;
-    const dimensions =
-      booth.number === "ACADEMY"
-        ? "10x10m"
-        : booth.number === "GLASS HOUSE"
-          ? "10x6m"
-          : size;
-    return [booth.number, size, dimensions];
+  await db.execute(
+    "DELETE FROM booth WHERE booth_number NOT IN (?)",
+    [newBoothCatalog.map((booth) => booth.number)],
+  );
+  const placeholders = newBoothCatalog.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
+  const values: Array<string | null> = newBoothCatalog.flatMap((booth) => {
+    const size = String(booth.size ?? "").replace("?", "") || null;
+    return [booth.number, size, size, booth.category ?? null, null, booth.status];
   });
   await db.execute(
-    `INSERT INTO booth (booth_number, booth_size, booth_dimensions, status)
+    `INSERT INTO booth (booth_number, booth_size, booth_dimensions, booth_category, hall, status)
       VALUES ${placeholders}
       ON DUPLICATE KEY UPDATE
-        booth_size = REPLACE(COALESCE(booth.booth_size, VALUES(booth_size)), '?', ''),
-        booth_dimensions = COALESCE(booth.booth_dimensions, VALUES(booth_dimensions))`,
+        booth_size = VALUES(booth_size),
+        booth_dimensions = VALUES(booth_dimensions),
+        booth_category = COALESCE(VALUES(booth_category), booth.booth_category),
+        status = VALUES(status)`,
     values,
   );
 }
@@ -2041,6 +2047,34 @@ export async function listResource(resource: string, session: MiddarSession) {
     await closeExpiredQuotes();
   }
 
+  if (resource === "booth-availability") {
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT UPPER(TRIM(stand_number)) booth_number,
+              'booked' status
+         FROM participation_contracts
+        WHERE stand_number IS NOT NULL AND TRIM(stand_number) <> ''
+          AND COALESCE(status, '') <> 'cancelled'
+       UNION ALL
+       SELECT UPPER(TRIM(stand_number)) booth_number,
+              'booked' status
+         FROM sponsorship_contracts
+        WHERE stand_number IS NOT NULL AND TRIM(stand_number) <> ''
+          AND COALESCE(status, '') <> 'cancelled'
+       UNION ALL
+       SELECT UPPER(TRIM(stand_number)) booth_number, 'booked' status
+         FROM sales_orders
+        WHERE stand_number IS NOT NULL AND TRIM(stand_number) <> ''
+          AND COALESCE(status, '') <> 'cancelled'
+       UNION ALL
+       SELECT UPPER(TRIM(booth_number)) booth_number,
+              'booked' status
+         FROM rental_contracts
+        WHERE booth_number IS NOT NULL AND TRIM(booth_number) <> ''
+          AND COALESCE(status, '') <> 'cancelled'`,
+    );
+    return rows;
+  }
+
   const { clause: where, params } =
     resource === "lead-tag-types" || resource === "support-ticket-types"
       ? await tagTypeCompanyFilter(session)
@@ -2389,6 +2423,56 @@ const requiredFields: Partial<Record<BackendResource, readonly string[]>> = {
   "educational-assets": ["title", "asset_type"],
 };
 
+async function assertBoothReservationAvailable(
+  resource: string,
+  data: Record<string, unknown>,
+  currentId?: number,
+) {
+  const reservationField =
+    resource === "rental-contracts"
+      ? "booth_number"
+      : ["participation-contracts", "sponsorship-contracts", "sales-orders"].includes(resource)
+        ? "stand_number"
+        : null;
+  if (!reservationField || data[reservationField] === undefined) return;
+
+  const boothNumber = String(data[reservationField] ?? "").trim().toUpperCase();
+  if (!boothNumber) return;
+
+  const sources = [
+    ["participation_contracts", "stand_number"],
+    ["sponsorship_contracts", "stand_number"],
+    ["sales_orders", "stand_number"],
+    ["rental_contracts", "booth_number"],
+  ] as const;
+  const currentTable =
+    resource === "participation-contracts"
+      ? "participation_contracts"
+      : resource === "sponsorship-contracts"
+        ? "sponsorship_contracts"
+        : resource === "sales-orders"
+          ? "sales_orders"
+          : resource === "rental-contracts"
+            ? "rental_contracts"
+            : null;
+  for (const [table, column] of sources) {
+    if (!(await tableExists(table))) continue;
+    const excludeCurrent = Boolean(currentId && table === currentTable);
+    const idClause = excludeCurrent ? " AND id <> ?" : "";
+    const params: Array<string | number> = excludeCurrent
+      ? [boothNumber, currentId as number]
+      : [boothNumber];
+    const [rows] = await db.execute<RowDataPacket[]>(
+      `SELECT id FROM ${table}
+        WHERE UPPER(TRIM(${column})) = ?
+          AND COALESCE(status, '') <> 'cancelled'${idClause}
+        LIMIT 1`,
+      params,
+    );
+    if (rows.length) throw new Error("BOOTH_NOT_AVAILABLE");
+  }
+}
+
 export async function createResource(
   resource: string,
   payload: Record<string, unknown>,
@@ -2427,6 +2511,7 @@ export async function createResource(
   if (definition.writable.length === 0) throw new Error("READ_ONLY_RESOURCE");
 
   const data = cleanPayload(definition, payload);
+  await assertBoothReservationAvailable(resource, data);
   if (resource === "leads") {
     if (data.industry_id !== undefined && data.industry_id !== null) {
       const industryId = Number(data.industry_id);
@@ -2615,7 +2700,7 @@ export async function createResource(
       if (data[column] !== undefined && data[column] !== null)
         data[column] = String(data[column]).replaceAll("?", "").trim() || null;
     }
-    if (!["available", "inactive"].includes(String(data.status ?? "available"))) {
+    if (!["available", "inactive", "reserved"].includes(String(data.status ?? "available"))) {
       data.status = "available";
     }
   }
@@ -2906,6 +2991,7 @@ export async function updateResource(
       throw new Error("FORBIDDEN_QUOTE_STATUS");
   }
   const data = cleanPayload(definition, payload);
+  await assertBoothReservationAvailable(resource, data, id);
   if (resource === "lead-contacts" && data.phone)
     data.phone = String(data.phone).replace(/[^\d+]/g, "");
   if (resource === "stores" && data.phone)
@@ -3105,7 +3191,7 @@ export async function updateResource(
     }
     if (
       data.status !== undefined &&
-      !["available", "inactive"].includes(String(data.status ?? "available"))
+      !["available", "inactive", "reserved"].includes(String(data.status ?? "available"))
     ) {
       data.status = "available";
     }
