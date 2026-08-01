@@ -303,6 +303,7 @@ export default function DashboardShell({
   const router = useRouter();
   const direction = locale === "ar" ? "rtl" : "ltr";
   const [pendingHref, setPendingHref] = useState<DashboardHref | null>(null);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     name?: string;
     role?: string;
@@ -354,6 +355,7 @@ export default function DashboardShell({
     router.prefetch(item.href);
   };
   const handleNavIntent = (item: NavItem) => {
+    setIsMobileNavOpen(false);
     setPendingHref(item.href);
     prefetchItem(item);
   };
@@ -393,8 +395,27 @@ export default function DashboardShell({
             width={220}
           />
         </Link>
+        <button
+          aria-expanded={isMobileNavOpen}
+          aria-label={locale === "ar" ? "فتح قائمة التنقل" : "Open navigation menu"}
+          className="sidebar-mobile-toggle"
+          onClick={() => setIsMobileNavOpen((current) => !current)}
+          type="button"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
 
-        <nav className="sidebar-nav" aria-label={t("nav.dashboard")}>
+        <nav className={`sidebar-nav${isMobileNavOpen ? " is-open" : ""}`} aria-label={t("nav.dashboard")}>
+          <button
+            aria-label={locale === "ar" ? "إغلاق قائمة التنقل" : "Close navigation menu"}
+            className="sidebar-mobile-close"
+            onClick={() => setIsMobileNavOpen(false)}
+            type="button"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
           {canViewItem(overviewItem) ? (
             <div className="sidebar-nav-item">
               <Link
@@ -454,6 +475,14 @@ export default function DashboardShell({
             })}
           </div>
         </nav>
+        {isMobileNavOpen ? (
+          <button
+            aria-label={locale === "ar" ? "إغلاق القائمة" : "Close menu"}
+            className="sidebar-mobile-backdrop"
+            onClick={() => setIsMobileNavOpen(false)}
+            type="button"
+          />
+        ) : null}
 
         <div className="sidebar-bottom-actions">
           <div className="sidebar-meta">
