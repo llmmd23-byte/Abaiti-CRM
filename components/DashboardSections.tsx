@@ -4538,7 +4538,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                     <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
                       {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}
                     </div>
-                    <div className="admin-floor-map-label entrance">{isArabic ? "بوابة الدخول" : "Entrance"}</div>
                     <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
                     {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "all").map((zone) => (
                       <div
