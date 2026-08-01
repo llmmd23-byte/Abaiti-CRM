@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS users (
   manager_id BIGINT UNSIGNED NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   password_hash VARCHAR(255) NOT NULL,
-  role ENUM('admin', 'affiliate', 'sales', 'support', 'observer') NOT NULL DEFAULT 'affiliate',
+  role ENUM('admin', 'affiliate', 'sales', 'support') NOT NULL DEFAULT 'affiliate',
   status ENUM('active', 'inactive', 'pending', 'suspended') NOT NULL DEFAULT 'active',
   preferred_locale ENUM('ar', 'en') NOT NULL DEFAULT 'ar',
   phone VARCHAR(40) NULL,

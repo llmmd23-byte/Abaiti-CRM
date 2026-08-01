@@ -32,7 +32,6 @@ type AdminSection =
   | "tags"
   | "activity"
   | "content"
-  | "contract-settings"
   | "permissions";
 type AdminRow = Record<string, unknown> & { id: number };
 type CurrentAccount = {
@@ -151,10 +150,9 @@ const settingsNavItems = [
   [{ ar: "\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a", en: "Products" }, "products"],
   [{ ar: "\u0627\u0644\u0623\u0646\u0634\u0637\u0629", en: "Industries" }, "activity"],
   [{ ar: "\u0627\u0644\u0645\u062d\u062a\u0648\u0649", en: "Content" }, "content"],
-  [{ ar: "\u0627\u0644\u0639\u0642\u0648\u062f", en: "Contracts" }, "contract-settings"],
 ] as const;
 
-const settingsSections = new Set<AdminSection>(["products", "activity", "content", "contract-settings"]);
+const settingsSections = new Set<AdminSection>(["products", "activity", "content"]);
 
 const adminValueLabels: Record<string, { ar: string; en: string }> = {
   active: { ar: "نشط", en: "Active" },
@@ -356,11 +354,6 @@ function AdminIcon({ name }: { name: string }) {
           <path d="M12 3 5 6v5c0 4.2 2.8 8 7 10 4.2-2 7-5.8 7-10V6l-7-3Z" />
           <path d="m9 12 2 2 4-5" />
         </>
-      ) : name === "contract-settings" ? (
-        <>
-          <path d="M5 4h14v16H5z" />
-          <path d="M8 8h8M8 12h8M8 16h5" />
-        </>
       ) : name === "settings" ? (
         <>
           <path d="M4 7h16" />
@@ -375,162 +368,6 @@ function AdminIcon({ name }: { name: string }) {
         </>
       )}
     </svg>
-  );
-}
-
-type ContractSettingsDraft = {
-  vatRate: string;
-  sponsorshipCategories: Array<{name: string; amount: string}>;
-  pricePerSqm: string;
-  registrationFee: string;
-  city: string;
-  contractTypeScope: "sponsorship" | "participation" | "both";
-};
-
-const EMPTY_CONTRACT_SETTINGS: ContractSettingsDraft = {
-  vatRate: "15",
-  sponsorshipCategories: [
-    {name: "Diamond", amount: "0"},
-    {name: "Gold", amount: "0"},
-    {name: "Silver", amount: "0"},
-  ],
-  pricePerSqm: "0",
-  registrationFee: "0",
-  city: "Jeddah",
-  contractTypeScope: "both",
-};
-
-function contractSettingsDraftFromValue(settings: Record<string, unknown> | undefined, scope: ContractSettingsDraft["contractTypeScope"]): ContractSettingsDraft {
-  return {
-    vatRate: String(settings?.vatRate ?? 15),
-    sponsorshipCategories: Array.isArray(settings?.sponsorshipCategories)
-      ? (settings.sponsorshipCategories as Array<{name?: string; amount?: number}>).map((item) => ({name: String(item.name ?? ""), amount: String(item.amount ?? 0)}))
-      : EMPTY_CONTRACT_SETTINGS.sponsorshipCategories,
-    pricePerSqm: String(settings?.pricePerSqm ?? 0),
-    registrationFee: String(settings?.registrationFee ?? 0),
-    city: String(settings?.city ?? "Jeddah"),
-    contractTypeScope: scope,
-  };
-}
-
-function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
-  const [draft, setDraft] = useState<ContractSettingsDraft>(EMPTY_CONTRACT_SETTINGS);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [categoryDraft, setCategoryDraft] = useState({name: "", amount: "0"});
-  const [scopeDrafts, setScopeDrafts] = useState<Record<ContractSettingsDraft["contractTypeScope"], ContractSettingsDraft>>({
-    sponsorship: {...EMPTY_CONTRACT_SETTINGS, contractTypeScope: "sponsorship"},
-    participation: {...EMPTY_CONTRACT_SETTINGS, contractTypeScope: "participation"},
-    both: EMPTY_CONTRACT_SETTINGS,
-  });
-
-  useEffect(() => {
-    fetch("/api/v1/contract-settings", {cache: "no-store"})
-      .then((response) => response.json())
-      .then((body) => {
-        const settings = body.data;
-        if (!settings) return;
-        const scopes = body.scopes ?? {};
-        const nextScopes = {
-          sponsorship: contractSettingsDraftFromValue(scopes.sponsorship, "sponsorship"),
-          participation: contractSettingsDraftFromValue(scopes.participation, "participation"),
-          both: contractSettingsDraftFromValue(scopes.both, "both"),
-        };
-        setScopeDrafts(nextScopes);
-        const selectedScope = ["sponsorship", "participation", "both"].includes(String(settings.contractTypeScope)) ? settings.contractTypeScope : "both";
-        setDraft(nextScopes[selectedScope as ContractSettingsDraft["contractTypeScope"]]);
-      })
-      .catch(() => setMessage(isArabic ? "تعذر تحميل إعدادات العقود" : "Unable to load contract settings"))
-      .finally(() => setLoading(false));
-  }, [isArabic]);
-
-  async function save() {
-    setSaving(true);
-    setMessage("");
-    try {
-      const response = await fetch("/api/v1/contract-settings", {
-        method: "PUT",
-        headers: {"Content-Type": "application/json; charset=utf-8"},
-        body: JSON.stringify({
-          vatRate: Number(draft.vatRate) || 0,
-          sponsorshipCategories: draft.sponsorshipCategories.map((item) => ({
-            name: item.name.trim(),
-            amount: Number(item.amount) || 0,
-          })),
-          pricePerSqm: Number(draft.pricePerSqm) || 0,
-          registrationFee: Number(draft.registrationFee) || 0,
-          city: draft.city,
-          contractTypeScope: draft.contractTypeScope,
-        }),
-      });
-      if (!response.ok) throw new Error("SAVE_FAILED");
-      setScopeDrafts({...scopeDrafts, [draft.contractTypeScope]: draft});
-      setMessage(isArabic ? "تم حفظ إعدادات العقود" : "Contract settings saved");
-    } catch {
-      setMessage(isArabic ? "تعذر حفظ إعدادات العقود" : "Unable to save contract settings");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (loading) return <section className="admin-data-card admin-loading">{isArabic ? "جاري تحميل إعدادات العقود..." : "Loading contract settings..."}</section>;
-
-  return (
-    <section className="admin-data-card contract-settings-panel" dir={isArabic ? "rtl" : "ltr"}>
-      <div className="admin-section-heading">
-        <div>
-          <span>{isArabic ? "إعدادات العقود" : "Contract settings"}</span>
-          <h2>{isArabic ? "القيم الافتراضية لنماذج العقود" : "Contract form defaults"}</h2>
-        </div>
-        <p>{isArabic ? "تُستخدم هذه القيم تلقائياً في نماذج عقود المستخدمين." : "These values are used automatically in user contract forms."}</p>
-      </div>
-      <div className="contract-settings-scope" role="radiogroup" aria-label={isArabic ? "تطبيق الإعدادات على" : "Apply settings to"}>
-        <strong>{isArabic ? "تطبيق الإعدادات على:" : "Apply settings to:"}</strong>
-        {([
-          ["sponsorship", isArabic ? "عقد الرعاية" : "Sponsorship contract"],
-          ["participation", isArabic ? "عقد المشاركة" : "Participation contract"],
-          ["both", isArabic ? "كلا العقدين" : "Both contracts"],
-        ] as const).map(([value, label]) => (
-          <label className={draft.contractTypeScope === value ? "active" : ""} key={value}>
-            <input checked={draft.contractTypeScope === value} name="contract-type-scope" onChange={() => setDraft(scopeDrafts[value])} type="radio" value={value} />
-            <span>{label}</span>
-          </label>
-        ))}
-      </div>
-      <div className="contract-settings-grid">
-        <label><span>{isArabic ? "نسبة ضريبة القيمة المضافة (%)" : "VAT rate (%)"}</span><input min="0" max="100" onChange={(event) => setDraft({...draft, vatRate: event.target.value})} type="number" value={draft.vatRate} /></label>
-        <label><span>{isArabic ? "سعر المتر المربع" : "Price per square meter"}</span><input min="0" onChange={(event) => setDraft({...draft, pricePerSqm: event.target.value})} type="number" value={draft.pricePerSqm} /></label>
-        <label><span>{isArabic ? "رسوم التسجيل" : "Registration fee"}</span><input min="0" onChange={(event) => setDraft({...draft, registrationFee: event.target.value})} type="number" value={draft.registrationFee} /></label>
-        <label><span>{isArabic ? "مدينة العقد" : "Contract city"}</span><input onChange={(event) => setDraft({...draft, city: event.target.value})} value={draft.city} /></label>
-      </div>
-      <div className="contract-settings-categories">
-        <div className="contract-settings-subhead"><h3>{isArabic ? "فئات الرعاية ومبالغها" : "Sponsorship categories and amounts"}</h3><button onClick={() => setIsCategoryModalOpen(true)} type="button">{isArabic ? "إضافة فئة" : "Add category"}</button></div>
-        {draft.sponsorshipCategories.map((category, index) => (
-          <div className="contract-settings-category-row" key={`category-${index}`}>
-            <input aria-label={isArabic ? "اسم الفئة" : "Category name"} onChange={(event) => setDraft({...draft, sponsorshipCategories: draft.sponsorshipCategories.map((item, itemIndex) => itemIndex === index ? {...item, name: event.target.value} : item)})} placeholder={isArabic ? "اسم الفئة" : "Category name"} value={category.name} />
-            <input aria-label={isArabic ? "مبلغ الرعاية" : "Sponsorship amount"} min="0" onChange={(event) => setDraft({...draft, sponsorshipCategories: draft.sponsorshipCategories.map((item, itemIndex) => itemIndex === index ? {...item, amount: event.target.value} : item)})} placeholder={isArabic ? "المبلغ" : "Amount"} type="number" value={category.amount} />
-            <button aria-label={isArabic ? "حذف الفئة" : "Remove category"} onClick={() => setDraft({...draft, sponsorshipCategories: draft.sponsorshipCategories.filter((_, itemIndex) => itemIndex !== index)})} type="button">×</button>
-          </div>
-        ))}
-      </div>
-      {message ? <p className="contract-settings-message">{message}</p> : null}
-      <button className="admin-action-btn primary" disabled={saving} onClick={() => void save()} type="button">{saving ? (isArabic ? "جاري الحفظ..." : "Saving...") : (isArabic ? "حفظ الإعدادات" : "Save configuration")}</button>
-      {isCategoryModalOpen ? (
-        <div className="contract-settings-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsCategoryModalOpen(false); }} role="presentation">
-          <div className="contract-settings-modal" dir={isArabic ? "rtl" : "ltr"} role="dialog" aria-modal="true" aria-labelledby="contract-category-modal-title">
-            <div className="contract-settings-modal-head">
-              <div><span>{isArabic ? "إعدادات العقود" : "Contract settings"}</span><h3 id="contract-category-modal-title">{isArabic ? "إضافة فئة رعاية" : "Add sponsorship category"}</h3></div>
-              <button aria-label={isArabic ? "إغلاق" : "Close"} onClick={() => setIsCategoryModalOpen(false)} type="button">×</button>
-            </div>
-            <label><span>{isArabic ? "اسم الفئة" : "Category name"}</span><input autoFocus onChange={(event) => setCategoryDraft({...categoryDraft, name: event.target.value})} placeholder={isArabic ? "مثال: ماسي" : "Example: Diamond"} value={categoryDraft.name} /></label>
-            <label><span>{isArabic ? "مبلغ الرعاية" : "Sponsorship amount"}</span><input min="0" onChange={(event) => setCategoryDraft({...categoryDraft, amount: event.target.value})} type="number" value={categoryDraft.amount} /></label>
-            <div className="contract-settings-modal-actions"><button onClick={() => setIsCategoryModalOpen(false)} type="button">{isArabic ? "إلغاء" : "Cancel"}</button><button className="admin-action-btn primary" disabled={!categoryDraft.name.trim()} onClick={() => { if (!categoryDraft.name.trim()) return; setDraft({...draft, sponsorshipCategories: [...draft.sponsorshipCategories, {name: categoryDraft.name.trim(), amount: categoryDraft.amount || "0"}]}); setCategoryDraft({name: "", amount: "0"}); setIsCategoryModalOpen(false); }} type="button">{isArabic ? "إضافة" : "Add"}</button></div>
-          </div>
-        </div>
-      ) : null}
-    </section>
   );
 }
 
@@ -578,7 +415,6 @@ export default function AdminDashboard({
               "tags",
               "activity",
               "content",
-              "contract-settings",
               "permissions",
             ],
       ),
@@ -3579,6 +3415,15 @@ const permissionCategoryLabels: Record<string, { ar: string; en: string; order: 
   other: { ar: "صلاحيات أخرى", en: "Other Permissions", order: 90 },
 };
 
+const hiddenPermissionKeys = new Set([
+  "page.user.participation_contracts",
+  "page.user.sponsorship_contracts",
+  "page.user.sales_orders",
+  "table.participation_contracts",
+  "table.sponsorship_contracts",
+  "table.sales_orders",
+]);
+
 function permissionCategoryForKey(key: string) {
   if (key.startsWith("page.admin.")) return "admin_pages";
   if (key.startsWith("page.user.")) return "user_pages";
@@ -3596,12 +3441,9 @@ function permissionCategoryForKey(key: string) {
     return "customers";
   if (
     [
-      "table.participation_contracts",
-      "table.sponsorship_contracts",
       "table.rental_contracts",
       "table.rental_booths",
       "table.booths",
-      "table.sales_orders",
     ].includes(key)
   )
     return "contracts";
@@ -3751,6 +3593,7 @@ function AdminPermissionsSection({ isArabic }: { isArabic: boolean }) {
       .map((permission) => [permission.permission_key, permission]),
   );
   const filteredKeys = availablePermissionKeys.filter((key) => {
+    if (hiddenPermissionKeys.has(key)) return false;
     const label = permissionKeyLabels[key]?.[language] ?? key;
     const normalized = query.trim().toLocaleLowerCase();
     return normalized
@@ -4550,183 +4393,7 @@ export const PPT_BOOTH_LAYOUT = [
   { id: "TP01", left: 44.582, top: 4.416, width: 9.261, height: 9.761 },
 ] as const;
 
-// REE JED layout normalized from the supplied one-page PDF.
-export const LEGACY_REE_JED_BOOTH_LAYOUT = [
-  { id: "C8", left: 3.858, top: 7.227, width: 4.3, height: 4.6 },
-  { id: "C9", left: 17.639, top: 7.227, width: 4.3, height: 4.6 },
-  { id: "C10", left: 22.727, top: 7.227, width: 4.3, height: 4.6 },
-  { id: "C11", left: 27.273, top: 7.227, width: 4.3, height: 4.6 },
-  { id: "C12", left: 36.577, top: 7.227, width: 4.3, height: 4.6 },
-  { id: "C13", left: 44.483, top: 7.251, width: 4.3, height: 4.6 },
-  { id: "C14", left: 53.986, top: 7.275, width: 4.3, height: 4.6 },
-  { id: "C15", left: 66.903, top: 7.227, width: 4.3, height: 4.6 },
-  { id: "C16", left: 71.449, top: 7.227, width: 4.3, height: 4.6 },
-  { id: "C17", left: 75.994, top: 7.227, width: 4.3, height: 4.6 },
-  { id: "C18", left: 80.54, top: 7.227, width: 4.3, height: 4.6 },
-  { id: "C19", left: 90.108, top: 11.256, width: 4.3, height: 4.6 },
-  { id: "C4", left: 18.099, top: 14.526, width: 4.3, height: 4.6 },
-  { id: "C5", left: 32.375, top: 14.526, width: 4.3, height: 4.6 },
-  { id: "C6", left: 46.588, top: 14.502, width: 4.3, height: 4.6 },
-  { id: "C7", left: 68.79, top: 14.502, width: 4.3, height: 4.6 },
-  { id: "C3", left: 3.858, top: 16.469, width: 4.3, height: 4.6 },
-  { id: "C20", left: 90.33, top: 22.322, width: 4.3, height: 4.6 },
-  { id: "C1", left: 46.588, top: 25.735, width: 4.3, height: 4.6 },
-  { id: "C2", left: 68.79, top: 25.735, width: 4.3, height: 4.6 },
-  { id: "C21", left: 90.438, top: 34.905, width: 4.3, height: 4.6 },
-  { id: "C22", left: 90.506, top: 42.844, width: 4.3, height: 4.6 },
-  { id: "C23", left: 90.267, top: 54.81, width: 4.3, height: 4.6 },
-  { id: "B8", left: 18.338, top: 25.592, width: 4.3, height: 4.8 },
-  { id: "B9", left: 32.588, top: 25.735, width: 4.3, height: 4.8 },
-  { id: "B3", left: 4.074, top: 37.607, width: 4.3, height: 4.8 },
-  { id: "B4", left: 18.312, top: 36.967, width: 4.3, height: 4.8 },
-  { id: "B5", left: 32.588, top: 36.967, width: 4.3, height: 4.8 },
-  { id: "B6", left: 46.832, top: 37.18, width: 4.3, height: 4.8 },
-  { id: "B7", left: 69.006, top: 37.109, width: 4.3, height: 4.8 },
-  { id: "B2", left: 4.074, top: 48.175, width: 4.3, height: 4.8 },
-  { id: "B1", left: 4.074, top: 60.095, width: 4.3, height: 4.8 },
-  { id: "A4", left: 18.312, top: 45, width: 4.3, height: 20 },
-  { id: "A5", left: 32.588, top: 45, width: 4.3, height: 20 },
-  { id: "A8", left: 46.827, top: 48.175, width: 4.3, height: 4.8 },
-  { id: "A9", left: 69.003, top: 48.175, width: 4.3, height: 4.8 },
-  { id: "A6", left: 46.827, top: 60.047, width: 4.3, height: 4.8 },
-  { id: "A7", left: 69.003, top: 60.047, width: 4.3, height: 4.8 },
-  { id: "A1", left: 10.716, top: 73.27, width: 4.3, height: 4.8 },
-  { id: "A2", left: 41.577, top: 73.27, width: 4.3, height: 4.8 },
-  { id: "A3", left: 72.241, top: 73.152, width: 4.3, height: 4.8 },
-  { id: "B109", left: 3.727, top: 89.526, width: 5, height: 3 },
-  { id: "B110", left: 11.636, top: 85.57, width: 5, height: 3 },
-  { id: "B111", left: 19.571, top: 85.57, width: 5, height: 3 },
-  { id: "A100", left: 27.517, top: 85.57, width: 5, height: 3 },
-  { id: "A101", left: 46.974, top: 89.265, width: 5, height: 3 },
-  { id: "A102", left: 66.884, top: 85.8, width: 5, height: 3 },
-  { id: "A103", left: 74.747, top: 85.8, width: 5, height: 3 },
-  { id: "B104", left: 82.69, top: 85.8, width: 5, height: 3 },
-  { id: "B105", left: 87.69, top: 95.43, width: 5, height: 3 },
-  { id: "B106", left: 82.69, top: 95.43, width: 5, height: 3 },
-  { id: "B107", left: 18.71, top: 95.64, width: 5, height: 3 },
-  { id: "B108", left: 10.801, top: 95.64, width: 5, height: 3 },
-] as const;
-
-// Landscape layout aligned to the supplied REE JED plan.
-export const REE_JED_BOOTH_LAYOUT = [
-  { id: "C8", left: 5, top: 5, width: 6, height: 5 },
-  { id: "C9", left: 14, top: 5, width: 3, height: 3 },
-  { id: "C10", left: 17, top: 5, width: 3, height: 3 },
-  { id: "C11", left: 20, top: 5, width: 3, height: 3 },
-  { id: "C12", left: 28, top: 5, width: 5, height: 3 },
-  { id: "C13", left: 33, top: 5, width: 6, height: 3 },
-  { id: "C14", left: 39, top: 5, width: 5, height: 3 },
-  { id: "C15", left: 46, top: 5, width: 3, height: 3 },
-  { id: "C16", left: 49, top: 5, width: 3, height: 3 },
-  { id: "C17", left: 52, top: 5, width: 3, height: 3 },
-  { id: "C18", left: 55, top: 5, width: 3, height: 3 },
-  { id: "C19", left: 61, top: 7, width: 3, height: 4 },
-  { id: "C20", left: 61, top: 21, width: 3, height: 6 },
-  { id: "C21", left: 61, top: 35, width: 3, height: 6 },
-  { id: "C22", left: 61, top: 41, width: 3, height: 6 },
-  { id: "C23", left: 61, top: 55, width: 3, height: 10 },
-  { id: "C3", left: 5, top: 12, width: 6, height: 6 },
-  { id: "C4", left: 14, top: 11, width: 6, height: 6 },
-  { id: "C5", left: 23, top: 11, width: 6, height: 6 },
-  { id: "C6", left: 35, top: 11, width: 10, height: 6 },
-  { id: "C7", left: 48, top: 11, width: 10, height: 6 },
-  { id: "C1", left: 35, top: 23, width: 10, height: 6 },
-  { id: "C2", left: 48, top: 23, width: 10, height: 6 },
-  { id: "B3", left: 5, top: 35, width: 6, height: 6 },
-  { id: "B8", left: 14, top: 23, width: 6, height: 6 },
-  { id: "B9", left: 23, top: 23, width: 6, height: 6 },
-  { id: "B4", left: 14, top: 35, width: 6, height: 6 },
-  { id: "B5", left: 23, top: 35, width: 6, height: 6 },
-  { id: "B6", left: 35, top: 35, width: 10, height: 6 },
-  { id: "B7", left: 48, top: 35, width: 10, height: 6 },
-  { id: "B2", left: 5, top: 47, width: 6, height: 6 },
-  { id: "B1", left: 5, top: 59, width: 6, height: 6 },
-  { id: "A4", left: 14, top: 47, width: 6, height: 18 },
-  { id: "A5", left: 23, top: 47, width: 6, height: 18 },
-  { id: "A8", left: 35, top: 47, width: 10, height: 6 },
-  { id: "A9", left: 48, top: 47, width: 10, height: 6 },
-  { id: "A6", left: 35, top: 59, width: 10, height: 6 },
-  { id: "A7", left: 48, top: 59, width: 10, height: 6 },
-  { id: "A1", left: 9.5, top: 71, width: 10, height: 6 },
-  { id: "A2", left: 30, top: 71, width: 10, height: 6 },
-  { id: "A3", left: 51, top: 71, width: 8, height: 6 },
-  { id: "B109", left: 6, top: 80, width: 3, height: 4 },
-  { id: "B110", left: 10, top: 78, width: 4, height: 3 },
-  { id: "B111", left: 15, top: 78, width: 4, height: 3 },
-  { id: "A100", left: 20, top: 78, width: 4, height: 3 },
-  { id: "A101", left: 30, top: 80, width: 10, height: 3 },
-  { id: "A102", left: 45, top: 78, width: 4, height: 3 },
-  { id: "A103", left: 50, top: 78, width: 4, height: 3 },
-  { id: "B104", left: 55, top: 78, width: 4, height: 3 },
-  { id: "B105", left: 60, top: 84, width: 4, height: 3 },
-  { id: "B106", left: 55, top: 84, width: 4, height: 3 },
-  { id: "B107", left: 15, top: 84, width: 4, height: 3 },
-  { id: "B108", left: 10, top: 84, width: 4, height: 3 },
-] as const;
-
-export const REE_JED_DIMENSION_OVERRIDES: Record<string, string> = {
-  C8: "6x5m",
-  C9: "3x3m",
-  C10: "3x3m",
-  C11: "3x3m",
-  C12: "5x3m",
-  C13: "6x3m",
-  C14: "5x3m",
-  C15: "3x3m",
-  C16: "3x3m",
-  C17: "3x3m",
-  C18: "3x3m",
-  C19: "3x4m",
-  C20: "3x6m",
-  C21: "3x6m",
-  C22: "3x6m",
-  C23: "3x10m",
-  C3: "6x6m",
-  C4: "6x6m",
-  C5: "6x6m",
-  C6: "10x6m",
-  C7: "10x6m",
-  C1: "10x6m",
-  C2: "10x6m",
-  B1: "6x6m",
-  B2: "6x6m",
-  B3: "6x6m",
-  B4: "6x6m",
-  B5: "6x6m",
-  B6: "10x6m",
-  B7: "10x6m",
-  B8: "6x6m",
-  B9: "6x6m",
-  A4: "6x15m",
-  A5: "6x15m",
-  A6: "10x6m",
-  A7: "10x6m",
-  A8: "10x6m",
-  A9: "10x6m",
-  A1: "10x6m",
-  A2: "10x6m",
-  A3: "8x6m",
-  A100: "4x3m",
-  A101: "10x3m",
-  A102: "4x3m",
-  A103: "4x3m",
-  B104: "4x3m",
-  B105: "4x3m",
-  B106: "4x3m",
-  B107: "4x3m",
-  B108: "4x3m",
-  B109: "3x4m",
-  B110: "4x3m",
-  B111: "4x3m",
-};
-
-// The active booth coordinates occupy this portion of the drawing width.
-// Normalize them at render time so the map uses the available canvas evenly.
-export const REE_MAP_CONTENT_WIDTH = 76;
-export const REE_LAYOUT_HEIGHT = 110;
-const REE_FULL_MAP_SCALE = 1;
-
-export const LEGACY_FLOOR_MAP_AREA_LABELS = [
+export const FLOOR_MAP_AREA_LABELS = [
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.235, top: 16.719, width: 43.18, height: 4.486 },
   { key: "roasting", labelAr: "منطقة التحميص", labelEn: "Roasting Area", left: 49.8, top: 16.719, width: 37.6, height: 4.237 },
   { key: "farmers", labelAr: "سوق مزارعين البن", labelEn: "Coffee Farmers Market", left: 86.906, top: 19.21, width: 8.812, height: 42.352 },
@@ -4735,7 +4402,7 @@ export const LEGACY_FLOOR_MAP_AREA_LABELS = [
   { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.235, top: 75.199, width: 43.355, height: 22.454 },
 ] as const;
 
-export const LEGACY_FLOOR_MAP_ZONES = [
+export const FLOOR_MAP_ZONES = [
   { key: "all", labelAr: "كل الأقسام", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
   { key: "prefunction", labelAr: "قاعة ما قبل الفعالية", labelEn: "Pre-Function Hall", left: 11.2, top: 4.6, width: 76.4, height: 9.2 },
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.0, top: 17.0, width: 47.8, height: 56.8 },
@@ -4745,28 +4412,13 @@ export const LEGACY_FLOOR_MAP_ZONES = [
   { key: "stage", labelAr: "الساحة والمسرح", labelEn: "Plaza & Stage", left: 3.8, top: 75.6, width: 41.8, height: 21.0 },
 ] as const;
 
-export const FLOOR_MAP_AREA_LABELS = [
-  { key: "ree-layout", labelAr: "", labelEn: "", left: 3, top: 1, width: 94, height: 5 },
-] as const;
-
-export const LEGACY_REE_FLOOR_MAP_ZONES = [
-  { key: "all", labelAr: "الكل", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
-  { key: "ree", labelAr: "منطقة المعرض", labelEn: "Exhibition Layout", left: 1, top: 1, width: 98, height: 98 },
-] as const;
-
-export const FLOOR_MAP_ZONES = [
-  { key: "all", labelAr: "الكل", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
-  { key: "a", labelAr: "بوثات A", labelEn: "A booths", left: 1, top: 58, width: 98, height: 40 },
-  { key: "b", labelAr: "بوثات B", labelEn: "B booths", left: 1, top: 24, width: 98, height: 74 },
-  { key: "c", labelAr: "بوثات C", labelEn: "C booths", left: 1, top: 5, width: 98, height: 55 },
-] as const;
-
 export function floorMapZoneForBooth(boothId: string) {
-  const normalized = boothId.trim().toUpperCase();
-  if (normalized.startsWith("C")) return "c";
-  if (normalized.startsWith("A")) return "a";
-  if (normalized.startsWith("B")) return "b";
-  return "all";
+  if (boothId.startsWith("ST") || boothId.startsWith("TP")) return "prefunction";
+  if (boothId.startsWith("M") || boothId === "ACADEMY" || boothId.startsWith("SB") || boothId.endsWith("SB")) return "traders";
+  if (boothId.startsWith("RL") || boothId === "GLASS HOUSE") return "roasting";
+  if (boothId.startsWith("FL")) return "farmers";
+  if (boothId.startsWith("IN")) return "innovation";
+  return "stage";
 }
 
 function boothPrefix(value: unknown) {
@@ -4806,47 +4458,6 @@ function AdminBoothsSection({
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [mapZoom, setMapZoom] = useState(1);
-  const [mapPan, setMapPan] = useState({ x: 40, y: 0 });
-  const mapPanStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
-  const [isPanningMap, setIsPanningMap] = useState(false);
-
-  function resetMapView() {
-    setMapZoom(1);
-    setMapPan({ x: 40, y: 0 });
-  }
-
-  function changeMapZoom(delta: number) {
-    setMapZoom((current) => Math.min(2.2, Math.max(0.75, Number((current + delta).toFixed(2)))));
-  }
-
-  function startMapPan(event: React.PointerEvent<HTMLDivElement>) {
-    if ((event.target as HTMLElement).closest("button")) return;
-    mapPanStart.current = { x: event.clientX, y: event.clientY, panX: mapPan.x, panY: mapPan.y };
-    setIsPanningMap(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-
-  function moveMapPan(event: React.PointerEvent<HTMLDivElement>) {
-    if (!isPanningMap) return;
-    const viewport = event.currentTarget.getBoundingClientRect();
-    const maxX = Math.max(0, (viewport.width * (mapZoom - 1)) / 2);
-    const maxY = Math.max(0, (viewport.height * (mapZoom - 1)) / 2);
-    const nextX = mapPanStart.current.panX + event.clientX - mapPanStart.current.x;
-    const nextY = mapPanStart.current.panY + event.clientY - mapPanStart.current.y;
-    setMapPan({
-      x: Math.min(maxX, Math.max(-maxX, nextX)),
-      y: Math.min(maxY, Math.max(-maxY, nextY)),
-    });
-  }
-
-  function stopMapPan(event: React.PointerEvent<HTMLDivElement>) {
-    if (!isPanningMap) return;
-    setIsPanningMap(false);
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-  }
 
   async function loadBooths() {
     setIsLoading(true);
@@ -4932,11 +4543,11 @@ function AdminBoothsSection({
     [filteredBooths],
   );
   const layoutBoothIds = useMemo(
-    () => new Set<string>(REE_JED_BOOTH_LAYOUT.map((booth) => booth.id)),
+    () => new Set<string>(PPT_BOOTH_LAYOUT.map((booth) => booth.id)),
     [],
   );
   const visibleLayoutBooths = useMemo(
-    () => REE_JED_BOOTH_LAYOUT,
+    () => PPT_BOOTH_LAYOUT,
     [],
   );
   const unplacedBooths = useMemo(
@@ -5100,18 +4711,14 @@ function AdminBoothsSection({
           />
         </div>
         <div className="admin-booth-zone-filter" role="listbox" aria-label={isArabic ? "فلترة الأقسام" : "Zone filter"}>
-          {[...FLOOR_MAP_ZONES].sort((first, second) => {
-            const order = { a: 0, b: 1, c: 2, all: 3 } as Record<string, number>;
-            return order[first.key] - order[second.key];
-          }).map((zone) => (
+          {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "stage").map((zone) => (
             <button
               aria-selected={activeZone === zone.key}
-              className={`${activeZone === zone.key ? "active" : ""} zone-${zone.key}`}
+              className={activeZone === zone.key ? "active" : ""}
               key={zone.key}
               onClick={() => setActiveZone(zone.key)}
               type="button"
             >
-              {zone.key !== "all" ? <i className={`zone-filter-color zone-${zone.key}`} aria-hidden="true" /> : null}
               {isArabic ? zone.labelAr : zone.labelEn}
             </button>
           ))}
@@ -5120,66 +4727,31 @@ function AdminBoothsSection({
           {isArabic ? "تحديث" : "Refresh"}
         </button>
       </div>
-<div className="admin-booths-workspace">
+
+      <div className="admin-booths-workspace">
         <div className="admin-booths-layout" aria-busy={isLoading}>
           {isLoading ? (
             <div className="admin-booths-empty">{isArabic ? "جاري تحميل الخريطة..." : "Loading layout..."}</div>
           ) : visibleLayoutBooths.length ? (
             <>
-              <div
-                className={`admin-floor-map-viewport ${isPanningMap ? "is-panning" : ""}`}
-                onWheel={(event) => {
-                  event.preventDefault();
-                }}
-                onPointerDown={startMapPan}
-                onPointerMove={moveMapPan}
-                onPointerUp={stopMapPan}
-                onPointerCancel={stopMapPan}
-              >
-              <div
-                className="admin-floor-map-canvas"
-                style={{ transform: `translate(${mapPan.x}px, ${mapPan.y}px) scale(${mapZoom * REE_FULL_MAP_SCALE})` }}
-              >
-                <div className="ree-map-outer-border" aria-hidden="true" />
-                <div className="ree-map-walkways-layer" aria-hidden="true">
-                  <div className="ree-map-walkway walkway-main" />
-                  <div className="ree-map-walkway walkway-cross walkway-cross-upper" />
-                  <div className="ree-map-walkway walkway-cross walkway-cross-middle" />
-                  <div className="ree-map-walkway walkway-cross walkway-cross-lower" />
-                  <div className="ree-map-walkway walkway-side walkway-side-left" />
-                  <div className="ree-map-walkway walkway-side walkway-side-right" />
-                  <div className="ree-map-walkway walkway-zone walkway-zone-a" />
-                  <div className="ree-map-walkway walkway-zone walkway-zone-b" />
-                  <div className="ree-map-walkway walkway-zone walkway-zone-c" />
-                </div>
-                <svg className="ree-map-stepped-boundary" viewBox="0 0 61 114" preserveAspectRatio="none" aria-hidden="true">
-                  <path
-                    className="ree-map-stepped-wall"
-                    d="M1 1 H54 M1 1 V95 H19 V111 H23 M54 1 V95 H42 V111 H38"
-                  />
-                  <path
-                    className="ree-map-stepped-wall ree-map-inner-wall"
-                    d="M2 2 H53 M2 2 V94 H20 V110 H23 M53 2 V94 H41 V110 H38"
-                  />
-                  <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
-                </svg>
-                <div className="ree-map-seating" aria-hidden="true">
-                  {["table-1", "table-2", "table-3", "table-4"].map((table) => (
-                    <div className="ree-map-table" key={table}>
-                      <b />
-                      <i className="chair chair-top" />
-                      <i className="chair chair-right" />
-                      <i className="chair chair-bottom" />
-                      <i className="chair chair-left" />
-                    </div>
-                  ))}
-                </div>
+              <div className="admin-floor-map-canvas">
                 <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
                   {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}
                 </div>
                 <div className="admin-floor-map-label entrance">{isArabic ? "بوابة الدخول" : "Entrance"}</div>
                 <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
-                <div className="admin-floor-map-label entrance entrance-copy">{isArabic ? "بوابة الدخول الرئيسية" : "Main Entrance"}</div>
+                {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "all").map((zone) => (
+                  <div
+                    className={`admin-floor-zone-container ${zone.key} ${activeZone === zone.key ? "is-focused" : ""} ${activeZone !== "all" && activeZone !== zone.key ? "is-dimmed" : ""}`}
+                    key={zone.key}
+                    style={{
+                      left: `${zone.left}%`,
+                      top: `${zone.top}%`,
+                      width: `${zone.width}%`,
+                      height: `${zone.height}%`,
+                    }}
+                  />
+                ))}
                 {FLOOR_MAP_AREA_LABELS.map((area) => (
                   <div
                     className={`admin-floor-map-area-label ${area.key}`}
@@ -5206,50 +4778,43 @@ function AdminBoothsSection({
                   const isBooked = bookingStatus === "booked";
                   const isInactive = String(booth?.status ?? "available") === "inactive";
                   const isSelected = booth && Number(selectedBooth?.id) === Number(booth.id);
-                  const isPolishedBooth = ["C4", "C5", "C6", "C7"].includes(String(layoutBooth.id));
-                  const boothCategory = String(booth?.booth_category ?? layoutBooth.id.charAt(0)).trim().toLowerCase();
-                  const isFeatureArea = (layoutBooth.id as string) === "ACADEMY" || (layoutBooth.id as string) === "GLASS HOUSE";
+                  const isFeatureArea = layoutBooth.id === "ACADEMY" || layoutBooth.id === "GLASS HOUSE";
                   const boothMapLabel =
-                    (layoutBooth.id as string) === "ACADEMY"
+                    layoutBooth.id === "ACADEMY"
                       ? isArabic
                         ? "الأكاديمية"
                         : "Academy"
-                      : (layoutBooth.id as string) === "GLASS HOUSE"
+                      : layoutBooth.id === "GLASS HOUSE"
                         ? isArabic
                           ? "جلاس هاوس"
                           : "Glass House"
                         : layoutBooth.id;
-                  const boothMapSize =
-                    REE_JED_DIMENSION_OVERRIDES[layoutBooth.id] ??
-                    String(booth?.booth_size ?? booth?.booth_dimensions ?? "").trim();
-                  const boothMapSizeLabel = boothMapSize.replace(/\s+/g, "").replace(/x/g, "X");
+                  const boothMapSize = String(
+                    booth?.booth_size ?? booth?.booth_dimensions ?? "",
+                  ).trim();
                   return (
                     <button
-                      className={`admin-booth-map-tile category-${boothCategory} ${layoutBooth.width < 5 ? "is-narrow" : ""} ${isPolishedBooth ? "is-polished-booth" : ""} ${isFeatureArea ? "is-feature-area" : ""} ${hasSearch && !isSearchMatch ? "is-search-dimmed" : ""} ${hasSearch && isSearchMatch ? "is-search-match" : ""} ${activeZone !== "all" && activeZone !== layoutZone ? "is-zone-dimmed" : ""} ${activeZone === layoutZone ? "is-zone-focused" : ""} ${isPendingPayment ? "is-pending-payment" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
+                      className={`admin-booth-map-tile ${isFeatureArea ? "is-feature-area" : ""} ${hasSearch && !isSearchMatch ? "is-search-dimmed" : ""} ${hasSearch && isSearchMatch ? "is-search-match" : ""} ${activeZone !== "all" && activeZone !== layoutZone ? "is-zone-dimmed" : ""} ${activeZone === layoutZone ? "is-zone-focused" : ""} ${isPendingPayment ? "is-pending-payment" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
                       disabled={isMissing}
                       dir="ltr"
                       key={layoutBooth.id}
                       onClick={() => booth && selectBooth(booth)}
                       style={{
-                        left: `${(layoutBooth.left / REE_MAP_CONTENT_WIDTH) * 100}%`,
-                        top: `${(layoutBooth.top / REE_LAYOUT_HEIGHT) * 100}%`,
-                        width: `${(layoutBooth.width / REE_MAP_CONTENT_WIDTH) * 100}%`,
-                        height: `${(layoutBooth.height / REE_LAYOUT_HEIGHT) * 100}%`,
+                        left: `${layoutBooth.left}%`,
+                        top: `${layoutBooth.top}%`,
+                        width: `${layoutBooth.width}%`,
+                        height: `${layoutBooth.height}%`,
                       }}
-                      aria-label={`${boothMapLabel} ${layoutBooth.id}`}
-                      data-booth-tooltip={boothMapLabel}
                       title={layoutBooth.id}
                       type="button"
                     >
                       <strong>{boothMapLabel}</strong>
-                      {boothMapSizeLabel ? <span>{boothMapSizeLabel}</span> : null}
+                      {boothMapSize ? <span>{boothMapSize}</span> : null}
                     </button>
                   );
                 })}
               </div>
-              </div>
-              <div className="ree-map-bottom-extension" aria-hidden="true" />
-              {false && unplacedBooths.length ? (
+              {unplacedBooths.length ? (
                 <section className="admin-unplaced-booths">
                   <div className="admin-booth-zone-title">
                     <strong>{isArabic ? "بوثات خارج الخريطة" : "Unplaced booths"}</strong>
@@ -5569,7 +5134,7 @@ function AdminManagementSection({
       ],
     },
   } satisfies Record<
-    Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams" | "contract-settings">,
+    Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams">,
     { rows: AdminRow[]; columns: string[][] }
   >;
   const config =
@@ -5585,7 +5150,7 @@ function AdminManagementSection({
             ["created_at", isArabic ? "تاريخ الرفع" : "Upload Date"],
           ],
         }
-      : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams" | "contract-settings">] ?? {
+      : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams">] ?? {
           rows: [],
           columns: [],
         };
@@ -5640,10 +5205,6 @@ function AdminManagementSection({
 
   if (section === "booths") {
     return <AdminBoothsSection isArabic={isArabic} isReadOnly={isReadOnly} />;
-  }
-
-  if (section === "contract-settings") {
-    return <AdminContractSettingsSection isArabic={isArabic} />;
   }
 
   if (!data)
