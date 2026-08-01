@@ -2,7 +2,16 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FLOOR_MAP_AREA_LABELS, FLOOR_MAP_ZONES, PPT_BOOTH_LAYOUT, floorMapZoneForBooth } from "@/components/AdminDashboard";
+import {
+  FLOOR_MAP_AREA_LABELS,
+  FLOOR_MAP_ZONES,
+  REE_JED_BOOTH_LAYOUT,
+  REE_JED_DIMENSION_OVERRIDES,
+  REE_LAYOUT_HEIGHT,
+  REE_MAP_CONTENT_WIDTH,
+  PPT_BOOTH_LAYOUT,
+  floorMapZoneForBooth,
+} from "@/components/AdminDashboard";
 import DashboardSelect from "@/components/DashboardSelect";
 import { createBackend, updateBackend, useBackend } from "@/lib/client-backend";
 
@@ -1106,6 +1115,122 @@ export function QuoteSystem() {
   );
 }
 
+function BoothMapPicker({
+  isArabic,
+  value,
+  onChange,
+}: {
+  isArabic: boolean;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [zone, setZone] = useState("all");
+  const visibleBooths = useMemo(() => {
+    const normalizedQuery = query.trim().toUpperCase();
+    return REE_JED_BOOTH_LAYOUT.filter((booth) => {
+      if (zone !== "all" && floorMapZoneForBooth(booth.id) !== zone) return false;
+      return !normalizedQuery || booth.id.toUpperCase().includes(normalizedQuery);
+    });
+  }, [query, zone]);
+
+  const openPicker = () => {
+    setQuery("");
+    setZone("all");
+    setOpen(true);
+  };
+
+  return (
+    <>
+      <button
+        aria-haspopup="dialog"
+        className="rental-booth-open-map booth-map-picker-trigger"
+        onClick={openPicker}
+        type="button"
+      >
+        <strong>{value || (isArabic ? "اختيار البوث" : "Choose booth")}</strong>
+        <span>{isArabic ? "خريطة" : "Map"}</span>
+      </button>
+      {open ? (
+        <div className="rental-booth-modal-backdrop" role="presentation">
+          <section className="rental-booth-modal" aria-modal="true" role="dialog">
+            <div className="rental-booth-modal-head">
+              <div>
+                <span>{isArabic ? "اختيار البوث" : "Booth selection"}</span>
+                <h3>{isArabic ? "خريطة البوثات" : "Booth Layout"}</h3>
+              </div>
+              <button aria-label={isArabic ? "إغلاق" : "Close"} onClick={() => setOpen(false)} type="button">×</button>
+            </div>
+            <div className="rental-booth-modal-toolbar">
+              <div className="admin-record-search-bar search-box">
+                <input
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={isArabic ? "ابحث برقم البوث..." : "Search booth number..."}
+                  type="search"
+                  value={query}
+                />
+              </div>
+              <div className="admin-booth-map-legend">
+                <span>{isArabic ? "متاح" : "Available"}<i className="available" aria-hidden="true" /></span>
+                <span>{isArabic ? "مختار" : "Selected"}<i className="selected" aria-hidden="true" /></span>
+              </div>
+            </div>
+            <div className="admin-booth-zone-filter rental-booth-modal-zone-filter" role="listbox">
+              {FLOOR_MAP_ZONES.map((item) => (
+                <button
+                  aria-selected={zone === item.key}
+                  className={zone === item.key ? "active" : ""}
+                  key={item.key}
+                  onClick={() => setZone(item.key)}
+                  type="button"
+                >
+                  {isArabic ? item.labelAr : item.labelEn}
+                </button>
+              ))}
+            </div>
+            <div className="rental-booth-modal-map">
+              <div className="admin-floor-map-canvas">
+                <div className="ree-map-outer-border" aria-hidden="true" />
+                <svg className="ree-map-stepped-boundary" viewBox="0 0 61 114" preserveAspectRatio="none" aria-hidden="true">
+                  <path className="ree-map-stepped-wall" d="M1 1 H54 M1 1 V95 H19 V111 H23 M54 1 V95 H42 V111 H38" />
+                  <path className="ree-map-stepped-wall ree-map-inner-wall" d="M2 2 H53 M2 2 V94 H20 V110 H23 M53 2 V94 H41 V110 H38" />
+                  <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
+                </svg>
+                {visibleBooths.map((booth) => {
+                  const selected = value.trim().toUpperCase() === booth.id.toUpperCase();
+                  const boothSize = REE_JED_DIMENSION_OVERRIDES[booth.id] ?? "";
+                  return (
+                    <button
+                      aria-pressed={selected}
+                      className={`admin-booth-map-tile category-${booth.id.charAt(0).toLowerCase()} ${booth.width < 5 ? "is-narrow" : ""} ${["C4", "C5", "C6", "C7"].includes(booth.id) ? "is-polished-booth" : ""} ${selected ? "is-selected" : ""}`}
+                      key={booth.id}
+                      onClick={() => {
+                        onChange(booth.id);
+                        setOpen(false);
+                      }}
+                      style={{
+                        left: `${(booth.left / REE_MAP_CONTENT_WIDTH) * 100}%`,
+                        top: `${(booth.top / REE_LAYOUT_HEIGHT) * 100}%`,
+                        width: `${(booth.width / REE_MAP_CONTENT_WIDTH) * 100}%`,
+                        height: `${(booth.height / REE_LAYOUT_HEIGHT) * 100}%`,
+                      }}
+                      type="button"
+                    >
+                      <strong>{booth.id}</strong>
+                      {boothSize ? <span>{boothSize.replace(/\s+/g, "").replace(/x/g, "X")}</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 export function ParticipationContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
   const contracts = useBackend<BackendRow[]>("/api/v1/data/participation-contracts");
@@ -1972,7 +2097,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
           </label>
           <label className="quote-field">
             <span>{text.standNumber}</span>
-            <input onChange={(event) => setStandNumber(event.target.value)} value={standNumber} />
+            <BoothMapPicker isArabic={isArabic} onChange={setStandNumber} value={standNumber} />
           </label>
           <label className="quote-field">
             <span>{text.locationCategory}</span>
@@ -2722,7 +2847,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>
           <label className="quote-field"><span>{text.website}</span><input onChange={(event) => setWebsite(event.target.value)} value={website} /></label>
           <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
-          <label className="quote-field"><span>{text.standNumber}</span><input onChange={(event) => setStandNumber(event.target.value)} value={standNumber} /></label>
+          <label className="quote-field"><span>{text.standNumber}</span><BoothMapPicker isArabic={isArabic} onChange={setStandNumber} value={standNumber} /></label>
           <label className="quote-field">
             <span>{text.sponsorshipCategory} <b className="required-mark">*</b></span>
             <DashboardSelect
@@ -3296,7 +3421,7 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
           <label className="quote-field"><span>{text.email}</span><input onChange={(event) => setEmail(event.target.value)} type="email" value={email} /></label>
           <label className="quote-field"><span>{text.phone}</span><input inputMode="tel" onChange={(event) => setPhone(event.target.value)} value={phone} /></label>
           <label className="quote-field"><span>{text.exhibitionName}</span><input onChange={(event) => setExhibitionName(event.target.value)} value={exhibitionName} /></label>
-          <label className="quote-field"><span>{text.standNumber}</span><input onChange={(event) => setStandNumber(event.target.value)} value={standNumber} /></label>
+          <label className="quote-field"><span>{text.standNumber}</span><BoothMapPicker isArabic={isArabic} onChange={setStandNumber} value={standNumber} /></label>
           <label className="quote-field"><span>{text.itemDescription} <b className="required-mark">*</b></span><input onChange={(event) => setItemDescription(event.target.value)} value={itemDescription} /></label>
           <label className="quote-field"><span>{text.uom}</span><input onChange={(event) => setUom(event.target.value)} value={uom} /></label>
           <label className="quote-field"><span>{text.unitPrice}</span><input inputMode="decimal" min="0" onChange={(event) => setUnitPrice(event.target.value)} type="number" value={unitPrice} /></label>

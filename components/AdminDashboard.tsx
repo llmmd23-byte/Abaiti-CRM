@@ -4500,7 +4500,7 @@ export const REE_JED_BOOTH_LAYOUT = [
   { id: "B108", left: 10, top: 84, width: 4, height: 3 },
 ] as const;
 
-const REE_JED_DIMENSION_OVERRIDES: Record<string, string> = {
+export const REE_JED_DIMENSION_OVERRIDES: Record<string, string> = {
   C8: "6x5m",
   C9: "3x3m",
   C10: "3x3m",
@@ -4558,8 +4558,8 @@ const REE_JED_DIMENSION_OVERRIDES: Record<string, string> = {
 
 // The active booth coordinates occupy this portion of the drawing width.
 // Normalize them at render time so the map uses the available canvas evenly.
-const REE_MAP_CONTENT_WIDTH = 76;
-const REE_LAYOUT_HEIGHT = 110;
+export const REE_MAP_CONTENT_WIDTH = 76;
+export const REE_LAYOUT_HEIGHT = 110;
 const REE_FULL_MAP_SCALE = 1;
 
 export const LEGACY_FLOOR_MAP_AREA_LABELS = [
@@ -4582,7 +4582,7 @@ export const LEGACY_FLOOR_MAP_ZONES = [
 ] as const;
 
 export const FLOOR_MAP_AREA_LABELS = [
-  { key: "ree-layout", labelAr: "REE JED", labelEn: "REE JED Booth Layout", left: 3, top: 1, width: 94, height: 5 },
+  { key: "ree-layout", labelAr: "", labelEn: "", left: 3, top: 1, width: 94, height: 5 },
 ] as const;
 
 export const LEGACY_REE_FLOOR_MAP_ZONES = [
@@ -4991,11 +4991,11 @@ function AdminBoothsSection({
                 <svg className="ree-map-stepped-boundary" viewBox="0 0 61 114" preserveAspectRatio="none" aria-hidden="true">
                   <path
                     className="ree-map-stepped-wall"
-                    d="M1 1 H54 M1 1 V103 H17 V111 H23 M54 1 V103 H44 V111 H38"
+                    d="M1 1 H54 M1 1 V95 H19 V111 H23 M54 1 V95 H42 V111 H38"
                   />
                   <path
                     className="ree-map-stepped-wall ree-map-inner-wall"
-                    d="M2 2 H53 M2 2 V102 H18 V110 H23 M53 2 V102 H43 V110 H38"
+                    d="M2 2 H53 M2 2 V94 H20 V110 H23 M53 2 V94 H41 V110 H38"
                   />
                   <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
                 </svg>
@@ -5085,7 +5085,7 @@ function AdminBoothsSection({
               </div>
               </div>
               <div className="ree-map-bottom-extension" aria-hidden="true" />
-              {unplacedBooths.length ? (
+              {false && unplacedBooths.length ? (
                 <section className="admin-unplaced-booths">
                   <div className="admin-booth-zone-title">
                     <strong>{isArabic ? "بوثات خارج الخريطة" : "Unplaced booths"}</strong>

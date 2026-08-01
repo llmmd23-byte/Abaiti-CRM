@@ -6322,6 +6322,11 @@ html[dir="ltr"] .dashboard-main {
 
 .rental-booth-modal-map .admin-floor-map-canvas {
   margin: 0 auto;
+  width: 100%;
+  max-width: 100%;
+  min-height: 460px;
+  height: min(68vh, 760px);
+  aspect-ratio: 61 / 114;
 }
 
 .rental-booth-modal-map .admin-floor-zone-container {
@@ -9751,10 +9756,15 @@ html[dir="rtl"] .dashboard-route-shell .dashboard-main {
   overflow-x: visible;
 }
 
-.dashboard-route-shell .dashboard-main .quote-history-card table {
+.dashboard-route-shell .dashboard-main .quote-history-card .quote-history-table {
   width: 100%;
-  min-width: 0;
-  table-layout: fixed;
+  overflow-x: auto;
+}
+
+.dashboard-route-shell .dashboard-main .quote-history-card table {
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
 }
 
 .dashboard-route-shell .dashboard-main .quote-history-card :is(th, td) {
