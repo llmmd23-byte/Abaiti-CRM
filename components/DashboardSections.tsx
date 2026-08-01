@@ -2182,8 +2182,8 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   return (
     <div className="quotes-page-grid">
       {contractFormOpen ? (
-      <article className="quote-card quote-form-card">
-        <div className="card-title">
+      <article className="quote-card quote-form-card rental-contract-form-card">
+        <div className="card-title rental-form-title-row">
           <div>
             <h3>{text.formTitle}</h3>
             <span>{text.formSubtitle}</span>
@@ -3059,8 +3059,8 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   return (
     <div className="quotes-page-grid">
       {contractFormOpen ? (
-      <article className="quote-card quote-form-card">
-        <div className="card-title">
+      <article className="quote-card quote-form-card rental-contract-form-card">
+        <div className="card-title rental-form-title-row">
           <div>
             <h3>{text.formTitle}</h3>
             <span>{text.formSubtitle}</span>
