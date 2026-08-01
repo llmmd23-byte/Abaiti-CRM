@@ -23203,7 +23203,7 @@ html[dir="rtl"]
 }
 
 .ree-map-stepped-boundary {
-  display: block;
+  display: none;
   position: absolute;
   z-index: 1;
   left: 0;
@@ -23475,6 +23475,10 @@ html[dir="rtl"]
 
 .admin-floor-map-label.top,
 .admin-floor-map-label.exit {
+  display: none;
+}
+
+.admin-floor-map-label.entrance-copy {
   display: none;
 }
 
