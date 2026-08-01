@@ -4427,18 +4427,18 @@ export const LEGACY_REE_JED_BOOTH_LAYOUT = [
   { id: "A6", left: 46.827, top: 60.047, width: 4.3, height: 4.8 },
   { id: "A7", left: 69.003, top: 60.047, width: 4.3, height: 4.8 },
   { id: "A1", left: 10.716, top: 73.27, width: 4.3, height: 4.8 },
-  { id: "A2", left: 41.577, top: 75.877, width: 4.3, height: 4.8 },
+  { id: "A2", left: 41.577, top: 73.27, width: 4.3, height: 4.8 },
   { id: "A3", left: 72.241, top: 73.152, width: 4.3, height: 4.8 },
   { id: "B109", left: 3.727, top: 89.526, width: 5, height: 3 },
-  { id: "B110", left: 11.636, top: 85.569, width: 5, height: 3 },
-  { id: "B111", left: 19.571, top: 85.569, width: 5, height: 3 },
-  { id: "A100", left: 27.517, top: 86.588, width: 5, height: 3 },
+  { id: "B110", left: 11.636, top: 85.57, width: 5, height: 3 },
+  { id: "B111", left: 19.571, top: 85.57, width: 5, height: 3 },
+  { id: "A100", left: 27.517, top: 85.57, width: 5, height: 3 },
   { id: "A101", left: 46.974, top: 89.265, width: 5, height: 3 },
-  { id: "A102", left: 66.884, top: 85.806, width: 5, height: 3 },
-  { id: "A103", left: 74.747, top: 85.782, width: 5, height: 3 },
-  { id: "B104", left: 82.69, top: 85.545, width: 5, height: 3 },
-  { id: "B105", left: 89.636, top: 95.427, width: 5, height: 3 },
-  { id: "B106", left: 81.736, top: 95.403, width: 5, height: 3 },
+  { id: "A102", left: 66.884, top: 85.8, width: 5, height: 3 },
+  { id: "A103", left: 74.747, top: 85.8, width: 5, height: 3 },
+  { id: "B104", left: 82.69, top: 85.8, width: 5, height: 3 },
+  { id: "B105", left: 87.69, top: 95.43, width: 5, height: 3 },
+  { id: "B106", left: 82.69, top: 95.43, width: 5, height: 3 },
   { id: "B107", left: 18.71, top: 95.64, width: 5, height: 3 },
   { id: "B108", left: 10.801, top: 95.64, width: 5, height: 3 },
 ] as const;
@@ -4452,15 +4452,15 @@ export const REE_JED_BOOTH_LAYOUT = [
   { id: "C12", left: 28, top: 5, width: 5, height: 3 },
   { id: "C13", left: 33, top: 5, width: 6, height: 3 },
   { id: "C14", left: 39, top: 5, width: 5, height: 3 },
-  { id: "C15", left: 49, top: 5, width: 3, height: 3 },
-  { id: "C16", left: 52, top: 5, width: 3, height: 3 },
-  { id: "C17", left: 55, top: 5, width: 3, height: 3 },
-  { id: "C18", left: 58, top: 5, width: 3, height: 3 },
-  { id: "C19", left: 61, top: 12, width: 3, height: 4 },
-  { id: "C20", left: 61, top: 19, width: 3, height: 6 },
-  { id: "C21", left: 61, top: 28, width: 3, height: 6 },
-  { id: "C22", left: 61, top: 37, width: 3, height: 6 },
-  { id: "C23", left: 61, top: 46, width: 3, height: 10 },
+  { id: "C15", left: 46, top: 5, width: 3, height: 3 },
+  { id: "C16", left: 49, top: 5, width: 3, height: 3 },
+  { id: "C17", left: 52, top: 5, width: 3, height: 3 },
+  { id: "C18", left: 55, top: 5, width: 3, height: 3 },
+  { id: "C19", left: 61, top: 7, width: 3, height: 4 },
+  { id: "C20", left: 61, top: 23, width: 3, height: 6 },
+  { id: "C21", left: 61, top: 35, width: 3, height: 6 },
+  { id: "C22", left: 61, top: 41, width: 3, height: 6 },
+  { id: "C23", left: 61, top: 55, width: 3, height: 10 },
   { id: "C3", left: 5, top: 12, width: 6, height: 6 },
   { id: "C4", left: 14, top: 11, width: 6, height: 6 },
   { id: "C5", left: 23, top: 11, width: 6, height: 6 },
@@ -4478,31 +4478,91 @@ export const REE_JED_BOOTH_LAYOUT = [
   { id: "B2", left: 5, top: 47, width: 6, height: 6 },
   { id: "B1", left: 5, top: 59, width: 6, height: 6 },
   { id: "A4", left: 14, top: 47, width: 6, height: 18 },
-  { id: "A5", left: 26, top: 47, width: 6, height: 18 },
+  { id: "A5", left: 23, top: 47, width: 6, height: 18 },
   { id: "A8", left: 35, top: 47, width: 10, height: 6 },
   { id: "A9", left: 48, top: 47, width: 10, height: 6 },
   { id: "A6", left: 35, top: 59, width: 10, height: 6 },
   { id: "A7", left: 48, top: 59, width: 10, height: 6 },
-  { id: "A1", left: 18, top: 71, width: 10, height: 6 },
-  { id: "A2", left: 35, top: 71, width: 10, height: 6 },
+  { id: "A1", left: 9.5, top: 71, width: 10, height: 6 },
+  { id: "A2", left: 30, top: 71, width: 10, height: 6 },
   { id: "A3", left: 51, top: 71, width: 8, height: 6 },
-  { id: "B109", left: 8, top: 80, width: 3, height: 4 },
-  { id: "B110", left: 14, top: 80, width: 4, height: 4 },
-  { id: "B111", left: 21, top: 80, width: 4, height: 4 },
-  { id: "A100", left: 28, top: 80, width: 4, height: 3 },
-  { id: "A101", left: 35, top: 80, width: 10, height: 3 },
-  { id: "A102", left: 49, top: 80, width: 4, height: 3 },
-  { id: "A103", left: 53, top: 80, width: 4, height: 3 },
-  { id: "B104", left: 57, top: 80, width: 4, height: 4 },
-  { id: "B105", left: 65, top: 87, width: 4, height: 4 },
-  { id: "B106", left: 57, top: 87, width: 4, height: 4 },
-  { id: "B107", left: 21, top: 88, width: 4, height: 4 },
-  { id: "B108", left: 14, top: 88, width: 4, height: 4 },
+  { id: "B109", left: 6, top: 84, width: 3, height: 4 },
+  { id: "B110", left: 10, top: 78, width: 4, height: 3 },
+  { id: "B111", left: 15, top: 78, width: 4, height: 3 },
+  { id: "A100", left: 20, top: 78, width: 4, height: 3 },
+  { id: "A101", left: 30, top: 80, width: 10, height: 3 },
+  { id: "A102", left: 45, top: 78, width: 4, height: 3 },
+  { id: "A103", left: 50, top: 78, width: 4, height: 3 },
+  { id: "B104", left: 55, top: 78, width: 4, height: 3 },
+  { id: "A104", left: 43, top: 80, width: 2, height: 6 },
+  { id: "B105", left: 60, top: 84, width: 4, height: 3 },
+  { id: "B106", left: 55, top: 84, width: 4, height: 3 },
+  { id: "B107", left: 15, top: 84, width: 4, height: 3 },
+  { id: "B108", left: 10, top: 84, width: 4, height: 3 },
 ] as const;
+
+const REE_JED_DIMENSION_OVERRIDES: Record<string, string> = {
+  C8: "6x5m",
+  C9: "3x3m",
+  C10: "3x3m",
+  C11: "3x3m",
+  C12: "5x3m",
+  C13: "6x3m",
+  C14: "5x3m",
+  C15: "3x3m",
+  C16: "3x3m",
+  C17: "3x3m",
+  C18: "3x3m",
+  C19: "3x4m",
+  C20: "3x6m",
+  C21: "3x6m",
+  C22: "3x6m",
+  C23: "3x10m",
+  C3: "6x6m",
+  C4: "6x6m",
+  C5: "6x6m",
+  C6: "10x6m",
+  C7: "10x6m",
+  C1: "10x6m",
+  C2: "10x6m",
+  B1: "6x6m",
+  B2: "6x6m",
+  B3: "6x6m",
+  B4: "6x6m",
+  B5: "6x6m",
+  B6: "10x6m",
+  B7: "10x6m",
+  B8: "6x6m",
+  B9: "6x6m",
+  A4: "6x15m",
+  A5: "6x15m",
+  A6: "10x6m",
+  A7: "10x6m",
+  A8: "10x6m",
+  A9: "10x6m",
+  A1: "10x6m",
+  A2: "10x6m",
+  A3: "8x6m",
+  A100: "4x3m",
+  A101: "10x3m",
+  A102: "4x3m",
+  A103: "4x3m",
+  A104: "2x6m",
+  B104: "4x3m",
+  B105: "4x3m",
+  B106: "4x3m",
+  B107: "4x3m",
+  B108: "4x3m",
+  B109: "3x4m",
+  B110: "4x3m",
+  B111: "4x3m",
+};
 
 // The active booth coordinates occupy this portion of the drawing width.
 // Normalize them at render time so the map uses the available canvas evenly.
 const REE_MAP_CONTENT_WIDTH = 76;
+const REE_LAYOUT_HEIGHT = 110;
+const REE_FULL_MAP_SCALE = 1;
 
 export const LEGACY_FLOOR_MAP_AREA_LABELS = [
   { key: "traders", labelAr: "سوق التجار", labelEn: "Traders Market", left: 3.235, top: 16.719, width: 43.18, height: 4.486 },
@@ -4937,40 +4997,37 @@ function AdminBoothsSection({
               >
               <div
                 className="admin-floor-map-canvas"
-                style={{ transform: `translate(${mapPan.x}px, ${mapPan.y}px) scale(${mapZoom})` }}
+                style={{ transform: `translate(${mapPan.x}px, ${mapPan.y}px) scale(${mapZoom * REE_FULL_MAP_SCALE})` }}
               >
                 <div className="ree-map-outer-border" aria-hidden="true" />
-                <svg className="ree-map-stepped-boundary" viewBox="0 0 100 130" preserveAspectRatio="none" aria-hidden="true">
+                <svg className="ree-map-stepped-boundary" viewBox="0 0 61 122" preserveAspectRatio="none" aria-hidden="true">
                   <path
                     className="ree-map-stepped-wall"
-                    d="M0 0 H84 M0 0 V81 H28 V112 H43 M84 0 V81 H78 V112 H57"
+                    d="M1 1 H54 M1 1 V103 H20 V110 H22.2 M54 1 V103 H41 V110 H38.8"
                   />
-                  <circle className="ree-map-rotunda" cx="50" cy="112" r="7.2" />
-                  <path className="ree-map-stairs" d="M47.5 103 V96 H52.5 V103 M50 96 V103" />
+                  <path
+                    className="ree-map-stepped-wall ree-map-inner-wall"
+                    d="M2 2 H53 M2 2 V102 H21 V109 H22.1 M53 2 V102 H40 V109 H38.9"
+                  />
+                  <circle className="ree-map-rotunda" cx="30.5" cy="108" r="8.5" />
+                  <path className="ree-map-stairs" d="M28 99 V95 H33 V99 H28 Z M30.5 95 V99" />
                 </svg>
-                <div className="ree-map-walkway walkway-left" aria-hidden="true" />
-                <div className="ree-map-walkway walkway-right" aria-hidden="true" />
-                <div className="ree-map-walkway walkway-left-vertical" aria-hidden="true" />
-                <div className="ree-map-walkway walkway-right-vertical" aria-hidden="true" />
-                <div className="ree-map-corridor corridor-horizontal" aria-hidden="true">4M / 6M CORRIDOR</div>
-                <div className="ree-map-corridor corridor-vertical" aria-hidden="true">3m</div>
+                <div className="ree-map-seating" aria-hidden="true">
+                  {["table-1", "table-2", "table-3", "table-4"].map((table) => (
+                    <div className="ree-map-table" key={table}>
+                      <b />
+                      <i className="chair chair-top" />
+                      <i className="chair chair-right" />
+                      <i className="chair chair-bottom" />
+                      <i className="chair chair-left" />
+                    </div>
+                  ))}
+                </div>
                 <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
                   {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}
                 </div>
                 <div className="admin-floor-map-label entrance">{isArabic ? "بوابة الدخول" : "Entrance"}</div>
                 <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
-                {FLOOR_MAP_ZONES.filter((zone) => zone.key !== "all").map((zone) => (
-                  <div
-                    className={`admin-floor-zone-container ${zone.key} ${activeZone === zone.key ? "is-focused" : ""} ${activeZone !== "all" && activeZone !== zone.key ? "is-dimmed" : ""}`}
-                    key={zone.key}
-                    style={{
-                      left: `${zone.left}%`,
-                      top: `${zone.top}%`,
-                      width: `${zone.width}%`,
-                      height: `${zone.height}%`,
-                    }}
-                  />
-                ))}
                 {FLOOR_MAP_AREA_LABELS.map((area) => (
                   <div
                     className={`admin-floor-map-area-label ${area.key}`}
@@ -5010,9 +5067,9 @@ function AdminBoothsSection({
                           ? "جلاس هاوس"
                           : "Glass House"
                         : layoutBooth.id;
-                  const boothMapSize = String(
-                    booth?.booth_size ?? booth?.booth_dimensions ?? "",
-                  ).trim();
+                  const boothMapSize =
+                    REE_JED_DIMENSION_OVERRIDES[layoutBooth.id] ??
+                    String(booth?.booth_size ?? booth?.booth_dimensions ?? "").trim();
                   const boothMapSizeLabel = boothMapSize.replace(/\s+/g, "").replace(/x/g, "X");
                   return (
                     <button
@@ -5023,9 +5080,9 @@ function AdminBoothsSection({
                       onClick={() => booth && selectBooth(booth)}
                       style={{
                         left: `${(layoutBooth.left / REE_MAP_CONTENT_WIDTH) * 100}%`,
-                        top: `${layoutBooth.top}%`,
+                        top: `${(layoutBooth.top / REE_LAYOUT_HEIGHT) * 100}%`,
                         width: `${(layoutBooth.width / REE_MAP_CONTENT_WIDTH) * 100}%`,
-                        height: `${layoutBooth.height}%`,
+                        height: `${(layoutBooth.height / REE_LAYOUT_HEIGHT) * 100}%`,
                       }}
                       title={layoutBooth.id}
                       type="button"
@@ -5037,6 +5094,7 @@ function AdminBoothsSection({
                 })}
               </div>
               </div>
+              <div className="ree-map-bottom-extension" aria-hidden="true" />
               {unplacedBooths.length ? (
                 <section className="admin-unplaced-booths">
                   <div className="admin-booth-zone-title">

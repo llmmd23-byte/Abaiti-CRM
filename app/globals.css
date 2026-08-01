@@ -22737,27 +22737,34 @@ html[dir="rtl"]
   width: min(100%, 1066px);
   max-width: 1066px;
   min-width: 0;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #f8fafc;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   display: flex;
   justify-content: center;
-  padding: 12px 12px 112px;
+  padding: 0;
   overflow: visible;
 }
 
 .admin-floor-map-viewport {
+  --map-bottom-space: 220px;
   position: relative;
-  width: min(100%, 1040px);
+  width: min(86%, 900px);
+  max-width: 100vw;
+  margin-inline: auto;
   min-width: 0;
   height: auto;
-  aspect-ratio: 16 / 21;
-  min-height: 700px;
-  max-height: 1240px;
+  aspect-ratio: 61 / 115;
+  min-height: 940px;
+  max-height: 1320px;
   overflow: hidden;
   border: 1px solid #a8c2cd;
   border-radius: 16px;
-  background: #e9f2f5;
+  background:
+    linear-gradient(rgba(39, 88, 105, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(39, 88, 105, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, #eaf4f8 0%, #ffffff 16%, #ffffff 84%, #eef7f8 100%);
+  background-size: 24px 24px, 24px 24px, auto;
   box-shadow: 0 14px 30px rgba(15, 45, 74, 0.12);
   cursor: grab;
   touch-action: none;
@@ -22781,7 +22788,15 @@ html[dir="rtl"]
 
   .admin-floor-map-viewport {
     aspect-ratio: 4 / 3;
-    min-height: 360px;
+    min-height: 420px;
+  }
+
+  .admin-floor-map-viewport {
+    --map-bottom-space: 60px;
+  }
+
+  .admin-floor-map-canvas {
+    width: 100% !important;
   }
 }
 
@@ -22792,7 +22807,7 @@ html[dir="rtl"]
 .admin-floor-map-canvas {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: calc(100% - var(--map-bottom-space));
   min-height: 0;
   border: 1px solid #cbd5e1;
   border-radius: 12px;
@@ -22802,8 +22817,23 @@ html[dir="rtl"]
     linear-gradient(180deg, #eaf4f8 0%, #ffffff 16%, #ffffff 84%, #eef7f8 100%);
   background-size: 24px 24px, 24px 24px, auto;
   box-shadow: inset 0 0 0 8px #ffffff;
-  transform-origin: center center;
+  transform-origin: left top;
   transition: transform 0.16s ease;
+}
+
+.ree-map-bottom-extension {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--map-bottom-space);
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(39, 88, 105, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(39, 88, 105, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, #ffffff 0%, #eef7f8 100%);
+  background-size: 24px 24px, 24px 24px, auto;
 }
 
 .admin-floor-map-canvas::before,
@@ -22834,7 +22864,7 @@ html[dir="rtl"]
 }
 
 .ree-map-stepped-boundary {
-  display: none;
+  display: block;
   position: absolute;
   z-index: 1;
   left: 0;
@@ -22855,32 +22885,40 @@ html[dir="rtl"]
   stroke-width: 0.28;
 }
 
+.ree-map-door {
+  fill: none;
+  stroke: #2563eb;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 0.45;
+}
+
 .ree-map-seating {
-  display: none;
+  display: grid;
   position: absolute;
   z-index: 2;
-  /* Place the four tables in the left 6m gap between C3 and B8/B3. */
-  left: 12%;
-  top: 20%;
+  /* Place the enlarged 2x2 seating group in the corridor directly left of B8. */
+  left: 7%;
+  top: 22%;
   display: grid;
-  grid-template-columns: repeat(2, 18px);
-  gap: 6px;
+  grid-template-columns: repeat(2, 24px);
+  gap: 10px;
   pointer-events: none;
 }
 
 .ree-map-table {
   position: relative;
   display: block;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
 }
 
 .ree-map-table b {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   transform: translate(-50%, -50%);
   border: 1px solid #a66b9c;
   border-radius: 50%;
@@ -22889,17 +22927,17 @@ html[dir="rtl"]
 
 .ree-map-table .chair {
   position: absolute;
-  width: 5px;
-  height: 5px;
+  width: 7px;
+  height: 7px;
   border: 1px solid #a66b9c;
   border-radius: 50%;
   background: #f8d9ee;
 }
 
-.ree-map-table .chair-top { left: 7px; top: 0; }
-.ree-map-table .chair-right { right: 0; top: 7px; }
-.ree-map-table .chair-bottom { left: 7px; bottom: 0; }
-.ree-map-table .chair-left { left: 0; top: 7px; }
+.ree-map-table .chair-top { left: 8.5px; top: 0; }
+.ree-map-table .chair-right { right: 0; top: 8.5px; }
+.ree-map-table .chair-bottom { left: 8.5px; bottom: 0; }
+.ree-map-table .chair-left { left: 0; top: 8.5px; }
 
 .ree-map-rotunda {
   fill: none;
@@ -23022,15 +23060,16 @@ html[dir="rtl"]
   top: 53%;
   width: 38%;
   height: 5%;
-  border-top: 1px dashed rgba(28, 82, 102, 0.46);
-  border-bottom: 1px dashed rgba(28, 82, 102, 0.46);
-  text-align: center;
+  border-top: 1px dashed rgba(71, 113, 126, 0.28);
+  border-bottom: 1px dashed rgba(71, 113, 126, 0.28);
 }
 
 .ree-map-corridor.corridor-vertical {
-  display: none;
+  display: block;
   right: 8%;
   top: 34%;
+  height: 28%;
+  border-right: 1px dashed rgba(71, 113, 126, 0.28);
   writing-mode: vertical-rl;
 }
 
