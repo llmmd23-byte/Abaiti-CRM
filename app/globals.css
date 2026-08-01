@@ -24103,6 +24103,15 @@ html[dir="rtl"]
   background: #ffffff;
 }
 
+.new-government-booth-card-left {
+  left: 14%;
+  background: repeating-linear-gradient(135deg, #64748b 0 5px, #475569 5px 7px);
+  border-color: #3d3d3d;
+  color: #ffffff;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .admin-unplaced-booths {
   margin-top: 14px;
   border: 1px solid #e2e8f0;

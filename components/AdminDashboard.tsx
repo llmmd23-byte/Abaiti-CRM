@@ -5254,6 +5254,13 @@ function AdminBoothsSection({
                     <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
                   </div>
                 </div>
+                <div className="new-government-booth-card new-government-booth-card-left is-reserved" aria-label={isArabic ? "ط¬ظ‡ط© ط­ظƒظˆظ…ظٹط© ظ…ط­ط¬ظˆط²ط©" : "Reserved government entity"}>
+                  <span>{isArabic ? "ط¬ظ‡ط© ط­ظƒظˆظ…ظٹط©" : "Government entity"}</span>
+                  <div>
+                    <img src="/contract-assets/jazli-event-logo.png" alt="" />
+                    <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
+                  </div>
+                </div>
                 {NEW_RESERVED_BOOTH_LAYOUT.map((reserved) => (
                   <div
                     aria-label={isArabic ? "بوث محجوز" : "Reserved booth"}
