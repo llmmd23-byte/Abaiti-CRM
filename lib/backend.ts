@@ -2053,24 +2053,24 @@ export async function listResource(resource: string, session: MiddarSession) {
   if (resource === "booth-availability") {
     const [rows] = await db.execute<RowDataPacket[]>(
       `SELECT UPPER(TRIM(stand_number)) booth_number,
-              CASE WHEN payment_status = 'paid' THEN 'booked' ELSE 'pending_payment' END status
+              'booked' status
          FROM participation_contracts
         WHERE stand_number IS NOT NULL AND TRIM(stand_number) <> ''
           AND COALESCE(status, '') <> 'cancelled'
        UNION ALL
        SELECT UPPER(TRIM(stand_number)) booth_number,
-              CASE WHEN payment_status = 'paid' THEN 'booked' ELSE 'pending_payment' END status
+              'booked' status
          FROM sponsorship_contracts
         WHERE stand_number IS NOT NULL AND TRIM(stand_number) <> ''
           AND COALESCE(status, '') <> 'cancelled'
        UNION ALL
-       SELECT UPPER(TRIM(stand_number)) booth_number, 'pending_payment' status
+       SELECT UPPER(TRIM(stand_number)) booth_number, 'booked' status
          FROM sales_orders
         WHERE stand_number IS NOT NULL AND TRIM(stand_number) <> ''
           AND COALESCE(status, '') <> 'cancelled'
        UNION ALL
        SELECT UPPER(TRIM(booth_number)) booth_number,
-              CASE WHEN payment_status = 'paid' THEN 'booked' ELSE 'pending_payment' END status
+              'booked' status
          FROM rental_contracts
         WHERE booth_number IS NOT NULL AND TRIM(booth_number) <> ''
           AND COALESCE(status, '') <> 'cancelled'`,

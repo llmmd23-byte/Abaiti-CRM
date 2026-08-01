@@ -16,6 +16,13 @@ import DashboardSelect from "@/components/DashboardSelect";
 import { createBackend, deleteBackend, updateBackend, useBackend } from "@/lib/client-backend";
 
 type BackendRow = Record<string, unknown> & { id: number };
+type ContractSettings = {
+  vatRate: number;
+  sponsorshipCategories: Array<{name: string; amount: number}>;
+  pricePerSqm: number;
+  registrationFee: number;
+  city: string;
+};
 const NUMBER_LOCALE = "en-US";
 const ARABIC_DATE_LOCALE = "ar-SA-u-ca-gregory-nu-latn";
 type UserTrendPeriod = "week" | "month" | "year";
@@ -1147,6 +1154,7 @@ function BoothMapPicker({
     }
     return statuses;
   }, [rentalBooths.data]);
+  const boothAvailabilityReady = rentalBooths.data !== null;
   const boothStatusSummary = useMemo(() => {
     let booked = 0;
     let pending = 0;
@@ -1194,6 +1202,12 @@ function BoothMapPicker({
               </div>
               <button aria-label={isArabic ? "إغلاق" : "Close"} onClick={() => setOpen(false)} type="button">×</button>
             </div>
+            <div className="booth-status-summary" aria-label={isArabic ? "ملخص حالات البوثات" : "Booth status summary"}>
+              <span className="total"><b>{boothStatusSummary.total}</b> {isArabic ? "بوث" : "Booths"}</span>
+              <span className="booked"><b>{boothStatusSummary.booked}</b> {isArabic ? "محجوز" : "Booked"}</span>
+              <span className="pending"><b>{boothStatusSummary.pending}</b> {isArabic ? "بانتظار الدفع" : "Pending payment"}</span>
+              <span className="inactive"><b>{boothStatusSummary.inactive}</b> {isArabic ? "غير نشط" : "Inactive"}</span>
+            </div>
             <div className="rental-booth-modal-toolbar">
               <div className="admin-record-search-bar search-box">
                 <input
@@ -1209,12 +1223,6 @@ function BoothMapPicker({
                 <span>{isArabic ? "بانتظار الدفع" : "Pending payment"}<i className="pending-payment" aria-hidden="true" /></span>
                 <span>{isArabic ? "محجوز" : "Booked"}<i className="booked" aria-hidden="true" /></span>
               </div>
-            </div>
-            <div className="booth-status-summary" aria-label={isArabic ? "ملخص حالات البوثات" : "Booth status summary"}>
-              <span className="total"><b>{boothStatusSummary.total}</b> {isArabic ? "بوث" : "Booths"}</span>
-              <span className="booked"><b>{boothStatusSummary.booked}</b> {isArabic ? "محجوز" : "Booked"}</span>
-              <span className="pending"><b>{boothStatusSummary.pending}</b> {isArabic ? "بانتظار الدفع" : "Pending payment"}</span>
-              <span className="inactive"><b>{boothStatusSummary.inactive}</b> {isArabic ? "غير نشط" : "Inactive"}</span>
             </div>
             <div className="admin-booth-zone-filter rental-booth-modal-zone-filter" role="listbox">
               {FLOOR_MAP_ZONES.map((item) => (
@@ -1247,11 +1255,12 @@ function BoothMapPicker({
                     <button
                       aria-pressed={selected}
                       className={`admin-booth-map-tile category-${booth.id.charAt(0).toLowerCase()} ${booth.width < 5 ? "is-narrow" : ""} ${["C4", "C5", "C6", "C7"].includes(booth.id) ? "is-polished-booth" : ""} ${reservationStatus === "booked" ? "is-booked" : ""} ${reservationStatus === "pending_payment" ? "is-pending-payment" : ""} ${selected ? "is-selected" : ""}`}
-                      disabled={Boolean(reservationStatus)}
+                      aria-disabled={!boothAvailabilityReady || Boolean(reservationStatus)}
+                      disabled={!boothAvailabilityReady || Boolean(reservationStatus)}
                       dir="ltr"
                       key={booth.id}
                       onClick={() => {
-                        if (reservationStatus) return;
+                        if (!boothAvailabilityReady || reservationStatus) return;
                         onChange(booth.id);
                         setOpen(false);
                       }}
@@ -1281,6 +1290,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
   const contracts = useBackend<BackendRow[]>("/api/v1/data/participation-contracts");
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const contractSettings = useBackend<ContractSettings>("/api/v1/contract-settings");
   const [leadId, setLeadId] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [brandName, setBrandName] = useState("");
@@ -1305,6 +1315,13 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   const [participationSearch, setParticipationSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [contractTypeFilter, setContractTypeFilter] = useState("all");
+
+  useEffect(() => {
+    const settings = contractSettings.data;
+    if (!settings || editingContractId) return;
+    if (!pricePerSqm || pricePerSqm === "0") setPricePerSqm(String(settings.pricePerSqm));
+    if (!city) setCity(settings.city);
+  }, [city, contractSettings.data, editingContractId, pricePerSqm]);
 
   const text = isArabic
     ? {
@@ -2372,6 +2389,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
   const contracts = useBackend<BackendRow[]>("/api/v1/data/sponsorship-contracts");
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const contractSettings = useBackend<ContractSettings>("/api/v1/contract-settings");
   const [leadId, setLeadId] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [brandName, setBrandName] = useState("");
@@ -2400,6 +2418,14 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   const [sponsorshipSearch, setSponsorshipSearch] = useState("");
   const [sponsorshipCategoryFilter, setSponsorshipCategoryFilter] = useState("all");
   const [sponsorshipContractTypeFilter, setSponsorshipContractTypeFilter] = useState("all");
+
+  useEffect(() => {
+    const settings = contractSettings.data;
+    if (!settings || editingContractId) return;
+    if (!pricePerSqm || pricePerSqm === "0") setPricePerSqm(String(settings.pricePerSqm));
+    if (!registrationFee || registrationFee === "0") setRegistrationFee(String(settings.registrationFee));
+    if (!city) setCity(settings.city);
+  }, [city, contractSettings.data, editingContractId, pricePerSqm, registrationFee]);
 
   const text = isArabic
     ? {
@@ -2526,6 +2552,26 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
     };
   }, [grandTotal, otherServicesAmount, packageType, pricePerSqm, registrationFee, spaceSqm, sponsorshipAmount, vatAmount]);
   const showParticipationFields = packageType === "sponsorship_participation";
+
+  useEffect(() => {
+    const settings = contractSettings.data;
+    if (!settings || editingContractId) return;
+    const selectedCategory = settings.sponsorshipCategories.find((item) => item.name === sponsorshipCategory);
+    if (selectedCategory) {
+      setSponsorshipAmount(String(selectedCategory.amount));
+    } else if (settings.sponsorshipCategories[0]) {
+      setSponsorshipCategory(settings.sponsorshipCategories[0].name);
+      setSponsorshipAmount(String(settings.sponsorshipCategories[0].amount));
+    }
+  }, [contractSettings.data, editingContractId, sponsorshipCategory]);
+
+  useEffect(() => {
+    const settings = contractSettings.data;
+    if (!settings || editingContractId || amounts.subtotal <= 0) return;
+    const vat = amounts.subtotal * (Number(settings.vatRate) / 100);
+    setVatAmount(vat.toFixed(2));
+    setGrandTotal((amounts.subtotal + vat).toFixed(2));
+  }, [amounts.subtotal, contractSettings.data, editingContractId]);
 
   useEffect(() => {
     if (packageType !== "sponsorship_only") return;
@@ -2936,12 +2982,12 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
             <DashboardSelect
               ariaLabel={text.sponsorshipCategory}
               onValueChange={setSponsorshipCategory}
-              options={[
-                {label: text.platinum, value: "platinum"},
-                {label: text.gold, value: "gold"},
-                {label: text.silver, value: "silver"},
-                {label: text.partner, value: "partner"},
-              ]}
+              options={(contractSettings.data?.sponsorshipCategories ?? [
+                {name: text.platinum, amount: 0},
+                {name: text.gold, amount: 0},
+                {name: text.silver, amount: 0},
+                {name: text.partner, amount: 0},
+              ]).map((item) => ({label: item.name, value: item.name}))}
               value={sponsorshipCategory}
             />
           </label>

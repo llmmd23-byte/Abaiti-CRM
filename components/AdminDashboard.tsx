@@ -32,6 +32,7 @@ type AdminSection =
   | "tags"
   | "activity"
   | "content"
+  | "contract-settings"
   | "permissions";
 type AdminRow = Record<string, unknown> & { id: number };
 type CurrentAccount = {
@@ -150,9 +151,10 @@ const settingsNavItems = [
   [{ ar: "\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a", en: "Products" }, "products"],
   [{ ar: "\u0627\u0644\u0623\u0646\u0634\u0637\u0629", en: "Industries" }, "activity"],
   [{ ar: "\u0627\u0644\u0645\u062d\u062a\u0648\u0649", en: "Content" }, "content"],
+  [{ ar: "\u0627\u0644\u0639\u0642\u0648\u062f", en: "Contracts" }, "contract-settings"],
 ] as const;
 
-const settingsSections = new Set<AdminSection>(["products", "activity", "content"]);
+const settingsSections = new Set<AdminSection>(["products", "activity", "content", "contract-settings"]);
 
 const adminValueLabels: Record<string, { ar: string; en: string }> = {
   active: { ar: "نشط", en: "Active" },
@@ -354,6 +356,11 @@ function AdminIcon({ name }: { name: string }) {
           <path d="M12 3 5 6v5c0 4.2 2.8 8 7 10 4.2-2 7-5.8 7-10V6l-7-3Z" />
           <path d="m9 12 2 2 4-5" />
         </>
+      ) : name === "contract-settings" ? (
+        <>
+          <path d="M5 4h14v16H5z" />
+          <path d="M8 8h8M8 12h8M8 16h5" />
+        </>
       ) : name === "settings" ? (
         <>
           <path d="M4 7h16" />
@@ -368,6 +375,128 @@ function AdminIcon({ name }: { name: string }) {
         </>
       )}
     </svg>
+  );
+}
+
+type ContractSettingsDraft = {
+  vatRate: string;
+  sponsorshipCategories: Array<{name: string; amount: string}>;
+  pricePerSqm: string;
+  registrationFee: string;
+  city: string;
+};
+
+const EMPTY_CONTRACT_SETTINGS: ContractSettingsDraft = {
+  vatRate: "15",
+  sponsorshipCategories: [
+    {name: "Diamond", amount: "0"},
+    {name: "Gold", amount: "0"},
+    {name: "Silver", amount: "0"},
+  ],
+  pricePerSqm: "0",
+  registrationFee: "0",
+  city: "Jeddah",
+};
+
+function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
+  const [draft, setDraft] = useState<ContractSettingsDraft>(EMPTY_CONTRACT_SETTINGS);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [categoryDraft, setCategoryDraft] = useState({name: "", amount: "0"});
+
+  useEffect(() => {
+    fetch("/api/v1/contract-settings", {cache: "no-store"})
+      .then((response) => response.json())
+      .then((body) => {
+        const settings = body.data;
+        if (!settings) return;
+        setDraft({
+          vatRate: String(settings.vatRate ?? 15),
+          sponsorshipCategories: (settings.sponsorshipCategories ?? []).map((item: {name?: string; amount?: number}) => ({
+            name: String(item.name ?? ""),
+            amount: String(item.amount ?? 0),
+          })),
+          pricePerSqm: String(settings.pricePerSqm ?? 0),
+          registrationFee: String(settings.registrationFee ?? 0),
+          city: String(settings.city ?? "Jeddah"),
+        });
+      })
+      .catch(() => setMessage(isArabic ? "تعذر تحميل إعدادات العقود" : "Unable to load contract settings"))
+      .finally(() => setLoading(false));
+  }, [isArabic]);
+
+  async function save() {
+    setSaving(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/v1/contract-settings", {
+        method: "PUT",
+        headers: {"Content-Type": "application/json; charset=utf-8"},
+        body: JSON.stringify({
+          vatRate: Number(draft.vatRate) || 0,
+          sponsorshipCategories: draft.sponsorshipCategories.map((item) => ({
+            name: item.name.trim(),
+            amount: Number(item.amount) || 0,
+          })),
+          pricePerSqm: Number(draft.pricePerSqm) || 0,
+          registrationFee: Number(draft.registrationFee) || 0,
+          city: draft.city,
+        }),
+      });
+      if (!response.ok) throw new Error("SAVE_FAILED");
+      setMessage(isArabic ? "تم حفظ إعدادات العقود" : "Contract settings saved");
+    } catch {
+      setMessage(isArabic ? "تعذر حفظ إعدادات العقود" : "Unable to save contract settings");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) return <section className="admin-data-card admin-loading">{isArabic ? "جاري تحميل إعدادات العقود..." : "Loading contract settings..."}</section>;
+
+  return (
+    <section className="admin-data-card contract-settings-panel" dir={isArabic ? "rtl" : "ltr"}>
+      <div className="admin-section-heading">
+        <div>
+          <span>{isArabic ? "إعدادات العقود" : "Contract settings"}</span>
+          <h2>{isArabic ? "القيم الافتراضية لنماذج العقود" : "Contract form defaults"}</h2>
+        </div>
+        <p>{isArabic ? "تُستخدم هذه القيم تلقائياً في نماذج عقود المستخدمين." : "These values are used automatically in user contract forms."}</p>
+      </div>
+      <div className="contract-settings-grid">
+        <label><span>{isArabic ? "نسبة ضريبة القيمة المضافة (%)" : "VAT rate (%)"}</span><input min="0" max="100" onChange={(event) => setDraft({...draft, vatRate: event.target.value})} type="number" value={draft.vatRate} /></label>
+        <label><span>{isArabic ? "سعر المتر المربع" : "Price per square meter"}</span><input min="0" onChange={(event) => setDraft({...draft, pricePerSqm: event.target.value})} type="number" value={draft.pricePerSqm} /></label>
+        <label><span>{isArabic ? "رسوم التسجيل" : "Registration fee"}</span><input min="0" onChange={(event) => setDraft({...draft, registrationFee: event.target.value})} type="number" value={draft.registrationFee} /></label>
+        <label><span>{isArabic ? "مدينة العقد" : "Contract city"}</span><input onChange={(event) => setDraft({...draft, city: event.target.value})} value={draft.city} /></label>
+      </div>
+      <div className="contract-settings-categories">
+        <div className="contract-settings-subhead"><h3>{isArabic ? "فئات الرعاية ومبالغها" : "Sponsorship categories and amounts"}</h3><button onClick={() => setIsCategoryModalOpen(true)} type="button">{isArabic ? "إضافة فئة" : "Add category"}</button></div>
+        {draft.sponsorshipCategories.map((category, index) => (
+          <div className="contract-settings-category-row" key={`category-${index}`}>
+            <input aria-label={isArabic ? "اسم الفئة" : "Category name"} onChange={(event) => setDraft({...draft, sponsorshipCategories: draft.sponsorshipCategories.map((item, itemIndex) => itemIndex === index ? {...item, name: event.target.value} : item)})} placeholder={isArabic ? "اسم الفئة" : "Category name"} value={category.name} />
+            <input aria-label={isArabic ? "مبلغ الرعاية" : "Sponsorship amount"} min="0" onChange={(event) => setDraft({...draft, sponsorshipCategories: draft.sponsorshipCategories.map((item, itemIndex) => itemIndex === index ? {...item, amount: event.target.value} : item)})} placeholder={isArabic ? "المبلغ" : "Amount"} type="number" value={category.amount} />
+            <button aria-label={isArabic ? "حذف الفئة" : "Remove category"} onClick={() => setDraft({...draft, sponsorshipCategories: draft.sponsorshipCategories.filter((_, itemIndex) => itemIndex !== index)})} type="button">×</button>
+          </div>
+        ))}
+      </div>
+      {message ? <p className="contract-settings-message">{message}</p> : null}
+      <button className="admin-action-btn primary" disabled={saving} onClick={() => void save()} type="button">{saving ? (isArabic ? "جاري الحفظ..." : "Saving...") : (isArabic ? "حفظ الإعدادات" : "Save configuration")}</button>
+      {isCategoryModalOpen ? (
+        <div className="contract-settings-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsCategoryModalOpen(false); }} role="presentation">
+          <div className="contract-settings-modal" dir={isArabic ? "rtl" : "ltr"} role="dialog" aria-modal="true" aria-labelledby="contract-category-modal-title">
+            <div className="contract-settings-modal-head">
+              <div><span>{isArabic ? "إعدادات العقود" : "Contract settings"}</span><h3 id="contract-category-modal-title">{isArabic ? "إضافة فئة رعاية" : "Add sponsorship category"}</h3></div>
+              <button aria-label={isArabic ? "إغلاق" : "Close"} onClick={() => setIsCategoryModalOpen(false)} type="button">×</button>
+            </div>
+            <label><span>{isArabic ? "اسم الفئة" : "Category name"}</span><input autoFocus onChange={(event) => setCategoryDraft({...categoryDraft, name: event.target.value})} placeholder={isArabic ? "مثال: ماسي" : "Example: Diamond"} value={categoryDraft.name} /></label>
+            <label><span>{isArabic ? "مبلغ الرعاية" : "Sponsorship amount"}</span><input min="0" onChange={(event) => setCategoryDraft({...categoryDraft, amount: event.target.value})} type="number" value={categoryDraft.amount} /></label>
+            <div className="contract-settings-modal-actions"><button onClick={() => setIsCategoryModalOpen(false)} type="button">{isArabic ? "إلغاء" : "Cancel"}</button><button className="admin-action-btn primary" disabled={!categoryDraft.name.trim()} onClick={() => { if (!categoryDraft.name.trim()) return; setDraft({...draft, sponsorshipCategories: [...draft.sponsorshipCategories, {name: categoryDraft.name.trim(), amount: categoryDraft.amount || "0"}]}); setCategoryDraft({name: "", amount: "0"}); setIsCategoryModalOpen(false); }} type="button">{isArabic ? "إضافة" : "Add"}</button></div>
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -415,6 +544,7 @@ export default function AdminDashboard({
               "tags",
               "activity",
               "content",
+              "contract-settings",
               "permissions",
             ],
       ),
@@ -5405,7 +5535,7 @@ function AdminManagementSection({
       ],
     },
   } satisfies Record<
-    Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams">,
+    Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams" | "contract-settings">,
     { rows: AdminRow[]; columns: string[][] }
   >;
   const config =
@@ -5421,7 +5551,7 @@ function AdminManagementSection({
             ["created_at", isArabic ? "تاريخ الرفع" : "Upload Date"],
           ],
         }
-      : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams">] ?? {
+      : configs[section as Exclude<AdminSection, "dashboard" | "permissions" | "tags" | "booths" | "teams" | "contract-settings">] ?? {
           rows: [],
           columns: [],
         };
@@ -5476,6 +5606,10 @@ function AdminManagementSection({
 
   if (section === "booths") {
     return <AdminBoothsSection isArabic={isArabic} isReadOnly={isReadOnly} />;
+  }
+
+  if (section === "contract-settings") {
+    return <AdminContractSettingsSection isArabic={isArabic} />;
   }
 
   if (!data)
