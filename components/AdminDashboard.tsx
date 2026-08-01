@@ -4457,7 +4457,7 @@ export const REE_JED_BOOTH_LAYOUT = [
   { id: "C17", left: 52, top: 5, width: 3, height: 3 },
   { id: "C18", left: 55, top: 5, width: 3, height: 3 },
   { id: "C19", left: 61, top: 7, width: 3, height: 4 },
-  { id: "C20", left: 61, top: 23, width: 3, height: 6 },
+  { id: "C20", left: 61, top: 21, width: 3, height: 6 },
   { id: "C21", left: 61, top: 35, width: 3, height: 6 },
   { id: "C22", left: 61, top: 41, width: 3, height: 6 },
   { id: "C23", left: 61, top: 55, width: 3, height: 10 },
@@ -4486,7 +4486,7 @@ export const REE_JED_BOOTH_LAYOUT = [
   { id: "A1", left: 9.5, top: 71, width: 10, height: 6 },
   { id: "A2", left: 30, top: 71, width: 10, height: 6 },
   { id: "A3", left: 51, top: 71, width: 8, height: 6 },
-  { id: "B109", left: 6, top: 84, width: 3, height: 4 },
+  { id: "B109", left: 6, top: 80, width: 3, height: 4 },
   { id: "B110", left: 10, top: 78, width: 4, height: 3 },
   { id: "B111", left: 15, top: 78, width: 4, height: 3 },
   { id: "A100", left: 20, top: 78, width: 4, height: 3 },
@@ -4494,7 +4494,6 @@ export const REE_JED_BOOTH_LAYOUT = [
   { id: "A102", left: 45, top: 78, width: 4, height: 3 },
   { id: "A103", left: 50, top: 78, width: 4, height: 3 },
   { id: "B104", left: 55, top: 78, width: 4, height: 3 },
-  { id: "A104", left: 43, top: 80, width: 2, height: 6 },
   { id: "B105", left: 60, top: 84, width: 4, height: 3 },
   { id: "B106", left: 55, top: 84, width: 4, height: 3 },
   { id: "B107", left: 15, top: 84, width: 4, height: 3 },
@@ -4547,7 +4546,6 @@ const REE_JED_DIMENSION_OVERRIDES: Record<string, string> = {
   A101: "10x3m",
   A102: "4x3m",
   A103: "4x3m",
-  A104: "2x6m",
   B104: "4x3m",
   B105: "4x3m",
   B106: "4x3m",
@@ -4645,13 +4643,13 @@ function AdminBoothsSection({
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [mapZoom, setMapZoom] = useState(1);
-  const [mapPan, setMapPan] = useState({ x: 0, y: 0 });
+  const [mapPan, setMapPan] = useState({ x: 30, y: 0 });
   const mapPanStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   const [isPanningMap, setIsPanningMap] = useState(false);
 
   function resetMapView() {
     setMapZoom(1);
-    setMapPan({ x: 0, y: 0 });
+    setMapPan({ x: 30, y: 0 });
   }
 
   function changeMapZoom(delta: number) {
@@ -4919,18 +4917,6 @@ function AdminBoothsSection({
               {isArabic ? "محجوز" : "Booked"}
               <i className="booked" aria-hidden="true" />
             </span>
-            <span>
-              Category A
-              <i className="category-a" aria-hidden="true" />
-            </span>
-            <span>
-              Category B
-              <i className="category-b" aria-hidden="true" />
-            </span>
-            <span>
-              Category C
-              <i className="category-c" aria-hidden="true" />
-            </span>
           </div>
         </div>
       </div>
@@ -4956,11 +4942,12 @@ function AdminBoothsSection({
           }).map((zone) => (
             <button
               aria-selected={activeZone === zone.key}
-              className={activeZone === zone.key ? "active" : ""}
+              className={`${activeZone === zone.key ? "active" : ""} zone-${zone.key}`}
               key={zone.key}
               onClick={() => setActiveZone(zone.key)}
               type="button"
             >
+              {zone.key !== "all" ? <i className={`zone-filter-color zone-${zone.key}`} aria-hidden="true" /> : null}
               {isArabic ? zone.labelAr : zone.labelEn}
             </button>
           ))}
@@ -4969,16 +4956,7 @@ function AdminBoothsSection({
           {isArabic ? "تحديث" : "Refresh"}
         </button>
       </div>
-
-      <div className="admin-map-controls" aria-label={isArabic ? "أدوات الخريطة" : "Map controls"}>
-        <button onClick={() => changeMapZoom(-0.15)} type="button" aria-label="Zoom out">-</button>
-        <span>{Math.round(mapZoom * 100)}%</span>
-        <button onClick={() => changeMapZoom(0.15)} type="button" aria-label="Zoom in">+</button>
-        <button onClick={resetMapView} type="button">{isArabic ? "إعادة الضبط" : "Reset view"}</button>
-        <small>{isArabic ? "اسحب الخريطة للتنقل" : "Drag to pan"}</small>
-      </div>
-
-      <div className="admin-booths-workspace">
+<div className="admin-booths-workspace">
         <div className="admin-booths-layout" aria-busy={isLoading}>
           {isLoading ? (
             <div className="admin-booths-empty">{isArabic ? "جاري تحميل الخريطة..." : "Loading layout..."}</div>
@@ -4988,7 +4966,6 @@ function AdminBoothsSection({
                 className={`admin-floor-map-viewport ${isPanningMap ? "is-panning" : ""}`}
                 onWheel={(event) => {
                   event.preventDefault();
-                  changeMapZoom(event.deltaY > 0 ? -0.1 : 0.1);
                 }}
                 onPointerDown={startMapPan}
                 onPointerMove={moveMapPan}
@@ -5000,17 +4977,28 @@ function AdminBoothsSection({
                 style={{ transform: `translate(${mapPan.x}px, ${mapPan.y}px) scale(${mapZoom * REE_FULL_MAP_SCALE})` }}
               >
                 <div className="ree-map-outer-border" aria-hidden="true" />
+                <div className="ree-map-walkways-layer" aria-hidden="true">
+                  <div className="ree-map-walkway walkway-main" />
+                  <div className="ree-map-walkway walkway-cross walkway-cross-upper" />
+                  <div className="ree-map-walkway walkway-cross walkway-cross-middle" />
+                  <div className="ree-map-walkway walkway-cross walkway-cross-lower" />
+                  <div className="ree-map-walkway walkway-side walkway-side-left" />
+                  <div className="ree-map-walkway walkway-side walkway-side-right" />
+                  <div className="ree-map-walkway walkway-zone walkway-zone-a" />
+                  <div className="ree-map-walkway walkway-zone walkway-zone-b" />
+                  <div className="ree-map-walkway walkway-zone walkway-zone-c" />
+                </div>
                 <svg className="ree-map-stepped-boundary" viewBox="0 0 61 122" preserveAspectRatio="none" aria-hidden="true">
                   <path
                     className="ree-map-stepped-wall"
-                    d="M1 1 H54 M1 1 V103 H20 V110 H22.2 M54 1 V103 H41 V110 H38.8"
+                    d="M1 1 H54 M1 1 V103 H14 V111 H20.5 M54 1 V103 H47 V111 H40.5"
                   />
                   <path
                     className="ree-map-stepped-wall ree-map-inner-wall"
-                    d="M2 2 H53 M2 2 V102 H21 V109 H22.1 M53 2 V102 H40 V109 H38.9"
+                    d="M2 2 H53 M2 2 V102 H15 V110 H20.5 M53 2 V102 H46 V110 H40.5"
                   />
-                  <circle className="ree-map-rotunda" cx="30.5" cy="108" r="8.5" />
-                  <path className="ree-map-stairs" d="M28 99 V95 H33 V99 H28 Z M30.5 95 V99" />
+                  <circle className="ree-map-rotunda" cx="30.5" cy="109" r="10" />
+                  <path className="ree-map-stairs" d="M28.5 99 V95 H32.5 V99 H28.5 Z M30.5 95 V99" />
                 </svg>
                 <div className="ree-map-seating" aria-hidden="true">
                   {["table-1", "table-2", "table-3", "table-4"].map((table) => (
@@ -5028,6 +5016,7 @@ function AdminBoothsSection({
                 </div>
                 <div className="admin-floor-map-label entrance">{isArabic ? "بوابة الدخول" : "Entrance"}</div>
                 <div className="admin-floor-map-label exit">{isArabic ? "بوابة الخروج" : "Exit"}</div>
+                <div className="admin-floor-map-label entrance entrance-copy">{isArabic ? "بوابة الدخول الرئيسية" : "Main Entrance"}</div>
                 {FLOOR_MAP_AREA_LABELS.map((area) => (
                   <div
                     className={`admin-floor-map-area-label ${area.key}`}
@@ -5084,6 +5073,8 @@ function AdminBoothsSection({
                         width: `${(layoutBooth.width / REE_MAP_CONTENT_WIDTH) * 100}%`,
                         height: `${(layoutBooth.height / REE_LAYOUT_HEIGHT) * 100}%`,
                       }}
+                      aria-label={`${boothMapLabel} ${layoutBooth.id}`}
+                      data-booth-tooltip={boothMapLabel}
                       title={layoutBooth.id}
                       type="button"
                     >

@@ -8562,6 +8562,7 @@ html[dir="ltr"] .user-stats-card {
   }
 }
 
+
 .customer-kanban-board {
   display: flex;
   flex-direction: row;
@@ -20372,6 +20373,23 @@ html[dir="rtl"]
   text-align: start;
 }
 
+.admin-edit-actions {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.admin-edit-actions button {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 110px;
+  min-height: 52px;
+  padding: 7px 12px;
+  font-size: 12px;
+  line-height: 1.25;
+  white-space: normal;
+}
+
 .admin-shell[dir="rtl"] .admin-edit-modal :is(input, textarea, .dashboard-select-trigger) {
   direction: rtl;
 }
@@ -22640,6 +22658,10 @@ html[dir="rtl"]
 }
 
 .admin-booth-zone-filter button {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  gap: 7px;
   border: 1px solid #cbd5e1;
   border-radius: 999px;
   background: #f8fafc;
@@ -22653,6 +22675,19 @@ html[dir="rtl"]
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
+.zone-filter-color {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border: 1px solid rgba(15, 45, 74, 0.28);
+  border-radius: 50%;
+}
+
+.zone-filter-color.zone-a { background: #6f9ff0; }
+.zone-filter-color.zone-b { background: #86cf9b; }
+.zone-filter-color.zone-c { background: #f6d348; }
+
 .admin-booth-zone-filter button:hover,
 .admin-booth-zone-filter button.active {
   border-color: #2563eb;
@@ -22661,8 +22696,11 @@ html[dir="rtl"]
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.14);
 }
 
+.admin-booth-zone-filter button.zone-all {
+  order: -1;
+}
+
 .admin-booth-map-legend {
-  display: none !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -22676,8 +22714,10 @@ html[dir="rtl"]
   color: #000000;
   font-size: 13px;
   font-weight: 800;
-  white-space: nowrap;
+  white-space: normal;
   direction: ltr;
+  flex-wrap: wrap;
+  max-width: min(100%, 760px);
 }
 
 .admin-booth-map-legend span {
@@ -22723,9 +22763,17 @@ html[dir="rtl"]
 }
 
 .admin-booths-workspace {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding-inline: 20px;
   align-items: stretch;
   gap: 18px;
   justify-content: center;
+  background: #f8fafc;
+  overflow-y: visible;
 }
 
 .admin-booth-zone-filter {
@@ -22733,50 +22781,72 @@ html[dir="rtl"]
 }
 
 .admin-booths-layout {
-  flex: 0 1 1066px;
-  width: min(100%, 1066px);
-  max-width: 1066px;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: min(100%, 1000px);
+  box-sizing: border-box;
   min-width: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  padding: 0;
-  overflow: visible;
+  align-items: center;
+  padding: 24px;
+  overflow: hidden;
+  margin-inline: auto !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Keep the loading state full-width until the map and booth editor are ready. */
+.admin-booths-layout[aria-busy="true"] {
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+  min-height: 280px;
+}
+
+.admin-booths-layout[aria-busy="true"] + .admin-booth-editor {
+  display: none;
 }
 
 .admin-floor-map-viewport {
-  --map-bottom-space: 220px;
+  --map-bottom-space: 0px;
   position: relative;
-  width: min(86%, 900px);
-  max-width: 100vw;
-  margin-inline: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-inline: auto !important;
+  left: 0;
   min-width: 0;
   height: auto;
-  aspect-ratio: 61 / 115;
-  min-height: 940px;
+  /* Match the SVG viewBox so the lower entrance is part of the viewport. */
+  aspect-ratio: 61 / 122;
+  min-height: 760px;
   max-height: 1320px;
   overflow: hidden;
-  border: 1px solid #a8c2cd;
-  border-radius: 16px;
-  background:
-    linear-gradient(rgba(39, 88, 105, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(39, 88, 105, 0.035) 1px, transparent 1px),
-    linear-gradient(180deg, #eaf4f8 0%, #ffffff 16%, #ffffff 84%, #eef7f8 100%);
-  background-size: 24px 24px, 24px 24px, auto;
-  box-shadow: 0 14px 30px rgba(15, 45, 74, 0.12);
+  clip-path: inset(0 round 16px);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   cursor: grab;
   touch-action: none;
+}
+
+/* Restore the visible right edge after cropping the excess canvas area. */
+.admin-floor-map-viewport::after {
+  display: none;
 }
 
 /* Keep the extended entrance inside the white map card. */
 .admin-booths-layout .admin-floor-map-viewport {
   margin-bottom: 0;
-}
-
-.admin-floor-map-label.entrance {
-  display: none !important;
 }
 
 @media (max-width: 640px) {
@@ -22787,12 +22857,13 @@ html[dir="rtl"]
   }
 
   .admin-floor-map-viewport {
-    aspect-ratio: 4 / 3;
-    min-height: 420px;
+    aspect-ratio: 61 / 122;
+    min-height: 620px;
   }
 
   .admin-floor-map-viewport {
     --map-bottom-space: 60px;
+    left: 0;
   }
 
   .admin-floor-map-canvas {
@@ -22807,10 +22878,13 @@ html[dir="rtl"]
 .admin-floor-map-canvas {
   position: relative;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   height: calc(100% - var(--map-bottom-space));
   min-height: 0;
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
   background:
     linear-gradient(rgba(39, 88, 105, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(39, 88, 105, 0.035) 1px, transparent 1px),
@@ -22844,7 +22918,14 @@ html[dir="rtl"]
 }
 
 .admin-floor-map-canvas::before {
-  display: none;
+  display: block;
+  z-index: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: 11%;
+  background: #ffffff;
 }
 
 .admin-floor-map-canvas::after {
@@ -22853,11 +22934,96 @@ html[dir="rtl"]
 
 .ree-map-outer-border,
 .ree-map-entrance,
-.ree-map-corridor {
+.ree-map-corridor,
+.ree-map-walkway {
   position: absolute;
   pointer-events: none;
   z-index: 2;
 }
+
+.ree-map-walkways-layer {
+  position: absolute;
+  z-index: 0 !important;
+  inset: 0;
+  display: none;
+  overflow: hidden;
+  pointer-events: none;
+  clip-path: inset(2% 10.5% 12% 3%);
+}
+
+/* Subtle circulation bands sit beneath the booths and guide the eye from the entrance. */
+.ree-map-walkway {
+  z-index: 0;
+  border: 0;
+  border-radius: 0;
+  background: #e2e8f0;
+  opacity: 0.62;
+}
+
+.ree-map-walkway::after {
+  display: none;
+}
+
+.walkway-main::before,
+.walkway-cross::before {
+  position: absolute;
+  color: rgba(71, 85, 105, 0.5);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.walkway-main::before {
+  content: "↓";
+  left: 50%;
+  top: 16%;
+  transform: translateX(-50%);
+}
+
+.walkway-cross::before {
+  content: "→";
+  left: 14%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.walkway-main {
+  left: 46%;
+  top: 12%;
+  width: 5%;
+  height: 57%;
+}
+
+.walkway-cross {
+  left: 5%;
+  width: 82%;
+  height: 4.5%;
+}
+
+.walkway-cross-upper { top: 27%; }
+.walkway-cross-middle {
+  top: 42%;
+  left: 1%;
+  width: 94%;
+}
+.walkway-cross-lower { top: 61%; }
+
+.walkway-side {
+  top: 8%;
+  width: 4%;
+  height: 60%;
+}
+
+.walkway-side-left { left: 5%; }
+.walkway-side-right { right: 8%; }
+
+.walkway-zone {
+  display: none;
+}
+
+.walkway-zone-a { left: 14%; top: 37%; }
+.walkway-zone-b { left: 40%; top: 27%; }
+.walkway-zone-c { right: 8%; top: 37%; }
 
 .ree-map-outer-border {
   display: none;
@@ -22871,6 +23037,7 @@ html[dir="rtl"]
   top: 0;
   width: 100%;
   height: 100%;
+  max-width: 100%;
   overflow: visible;
   pointer-events: none;
 }
@@ -22987,7 +23154,7 @@ html[dir="rtl"]
 }
 
 .ree-map-walkway {
-  display: none;
+  display: block;
 }
 
 .ree-map-walkway.walkway-left,
@@ -23092,7 +23259,8 @@ html[dir="rtl"]
 
 .admin-floor-map-label.entrance,
 .admin-floor-map-label.exit {
-  top: 1.15%;
+  top: auto;
+  bottom: 2.5%;
   width: 16%;
   border: 1px solid rgba(15, 45, 74, 0.18);
   border-radius: 999px;
@@ -23102,15 +23270,34 @@ html[dir="rtl"]
 }
 
 .admin-floor-map-label.entrance {
-  left: 10%;
+  left: 39%;
+  width: 28%;
+  color: #0f2d4a;
+  box-shadow: 0 4px 12px rgba(15, 45, 74, 0.1);
+}
+
+.admin-floor-map-label.entrance::after {
+  content: "↓";
+  display: block;
+  color: #2563eb;
+  font-size: 16px;
+  line-height: 12px;
 }
 
 .admin-floor-map-label.exit {
   right: 18%;
 }
 
+.admin-floor-map-label.entrance:not(.entrance-copy) {
+  display: none;
+}
+
+.admin-floor-map-label.entrance-copy {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .admin-floor-map-label.top,
-.admin-floor-map-label.entrance,
 .admin-floor-map-label.exit {
   display: none;
 }
@@ -23225,7 +23412,7 @@ html[dir="rtl"]
 
 .admin-booth-map-tile {
   position: absolute;
-  z-index: 3;
+  z-index: 3 !important;
   border: 1px solid rgba(22, 101, 52, 0.62);
   border-radius: 3px;
   background: rgba(34, 197, 94, 0.56);
@@ -23239,6 +23426,7 @@ html[dir="rtl"]
   overflow: hidden;
   padding: 1px;
   text-align: center;
+  box-shadow: 0 2px 5px rgba(15, 45, 74, 0.14);
   transition: box-shadow 0.15s ease, transform 0.15s ease, background 0.15s ease;
 }
 
@@ -23397,6 +23585,32 @@ html[dir="rtl"]
   transform: scale(1.06);
 }
 
+.admin-booth-map-tile[data-booth-tooltip]::before {
+  content: attr(data-booth-tooltip);
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translate(-50%, 4px);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 5px 9px;
+  border: 1px solid rgba(15, 45, 74, 0.14);
+  border-radius: 7px;
+  background: #0f2d4a;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.admin-booth-map-tile[data-booth-tooltip]:hover::before,
+.admin-booth-map-tile[data-booth-tooltip]:focus-visible::before {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
 .admin-booth-map-tile.is-booked {
   border-color: rgba(153, 27, 27, 0.8);
   background: rgba(239, 68, 68, 0.74);
@@ -23429,10 +23643,10 @@ html[dir="rtl"]
 
 .admin-booth-map-tile.is-selected {
   z-index: 5;
-  border-color: #0066ff;
-  background: rgba(0, 102, 255, 0.82);
+  border-color: #075985;
+  background: #0ea5e9;
   color: #000000;
-  box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.18);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.3), 0 8px 16px rgba(7, 89, 133, 0.22);
 }
 
 .admin-floor-map-canvas .admin-floor-map-area-label,
@@ -23673,4 +23887,50 @@ html[dir="rtl"]
   .admin-booth-buttons {
     grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
   }
+}
+
+/* Final mobile header override: wrap navigation instead of creating horizontal scroll. */
+@media (max-width: 760px) {
+  body { overflow-x: hidden; }
+
+  .site-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    min-width: 0;
+    padding: 8px 10px;
+  }
+
+  .site-header .brand {
+    order: 1;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .site-header .brand-logo {
+    width: clamp(112px, 30vw, 148px);
+  }
+
+  .site-header .header-actions {
+    order: 2;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .site-header .nav-links {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    min-width: 0;
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: center;
+  }
+
+  .site-header .nav-links a { white-space: normal; }
 }
