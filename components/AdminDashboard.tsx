@@ -4733,10 +4733,10 @@ export const NEW_BOOTH_MAP_HEIGHT = 136;
 
 const newDGroups = [
   {start: 1, count: 4, left: 8, top: 82, columns: 1},
-  {start: 17, count: 4, left: 32, top: 68, columns: 2},
-  {start: 21, count: 4, left: 53, top: 68, columns: 2},
-  {start: 37, count: 4, left: 32, top: 101, columns: 2},
-  {start: 41, count: 4, left: 53, top: 101, columns: 2},
+  {start: 17, count: 4, left: 33, top: 68, columns: 2},
+  {start: 21, count: 4, left: 52, top: 68, columns: 2},
+  {start: 37, count: 4, left: 33, top: 101, columns: 2},
+  {start: 41, count: 4, left: 52, top: 101, columns: 2},
   {start: 46, count: 3, left: 87, top: 98, columns: 1},
 ] as const;
 
