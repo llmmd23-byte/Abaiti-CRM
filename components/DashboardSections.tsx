@@ -1253,15 +1253,15 @@ function BoothMapPicker({
                 <div className="new-government-booth-card" aria-label={isArabic ? "جهة حكومية" : "Government entity"}>
                   <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
                   <div>
-                    <img src="/contract-assets/jazli-event-logo.png" alt="" />
-                    <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
+                    <img src="/contract-assets/government-security-logo.png" alt="" />
+                    <img src="/contract-assets/saudi-red-crescent-logo.png" alt="" />
                   </div>
                 </div>
                 <div className="new-government-booth-card new-government-booth-card-left is-reserved" aria-label={isArabic ? "جهة حكومية محجوزة" : "Reserved government entity"}>
                   <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
                   <div>
-                    <img src="/contract-assets/jazli-event-logo.png" alt="" />
-                    <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
+                    <img src="/contract-assets/government-security-logo.png" alt="" />
+                    <img src="/contract-assets/saudi-red-crescent-logo.png" alt="" />
                   </div>
                 </div>
                 {NEW_RESERVED_BOOTH_LAYOUT.map((reserved) => (

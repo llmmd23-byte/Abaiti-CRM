@@ -4750,11 +4750,11 @@ export const NEW_BOOTH_MAP_WIDTH = 100;
 export const NEW_BOOTH_MAP_HEIGHT = 136;
 
 const newDGroups = [
-  {start: 1, count: 4, left: 4, top: 68, columns: 1},
+  {start: 1, count: 4, left: 4, top: 72, columns: 1, rowOffsets: [0, 9, 18, 33]},
   {start: 17, count: 4, left: 29, top: 68, columns: 2},
   {start: 21, count: 4, left: 50, top: 68, columns: 2},
-  {start: 37, count: 4, left: 29, top: 101, columns: 2},
-  {start: 41, count: 4, left: 50, top: 101, columns: 2},
+  {start: 37, count: 4, left: 29, top: 96, columns: 2},
+  {start: 41, count: 4, left: 50, top: 96, columns: 2},
   {start: 46, count: 3, left: 87, top: 95, columns: 1},
 ] as const;
 
@@ -4774,10 +4774,11 @@ export const NEW_BOOTH_LAYOUT = [
     Array.from({length: group.count}, (_, index) => {
       const row = Math.floor(index / group.columns);
       const column = index % group.columns;
+      const rowOffset = "rowOffsets" in group ? group.rowOffsets[index] : row * 9;
     return {
         id: `D${group.start + index}`,
         left: group.left + column * 8,
-        top: group.top + row * 9,
+        top: group.top + rowOffset,
         width: 8,
         height: 8,
       };
@@ -5268,15 +5269,15 @@ function AdminBoothsSection({
                 <div className="new-government-booth-card" aria-label={isArabic ? "جهة حكومية" : "Government entity"}>
                   <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
                   <div>
-                    <img src="/contract-assets/jazli-event-logo.png" alt="" />
-                    <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
+                    <img src="/contract-assets/government-security-logo.png" alt="" />
+                    <img src="/contract-assets/saudi-red-crescent-logo.png" alt="" />
                   </div>
                 </div>
                 <div className="new-government-booth-card new-government-booth-card-left is-reserved" aria-label={isArabic ? "\u062c\u0647\u0629 \u062d\u0643\u0648\u0645\u064a\u0629 \u0645\u062d\u062c\u0648\u0632\u0629" : "Reserved government entity"}>
                   <span>{isArabic ? "\u062c\u0647\u0629 \u062d\u0643\u0648\u0645\u064a\u0629" : "Government entity"}</span>
                   <div>
-                    <img src="/contract-assets/jazli-event-logo.png" alt="" />
-                    <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
+                    <img src="/contract-assets/government-security-logo.png" alt="" />
+                    <img src="/contract-assets/saudi-red-crescent-logo.png" alt="" />
                   </div>
                 </div>
                 {NEW_RESERVED_BOOTH_LAYOUT.map((reserved) => (
