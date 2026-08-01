@@ -24138,6 +24138,11 @@ html[dir="rtl"]
   color: #ffffff !important;
 }
 
+/* Remove the corner status dot from booth cards. */
+.admin-floor-map-canvas .admin-booth-map-tile::after {
+  display: none !important;
+}
+
 .admin-unplaced-booths {
   margin-top: 14px;
   border: 1px solid #e2e8f0;
