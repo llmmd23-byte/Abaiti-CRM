@@ -324,10 +324,10 @@ function AdminIcon({ name }: { name: string }) {
         </>
       ) : name === "teams" ? (
         <>
-          <circle cx="12" cy="7" r="3" />
-          <circle cx="6" cy="15" r="2.5" />
-          <circle cx="18" cy="15" r="2.5" />
-          <path d="M12 10v2M8 15h8M3 21v-1a4 4 0 0 1 4-4M21 21v-1a4 4 0 0 0-4-4M8 21v-1a4 4 0 0 1 8 0v1" />
+          <circle cx="12" cy="6.5" r="2.6" />
+          <circle cx="6.5" cy="9.5" r="2" />
+          <circle cx="17.5" cy="9.5" r="2" />
+          <path d="M7.5 20v-1.2a4.5 4.5 0 0 1 9 0V20M3.5 19v-1a3 3 0 0 1 3-3M20.5 19v-1a3 3 0 0 0-3-3" />
         </>
       ) : name === "products" ? (
         <>
