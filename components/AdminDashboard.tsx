@@ -143,7 +143,7 @@ const navItems = [
   [{ ar: "\u0627\u0644\u062d\u0633\u0627\u0628\u0627\u062a", en: "Accounts" }, "accounts"],
   [{ ar: "\u0627\u0644\u0641\u0631\u0642", en: "Teams" }, "teams"],
   [{ ar: "\u0627\u0644\u0628\u0648\u062b\u0627\u062a", en: "Booths" }, "booths"],
-  [{ ar: "\u0627\u0644\u0648\u0633\u0648\u0645", en: "Tags" }, "tags"],
+  [{ ar: "\u0627\u0644\u0639\u0642\u0648\u062f", en: "Contracts" }, "contract-settings"],
   [{ ar: "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0627\u062a", en: "Permissions" }, "permissions"],
 ] as const;
 
@@ -151,10 +151,10 @@ const settingsNavItems = [
   [{ ar: "\u0627\u0644\u0645\u0646\u062a\u062c\u0627\u062a", en: "Products" }, "products"],
   [{ ar: "\u0627\u0644\u0623\u0646\u0634\u0637\u0629", en: "Industries" }, "activity"],
   [{ ar: "\u0627\u0644\u0645\u062d\u062a\u0648\u0649", en: "Content" }, "content"],
-  [{ ar: "\u0627\u0644\u0639\u0642\u0648\u062f", en: "Contracts" }, "contract-settings"],
+  [{ ar: "\u0627\u0644\u0648\u0633\u0648\u0645", en: "Tags" }, "tags"],
 ] as const;
 
-const settingsSections = new Set<AdminSection>(["products", "activity", "content", "contract-settings"]);
+const settingsSections = new Set<AdminSection>(["products", "activity", "content", "tags"]);
 
 const adminValueLabels: Record<string, { ar: string; en: string }> = {
   active: { ar: "نشط", en: "Active" },
