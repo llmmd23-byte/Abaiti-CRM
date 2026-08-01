@@ -173,27 +173,9 @@ const coreGrowthItems: NavItem[] = [
     label: "portal.rentalContracts",
     icon: "quotes"
   },
-  {
-    key: "commissions",
-    href: "/dashboard/commissions",
-    label: "portal.sales",
-    icon: "sales"
-  },
-  {
-    key: "productInfo",
-    href: "/dashboard/product-info",
-    label: "portal.activation",
-    icon: "products"
-  }
 ];
 
 const supportResourceItems: NavItem[] = [
-  {
-    key: "education",
-    href: "/dashboard/educational-hub",
-    label: "portal.educationalHub",
-    icon: "education"
-  },
   {key: "support", href: "/dashboard/support", label: "portal.helpDesk", icon: "support"},
   {
     key: "accounts",
