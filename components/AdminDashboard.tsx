@@ -5245,17 +5245,6 @@ function AdminBoothsSection({
                   />
                   <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
                 </svg>
-                <div className="ree-map-seating" aria-hidden="true">
-                  {["table-1", "table-2", "table-3", "table-4"].map((table) => (
-                    <div className="ree-map-table" key={table}>
-                      <b />
-                      <i className="chair chair-top" />
-                      <i className="chair chair-right" />
-                      <i className="chair chair-bottom" />
-                      <i className="chair chair-left" />
-                    </div>
-                  ))}
-                </div>
                 <div className="new-government-booth-card" aria-label={isArabic ? "جهة حكومية" : "Government entity"}>
                   <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
                   <div>
