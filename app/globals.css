@@ -23877,10 +23877,10 @@ html[dir="rtl"]
 .new-government-booth-card {
   position: absolute;
   z-index: 2;
-  left: 30%;
-  top: 33.1%;
-  width: 24%;
-  height: 11%;
+  left: 36%;
+  top: 35.3%;
+  width: 20%;
+  height: 10.3%;
   display: flex;
   flex-direction: column;
   align-items: center;
