@@ -4991,11 +4991,11 @@ function AdminBoothsSection({
                 <svg className="ree-map-stepped-boundary" viewBox="0 0 61 114" preserveAspectRatio="none" aria-hidden="true">
                   <path
                     className="ree-map-stepped-wall"
-                    d="M1 1 H54 M1 1 V103 H14 V111 H23 M54 1 V103 H47 V111 H38"
+                    d="M1 1 H54 M1 1 V103 H17 V111 H23 M54 1 V103 H44 V111 H38"
                   />
                   <path
                     className="ree-map-stepped-wall ree-map-inner-wall"
-                    d="M2 2 H53 M2 2 V102 H15 V110 H23 M53 2 V102 H46 V110 H38"
+                    d="M2 2 H53 M2 2 V102 H18 V110 H23 M53 2 V102 H43 V110 H38"
                   />
                   <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
                 </svg>

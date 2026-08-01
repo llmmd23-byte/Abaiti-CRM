@@ -16,7 +16,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 env:
   REGISTRY: ghcr.io
@@ -37,16 +36,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.repository_owner }}
-          # Prefer a PAT with write:packages when the repository token is not
-          # allowed to publish to an existing GHCR package.
-          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
-
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -58,13 +47,13 @@ jobs:
             type=sha,prefix=sha-
             type=raw,value=latest,enable=${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
 
-      - name: Build and optionally push image
+      - name: Build Docker image without publishing
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/arm64/v8
-          push: ${{ github.event_name != 'pull_request' }}
+          push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
