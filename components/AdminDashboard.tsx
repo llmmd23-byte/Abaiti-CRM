@@ -561,6 +561,7 @@ export default function AdminDashboard({
   const [subFilter, setSubFilter] = useState<DashboardSubFilter>("weeks");
   const [periodAnchor, setPeriodAnchor] = useState(() => new Date());
   const [activeSection, setActiveSection] = useState<AdminSection>(initialSection);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [management, setManagement] = useState<ManagementData | null>(null);
   const [managementError, setManagementError] = useState("");
   const allowedSections = useMemo(
@@ -780,12 +781,26 @@ export default function AdminDashboard({
             width={220}
           />
         </Link>
-        <nav>
+        <button
+          aria-expanded={isMobileNavOpen}
+          aria-label={isArabic ? "فتح قائمة التنقل" : "Open navigation menu"}
+          className="admin-mobile-nav-toggle"
+          onClick={() => setIsMobileNavOpen((current) => !current)}
+          type="button"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+        <nav className={isMobileNavOpen ? "is-open" : ""}>
           {visibleNavItems.map(([label, icon]) => (
             <button
               className={activeSection === icon ? "active" : ""}
               key={icon}
-              onClick={() => setActiveSection(icon)}
+              onClick={() => {
+                setActiveSection(icon);
+                setIsMobileNavOpen(false);
+              }}
               type="button"
             >
               <span className="admin-nav-icon">
@@ -817,7 +832,10 @@ export default function AdminDashboard({
                 <button
                   className={activeSection === icon ? "active" : ""}
                   key={icon}
-                  onClick={() => setActiveSection(icon)}
+                    onClick={() => {
+                      setActiveSection(icon);
+                      setIsMobileNavOpen(false);
+                    }}
                   type="button"
                 >
                   <span className="admin-nav-icon">

@@ -22240,6 +22240,171 @@ html[dir="rtl"]
   box-shadow: none !important;
 }
 
+/* Responsive navigation and data tools: keep controls inside the viewport. */
+.admin-mobile-nav-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid rgba(141, 228, 239, 0.45);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.admin-mobile-nav-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.admin-shell .admin-main,
+.admin-shell .admin-data-card,
+.admin-shell .admin-data-head {
+  min-width: 0;
+}
+
+.admin-shell .admin-product-data-head .admin-product-data-tools {
+  flex-wrap: wrap !important;
+  min-width: 0 !important;
+}
+
+.admin-shell .admin-product-data-head .admin-product-data-tools .admin-record-search-bar {
+  min-width: 0 !important;
+  width: min(100%, 320px) !important;
+}
+
+@media (max-width: 760px) {
+  .admin-shell .admin-sidebar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    overflow: visible;
+  }
+
+  .admin-shell .admin-official-brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+  }
+
+  .admin-shell .admin-mobile-nav-toggle {
+    display: inline-flex;
+  }
+
+  .admin-shell .admin-sidebar nav,
+  .admin-shell .admin-sidebar nav.is-open {
+    display: none !important;
+    order: 3;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid rgba(141, 228, 239, 0.35);
+    border-radius: 16px;
+    background: rgba(7, 30, 48, 0.98);
+    overflow: visible;
+  }
+
+  .admin-shell .admin-sidebar nav.is-open {
+    display: flex !important;
+  }
+
+  .admin-shell .admin-sidebar nav :is(a, button, summary) {
+    width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    font-size: 13px;
+  }
+
+  .admin-shell .admin-sidebar .admin-nav-dropdown-menu {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    margin-top: 4px;
+  }
+
+  .admin-shell .admin-data-head,
+  .admin-shell .admin-product-data-head {
+    align-items: stretch !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    gap: 12px !important;
+  }
+
+  .admin-shell .admin-data-tools,
+  .admin-shell .admin-product-data-head .admin-product-data-tools {
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .admin-shell .admin-product-data-head .admin-product-data-tools .admin-record-search-bar,
+  .admin-shell .admin-product-data-head .admin-product-data-tools > input,
+  .admin-shell .admin-product-data-head .admin-add-product {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+  }
+
+  .admin-shell .admin-table-wrap,
+  .admin-shell .responsive-table {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-shell .admin-table-wrap table,
+  .admin-shell .responsive-table table {
+    min-width: 720px;
+  }
+
+  .site-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    padding: 12px 14px;
+  }
+
+  .site-header .brand {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .site-header .header-actions {
+    order: 2;
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 45%;
+    gap: 6px;
+  }
+
+  .site-header .nav-links {
+    order: 3;
+    flex: 1 1 100%;
+    min-width: 0;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    white-space: nowrap;
+  }
+}
+
 .admin-shell
   .admin-client-added-by-filter
   .dashboard-select-trigger
