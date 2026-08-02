@@ -687,6 +687,7 @@ export function QuoteSystem() {
   const [flowStep, setFlowStep] = useState<"action" | "channel">("action");
   const [selectedAction, setSelectedAction] = useState("");
   const [submittedMessage, setSubmittedMessage] = useState("");
+  const [quoteSubmitting, setQuoteSubmitting] = useState(false);
   const flowRef = useRef<HTMLDivElement | null>(null);
   const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
   const products = useBackend<BackendRow[]>("/api/v1/data/products");
@@ -776,6 +777,7 @@ export function QuoteSystem() {
   }, []);
 
   async function createQuote() {
+    if (quoteSubmitting) return;
     const durationNumber = Number(quoteDurationDays);
     if (
       !leadId ||
@@ -789,6 +791,7 @@ export function QuoteSystem() {
       setQuoteValidation(text.validation);
       return;
     }
+    setQuoteSubmitting(true);
     try {
       await createBackend("quotes", {
         lead_id: leadId,
@@ -806,6 +809,8 @@ export function QuoteSystem() {
     } catch (error) {
       const duplicate = error instanceof Error && error.message === "DUPLICATE_CUSTOMER_QUOTE";
       setSubmittedMessage(duplicate ? text.duplicate : text.failed);
+    } finally {
+      setQuoteSubmitting(false);
     }
     window.setTimeout(() => setSubmittedMessage(""), 1800);
   }
@@ -943,8 +948,10 @@ export function QuoteSystem() {
             </label>
             <div className="quote-action-row">
               <button
+                aria-busy={quoteSubmitting}
                 aria-pressed={selectedAction === "create"}
                 className="quote-flow-option quote-action-option rounded-full bg-[#11293D] px-6 py-4 font-bold text-white shadow-md"
+                disabled={quoteSubmitting}
                 onClick={() => {
                   setSelectedAction("create");
                   void createQuote();
@@ -2136,6 +2143,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   }
 
   async function saveContract() {
+    if (saveStatus === text.saving) return;
     if (!companyName.trim() || !contactName.trim() || !packageType) {
       setSaveStatus(text.validation);
       return;
@@ -2300,7 +2308,7 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
           <textarea onChange={(event) => setNotes(event.target.value)} value={notes} />
         </label>
         <div className="quote-action-row">
-          <button className="button button-primary" onClick={() => void saveContract()} type="button">
+          <button aria-busy={saveStatus === text.saving} className="button button-primary" disabled={saveStatus === text.saving} onClick={() => void saveContract()} type="button">
             {editingContractId ? text.update : text.save}
           </button>
           {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
@@ -3009,6 +3017,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   }
 
   async function saveContract() {
+    if (saveStatus === text.saving) return;
     if (!companyName.trim() || !contactName.trim() || !sponsorshipCategory) {
       setSaveStatus(text.validation);
       return;
@@ -3139,7 +3148,7 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
         <label className="quote-details-field"><span>{text.address}</span><textarea onChange={(event) => setAddress(event.target.value)} value={address} /></label>
         <label className="quote-details-field"><span>{text.notes}</span><textarea onChange={(event) => setNotes(event.target.value)} value={notes} /></label>
         <div className="quote-action-row">
-          <button className="button button-primary" onClick={() => void saveContract()} type="button">
+          <button aria-busy={saveStatus === text.saving} className="button button-primary" disabled={saveStatus === text.saving} onClick={() => void saveContract()} type="button">
             {editingContractId ? text.update : text.save}
           </button>
           {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
@@ -3616,6 +3625,7 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
   }
 
   async function saveOrder() {
+    if (saveStatus === text.saving) return;
     if (!companyName.trim() || !contactName.trim() || !itemDescription.trim()) {
       setSaveStatus(text.validation);
       return;
@@ -3702,7 +3712,7 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
         <label className="quote-details-field"><span>{text.address}</span><textarea onChange={(event) => setAddress(event.target.value)} value={address} /></label>
         <label className="quote-details-field"><span>{text.notes}</span><textarea onChange={(event) => setNotes(event.target.value)} value={notes} /></label>
         <div className="quote-action-row">
-          <button className="button button-primary" onClick={() => void saveOrder()} type="button">
+          <button aria-busy={saveStatus === text.saving} className="button button-primary" disabled={saveStatus === text.saving} onClick={() => void saveOrder()} type="button">
             {editingOrderId ? text.update : text.save}
           </button>
           {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
@@ -4447,6 +4457,7 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   ]);
 
   async function saveContract() {
+    if (saveStatus === text.saving) return;
     if (!companyName.trim() || !contactName.trim() || !rentalItem.trim()) {
       setSaveStatus(text.validation);
       return;
@@ -4724,8 +4735,8 @@ export function RentalContractsPanel({locale}: {locale: string}) {
         <label className="quote-details-field"><span>{text.address}</span><textarea onChange={(event) => setAddress(event.target.value)} value={address} /></label>
         <label className="quote-details-field"><span>{text.notes}</span><textarea onChange={(event) => setNotes(event.target.value)} value={notes} /></label>
         <div className="quote-action-row">
-          <button className="button button-primary" onClick={() => void saveContract()} type="button">{editingContractId ? text.update : text.save}</button>
-          <button className="button rental-form-paid-button" onClick={() => void markFormPaymentPaid()} type="button">{text.paid}</button>
+          <button aria-busy={saveStatus === text.saving} className="button button-primary" disabled={saveStatus === text.saving} onClick={() => void saveContract()} type="button">{editingContractId ? text.update : text.save}</button>
+          <button className="button rental-form-paid-button" disabled={saveStatus === text.saving || !editingContractId} onClick={() => void markFormPaymentPaid()} type="button">{text.paid}</button>
           {saveStatus ? <p className="quote-validation">{saveStatus}</p> : null}
         </div>
       </article>
@@ -4990,6 +5001,7 @@ export function HelpDeskPanel({ expanded = false }: { expanded?: boolean }) {
   };
 
   async function submitTicket() {
+    if (saveStatus === (isArabic ? "جاري الحفظ..." : "Saving...")) return;
     if (!subject.trim() || !details.trim()) {
       setSaveStatus(isArabic ? "يرجى تعبئة الموضوع والتفاصيل" : "Subject and details are required");
       return;
@@ -5172,7 +5184,7 @@ export function HelpDeskPanel({ expanded = false }: { expanded?: boolean }) {
           />
         </label>
         <div className="demo-action-row">
-          <button className="button button-dark compact-action" onClick={() => void submitTicket()} type="button">
+          <button aria-busy={saveStatus === (isArabic ? "جاري الحفظ..." : "Saving...")} className="button button-dark compact-action" disabled={saveStatus === (isArabic ? "جاري الحفظ..." : "Saving...")} onClick={() => void submitTicket()} type="button">
             {isArabic ? "فتح تذكرة دعم" : "Open Support Ticket"}
           </button>
           {saveStatus ? <small>{saveStatus}</small> : null}
