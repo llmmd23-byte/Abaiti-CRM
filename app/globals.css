@@ -24905,3 +24905,13 @@ html[dir="rtl"]
     max-width: 100% !important;
   }
 }
+
+@media (max-width: 640px) {
+  .site-header .header-actions {
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    gap: 6px !important;
+    white-space: nowrap;
+  }
+}
