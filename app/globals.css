@@ -24934,3 +24934,108 @@ html[dir="rtl"]
     font-size: 11px;
   }
 }
+
+/* Compact booth controls for phone-sized map pickers and management screens. */
+@media (max-width: 640px) {
+  .admin-shell .admin-booths-head,
+  .rental-booth-modal .rental-booth-modal-toolbar {
+    align-items: stretch !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .admin-shell .admin-booth-stats,
+  .rental-booth-modal .booth-status-summary {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 7px !important;
+  }
+
+  .admin-shell .admin-booth-stats > span,
+  .rental-booth-modal .booth-status-summary > span {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    padding: 6px 7px;
+    font-size: 11px;
+  }
+
+  .admin-shell .admin-booth-map-legend,
+  .rental-booth-modal .rental-booth-modal-toolbar .admin-booth-map-legend {
+    grid-column: 1 / -1;
+    align-self: stretch !important;
+    justify-content: center;
+    gap: 6px 10px;
+    min-height: 0;
+    max-width: 100%;
+    padding: 7px 6px;
+    border-radius: 12px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .admin-shell .admin-booth-map-legend::-webkit-scrollbar,
+  .rental-booth-modal .admin-booth-map-legend::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-shell .admin-booth-map-legend i,
+  .rental-booth-modal .admin-booth-map-legend i {
+    width: 10px;
+    height: 10px;
+    flex: 0 0 10px;
+  }
+
+  .admin-shell .admin-booths-toolbar,
+  .rental-booth-modal .rental-booth-modal-toolbar {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-shell .admin-booths-toolbar .admin-record-search-bar,
+  .rental-booth-modal .rental-booth-modal-toolbar .admin-record-search-bar {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .admin-shell .admin-booth-zone-filter,
+  .rental-booth-modal .rental-booth-modal-zone-filter {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    padding: 4px 0 !important;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    scrollbar-width: none;
+  }
+
+  .admin-shell .admin-booth-zone-filter::-webkit-scrollbar,
+  .rental-booth-modal .admin-booth-zone-filter::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-shell .admin-booth-zone-filter button,
+  .rental-booth-modal .admin-booth-zone-filter button {
+    flex: 0 0 auto;
+    min-width: auto;
+    min-height: 38px;
+    padding: 7px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .admin-shell .admin-booths-toolbar .admin-action-btn {
+    width: 100%;
+    order: 3;
+  }
+}
