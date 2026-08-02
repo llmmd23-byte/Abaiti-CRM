@@ -24851,3 +24851,53 @@ html[dir="rtl"]
     direction: rtl;
   }
 }
+
+/* Keep the user-management toolbar inside the card on phone screens. */
+@media (max-width: 760px) {
+  .admin-shell .admin-metric-list,
+  .admin-shell .admin-metric-list-head,
+  .admin-shell .admin-user-list-tools {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .admin-shell .admin-metric-list-head {
+    align-items: stretch !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .admin-shell .admin-user-list-tools {
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .admin-shell .admin-list-search,
+  .admin-shell .admin-user-status-filter,
+  .admin-shell .admin-client-user-filter {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 0 1 auto !important;
+  }
+
+  .admin-shell .admin-list-search input,
+  .admin-shell .admin-user-status-filter .dashboard-select,
+  .admin-shell .admin-user-status-filter .dashboard-select-trigger {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .admin-shell .admin-user-list-tools > strong {
+    align-self: flex-start;
+  }
+
+  .admin-shell .admin-user-list-tools .admin-add-user-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
