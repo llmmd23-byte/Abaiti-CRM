@@ -4755,7 +4755,7 @@ const newDGroups = [
   {start: 21, count: 4, left: 58, top: 68, columns: 2},
   {start: 37, count: 4, left: 29, top: 96, columns: 2},
   {start: 41, count: 4, left: 58, top: 96, columns: 2},
-  {start: 46, count: 3, left: 87, top: 94, columns: 1, rowOffsets: [0, 10, 18]},
+  {start: 46, count: 3, left: 87, top: 94, columns: 1, rowOffsets: [0, 8, 16]},
 ] as const;
 
 export const NEW_BOOTH_LAYOUT = [
