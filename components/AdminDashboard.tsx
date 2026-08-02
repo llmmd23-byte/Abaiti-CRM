@@ -4759,14 +4759,14 @@ const newDGroups = [
 ] as const;
 
 export const NEW_BOOTH_LAYOUT = [
-  {id: "AA4", left: 58, top: 3, width: 19, height: 17},
+  {id: "AA4", left: 58, top: 3, width: 16, height: 11},
   {id: "A4", left: 87, top: 18, width: 8, height: 10},
   {id: "A5", left: 87, top: 28, width: 8, height: 10},
   {id: "A6", left: 87, top: 38, width: 8, height: 10},
-  {id: "B4", left: 29, top: 27, width: 18, height: 12},
-  {id: "B5", left: 58, top: 27, width: 18, height: 12},
-  {id: "C12", left: 58, top: 48, width: 10, height: 14},
-  {id: "C13", left: 68, top: 48, width: 10, height: 14},
+  {id: "B4", left: 29, top: 27, width: 16, height: 8},
+  {id: "B5", left: 58, top: 27, width: 16, height: 8},
+  {id: "C12", left: 58, top: 48, width: 8, height: 8},
+  {id: "C13", left: 66, top: 48, width: 8, height: 8},
   {id: "C14", left: 87, top: 53, width: 8, height: 10},
   {id: "C15", left: 87, top: 63, width: 8, height: 10},
   {id: "C16", left: 87, top: 73, width: 8, height: 10},
