@@ -24935,6 +24935,35 @@ html[dir="rtl"]
   }
 }
 
+@media (max-width: 640px) {
+  /* Preserve the booth proportions on phones; the map itself can scroll horizontally. */
+  .rental-booth-modal-map {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-inline: 8px;
+  }
+
+  .rental-booth-modal-map .admin-floor-map-canvas {
+    width: 420px;
+    max-width: none;
+  }
+
+  .rental-booth-modal-map .new-government-booth-card {
+    gap: 3px;
+  }
+
+  .rental-booth-modal-map .new-government-booth-card > span {
+    font-size: 9px;
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+
+  .rental-booth-modal-map .new-government-booth-card img {
+    width: 22px;
+    height: 22px;
+  }
+}
+
 /* Compact booth controls for phone-sized map pickers and management screens. */
 @media (max-width: 640px) {
   .admin-shell .admin-booths-head,
