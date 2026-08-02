@@ -4755,21 +4755,21 @@ const newDGroups = [
   {start: 21, count: 4, left: 58, top: 68, columns: 2},
   {start: 37, count: 4, left: 29, top: 96, columns: 2},
   {start: 41, count: 4, left: 58, top: 96, columns: 2},
-  {start: 46, count: 3, left: 87, top: 95, columns: 1},
+  {start: 46, count: 3, left: 87, top: 94, columns: 1, rowOffsets: [0, 10, 18]},
 ] as const;
 
 export const NEW_BOOTH_LAYOUT = [
   {id: "AA4", left: 58, top: 3, width: 19, height: 17},
   {id: "A4", left: 87, top: 18, width: 8, height: 10},
-  {id: "A5", left: 87, top: 29, width: 8, height: 10},
-  {id: "A6", left: 87, top: 40, width: 8, height: 10},
+  {id: "A5", left: 87, top: 28, width: 8, height: 10},
+  {id: "A6", left: 87, top: 38, width: 8, height: 10},
   {id: "B4", left: 29, top: 27, width: 18, height: 12},
   {id: "B5", left: 58, top: 27, width: 18, height: 12},
   {id: "C12", left: 58, top: 48, width: 10, height: 14},
   {id: "C13", left: 68, top: 48, width: 10, height: 14},
   {id: "C14", left: 87, top: 53, width: 8, height: 10},
-  {id: "C15", left: 87, top: 64, width: 8, height: 10},
-  {id: "C16", left: 87, top: 75, width: 8, height: 10},
+  {id: "C15", left: 87, top: 63, width: 8, height: 10},
+  {id: "C16", left: 87, top: 73, width: 8, height: 10},
   ...newDGroups.flatMap((group) =>
     Array.from({length: group.count}, (_, index) => {
       const row = Math.floor(index / group.columns);
