@@ -24380,6 +24380,7 @@ html[dir="rtl"]
   border-radius: 2px;
   background: #78350f;
   color: #ffffff;
+  overflow: visible;
   pointer-events: none;
   text-align: center;
 }
@@ -24391,13 +24392,18 @@ html[dir="rtl"]
 
 .new-government-booth-card > div {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 7px;
 }
 
+.new-government-booth-card:not(.new-government-booth-card-left) > div {
+  display: none;
+}
+
 .new-government-booth-card img {
-  width: clamp(18px, 2.8vw, 42px);
-  height: clamp(18px, 2.8vw, 42px);
+  width: clamp(14px, 2.1vw, 28px);
+  height: clamp(14px, 2.1vw, 28px);
   object-fit: contain;
   border-radius: 50%;
   background: #ffffff;
