@@ -24914,4 +24914,23 @@ html[dir="rtl"]
     gap: 6px !important;
     white-space: nowrap;
   }
+
+  .site-header .language-toggle {
+    min-height: 34px !important;
+    padding: 3px !important;
+    gap: 2px !important;
+  }
+
+  .site-header .language-toggle span {
+    min-width: 32px !important;
+    min-height: 28px;
+  }
+
+  .site-header .header-actions > .button,
+  .site-header .header-actions > .button-primary {
+    min-height: 34px !important;
+    padding-inline: 9px !important;
+    border-radius: 8px;
+    font-size: 11px;
+  }
 }
