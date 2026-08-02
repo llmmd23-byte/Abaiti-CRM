@@ -4753,8 +4753,8 @@ const newDGroups = [
   {start: 1, count: 4, left: 4, top: 72, columns: 1, rowOffsets: [0, 9, 18, 33]},
   {start: 17, count: 4, left: 29, top: 68, columns: 2},
   {start: 21, count: 4, left: 58, top: 68, columns: 2},
-  {start: 37, count: 4, left: 29, top: 85, columns: 2},
-  {start: 41, count: 4, left: 58, top: 85, columns: 2},
+  {start: 37, count: 4, left: 29, top: 96, columns: 2},
+  {start: 41, count: 4, left: 58, top: 96, columns: 2},
   {start: 46, count: 3, left: 87, top: 95, columns: 1},
 ] as const;
 
