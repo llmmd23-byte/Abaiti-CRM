@@ -17414,6 +17414,21 @@ html[dir="ltr"] .landing-main .hero {
     gap: 10px;
     padding-inline: 12px;
   }
+  .admin-shell .admin-sidebar nav {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+  .admin-shell .admin-sidebar nav :is(a, button, summary) {
+    flex: 0 0 auto;
+  }
+  .admin-shell .admin-sidebar-footer {
+    flex: 0 0 auto;
+    min-width: max-content;
+  }
   .admin-shell .admin-official-brand {
     width: 132px;
     min-width: 132px;
