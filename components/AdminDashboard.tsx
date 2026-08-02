@@ -384,7 +384,7 @@ type ContractSettingsDraft = {
   pricePerSqm: string;
   registrationFee: string;
   city: string;
-  contractTypeScope: "sponsorship" | "participation" | "both";
+  contractTypeScope: "sponsorship" | "participation" | "rental" | "both";
 };
 
 const EMPTY_CONTRACT_SETTINGS: ContractSettingsDraft = {
@@ -423,6 +423,7 @@ function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
   const [scopeDrafts, setScopeDrafts] = useState<Record<ContractSettingsDraft["contractTypeScope"], ContractSettingsDraft>>({
     sponsorship: {...EMPTY_CONTRACT_SETTINGS, contractTypeScope: "sponsorship"},
     participation: {...EMPTY_CONTRACT_SETTINGS, contractTypeScope: "participation"},
+    rental: {...EMPTY_CONTRACT_SETTINGS, contractTypeScope: "rental"},
     both: EMPTY_CONTRACT_SETTINGS,
   });
 
@@ -436,10 +437,11 @@ function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
         const nextScopes = {
           sponsorship: contractSettingsDraftFromValue(scopes.sponsorship, "sponsorship"),
           participation: contractSettingsDraftFromValue(scopes.participation, "participation"),
+          rental: contractSettingsDraftFromValue(scopes.rental, "rental"),
           both: contractSettingsDraftFromValue(scopes.both, "both"),
         };
         setScopeDrafts(nextScopes);
-        const selectedScope = ["sponsorship", "participation", "both"].includes(String(settings.contractTypeScope)) ? settings.contractTypeScope : "both";
+        const selectedScope = ["sponsorship", "participation", "rental", "both"].includes(String(settings.contractTypeScope)) ? settings.contractTypeScope : "both";
         setDraft(nextScopes[selectedScope as ContractSettingsDraft["contractTypeScope"]]);
       })
       .catch(() => setMessage(isArabic ? "تعذر تحميل إعدادات العقود" : "Unable to load contract settings"))
@@ -491,7 +493,8 @@ function AdminContractSettingsSection({isArabic}: {isArabic: boolean}) {
         {([
           ["sponsorship", isArabic ? "عقد الرعاية" : "Sponsorship contract"],
           ["participation", isArabic ? "عقد المشاركة" : "Participation contract"],
-          ["both", isArabic ? "كلا العقدين" : "Both contracts"],
+          ["rental", isArabic ? "عقد تاجيري" : "Rental contract"],
+          ["both", isArabic ? "كل العقود" : "All contracts"],
         ] as const).map(([value, label]) => (
           <label className={draft.contractTypeScope === value ? "active" : ""} key={value}>
             <input checked={draft.contractTypeScope === value} name="contract-type-scope" onChange={() => setDraft(scopeDrafts[value])} type="radio" value={value} />

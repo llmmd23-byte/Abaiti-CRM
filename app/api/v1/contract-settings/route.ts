@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { getSessionUserCompanyId } from "@/lib/permissions";
 
 type SponsorshipCategory = { name: string; amount: number };
-type ContractTypeScope = "sponsorship" | "participation" | "both";
+type ContractTypeScope = "sponsorship" | "participation" | "rental" | "both";
 
 const DEFAULT_CATEGORIES: SponsorshipCategory[] = [
   { name: "Diamond", amount: 0 },
@@ -78,7 +78,7 @@ function serialize(row: RowDataPacket | undefined) {
     pricePerSqm: Number(row?.price_per_sqm ?? 0),
     registrationFee: Number(row?.registration_fee ?? 0),
     city: String(row?.city ?? "Jeddah"),
-    contractTypeScope: ["sponsorship", "participation", "both"].includes(scope) ? scope : "both",
+    contractTypeScope: ["sponsorship", "participation", "rental", "both"].includes(scope) ? scope : "both",
   };
 }
 
@@ -95,7 +95,7 @@ async function getCompanySettings(requestedScope?: ContractTypeScope) {
     [companyId, JSON.stringify(DEFAULT_CATEGORIES)],
   );
   const [rows] = await db.execute<RowDataPacket[]>(
-    "SELECT vat_rate, sponsorship_categories, price_per_sqm, registration_fee, city, contract_type_scope FROM contract_settings WHERE company_id = ? ORDER BY FIELD(contract_type_scope, 'both', 'participation', 'sponsorship')",
+    "SELECT vat_rate, sponsorship_categories, price_per_sqm, registration_fee, city, contract_type_scope FROM contract_settings WHERE company_id = ? ORDER BY FIELD(contract_type_scope, 'both', 'participation', 'sponsorship', 'rental')",
     [companyId],
   );
   const byScope = new Map(rows.map((row) => [String(row.contract_type_scope), row]));
@@ -107,6 +107,7 @@ async function getCompanySettings(requestedScope?: ContractTypeScope) {
     scopes: {
       sponsorship: serialize(byScope.get("sponsorship") ?? byScope.get("both")),
       participation: serialize(byScope.get("participation") ?? byScope.get("both")),
+      rental: serialize(byScope.get("rental") ?? byScope.get("both")),
       both: serialize(byScope.get("both")),
     },
   };
@@ -115,7 +116,7 @@ async function getCompanySettings(requestedScope?: ContractTypeScope) {
 export async function GET(request: Request) {
   try {
     const requestedScope = String(new URL(request.url).searchParams.get("type") ?? "");
-    const scope = ["sponsorship", "participation"].includes(requestedScope) ? requestedScope as ContractTypeScope : undefined;
+    const scope = ["sponsorship", "participation", "rental"].includes(requestedScope) ? requestedScope as ContractTypeScope : undefined;
     const result = await getCompanySettings(scope);
     if (!result.session) return NextResponse.json({error: "UNAUTHORIZED"}, {status: 401});
     return NextResponse.json({data: result.settings, scopes: result.scopes});
@@ -139,7 +140,7 @@ export async function PUT(request: Request) {
       Math.max(0, Number(body.pricePerSqm ?? 0) || 0),
       Math.max(0, Number(body.registrationFee ?? 0) || 0),
       String(body.city ?? "Jeddah").trim().slice(0, 120) || "Jeddah",
-      ["sponsorship", "participation", "both"].includes(String(body.contractTypeScope)) ? String(body.contractTypeScope) : "both",
+      ["sponsorship", "participation", "rental", "both"].includes(String(body.contractTypeScope)) ? String(body.contractTypeScope) : "both",
       String(body.contractTypeScope ?? "both"),
       result.companyId,
     ];
