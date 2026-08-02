@@ -4750,7 +4750,7 @@ export const NEW_BOOTH_MAP_WIDTH = 100;
 export const NEW_BOOTH_MAP_HEIGHT = 136;
 
 const newDGroups = [
-  {start: 1, count: 4, left: 4, top: 72, columns: 1, rowOffsets: [0, 9, 18, 33]},
+  {start: 1, count: 4, left: 4, top: 72, columns: 1, rowOffsets: [0, 9, 18, 32]},
   {start: 17, count: 4, left: 29, top: 68, columns: 2},
   {start: 21, count: 4, left: 58, top: 68, columns: 2},
   {start: 37, count: 4, left: 29, top: 96, columns: 2},
@@ -4774,7 +4774,7 @@ export const NEW_BOOTH_LAYOUT = [
     Array.from({length: group.count}, (_, index) => {
       const row = Math.floor(index / group.columns);
       const column = index % group.columns;
-      const rowOffset = "rowOffsets" in group ? group.rowOffsets[index] : row * 9;
+      const rowOffset = "rowOffsets" in group ? group.rowOffsets[index] : row * 8;
     return {
         id: `D${group.start + index}`,
         left: group.left + column * 8,
