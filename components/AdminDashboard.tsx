@@ -4982,6 +4982,20 @@ function AdminBoothsSection({
     void loadBooths();
   }, []);
 
+  useEffect(() => {
+    const refreshBookings = () => {
+      if (document.visibilityState === "visible") void loadBoothBookings();
+    };
+    const interval = window.setInterval(refreshBookings, 15000);
+    window.addEventListener("focus", refreshBookings);
+    document.addEventListener("visibilitychange", refreshBookings);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshBookings);
+      document.removeEventListener("visibilitychange", refreshBookings);
+    };
+  }, []);
+
   const bookedByNumber = useMemo(() => {
     const map = new Map<string, AdminRow>();
     for (const booking of bookings) {
