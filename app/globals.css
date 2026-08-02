@@ -9149,7 +9149,11 @@ html[dir="ltr"] .dashboard-route-shell .dashboard-main {
   }
 
   .header-actions > .button {
-    display: none;
+    display: inline-flex;
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: 12px;
+    white-space: nowrap;
   }
 
   .brand {
