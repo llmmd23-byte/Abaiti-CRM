@@ -1376,8 +1376,9 @@ function BoothMapPicker({
 
 export function ParticipationContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
+  const [contractFormOpen, setContractFormOpen] = useState(false);
   const contracts = useBackend<BackendRow[]>("/api/v1/data/participation-contracts");
-  const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const leads = useBackend<BackendRow[]>("/api/v1/data/leads", contractFormOpen);
   const contractSettings = useBackend<ContractSettings>("/api/v1/contract-settings?type=participation");
   const [leadId, setLeadId] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -1400,7 +1401,6 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   const [notes, setNotes] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
-  const [contractFormOpen, setContractFormOpen] = useState(false);
   const [participationSearch, setParticipationSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [contractTypeFilter, setContractTypeFilter] = useState("all");
@@ -2687,8 +2687,9 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
 
 export function SponsorshipContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
+  const [contractFormOpen, setContractFormOpen] = useState(false);
   const contracts = useBackend<BackendRow[]>("/api/v1/data/sponsorship-contracts");
-  const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const leads = useBackend<BackendRow[]>("/api/v1/data/leads", contractFormOpen);
   const contractSettings = useBackend<ContractSettings>("/api/v1/contract-settings?type=sponsorship");
   const [leadId, setLeadId] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -2715,7 +2716,6 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   const [notes, setNotes] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
-  const [contractFormOpen, setContractFormOpen] = useState(false);
   const [sponsorshipSearch, setSponsorshipSearch] = useState("");
   const [sponsorshipCategoryFilter, setSponsorshipCategoryFilter] = useState("all");
   const [sponsorshipContractTypeFilter, setSponsorshipContractTypeFilter] = useState("all");
@@ -3992,10 +3992,11 @@ export function SalesOrdersPanel({locale}: {locale: string}) {
 
 export function RentalContractsPanel({locale}: {locale: string}) {
   const isArabic = locale === "ar";
+  const [contractFormOpen, setContractFormOpen] = useState(false);
   const contracts = useBackend<BackendRow[]>("/api/v1/data/rental-contracts");
   const rentalBooths = useBackend<BackendRow[]>("/api/v1/data/rental-booths");
   const boothCatalog = useBackend<BackendRow[]>("/api/v1/data/booths");
-  const leads = useBackend<BackendRow[]>("/api/v1/data/leads");
+  const leads = useBackend<BackendRow[]>("/api/v1/data/leads", contractFormOpen);
   const [contractNumber, setContractNumber] = useState("");
   const [leadId, setLeadId] = useState("");
   const [eventName, setEventName] = useState(isArabic ? "المعرض الدولي لصناع القهوة والشوكولاتة" : "International Coffee and Chocolate Makers Exhibition");
@@ -4033,7 +4034,6 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   const [boothMapZone, setBoothMapZone] = useState("all");
   const [saveStatus, setSaveStatus] = useState("");
   const [editingContractId, setEditingContractId] = useState<number | null>(null);
-  const [contractFormOpen, setContractFormOpen] = useState(false);
   const skipNextRentalAutoSaveRef = useRef(false);
   const rentalAutoSaveSnapshotRef = useRef("");
 

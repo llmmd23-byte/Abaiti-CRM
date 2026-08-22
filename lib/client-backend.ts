@@ -2,12 +2,13 @@
 
 import {useCallback, useEffect, useRef, useState} from "react";
 
-export function useBackend<T>(path: string) {
+export function useBackend<T>(path: string, enabled = true) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const hasLoadedData = useRef(false);
   const reload = useCallback(async () => {
+    if (!enabled) return;
     if (!hasLoadedData.current) setLoading(true);
     setError("");
     try {
@@ -28,8 +29,8 @@ export function useBackend<T>(path: string) {
     } finally {
       setLoading(false);
     }
-  }, [path]);
-  useEffect(() => { void reload(); }, [reload]);
+  }, [enabled, path]);
+  useEffect(() => { if (enabled) void reload(); }, [enabled, reload]);
   return {data, error, loading, reload};
 }
 
