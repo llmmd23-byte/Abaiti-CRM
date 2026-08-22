@@ -1616,6 +1616,160 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   function printContract(contract: BackendRow) {
     const printWindow = window.open("", "_blank", "width=900,height=1100");
     if (!printWindow) return;
+
+    const value = (field: string, fallback: unknown = "") => contract[field] ?? fallback;
+    const text = (field: string, fallback = "—") => escapePrintValue(value(field, fallback));
+    const currency = String(value("currency", "SAR"));
+    const amount = Number(value("total_amount", 0)) || 0;
+    const vat = amount * 0.15;
+    const grandTotal = amount + vat;
+    const money = (number: number) => `${number.toLocaleString("ar-SA", {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${escapePrintValue(currency)}`;
+    const contractNumber = text("contract_number");
+    const contractDate = text("contract_date");
+    const packageName = escapePrintValue(packageLabels[String(value("package_type", ""))] ?? value("package_type", "—"));
+    const locationName = escapePrintValue(value("location_category", "—"));
+    const space = text("space_sqm");
+    const stand = text("stand_number");
+    const fieldMarkup = (field: string, fallback = "—") => `<span class="fill-field">${text(field, fallback)}</span>`;
+    const signatureName = text("contact_name");
+
+    printWindow.document.write(`<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>اتفاقية مشاركة - ${contractNumber}</title>
+  <style>
+    * { box-sizing: border-box; }
+    @page { size: A4 portrait; margin: 0; }
+    html, body { margin: 0; padding: 0; background: #eef1f4; color: #20252b; }
+    body { font-family: Tahoma, Arial, sans-serif; font-size: 11px; line-height: 1.75; }
+    .toolbar { position: sticky; top: 0; z-index: 5; padding: 10px; text-align: center; background: #17324d; }
+    .toolbar button { border: 0; border-radius: 5px; padding: 9px 22px; background: #c5a45b; color: #fff; font-weight: 700; cursor: pointer; }
+    .page { width: 210mm; min-height: 297mm; margin: 14px auto; padding: 13mm 15mm 17mm; position: relative; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.12); page-break-after: always; }
+    .page:last-of-type { page-break-after: auto; }
+    .brand { color: #17324d; font-weight: 800; font-size: 18px; letter-spacing: .4px; }
+    .brand small { display: block; color: #717b83; font-size: 8px; letter-spacing: 1px; }
+    .heading { margin: 8px 0 14px; padding: 8px 12px; border-top: 2px solid #c5a45b; border-bottom: 1px solid #c5a45b; color: #17324d; text-align: center; font-weight: 800; }
+    .heading span { display: block; font-size: 9px; direction: ltr; color: #65717b; letter-spacing: .5px; }
+    .top-grid { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 10px; align-items: start; margin-bottom: 12px; }
+    .center-title { text-align: center; color: #17324d; font-weight: 800; font-size: 15px; line-height: 1.55; }
+    .center-title small { display: block; color: #68747d; font-size: 9px; font-weight: 400; }
+    .meta { border: 1px solid #cbd1d6; padding: 6px; font-size: 10px; line-height: 1.6; }
+    .meta b { color: #17324d; }
+    .form-table, .price-table { width: 100%; border-collapse: collapse; }
+    .form-table td, .price-table th, .price-table td { border: 1px solid #cbd1d6; padding: 6px 7px; vertical-align: middle; }
+    .form-table td.label { width: 29%; background: #f4f6f7; color: #43515d; font-weight: 700; }
+    .form-table td.label small { display: block; direction: ltr; color: #7a858d; font-size: 8px; font-weight: 400; }
+    .fill-field { display: inline-block; min-width: 90px; border-bottom: 1px dashed #7d8790; padding: 0 3px; color: #111; font-weight: 700; }
+    .wide-field { min-width: 220px; }
+    .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .party { border: 1px solid #cbd1d6; padding: 8px 10px; min-height: 130px; }
+    .party h3 { margin: -8px -10px 6px; padding: 5px; background: #17324d; color: #fff; text-align: center; font-size: 11px; }
+    .party p { margin: 3px 0; }
+    .intro { text-align: justify; margin: 10px 0; }
+    .price-table th { background: #17324d; color: #fff; font-size: 10px; }
+    .price-table td { text-align: center; }
+    .price-table .total { background: #f3eee2; font-weight: 800; }
+    .notice { margin-top: 10px; border-right: 3px solid #c5a45b; background: #fbfaf7; padding: 8px 10px; }
+    .clauses { text-align: justify; }
+    .clauses h3 { margin: 9px 0 2px; color: #17324d; font-size: 11px; }
+    .clauses p { margin: 0 0 4px; }
+    .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+    .signature { height: 125px; border: 1px solid #aeb7bd; padding: 10px; position: relative; }
+    .signature strong { display: block; color: #17324d; }
+    .signature .line { position: absolute; bottom: 20px; left: 12px; right: 12px; border-bottom: 1px dashed #777; text-align: center; min-height: 20px; }
+    .footer { position: absolute; bottom: 7mm; left: 15mm; right: 15mm; display: flex; justify-content: space-between; border-top: 1px solid #d8dde0; padding-top: 4px; color: #7a858d; font-size: 8px; }
+    .rtl-note { direction: rtl; }
+    @media print {
+      html, body { background: #fff; }
+      .toolbar { display: none !important; }
+      .page { width: 210mm; min-height: 297mm; margin: 0; box-shadow: none; }
+    }
+    @media screen and (max-width: 800px) {
+      .page { width: 100%; min-height: auto; margin: 0 0 10px; padding: 20px; }
+      .top-grid, .parties, .signatures { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar no-print"><button type="button" onclick="window.print()">طباعة العقد / حفظ PDF</button></div>
+  <section class="page">
+    <div class="top-grid">
+      <div><div class="brand">ALSawsan</div><div class="brand"><small>EXHIBITIONS & CONFERENCES</small></div></div>
+      <div class="center-title">اتفاقية مشاركة في المعرض<br><small>PARTICIPATION AGREEMENT</small><small>ملتقى أمن وسلامة الفعاليات الثقافية والفنية</small></div>
+      <div class="meta"><b>رقم العقد:</b> ${contractNumber}<br><b>التاريخ:</b> ${contractDate}<br><b>المكان:</b> جدة</div>
+    </div>
+    <div class="heading">بيانات الأطراف <span>PARTIES INFORMATION</span></div>
+    <div class="parties">
+      <div class="party"><h3>الطرف الأول - المنظم</h3><p>مؤسسة منطقة سبعة للإنتاج الإعلامي والمرئي والمسموع وتنظيم المعارض والمؤتمرات</p><p>رقم التصريح: 160273</p><p>السجل التجاري: 4030618093</p><p>العنوان: جدة - حي الشرفية - طريق الملك فهد 23218</p><p>الهاتف: 0555996084</p><p>البريد: info@area7media.com</p><p>يمثلها: سراج عمر خليل</p></div>
+      <div class="party"><h3>الطرف الثاني - المشارك</h3><p>اسم المنشأة: ${fieldMarkup("company_name")}</p><p>السجل التجاري: ${fieldMarkup("commercial_registration")}</p><p>المدينة: ${fieldMarkup("city")}</p><p>الحي: ${fieldMarkup("district", String(value("address", "")))}</p><p>يمثلها: ${fieldMarkup("contact_name")}</p><p>الجوال: ${fieldMarkup("mobile", String(value("phone", "")))}</p><p>البريد الإلكتروني: ${fieldMarkup("email")}</p></div>
+    </div>
+    <div class="heading">بيانات العقد والمشاركة <span>CONTRACT & PARTICIPATION DETAILS</span></div>
+    <table class="form-table">
+      <tr><td class="label">اسم العلامة التجارية<small>Brand name</small></td><td>${fieldMarkup("brand_name")}</td><td class="label">رقم الجناح<small>Booth number</small></td><td>${stand}</td></tr>
+      <tr><td class="label">فئة المشاركة<small>Participation package</small></td><td>${packageName}</td><td class="label">فئة الموقع<small>Location category</small></td><td>${locationName}</td></tr>
+      <tr><td class="label">المساحة<small>Area</small></td><td>${space} متر مربع</td><td class="label">قيمة العقد قبل الضريبة<small>Amount before VAT</small></td><td>${money(amount)}</td></tr>
+    </table>
+    <div class="heading">التمهيد</div>
+    <p class="intro">حيث إن الطرف الأول يقوم بتنظيم <b>ملتقى أمن وسلامة الفعاليات الثقافية والفنية</b> في فندق جدة هيلتون - القاعة الكبرى، وحيث إن الطرف الثاني يرغب في المشاركة في الفعالية، فقد اتفق الطرفان بكامل أهليتهما الشرعية والنظامية على إبرام هذه الاتفاقية وفقاً للشروط والأحكام الواردة فيها، ويعد هذا التمهيد جزءاً لا يتجزأ من العقد.</p>
+    <div class="heading">المقابل المالي</div>
+    <table class="price-table"><thead><tr><th>البيان</th><th>التفاصيل</th><th>القيمة</th></tr></thead><tbody>
+      <tr><td>حجز مساحة المشاركة</td><td>${space} متر مربع - الجناح ${stand}</td><td>${money(amount)}</td></tr>
+      <tr><td>ضريبة القيمة المضافة 15%</td><td>VAT</td><td>${money(vat)}</td></tr>
+      <tr class="total"><td colspan="2">الإجمالي شامل الضريبة</td><td>${money(grandTotal)}</td></tr>
+    </tbody></table>
+    <div class="notice"><b>شروط السداد:</b> يتم سداد قيمة العقد على دفعتين بنسبة 50% عند التوقيع و50% قبل موعد تسليم الجناح. لا يتم تسليم أو تمكين الطرف الثاني من الجناح قبل سداد كامل المستحقات.</div>
+    <div class="footer"><span>اتفاقية مشاركة - ${contractNumber}</span><span>الصفحة 1</span></div>
+  </section>
+  <section class="page">
+    <div class="heading">الشروط والأحكام العامة</div>
+    <div class="clauses">
+      <h3>أولاً: أنظمة إقامة المعرض</h3><p>يحدد المنظم الشروط والأنظمة العامة ومواعيد ومكان إقامة المعرض، وله عند الحاجة تعديل الموعد أو المكان بما يحقق مصلحة الفعالية، مع إشعار الطرف الثاني متى أمكن.</p>
+      <h3>ثانياً: شروط المشاركة</h3><p>يلتزم الطرف الثاني بعرض المنتجات أو الخدمات المصرح بها فقط، وبالأنظمة والتعليمات المعمول بها في المملكة العربية السعودية، ويتحمل مسؤولية صحة البيانات والمستندات المقدمة.</p>
+      <h3>ثالثاً: طلب المشاركة</h3><p>يعد توقيع هذه الاتفاقية أو اعتماد طلب المشاركة التزاماً بدفع أجرة الجناح وجميع التكاليف المرتبطة بالمشاركة وفق المواعيد المحددة.</p>
+      <h3>رابعاً: قبول الطلب</h3><p>يصبح الطلب نافذاً بعد اعتماده من المنظم واستلام الدفعة المستحقة، ولا يعتبر حجز الجناح نهائياً قبل اكتمال إجراءات الاعتماد والسداد.</p>
+      <h3>خامساً: التنازل والتأجير من الباطن</h3><p>لا يجوز للطرف الثاني التنازل عن المساحة أو تأجيرها من الباطن أو مشاركتها مع طرف آخر إلا بموافقة خطية مسبقة من المنظم.</p>
+      <h3>سادساً: الانسحاب والإلغاء</h3><p>في حال انسحاب الطرف الثاني أو عدم إشغاله للجناح بعد التوقيع، تصبح المبالغ المدفوعة أو المتبقية مستحقة وفق هذه الاتفاقية، ولا ترد الدفعات بعد اعتماد الحجز إلا وفق ما يقرره المنظم كتابة.</p>
+      <h3>سابعاً: تجهيز الجناح</h3><p>يلتزم الطرف الثاني بتقديم بيانات التصميم والشعارات في المواعيد المحددة، ويتحمل تكلفة أي أعمال إضافية أو تجهيزات خاصة لا تدخل ضمن الباقة المعتمدة.</p>
+      <h3>ثامناً: المنتجات والمواد المعروضة</h3><p>يمنع عرض أي مواد مخالفة للأنظمة أو الآداب العامة أو لا ترتبط بنشاط الطرف الثاني. وللمنظم إزالة أي مادة مخالفة دون تحمل مسؤولية تجاه الطرف الثاني.</p>
+      <h3>تاسعاً: المسؤولية والتأمين</h3><p>يتحمل الطرف الثاني مسؤولية ممتلكاته وموظفيه ومنسوبيه داخل المعرض، ويلتزم باتخاذ احتياطات السلامة والتأمين المناسب لنشاطه.</p>
+      <h3>عاشراً: المحافظة على المكان</h3><p>يلتزم الطرف الثاني بالمحافظة على الجناح والمرافق وعدم إحداث أي تلف أو تغيير في الموقع، ويكون مسؤولاً عن تكلفة إصلاح الأضرار الناتجة عنه.</p>
+      <h3>حادي عشر: توزيع الأجنحة</h3><p>يقوم المنظم بتوزيع الأجنحة وتحديد مواقعها وله تعديل المخطط أو المساحات عند الحاجة بما يخدم تنظيم المعرض، ولا يحق للطرف الثاني الاعتراض على التعديلات التنظيمية المعقولة.</p>
+      <h3>ثاني عشر: الدخول والتشغيل</h3><p>يلتزم الطرف الثاني بمواعيد الدخول والتركيب والتشغيل والإخلاء التي يحددها المنظم، وبالتعليمات الصادرة من إدارة المعرض والجهات المختصة.</p>
+      <h3>ثالث عشر: الدعاية والإعلان</h3><p>لا يجوز استخدام اسم المعرض أو شعاره في أي إعلان أو مادة تسويقية إلا بعد الحصول على موافقة المنظم، كما يلتزم الطرف الثاني بالمواد المعتمدة للهوية البصرية.</p>
+      <h3>رابع عشر: الخدمات</h3><p>تقدم الخدمات المشمولة في الباقة حسب الوصف المعتمد، وأي خدمات إضافية أو طلبات خاصة تخضع لتسعير وموافقة مستقلة.</p>
+      <h3>خامس عشر: القوة القاهرة</h3><p>لا يكون أي من الطرفين مسؤولاً عن التأخير أو عدم التنفيذ الناتج عن ظروف قاهرة خارجة عن الإرادة، ويحق للمنظم اتخاذ الإجراء المناسب بما في ذلك التأجيل أو تغيير الموقع.</p>
+    </div>
+    <div class="footer"><span>الشروط والأحكام العامة</span><span>الصفحة 2</span></div>
+  </section>
+  <section class="page">
+    <div class="heading">أحكام ختامية وإقرار الطرف الثاني</div>
+    <div class="clauses">
+      <h3>سادس عشر: التأشيرات والجمارك</h3><p>تقع على عاتق الطرف الثاني مسؤولية استكمال إجراءات التأشيرات والجمارك والتراخيص وأي متطلبات نظامية تخص مشاركته أو منتجاته.</p>
+      <h3>سابع عشر: الموظفون والمندوبون</h3><p>يلتزم الطرف الثاني بتزويد المنظم ببيانات العاملين في الجناح والتأكد من التزامهم بتعليمات السلامة والأمن والزي والسلوك المهني.</p>
+      <h3>ثامن عشر: الأمن والسلامة</h3><p>يلتزم الطرف الثاني بجميع تعليمات الأمن والسلامة ومخارج الطوارئ، ولا يجوز تخزين مواد خطرة أو استخدام مصادر حرارة أو كهرباء غير معتمدة.</p>
+      <h3>تاسع عشر: حقوق الصور والمحتوى</h3><p>يقر الطرف الثاني بموافقته على تصوير المعرض والعارضين والزوار لأغراض التوثيق والتسويق، ما لم يقدم اعتراضاً خطياً قبل بدء الفعالية.</p>
+      <h3>عشرون: السرية والبيانات</h3><p>يتعامل الطرفان مع بيانات الاتصال والمستندات المقدمة لأغراض تنفيذ الاتفاقية وإدارة المشاركة، ويلتزم كل طرف بالمحافظة على سريتها في حدود الأنظمة.</p>
+      <h3>واحد وعشرون: الإخطارات</h3><p>تكون الإخطارات عبر البريد الإلكتروني أو بيانات الاتصال المثبتة في العقد، ويعد الإخطار واصلاً عند إرساله إلى آخر عنوان معتمد لدى الطرف الآخر.</p>
+      <h3>اثنان وعشرون: عدم التنازل</h3><p>لا يجوز للطرف الثاني نقل حقوقه أو التزاماته الناشئة عن هذه الاتفاقية إلى الغير دون موافقة خطية من الطرف الأول.</p>
+      <h3>ثلاثة وعشرون: قابلية الفصل</h3><p>إذا أصبح أي حكم من أحكام الاتفاقية غير نافذ، فلا يؤثر ذلك على نفاذ باقي الأحكام، ويستبدل الحكم بما يحقق الغرض النظامي منه.</p>
+      <h3>أربعة وعشرون: التعديل</h3><p>لا يعتد بأي تعديل أو إضافة على هذه الاتفاقية ما لم يكن مكتوباً ومعتمداً من الطرفين.</p>
+      <h3>خمسة وعشرون: القانون والاختصاص</h3><p>تخضع هذه الاتفاقية لأنظمة المملكة العربية السعودية، وتختص الجهات القضائية المختصة في مدينة جدة بالنظر في أي نزاع ينشأ عنها بعد تعذر التسوية الودية.</p>
+      <p class="notice"><b>إقرار:</b> أقر أنا الموقع أدناه بأنني قرأت هذه الاتفاقية وشروطها وأحكامها وفهمتها، وأن جميع البيانات المقدمة صحيحة، وأوافق عليها دون تحفظ.</p>
+    </div>
+    <div class="signatures"><div class="signature"><strong>الطرف الثاني - المشارك</strong><div>الاسم: ${signatureName}</div><div>التوقيع والختم</div><div class="line"></div></div><div class="signature"><strong>الطرف الأول - المنظم</strong><div>مؤسسة منطقة سبعة</div><div>التوقيع والختم</div><div class="line"></div></div></div>
+    <div class="footer"><span>التوقيعات والإقرار</span><span>الصفحة 3</span></div>
+  </section>
+  <script>window.addEventListener('load', () => { setTimeout(() => window.print(), 250); });</script>
+</body>
+</html>`);
+    printWindow.document.close();
+  }
+
+  function printContractLegacy(contract: BackendRow) {
+    const printWindow = window.open("", "_blank", "width=900,height=1100");
+    if (!printWindow) return;
     const printPackageValue = String(contract.package_type ?? "");
     const printLocationValue = String(contract.location_category ?? "");
     const printCurrency = String(contract.currency ?? "SAR");
