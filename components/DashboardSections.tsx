@@ -398,7 +398,7 @@ function printAreaSevenRentalContractSixPage(contract: BackendRow) {
       : body;
     const pageBody = pageNumber === 2 ? `${section("تمهيد")}${firstPageBody}` : firstPageBody;
     const signatureSizing = pageNumber === 6 ? `<style>.signatures-container{margin-top:12px!important}.signature-box{min-height:300px!important;height:300px!important;padding:14px!important}.signature-box .sig-line{margin-top:28px!important}</style>` : "";
-    return `<div class="page" style="height:auto;min-height:0;justify-content:flex-start;page-break-after:${pageNumber === 6 ? "avoid" : "always"}"><div class="page-content" style="flex:none;gap:7px">${signatureSizing}${header(pageNumber)}${pageBody}</div>${footer(pageNumber)}</div>`;
+    return `<div class="page" style="height:auto;min-height:0;justify-content:flex-start;page-break-after:auto"><div class="page-content" style="flex:none;gap:7px">${signatureSizing}${header(pageNumber)}${pageBody}</div>${footer(pageNumber)}</div>`;
   };
 
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>عقد تأجير مساحة - AREA SEVEN</title><style>
