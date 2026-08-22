@@ -3545,8 +3545,6 @@ const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
   "page.user.customers": { ar: "صفحة المستخدم - العملاء", en: "User - Customers Page" },
   "page.user.stores": { ar: "صفحة المستخدم - المعارض", en: "User - Stores Page" },
   "page.user.quotes": { ar: "صفحة المستخدم - عروض الأسعار", en: "User - Quotes Page" },
-  "page.user.participation_contracts": { ar: "صفحة المستخدم - عقود المشاركة", en: "User - Participation Contracts Page" },
-  "page.user.sponsorship_contracts": { ar: "صفحة المستخدم - عقود الرعاية", en: "User - Sponsorship Contracts Page" },
   "page.user.sales_orders": { ar: "صفحة المستخدم - أوامر البيع", en: "User - Sales Orders Page" },
   "page.user.rental_contracts": { ar: "صفحة المستخدم - عقود تأجيرية", en: "User - Rental Contracts Page" },
   "page.user.sales": { ar: "صفحة المستخدم - المبيعات", en: "User - Sales Page" },
@@ -3570,8 +3568,6 @@ const permissionKeyLabels: Record<string, { ar: string; en: string }> = {
   "table.stock": { ar: "جدول مخزون المعارض", en: "Store Stock Table" },
   "table.demo_requests": { ar: "جدول النسخ التجريبية", en: "Demos Table" },
   "table.quotes": { ar: "جدول عروض الأسعار", en: "Quotes Table" },
-  "table.participation_contracts": { ar: "جدول عقود المشاركة", en: "Participation Contracts Table" },
-  "table.sponsorship_contracts": { ar: "جدول عقود الرعاية", en: "Sponsorship Contracts Table" },
   "table.rental_contracts": { ar: "جدول عقود التأجير", en: "Rental Contracts Table" },
   "table.rental_booths": { ar: "جدول ربط البوثات بعقود التأجير", en: "Rental Booth Links Table" },
   "table.booths": { ar: "جدول البوثات", en: "Booths Table" },
@@ -3617,8 +3613,6 @@ function permissionCategoryForKey(key: string) {
     return "customers";
   if (
     [
-      "table.participation_contracts",
-      "table.sponsorship_contracts",
       "table.rental_contracts",
       "table.rental_booths",
       "table.booths",

@@ -15,8 +15,6 @@ type DashboardSection =
   | "productInfo"
   | "products"
   | "quotes"
-  | "participationContracts"
-  | "sponsorshipContracts"
   | "salesOrders"
   | "rentalContracts"
   | "commissions"
@@ -34,8 +32,6 @@ type DashboardHref =
   | "/educational-hub"
   | "/dashboard/products"
   | "/dashboard/quotes"
-  | "/dashboard/participation-contracts"
-  | "/dashboard/sponsorship-contracts"
   | "/dashboard/sales-orders"
   | "/dashboard/rental-contracts"
   | "/dashboard/commissions"
@@ -73,8 +69,6 @@ const dashboardShellMessages: Record<DashboardLocale, Record<string, string>> = 
     "portal.potentialCustomers": "العملاء المهتمين",
     "portal.stores": "المعارض",
     "portal.salesTools": "عروض الأسعار",
-    "portal.participationContracts": "عقود المشاركة",
-    "portal.sponsorshipContracts": "عقد الرعاية",
     "portal.salesOrders": "أمر بيع",
     "portal.rentalContracts": "عقود تأجيرية",
     "portal.sales": "المبيعات",
@@ -94,8 +88,6 @@ const dashboardShellMessages: Record<DashboardLocale, Record<string, string>> = 
     "portal.potentialCustomers": "Interested leads",
     "portal.stores": "Stores",
     "portal.salesTools": "Quotes",
-    "portal.participationContracts": "Participation contracts",
-    "portal.sponsorshipContracts": "Sponsorship contract",
     "portal.salesOrders": "Sales order",
     "portal.rentalContracts": "Rental contracts",
     "portal.sales": "Sales",
@@ -115,8 +107,6 @@ const sectionPermissionKeys: Partial<Record<DashboardSection, string>> = {
   customers: "page.user.customers",
   stores: "page.user.stores",
   quotes: "page.user.quotes",
-  participationContracts: "page.user.participation_contracts",
-  sponsorshipContracts: "page.user.sponsorship_contracts",
   salesOrders: "page.user.sales_orders",
   rentalContracts: "page.user.rental_contracts",
   commissions: "page.user.sales",
@@ -149,18 +139,6 @@ const coreGrowthItems: NavItem[] = [
     icon: "stores"
   },
   {key: "quotes", href: "/dashboard/quotes", label: "portal.salesTools", icon: "quotes"},
-  {
-    key: "participationContracts",
-    href: "/dashboard/participation-contracts",
-    label: "portal.participationContracts",
-    icon: "quotes"
-  },
-  {
-    key: "sponsorshipContracts",
-    href: "/dashboard/sponsorship-contracts",
-    label: "portal.sponsorshipContracts",
-    icon: "quotes"
-  },
   {
     key: "salesOrders",
     href: "/dashboard/sales-orders",
