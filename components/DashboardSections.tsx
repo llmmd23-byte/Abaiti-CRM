@@ -389,7 +389,7 @@ function printAreaSevenRentalContractSixPage(contract: BackendRow) {
   const money = (value: number) => `${value.toLocaleString(NUMBER_LOCALE, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${esc(get("currency", "SAR"))}`;
   const header = (pageNumber: number) => pageNumber === 1
     ? `<div class="cover-title" style="text-align:center;margin:5mm 0 6mm"><h1 style="font-size:22pt;font-weight:800;line-height:1.25">اتفاقية تأجير مساحة</h1><h2 style="font-size:15pt;font-weight:700;margin-top:2mm;color:#333">بمعرض ملتقى أمن وسلامة الفعاليات بجدة</h2></div>`
-    : `<div class="header-banner"><div class="header-title-box">عقد تأجير مساحة جناح (بوث)<br>في معرض ملتقى أمن وسلامة الفعاليات الثقافية والفنية بجدة</div><div class="header-logo-box"><strong>AREA SEVEN</strong>رقم العقد: ${contractNumber}<br>${contractDate} | مدينة جدة</div></div>`;
+    : "";
   const section = (title: string) => `<div class="section-title">${title}</div>`;
   const footer = (_page: number) => "";
   const page = (pageNumber: number, body: string) => {
@@ -397,7 +397,7 @@ function printAreaSevenRentalContractSixPage(contract: BackendRow) {
       ? `${body.replace(/<div class="section-title">تمهيد<\/div>[\s\S]*$/, "")}<p>وقد تم إبرام هذه الاتفاقية بين الطرفين المذكورين أعلاه، وهما بكامل أهليتهما المعتبرة شرعاً ونظاماً، على إبرام هذه الاتفاقية وفقاً للشروط والأحكام الواردة فيها.</p>`
       : body;
     const pageBody = pageNumber === 2 ? `${section("تمهيد")}${firstPageBody}` : firstPageBody;
-    return `<div class="page" style="page-break-after:${pageNumber === 6 ? "avoid" : "always"}"><div class="page-content">${header(pageNumber)}${pageBody}</div>${footer(pageNumber)}</div>`;
+    return `<div class="page" style="page-break-after:${pageNumber === 6 ? "avoid" : "always"}"><div class="page-content" style="gap:7px">${header(pageNumber)}${pageBody}</div>${footer(pageNumber)}</div>`;
   };
 
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>عقد تأجير مساحة - AREA SEVEN</title><style>
