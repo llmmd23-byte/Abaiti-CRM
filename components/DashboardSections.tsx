@@ -272,6 +272,56 @@ function cleanDate(value: unknown) {
   return String(value ?? "").slice(0, 10) || "-";
 }
 
+function printStyledBusinessContract(contract: BackendRow, kind: "rental" | "sponsorship") {
+  const printWindow = window.open("", "_blank", "width=900,height=1100");
+  if (!printWindow) return;
+  const get = (field: string, fallback = "-") => String(contract[field] ?? fallback).trim() || fallback;
+  const escape = (value: unknown) => String(value ?? "-")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+  const money = (value: number) => `${value.toLocaleString(NUMBER_LOCALE, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${escape(get("currency", "SAR"))}`;
+  const isRental = kind === "rental";
+  const title = isRental ? "عقد تأجير مساحة في المعرض" : "عقد الرعاية والمشاركة";
+  const titleSub = isRental ? "EXHIBITION SPACE RENTAL AGREEMENT" : "SPONSORSHIP AGREEMENT";
+  const company = get(isRental ? "tenant_name" : "company_name");
+  const representative = get("contact_name");
+  const unit = Number(get("unit_price", "0")) || 0;
+  const quantity = Number(get("quantity", "1")) || 1;
+  const space = Number(get("space_sqm", "0")) || 0;
+  const sponsorship = Number(get("sponsorship_amount", "0")) || 0;
+  const registration = Number(get("registration_fee", "0")) || 0;
+  const other = Number(get("other_services_amount", "0")) || 0;
+  const subtotal = isRental ? unit * quantity : (space * (Number(get("price_per_sqm", "0")) || 0)) + sponsorship + registration + other;
+  const vat = Number(get("vat_amount", String(subtotal * 0.15))) || subtotal * 0.15;
+  const grandTotal = Number(get("grand_total", String(subtotal + vat))) || subtotal + vat;
+  const field = (label: string, value: unknown) => `<div class="field"><b>${escape(label)}</b><span>${escape(value)}</span></div>`;
+  const contractNumber = get("contract_number");
+  const eventName = get("event_name", "المعرض الدولي لصناع القهوة والشوكولاتة");
+  const eventDates = get("event_dates", "8-10 أكتوبر 2026م");
+  const eventLocation = get("event_location", "فندق جدة هيلتون - القاعة الكبرى");
+  const details = isRental
+    ? `${field("البند المؤجر", get("rental_item"))}${field("رقم البوث", get("booth_number"))}${field("المساحة", get("booth_size"))}${field("الموقع", get("rental_location"))}${field("مدة العقد", `${cleanDate(contract.lease_start_date)} - ${cleanDate(contract.lease_end_date)}`)}`
+    : `${field("نوع الرعاية", get("sponsorship_category"))}${field("المساحة", get("space_sqm"))}${field("رقم البوث", get("stand_number"))}${field("العلامة التجارية", get("brand_name"))}${field("حالة العقد", get("status"))}`;
+  const financialRows = isRental
+    ? `<tr><td>قيمة التأجير</td><td>${escape(get("quantity", "1"))} × ${money(unit)}</td><td>${money(subtotal)}</td></tr>`
+    : `<tr><td>قيمة الرعاية</td><td>${money(sponsorship)}</td><td>${money(sponsorship)}</td></tr><tr><td>رسوم التسجيل والخدمات</td><td>${money(registration + other)}</td><td>${money(registration + other)}</td></tr>`;
+
+  printWindow.document.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${escape(title)} - ${escape(contractNumber)}</title><style>
+    *{box-sizing:border-box} @page{size:A4 portrait;margin:0} html,body{margin:0;background:#e7e7e7;color:#111} body{font-family:Arial,Tahoma,sans-serif;font-size:12px;line-height:1.7}.toolbar{position:sticky;top:0;z-index:3;padding:10px;text-align:center;background:#222}.toolbar button{border:0;border-radius:3px;padding:9px 22px;background:#111;color:#fff;font-weight:700}.page{width:210mm;min-height:297mm;margin:14px auto;padding:13mm 15mm 17mm;background:#fff;position:relative;page-break-after:always;box-shadow:0 0 0 1px #ddd}.page:last-of-type{page-break-after:auto}.header{direction:ltr;display:flex;align-items:flex-start;justify-content:space-between;min-height:39mm;border-bottom:1px solid #111;padding-bottom:5mm;margin-bottom:5mm}.logo{width:42mm;height:27mm;object-fit:contain;object-position:left top}.logo.event{object-position:right top}.title{direction:rtl;text-align:center;align-self:center;max-width:94mm;font-size:19px;font-weight:900;line-height:1.45}.title small{display:block;font-size:11px;margin-top:2px}.meta{text-align:center;font-weight:700;margin:4mm 0 7mm}.meta span{display:block}.heading{font-size:16px;font-weight:800;margin:7px 0 7px;text-align:right}.parties{display:grid;grid-template-columns:1fr;gap:9px}.party{border:1px solid #111;padding:8px 12px;min-height:38mm}.party h2{font-size:15px;margin:0 0 4px}.party p{margin:2px 0;font-size:11px}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #111}.field{display:flex;justify-content:space-between;gap:8px;border:1px solid #bbb;padding:6px;min-height:30px}.field b{background:#f5f5f5;min-width:34%;padding:0 3px}.field span{font-weight:700;text-align:left;flex:1}.table{width:100%;border-collapse:collapse;margin:4mm 0}.table th,.table td{border:1px solid #111;padding:7px;text-align:center}.table th{background:#f3f3f3;font-weight:800}.total{font-weight:900;background:#f3f3f3}.text{text-align:justify;margin:5px 0}.clauses h3{font-size:14px;margin:8px 0 1px}.clauses p{margin:0 0 5px;text-align:justify}.notice{border:1px solid #111;padding:8px;margin-top:8px}.signatures{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}.signature{height:115px;border:1px solid #111;padding:10px}.signature .line{margin-top:47px;border-bottom:1px dashed #555;text-align:center}.footer{position:absolute;bottom:7mm;left:15mm;right:15mm;border-top:1px solid #aaa;padding-top:3px;display:flex;justify-content:space-between;font-size:9px}@media print{html,body{background:#fff}.toolbar{display:none}.page{width:210mm;min-height:297mm;margin:0;box-shadow:none}}@media screen and (max-width:800px){.page{width:100%;min-height:auto;margin:0 0 10px;padding:20px}.field-grid,.signatures{grid-template-columns:1fr}}
+  </style></head><body><div class="toolbar"><button onclick="window.print()">طباعة العقد / حفظ PDF</button></div>
+  <section class="page"><div class="header"><img class="logo" src="/contract-assets/jazli-netaq-logo.png" alt="شعار نطاق"><div class="title">${escape(title)}<small>${escape(titleSub)}</small></div><img class="logo event" src="/contract-assets/jazli-event-logo.png" alt="شعار المعرض"></div>
+    <div class="meta"><span>${escape(eventName)}</span><span>${escape(eventDates)}</span><span>${escape(eventLocation)}</span><span>رقم العقد: ${escape(contractNumber)} - تاريخ العقد: ${escape(cleanDate(contract.contract_date))}</span></div>
+    <div class="heading">أولاً: بيانات الأطراف</div><div class="parties"><div class="party"><h2>الطرف الأول</h2><p>شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات</p><p>السجل التجاري: ${escape(get("first_party_cr", "4030216503"))}</p><p>العنوان: جدة - المملكة العربية السعودية</p><p>يمثلها: ${escape(get("first_party_representative", "الرئيس التنفيذي"))}</p></div><div class="party"><h2>الطرف الثاني</h2><p>اسم المنشأة: ${escape(company)}</p><p>السجل التجاري: ${escape(get("second_party_cr"))}</p><p>العنوان: ${escape(get("address", get("city")))}</p><p>يمثلها: ${escape(get("second_party_representative", representative))}</p></div></div>
+    <div class="heading">ثانياً: بيانات العقد</div><div class="field-grid">${details}</div>
+    <div class="heading">ثالثاً: التمهيد</div><p class="text">حيث إن الطرف الأول يقوم بتنظيم الفعالية الموضحة بياناتها أعلاه، وحيث إن الطرف الثاني يرغب في ${isRental ? "استئجار المساحة المحددة" : "الحصول على مزايا الرعاية والمشاركة"}، فقد اتفق الطرفان بكامل أهليتهما الشرعية والنظامية على ما يلي، ويعد هذا التمهيد جزءاً لا يتجزأ من العقد.</p>
+    <div class="heading">رابعاً: المقابل المالي</div><table class="table"><thead><tr><th>البيان</th><th>التفاصيل</th><th>القيمة</th></tr></thead><tbody>${financialRows}<tr><td>ضريبة القيمة المضافة 15%</td><td>VAT</td><td>${money(vat)}</td></tr><tr class="total"><td colspan="2">الإجمالي شامل الضريبة</td><td>${money(grandTotal)}</td></tr></tbody></table>
+    <div class="notice"><b>آلية السداد:</b> ${isRental ? "يتم السداد وفق الدفعات والمواعيد المعتمدة في العقد، ولا يتم تسليم المساحة أو تمكين الطرف الثاني منها قبل سداد كامل المستحقات." : "تتم الدفعات وفق جدول الرعاية المعتمد، ولا تصبح المزايا والخدمات نافذة قبل سداد الدفعة المستحقة."}</div><div class="footer"><span>${escape(title)} - ${escape(contractNumber)}</span><span>الصفحة 1</span></div></section>
+  <section class="page"><div class="heading">خامساً: الشروط والأحكام</div><div class="clauses"><h3>1. الالتزامات العامة</h3><p>يلتزم الطرفان بتنفيذ هذه الاتفاقية بحسن نية وبما لا يخالف أنظمة المملكة العربية السعودية وتعليمات الجهات المختصة وإدارة الفعالية.</p><h3>2. التخصيص والاستخدام</h3><p>يستخدم الطرف الثاني المساحة أو المزايا المتفق عليها للغرض المحدد في العقد فقط، ولا يجوز التنازل عنها أو تأجيرها من الباطن أو نقلها للغير دون موافقة خطية.</p><h3>3. المنتجات والمواد</h3><p>يتحمل الطرف الثاني مسؤولية المنتجات والمحتوى والمواد المستخدمة أو المعروضة، ويلتزم بإزالة أي مادة مخالفة للأنظمة أو تعليمات المنظم فوراً.</p><h3>4. التجهيز والسلامة</h3><p>يلتزم الطرف الثاني بمواعيد التركيب والتشغيل والإخلاء وتعليمات الأمن والسلامة، ويتحمل تكلفة أي تلف أو ضرر يسببه هو أو منسوبيه.</p><h3>5. الإلغاء والانسحاب</h3><p>في حال انسحاب الطرف الثاني أو إخلاله بالسداد أو بأي التزام جوهري، يحق للطرف الأول إلغاء العقد والمطالبة بالمبالغ المستحقة وفقاً للأنظمة والعقد.</p><h3>6. القوة القاهرة</h3><p>لا يكون أي من الطرفين مسؤولاً عن التأخير أو عدم التنفيذ الناتج عن ظرف قاهر خارج عن الإرادة، ويحق للمنظم اتخاذ الإجراء المناسب بما في ذلك التأجيل أو تغيير المكان.</p><h3>7. الإخطارات والبيانات</h3><p>تكون الإخطارات عبر بيانات الاتصال المثبتة في العقد، ويلتزم الطرف الثاني بإبلاغ الطرف الأول بأي تغيير يطرأ على بياناته.</p><h3>8. القانون والاختصاص</h3><p>تخضع هذه الاتفاقية لأنظمة المملكة العربية السعودية، وتختص الجهات القضائية المختصة في مدينة جدة بالنظر في أي نزاع ينشأ عنها بعد تعذر التسوية الودية.</p><div class="notice"><b>إقرار:</b> أقر أنا الموقع أدناه بصحة البيانات الواردة في العقد، واطلاعي على شروطه وأحكامه وقبولي بها دون تحفظ.</div></div><div class="signatures"><div class="signature"><b>الطرف الثاني</b><p>${escape(company)}</p><p>الممثل: ${escape(representative)}</p><div class="line">التوقيع والختم</div></div><div class="signature"><b>الطرف الأول</b><p>شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات</p><p>الممثل: ${escape(get("first_party_representative", "الرئيس التنفيذي"))}</p><div class="line">التوقيع والختم</div></div></div><div class="footer"><span>الشروط والتوقيعات</span><span>الصفحة 2</span></div></section><script>window.addEventListener('load',()=>setTimeout(()=>window.print(),250));</script></body></html>`);
+  printWindow.document.close();
+}
+
 function parseDatabaseDate(value: unknown) {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
@@ -1614,6 +1664,10 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
   }
 
   function printContract(contract: BackendRow) {
+    printParticipationContractPdf(contract);
+  }
+
+  function printParticipationContractPdf(contract: BackendRow) {
     const printWindow = window.open("", "_blank", "width=900,height=1100");
     if (!printWindow) return;
 
@@ -2997,6 +3051,10 @@ export function SponsorshipContractsPanel({locale}: {locale: string}) {
   }
 
   function printContract(contract: BackendRow) {
+    printStyledBusinessContract(contract, "sponsorship");
+  }
+
+  function printContractLegacy(contract: BackendRow) {
     const printWindow = window.open("", "_blank", "width=900,height=1100");
     if (!printWindow) return;
     const currency = String(contract.currency ?? "SAR");
@@ -4390,6 +4448,10 @@ export function RentalContractsPanel({locale}: {locale: string}) {
   }
 
   function printContract(contract: BackendRow) {
+    printStyledBusinessContract(contract, "rental");
+  }
+
+  function printContractLegacy(contract: BackendRow) {
     const printWindow = window.open("", "_blank", "width=900,height=1100");
     if (!printWindow) return;
     const currency = String(contract.currency ?? "SAR");
