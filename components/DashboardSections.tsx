@@ -397,7 +397,8 @@ function printAreaSevenRentalContractSixPage(contract: BackendRow) {
       ? `${body.replace(/<div class="section-title">تمهيد<\/div>[\s\S]*$/, "")}<p>وقد تم إبرام هذه الاتفاقية بين الطرفين المذكورين أعلاه، وهما بكامل أهليتهما المعتبرة شرعاً ونظاماً، على إبرام هذه الاتفاقية وفقاً للشروط والأحكام الواردة فيها.</p>`
       : body;
     const pageBody = pageNumber === 2 ? `${section("تمهيد")}${firstPageBody}` : firstPageBody;
-    return `<div class="page" style="page-break-after:${pageNumber === 6 ? "avoid" : "always"}"><div class="page-content" style="gap:7px">${header(pageNumber)}${pageBody}</div>${footer(pageNumber)}</div>`;
+    const signatureSizing = pageNumber === 6 ? `<style>.signatures-container{margin-top:12px!important}.signature-box{min-height:120px!important;height:auto!important;padding:14px!important}.signature-box .sig-line{margin-top:28px!important}</style>` : "";
+    return `<div class="page" style="page-break-after:${pageNumber === 6 ? "avoid" : "always"}"><div class="page-content" style="gap:7px">${signatureSizing}${header(pageNumber)}${pageBody}</div>${footer(pageNumber)}</div>`;
   };
 
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>عقد تأجير مساحة - AREA SEVEN</title><style>
