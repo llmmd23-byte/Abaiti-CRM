@@ -1626,6 +1626,8 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
     const money = (number: number) => `${number.toLocaleString("ar-SA", {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${escapePrintValue(currency)}`;
     const contractNumber = text("contract_number");
     const contractDate = text("contract_date");
+    const eventDates = escapePrintValue(value("event_dates", "8-10 أكتوبر 2026م (27-29 ربيع الآخر 1448هـ)"));
+    const eventLocation = escapePrintValue(value("event_location", "فندق جدة هيلتون - القاعة الكبرى"));
     const packageName = escapePrintValue(packageLabels[String(value("package_type", ""))] ?? value("package_type", "—"));
     const locationName = escapePrintValue(value("location_category", "—"));
     const space = text("space_sqm");
@@ -1638,46 +1640,46 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>اتفاقية مشاركة - ${contractNumber}</title>
+  <title>عقد مشاركة في المعرض الدولي لصناع القهوة والشوكولاته - ${contractNumber}</title>
   <style>
     * { box-sizing: border-box; }
     @page { size: A4 portrait; margin: 0; }
-    html, body { margin: 0; padding: 0; background: #eef1f4; color: #20252b; }
-    body { font-family: Tahoma, Arial, sans-serif; font-size: 11px; line-height: 1.75; }
-    .toolbar { position: sticky; top: 0; z-index: 5; padding: 10px; text-align: center; background: #17324d; }
-    .toolbar button { border: 0; border-radius: 5px; padding: 9px 22px; background: #c5a45b; color: #fff; font-weight: 700; cursor: pointer; }
-    .page { width: 210mm; min-height: 297mm; margin: 14px auto; padding: 13mm 15mm 17mm; position: relative; background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.12); page-break-after: always; }
+    html, body { margin: 0; padding: 0; background: #e9e9e9; color: #111; }
+    body { font-family: Arial, Tahoma, sans-serif; font-size: 11px; line-height: 1.75; }
+    .toolbar { position: sticky; top: 0; z-index: 5; padding: 10px; text-align: center; background: #222; }
+    .toolbar button { border: 0; border-radius: 3px; padding: 9px 22px; background: #111; color: #fff; font-weight: 700; cursor: pointer; }
+    .page { width: 210mm; min-height: 297mm; margin: 14px auto; padding: 13mm 15mm 17mm; position: relative; background: #fff; box-shadow: 0 0 0 1px #ddd; page-break-after: always; }
     .page:last-of-type { page-break-after: auto; }
-    .brand { color: #17324d; font-weight: 800; font-size: 18px; letter-spacing: .4px; }
-    .brand small { display: block; color: #717b83; font-size: 8px; letter-spacing: 1px; }
-    .heading { margin: 8px 0 14px; padding: 8px 12px; border-top: 2px solid #c5a45b; border-bottom: 1px solid #c5a45b; color: #17324d; text-align: center; font-weight: 800; }
-    .heading span { display: block; font-size: 9px; direction: ltr; color: #65717b; letter-spacing: .5px; }
-    .top-grid { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 10px; align-items: start; margin-bottom: 12px; }
-    .center-title { text-align: center; color: #17324d; font-weight: 800; font-size: 15px; line-height: 1.55; }
-    .center-title small { display: block; color: #68747d; font-size: 9px; font-weight: 400; }
-    .meta { border: 1px solid #cbd1d6; padding: 6px; font-size: 10px; line-height: 1.6; }
-    .meta b { color: #17324d; }
+    .pdf-header { direction: ltr; display: flex; justify-content: space-between; align-items: flex-start; min-height: 43mm; border-bottom: 1px solid #111; padding-bottom: 5mm; margin-bottom: 7mm; }
+    .pdf-logo { width: 42mm; height: 27mm; object-fit: contain; object-position: left top; }
+    .pdf-logo.event { object-position: right top; }
+    .center-title { direction: rtl; text-align: center; color: #111; font-weight: 800; font-size: 18px; line-height: 1.5; align-self: center; max-width: 92mm; }
+    .center-title small { display: block; color: #111; font-size: 11px; font-weight: 700; }
+    .document-meta { text-align: center; font-size: 11px; font-weight: 700; margin: 4mm 0 7mm; }
+    .document-meta span { display: block; margin-top: 2px; }
+    .heading { margin: 8px 0 8px; padding: 3px 0; color: #111; text-align: right; font-weight: 800; font-size: 16px; }
+    .heading span { display: none; }
     .form-table, .price-table { width: 100%; border-collapse: collapse; }
     .form-table td, .price-table th, .price-table td { border: 1px solid #cbd1d6; padding: 6px 7px; vertical-align: middle; }
-    .form-table td.label { width: 29%; background: #f4f6f7; color: #43515d; font-weight: 700; }
-    .form-table td.label small { display: block; direction: ltr; color: #7a858d; font-size: 8px; font-weight: 400; }
+    .form-table td.label { width: 29%; background: #fafafa; color: #111; font-weight: 700; }
+    .form-table td.label small { display: block; direction: ltr; color: #555; font-size: 8px; font-weight: 400; }
     .fill-field { display: inline-block; min-width: 90px; border-bottom: 1px dashed #7d8790; padding: 0 3px; color: #111; font-weight: 700; }
     .wide-field { min-width: 220px; }
-    .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .party { border: 1px solid #cbd1d6; padding: 8px 10px; min-height: 130px; }
-    .party h3 { margin: -8px -10px 6px; padding: 5px; background: #17324d; color: #fff; text-align: center; font-size: 11px; }
+    .parties { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .party { border: 1px solid #222; padding: 8px 12px; min-height: 46mm; }
+    .party h3 { margin: 0 0 5px; padding: 0; color: #111; text-align: right; font-size: 14px; }
     .party p { margin: 3px 0; }
     .intro { text-align: justify; margin: 10px 0; }
-    .price-table th { background: #17324d; color: #fff; font-size: 10px; }
+    .price-table th { background: #f4f4f4; color: #111; font-size: 10px; }
     .price-table td { text-align: center; }
-    .price-table .total { background: #f3eee2; font-weight: 800; }
-    .notice { margin-top: 10px; border-right: 3px solid #c5a45b; background: #fbfaf7; padding: 8px 10px; }
+    .price-table .total { background: #f4f4f4; font-weight: 800; }
+    .notice { margin-top: 10px; border-right: 0; background: transparent; padding: 8px 0; }
     .clauses { text-align: justify; }
-    .clauses h3 { margin: 9px 0 2px; color: #17324d; font-size: 11px; }
+    .clauses h3 { margin: 9px 0 2px; color: #111; font-size: 14px; }
     .clauses p { margin: 0 0 4px; }
     .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
     .signature { height: 125px; border: 1px solid #aeb7bd; padding: 10px; position: relative; }
-    .signature strong { display: block; color: #17324d; }
+    .signature strong { display: block; color: #111; }
     .signature .line { position: absolute; bottom: 20px; left: 12px; right: 12px; border-bottom: 1px dashed #777; text-align: center; min-height: 20px; }
     .footer { position: absolute; bottom: 7mm; left: 15mm; right: 15mm; display: flex; justify-content: space-between; border-top: 1px solid #d8dde0; padding-top: 4px; color: #7a858d; font-size: 8px; }
     .rtl-note { direction: rtl; }
@@ -1695,11 +1697,12 @@ export function ParticipationContractsPanel({locale}: {locale: string}) {
 <body>
   <div class="toolbar no-print"><button type="button" onclick="window.print()">طباعة العقد / حفظ PDF</button></div>
   <section class="page">
-    <div class="top-grid">
-      <div><div class="brand">ALSawsan</div><div class="brand"><small>EXHIBITIONS & CONFERENCES</small></div></div>
-      <div class="center-title">اتفاقية مشاركة في المعرض<br><small>PARTICIPATION AGREEMENT</small><small>ملتقى أمن وسلامة الفعاليات الثقافية والفنية</small></div>
-      <div class="meta"><b>رقم العقد:</b> ${contractNumber}<br><b>التاريخ:</b> ${contractDate}<br><b>المكان:</b> جدة</div>
+    <div class="pdf-header">
+      <img class="pdf-logo" src="/contract-assets/jazli-netaq-logo.png" alt="شركة نطاق الأعمال لتنظيم المعارض والمؤتمرات">
+      <div class="center-title">عقد مشاركة في المعرض الدولي لصناع القهوة<br>والشوكولاته</div>
+      <img class="pdf-logo event" src="/contract-assets/jazli-event-logo.png" alt="المعرض الدولي لصناع القهوة والشوكولاته">
     </div>
+    <div class="document-meta"><span>${eventDates}</span><span>${eventLocation}</span><span>${contractNumber}</span><span>تم بعون الله وتوفيقه إبرام هذا العقد بتاريخ ${contractDate}</span></div>
     <div class="heading">بيانات الأطراف <span>PARTIES INFORMATION</span></div>
     <div class="parties">
       <div class="party"><h3>الطرف الأول - المنظم</h3><p>مؤسسة منطقة سبعة للإنتاج الإعلامي والمرئي والمسموع وتنظيم المعارض والمؤتمرات</p><p>رقم التصريح: 160273</p><p>السجل التجاري: 4030618093</p><p>العنوان: جدة - حي الشرفية - طريق الملك فهد 23218</p><p>الهاتف: 0555996084</p><p>البريد: info@area7media.com</p><p>يمثلها: سراج عمر خليل</p></div>
