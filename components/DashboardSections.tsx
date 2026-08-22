@@ -391,7 +391,7 @@ function printAreaSevenRentalContractSixPage(contract: BackendRow) {
     ? `<div class="cover-title" style="text-align:center;margin:5mm 0 6mm"><h1 style="font-size:22pt;font-weight:800;line-height:1.25">اتفاقية تأجير مساحة</h1><h2 style="font-size:15pt;font-weight:700;margin-top:2mm;color:#333">بمعرض ملتقى أمن وسلامة الفعاليات بجدة</h2></div>`
     : `<div class="header-banner"><div class="header-title-box">عقد تأجير مساحة جناح (بوث)<br>في معرض ملتقى أمن وسلامة الفعاليات الثقافية والفنية بجدة</div><div class="header-logo-box"><strong>AREA SEVEN</strong>رقم العقد: ${contractNumber}<br>${contractDate} | مدينة جدة</div></div>`;
   const section = (title: string) => `<div class="section-title">${title}</div>`;
-  const footer = (_page: number) => `<table class="footer-table"><tr><td>عقد تأجير مساحة - Area Seven</td><td></td></tr></table>`;
+  const footer = (_page: number) => "";
   const page = (pageNumber: number, body: string) => {
     const firstPageBody = pageNumber === 1
       ? `${body.replace(/<div class="section-title">تمهيد<\/div>[\s\S]*$/, "")}<p>وقد تم إبرام هذه الاتفاقية بين الطرفين المذكورين أعلاه، وهما بكامل أهليتهما المعتبرة شرعاً ونظاماً، على إبرام هذه الاتفاقية وفقاً للشروط والأحكام الواردة فيها.</p>`
