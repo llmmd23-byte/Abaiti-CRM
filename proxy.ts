@@ -9,12 +9,6 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/ar/signin", request.url));
   }
 
-  if (request.nextUrl.pathname.replace(/\/$/, "") === "/landpaga") {
-    const landpagaUrl = request.nextUrl.clone();
-    landpagaUrl.pathname = "/ar/landpaga";
-    return NextResponse.rewrite(landpagaUrl);
-  }
-
   return intlMiddleware(request);
 }
 

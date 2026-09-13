@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+tmp/
+uploads/
+.git/
+gitstore/
+.git-blocked/
+.npm-cache/
+.env*
+*.log
+*.tsbuildinfo
+*.zip

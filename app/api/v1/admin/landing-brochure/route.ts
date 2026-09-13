@@ -1,4 +1,4 @@
-import {stat, mkdir, writeFile} from "node:fs/promises";
+import {mkdir, writeFile} from "node:fs/promises";
 import path from "node:path";
 
 import type {RowDataPacket} from "mysql2";
@@ -11,15 +11,7 @@ import {db} from "@/lib/db";
 import {getSessionUserCompanyId} from "@/lib/permissions";
 
 const INDUSTRY_SLUG = "events-exhibitions";
-const DEFAULT_BROCHURE_URL =
-  "/landing-pages/coffee-chocolate-expo-2026-v2.pdf#toolbar=0&navpanes=0";
 const PUBLIC_BROCHURE_URL = "/api/v1/landing-brochure#toolbar=0&navpanes=0";
-const DEFAULT_BROCHURE_PATH = path.join(
-  process.cwd(),
-  "public",
-  "landing-pages",
-  "coffee-chocolate-expo-2026-v2.pdf",
-);
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const uploadRoot = path.join(process.cwd(), "public", "marketing-library");
 
@@ -90,7 +82,7 @@ async function ensureLandingIndustry() {
       "أنظمة المعارض والفعاليات",
       "Exhibitions and Event Systems",
       INDUSTRY_SLUG,
-      DEFAULT_BROCHURE_URL,
+      "",
       "حل متكامل لإدارة وتنظيم المعارض والمؤتمرات وحجز الأجنحة والخدمات اللوجستية رقمياً بالكامل.",
     ],
   );
@@ -131,18 +123,6 @@ async function companyLandingPage(companyId: number | null) {
     [companyId],
   );
   return rows[0] ?? null;
-}
-
-async function defaultBrochureData() {
-  const fileStat = await stat(DEFAULT_BROCHURE_PATH).catch(() => null);
-  return {
-    isDefault: true,
-    isActive: true,
-    url: PUBLIC_BROCHURE_URL,
-    name: "المعرض الدولي لصناع القهوة والشوكولاتة 2026.pdf",
-    size: fileStat?.size ?? 0,
-    updatedAt: fileStat?.mtime?.toISOString() ?? null,
-  };
 }
 
 function normalizeExternalUrl(value: unknown) {
@@ -227,7 +207,17 @@ async function activeBrochureData(companyId: number | null) {
     asset && String(asset.status ?? "active") === "active"
       ? asset
       : await latestLandingBrochureAsset();
-  if (!activeAsset) return {...(await defaultBrochureData()), externalUrl};
+  if (!activeAsset) {
+    return {
+      isDefault: false,
+      isActive: false,
+      url: "",
+      name: "",
+      size: 0,
+      updatedAt: null,
+      externalUrl,
+    };
+  }
   return {
     isDefault: false,
     isActive: true,
@@ -399,7 +389,7 @@ export async function DELETE() {
       );
     } else {
       await db.execute("UPDATE industries SET landing_url = ? WHERE slug = ?", [
-        DEFAULT_BROCHURE_URL,
+        "",
         INDUSTRY_SLUG,
       ]);
     }

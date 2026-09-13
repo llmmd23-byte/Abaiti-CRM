@@ -11,8 +11,6 @@ export const USER_PAGE_ACCESS = [
   { key: "page.user.customers", path: "/dashboard/customers" },
   { key: "page.user.stores", path: "/dashboard/stores" },
   { key: "page.user.quotes", path: "/dashboard/quotes" },
-  { key: "page.user.participation_contracts", path: "/dashboard/participation-contracts" },
-  { key: "page.user.sponsorship_contracts", path: "/dashboard/sponsorship-contracts" },
   { key: "page.user.sales_orders", path: "/dashboard/sales-orders" },
   { key: "page.user.rental_contracts", path: "/dashboard/rental-contracts" },
   { key: "page.user.sales", path: "/dashboard/commissions" },

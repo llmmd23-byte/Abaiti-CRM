@@ -15,8 +15,6 @@ type DashboardSection =
   | "productInfo"
   | "products"
   | "quotes"
-  | "participationContracts"
-  | "sponsorshipContracts"
   | "salesOrders"
   | "rentalContracts"
   | "commissions"
@@ -34,8 +32,6 @@ type DashboardHref =
   | "/educational-hub"
   | "/dashboard/products"
   | "/dashboard/quotes"
-  | "/dashboard/participation-contracts"
-  | "/dashboard/sponsorship-contracts"
   | "/dashboard/sales-orders"
   | "/dashboard/rental-contracts"
   | "/dashboard/commissions"
@@ -73,8 +69,6 @@ const dashboardShellMessages: Record<DashboardLocale, Record<string, string>> = 
     "portal.potentialCustomers": "العملاء المهتمين",
     "portal.stores": "المعارض",
     "portal.salesTools": "عروض الأسعار",
-    "portal.participationContracts": "عقود المشاركة",
-    "portal.sponsorshipContracts": "عقد الرعاية",
     "portal.salesOrders": "أمر بيع",
     "portal.rentalContracts": "عقود تأجيرية",
     "portal.sales": "المبيعات",
@@ -94,8 +88,6 @@ const dashboardShellMessages: Record<DashboardLocale, Record<string, string>> = 
     "portal.potentialCustomers": "Interested leads",
     "portal.stores": "Stores",
     "portal.salesTools": "Quotes",
-    "portal.participationContracts": "Participation contracts",
-    "portal.sponsorshipContracts": "Sponsorship contract",
     "portal.salesOrders": "Sales order",
     "portal.rentalContracts": "Rental contracts",
     "portal.sales": "Sales",
@@ -115,8 +107,6 @@ const sectionPermissionKeys: Partial<Record<DashboardSection, string>> = {
   customers: "page.user.customers",
   stores: "page.user.stores",
   quotes: "page.user.quotes",
-  participationContracts: "page.user.participation_contracts",
-  sponsorshipContracts: "page.user.sponsorship_contracts",
   salesOrders: "page.user.sales_orders",
   rentalContracts: "page.user.rental_contracts",
   commissions: "page.user.sales",
@@ -150,32 +140,20 @@ const coreGrowthItems: NavItem[] = [
   },
   {key: "quotes", href: "/dashboard/quotes", label: "portal.salesTools", icon: "quotes"},
   {
+    key: "salesOrders",
+    href: "/dashboard/sales-orders",
+    label: "portal.salesOrders",
+    icon: "quotes"
+  },
+  {
     key: "rentalContracts",
     href: "/dashboard/rental-contracts",
     label: "portal.rentalContracts",
     icon: "quotes"
   },
-  {
-    key: "commissions",
-    href: "/dashboard/commissions",
-    label: "portal.sales",
-    icon: "sales"
-  },
-  {
-    key: "productInfo",
-    href: "/dashboard/product-info",
-    label: "portal.activation",
-    icon: "products"
-  }
 ];
 
 const supportResourceItems: NavItem[] = [
-  {
-    key: "education",
-    href: "/dashboard/educational-hub",
-    label: "portal.educationalHub",
-    icon: "education"
-  },
   {key: "support", href: "/dashboard/support", label: "portal.helpDesk", icon: "support"},
   {
     key: "accounts",
@@ -303,6 +281,7 @@ export default function DashboardShell({
   const router = useRouter();
   const direction = locale === "ar" ? "rtl" : "ltr";
   const [pendingHref, setPendingHref] = useState<DashboardHref | null>(null);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     name?: string;
     role?: string;
@@ -354,6 +333,7 @@ export default function DashboardShell({
     router.prefetch(item.href);
   };
   const handleNavIntent = (item: NavItem) => {
+    setIsMobileNavOpen(false);
     setPendingHref(item.href);
     prefetchItem(item);
   };
@@ -393,8 +373,27 @@ export default function DashboardShell({
             width={220}
           />
         </Link>
+        <button
+          aria-expanded={isMobileNavOpen}
+          aria-label={locale === "ar" ? "فتح قائمة التنقل" : "Open navigation menu"}
+          className="sidebar-mobile-toggle"
+          onClick={() => setIsMobileNavOpen((current) => !current)}
+          type="button"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
 
-        <nav className="sidebar-nav" aria-label={t("nav.dashboard")}>
+        <nav className={`sidebar-nav${isMobileNavOpen ? " is-open" : ""}`} aria-label={t("nav.dashboard")}>
+          <button
+            aria-label={locale === "ar" ? "إغلاق قائمة التنقل" : "Close navigation menu"}
+            className="sidebar-mobile-close"
+            onClick={() => setIsMobileNavOpen(false)}
+            type="button"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
           {canViewItem(overviewItem) ? (
             <div className="sidebar-nav-item">
               <Link
@@ -454,6 +453,14 @@ export default function DashboardShell({
             })}
           </div>
         </nav>
+        {isMobileNavOpen ? (
+          <button
+            aria-label={locale === "ar" ? "إغلاق القائمة" : "Close menu"}
+            className="sidebar-mobile-backdrop"
+            onClick={() => setIsMobileNavOpen(false)}
+            type="button"
+          />
+        ) : null}
 
         <div className="sidebar-bottom-actions">
           <div className="sidebar-meta">
