@@ -12,7 +12,6 @@ const validAdminSections = new Set([
   "tags",
   "activity",
   "content",
-  "contract-settings",
   "permissions",
 ]);
 
@@ -47,7 +46,6 @@ export default async function AdminPage({
         | "tags"
         | "activity"
         | "content"
-        | "contract-settings"
         | "permissions")
     : "dashboard";
   return (

@@ -1,0 +1,17 @@
+const {spawn} = require("node:child_process");
+
+const nextBinary = require.resolve("next/dist/bin/next");
+const port = process.env.PORT || "5173";
+const host = process.env.HOSTNAME || "0.0.0.0";
+const child = spawn(process.execPath, [nextBinary, "start", "-H", host, "-p", port], {
+  stdio: "inherit",
+  env: process.env,
+});
+
+const forwardSignal = (signal) => child.kill(signal);
+process.on("SIGTERM", () => forwardSignal("SIGTERM"));
+process.on("SIGINT", () => forwardSignal("SIGINT"));
+child.on("exit", (code, signal) => {
+  if (signal) process.kill(process.pid, signal);
+  process.exit(code ?? 1);
+});

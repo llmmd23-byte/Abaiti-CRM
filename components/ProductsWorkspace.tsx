@@ -58,12 +58,14 @@ const catalogCopy = {
   }
 };
 
+const DEFAULT_PUBLIC_BROCHURE_URL =
+  "/api/v1/landing-brochure#toolbar=0&navpanes=0";
 const industryLinks = {
-  EVENTS_EXHIBITIONS: ""
+  EVENTS_EXHIBITIONS: DEFAULT_PUBLIC_BROCHURE_URL
 } as const;
 
 function publicBrochureUrl(value: unknown) {
-  return String(value ?? "").trim();
+  return DEFAULT_PUBLIC_BROCHURE_URL;
 }
 
 const industriesData: Industry[] = [
@@ -121,10 +123,26 @@ const marketingTabs: Array<{id: MarketingTab; label: {ar: string; en: string}; h
   }
 ];
 
+function MarketingTabIcon({id}: {id: MarketingTab}) {
+  const pathByTab: Record<MarketingTab, string> = {
+    sectors: "M3 12 12 4l9 8M5 10v10h14V10M9 20v-6h6v6",
+    social: "M7 7h10M7 12h10M7 17h6M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z",
+    library: "m4 16 4.6-4.6a2 2 0 0 1 2.8 0L16 16m-2-2 1.6-1.6a2 2 0 0 1 2.8 0L20 14M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"
+  };
+
+  return (
+    <span className="marketing-tab-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d={pathByTab[id]} />
+      </svg>
+    </span>
+  );
+}
+
 const socialPlatforms = [
-  {name: {ar: "\u062a\u064a\u0643 \u062a\u0648\u0643", en: "TikTok"}, handle: "middar@", reach: "62.4K", engagement: "9.4%", accent: "#00F2EA", logo: "tiktok" as SocialLogo},
+  {name: {ar: "\u062a\u064a\u0643 \u062a\u0648\u0643", en: "TikTok"}, handle: "@middar", reach: "62.4K", engagement: "9.4%", accent: "#00F2EA", logo: "tiktok" as SocialLogo},
   {name: {ar: "\u0633\u0646\u0627\u0628 \u0634\u0627\u062a", en: "Snapchat"}, handle: "Middar Official", reach: "31.6K", engagement: "6.1%", accent: "#FFFC00", logo: "snapchat" as SocialLogo},
-  {name: {ar: "\u0625\u0646\u0633\u062a\u063a\u0631\u0627\u0645", en: "Instagram"}, handle: "middar.sa@", reach: "48.2K", engagement: "7.8%", accent: "#E1306C", logo: "instagram" as SocialLogo},
+  {name: {ar: "\u0625\u0646\u0633\u062a\u063a\u0631\u0627\u0645", en: "Instagram"}, handle: "@middar.sa", reach: "48.2K", engagement: "7.8%", accent: "#E1306C", logo: "instagram" as SocialLogo},
   {name: {ar: "\u0645\u0646\u0635\u0629 X", en: "X Platform"}, handle: "@MiddarHQ", reach: "18.9K", engagement: "4.6%", accent: "#0F172A", logo: "x" as SocialLogo}
 ];
 
@@ -343,10 +361,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
   const [activeTab, setActiveTab] = useState<MarketingTab>("sectors");
   const [activeAssetFilter, setActiveAssetFilter] = useState<AssetFilter>("all");
   const {data: liveIndustries} = useBackend<Array<Record<string, unknown> & {id: number}>>("/api/v1/data/industries");
-  const {
-    data: landingPageSettings,
-    loading: landingPageSettingsLoading,
-  } = useBackend<LandingPageSettings>("/api/v1/landing-page-settings");
+  const {data: landingPageSettings} = useBackend<LandingPageSettings>("/api/v1/landing-page-settings");
   const {
     data: marketingAssetsData,
     loading: marketingAssetsLoading,
@@ -376,13 +391,10 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                 ...industry.subtitle,
                 ar: String(live.description ?? industry.subtitle.ar),
               },
-               // Do not render the cached database URL while the current landing settings load.
-               url:
-                 industry.id === "events-exhibitions"
-                   ? landingPageSettingsLoading
-                     ? ""
-                     : publicBrochureUrl(landingPageSettings?.landingUrl ?? live.landing_url)
-                   : industry.url,
+              url:
+                industry.id === "events-exhibitions"
+                  ? publicBrochureUrl(landingPageSettings?.landingUrl ?? live.landing_url)
+                  : industry.url,
               externalUrl:
                 industry.id === "events-exhibitions"
                   ? String(landingPageSettings?.externalUrl ?? live.external_url ?? "").trim() || undefined
@@ -390,12 +402,12 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
             }
           : industry;
       }),
-    [landingPageSettings, landingPageSettingsLoading, liveIndustries],
+    [landingPageSettings, liveIndustries],
   );
   const primaryIndustry = displayedIndustries[0] ?? industriesData[0];
-  const primaryExternalUrl = landingPageSettingsLoading
-    ? ""
-    : String(landingPageSettings?.externalUrl ?? "").trim() || primaryIndustry.externalUrl;
+  const primaryExternalUrl =
+    String(landingPageSettings?.externalUrl ?? "").trim() ||
+    primaryIndustry.externalUrl;
   const visibleMarketingAssets = useMemo(
     () =>
       (marketingAssetsData ?? []).filter((asset) => {
@@ -472,6 +484,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
             role="tab"
             type="button"
           >
+            <MarketingTabIcon id={tab.id} />
             <strong>{tab.label[isArabic ? "ar" : "en"]}</strong>
             <span>{tab.hint[isArabic ? "ar" : "en"]}</span>
           </button>
@@ -528,7 +541,7 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
               </div>
             </div>
 
-            {primaryIndustry.url ? <div className="landing-sector-frame">
+            <div className="landing-sector-frame">
               <div className="landing-sector-frame-stack">
                 {primaryExternalUrl ? (
                   <>
@@ -547,19 +560,19 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
                   </>
                 ) : (
                   <>
-                <PdfPreviewFrame
-                  className="landing-sector-pdf-preview"
-                  minHeight={560}
-                  src={primaryIndustry.url}
-                  title={primaryIndustry.title[isArabic ? "ar" : "en"]}
-                />
-                <a href={primaryIndustry.url} target="_blank" rel="noreferrer">
-                  {isArabic ? "فتح بروشور صفحة الهبوط" : "Open landing brochure"}
-                </a>
+                    <PdfPreviewFrame
+                      className="landing-sector-pdf-preview"
+                      minHeight={560}
+                      src={primaryIndustry.url}
+                      title={primaryIndustry.title[isArabic ? "ar" : "en"]}
+                    />
+                    <a href={primaryIndustry.url} target="_blank" rel="noreferrer">
+                      {isArabic ? "فتح بروشور صفحة الهبوط" : "Open landing brochure"}
+                    </a>
                   </>
                 )}
               </div>
-            </div> : null}
+            </div>
           </div>
         ) : null}
 
@@ -569,22 +582,28 @@ export default function ProductsWorkspace({initialView = "catalog"}: {initialVie
               <article className="social-platform-card" key={platform.logo} style={{"--platform-accent": platform.accent} as CSSProperties}>
                 <div className="social-platform-head">
                   <SocialLogoIcon logo={platform.logo} />
-                  <div>
+                  <div className="social-platform-identity">
                     <h3>{platform.name[isArabic ? "ar" : "en"]}</h3>
-                    <p>{platform.handle}</p>
+                    <p dir="ltr" lang="en">{platform.handle}</p>
                   </div>
+                  <span className="social-platform-status" title={isArabic ? "الحساب متصل" : "Account connected"} aria-label={isArabic ? "الحساب متصل" : "Account connected"} />
                 </div>
                 <div className="social-stat-grid">
                   <div>
-                    <span>{"Reach"}</span>
+                    <span>{isArabic ? "الوصول" : "Reach"}</span>
                     <strong>{platform.reach}</strong>
                   </div>
                   <div>
-                    <span>{"Engagement"}</span>
+                    <span>{isArabic ? "التفاعل" : "Engagement"}</span>
                     <strong>{platform.engagement}</strong>
                   </div>
                 </div>
-                <button type="button">{marketing.prepareCampaign}</button>
+                <button type="button">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  <span>{marketing.prepareCampaign}</span>
+                </button>
               </article>
             ))}
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import {useActionState} from "react";
+import {useActionState, useEffect, useState} from "react";
 import {useLocale, useTranslations} from "next-intl";
 import DashboardSelect from "@/components/DashboardSelect";
 import {captureAffiliateLead} from "@/app/actions";
@@ -8,19 +8,34 @@ import {captureAffiliateLead} from "@/app/actions";
 export default function StaticAffiliateLeadForm({
   affiliateId,
   affiliateUsername,
-  affiliateName
+  affiliateName,
+  referralCode,
 }: {
   affiliateId: string;
   affiliateUsername: string;
   affiliateName: string;
+  referralCode?: string;
 }) {
   const t = useTranslations();
   const locale = useLocale();
   const [state, formAction, pending] = useActionState(captureAffiliateLead, {});
+  const [activeReferralCode, setActiveReferralCode] = useState(referralCode || affiliateUsername);
+
+  useEffect(() => {
+    const queryReferralCode = new URLSearchParams(window.location.search).get("ref")?.trim();
+    if (queryReferralCode) {
+      window.localStorage.setItem("middar_ref", queryReferralCode);
+      setActiveReferralCode(queryReferralCode);
+      return;
+    }
+    const storedReferralCode = window.localStorage.getItem("middar_ref")?.trim();
+    if (storedReferralCode) setActiveReferralCode(storedReferralCode);
+  }, [affiliateUsername, referralCode]);
 
   return (
     <form action={formAction} className="demo-form">
       <input name="affiliateUsername" type="hidden" value={affiliateUsername} />
+      <input name="referralCode" type="hidden" value={activeReferralCode} />
       <input name="affiliateId" type="hidden" value={affiliateId} />
       <input name="locale" type="hidden" value={locale} />
       <label>

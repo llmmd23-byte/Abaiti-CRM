@@ -422,7 +422,6 @@ export default function LeadRequestForm({
 
   async function submitLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (status === copy.creating) return;
     if (
       !leadRequest.companyName.trim() ||
       !leadRequest.email.trim() ||
@@ -596,7 +595,7 @@ export default function LeadRequestForm({
               />
             </div>
             <div className="lead-request-actions-row">
-              <button aria-busy={status === copy.creating} disabled={status === copy.creating} type="submit">{copy.submit}</button>
+              <button type="submit">{copy.submit}</button>
               <button
                 className="btn-excel-import"
                 onClick={() => {

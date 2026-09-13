@@ -24,11 +24,14 @@ function formatAffiliateName(username: string) {
 }
 
 export default async function AffiliateLandingPage({
-  params
+  params,
+  searchParams,
 }: {
   params: Promise<{affiliateUsername: string; locale: string}>;
+  searchParams?: Promise<{ref?: string}>;
 }) {
   const {affiliateUsername, locale} = await params;
+  const referralCode = String((await searchParams)?.ref ?? "").trim();
   setRequestLocale(locale);
 
   if (reservedRoutes.has(affiliateUsername)) {
@@ -37,15 +40,17 @@ export default async function AffiliateLandingPage({
 
   const affiliateName = formatAffiliateName(affiliateUsername);
 
-  return <AffiliatePageContent affiliateName={affiliateName} affiliateUsername={affiliateUsername} />;
+  return <AffiliatePageContent affiliateName={affiliateName} affiliateUsername={affiliateUsername} referralCode={referralCode} />;
 }
 
 function AffiliatePageContent({
   affiliateName,
-  affiliateUsername
+  affiliateUsername,
+  referralCode,
 }: {
   affiliateName: string;
   affiliateUsername: string;
+  referralCode?: string;
 }) {
   const t = useTranslations();
   const affiliateId = `aff_${affiliateUsername.replace(/[^a-z0-9]/gi, "_").toLowerCase()}`;
@@ -93,6 +98,7 @@ function AffiliatePageContent({
               affiliateId={affiliateId}
               affiliateName={affiliateName}
               affiliateUsername={affiliateUsername}
+              referralCode={referralCode}
             />
           </aside>
         </section>
