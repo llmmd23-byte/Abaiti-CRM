@@ -1409,7 +1409,6 @@ function BoothMapPicker({
                 <span>{isArabic ? "مختار" : "Selected"}<i className="selected" aria-hidden="true" /></span>
                 <span>{isArabic ? "بانتظار الدفع" : "Pending payment"}<i className="pending-payment" aria-hidden="true" /></span>
                 <span>{isArabic ? "محجوز" : "Booked"}<i className="booked" aria-hidden="true" /></span>
-                <span>{isArabic ? "محجوز مسبقاً" : "Reserved"}<i className="reserved" aria-hidden="true" /></span>
               </div>
             </div>
             <div className="admin-booth-zone-filter rental-booth-modal-zone-filter" role="listbox">

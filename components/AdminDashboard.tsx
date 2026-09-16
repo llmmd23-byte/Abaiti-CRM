@@ -5188,10 +5188,6 @@ function AdminBoothsSection({
               {isArabic ? "محجوز" : "Booked"}
               <i className="booked" aria-hidden="true" />
             </span>
-            <span>
-              Reserved
-              <i className="reserved" aria-hidden="true" />
-            </span>
           </div>
         </div>
       </div>
