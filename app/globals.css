@@ -24627,6 +24627,21 @@ html[dir="rtl"]
   background: rgba(185, 149, 232, 0.1);
 }
 
+.admin-floor-map-canvas .admin-booth-map-tile.is-engineering-block {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border-width: 1px 0 1px 1px !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d37,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d40,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d43,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d46,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d49,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d51 {
+  border-right-width: 1px !important;
+}
+
 .admin-unplaced-booths {
   margin-top: 14px;
   border: 1px solid #e2e8f0;
