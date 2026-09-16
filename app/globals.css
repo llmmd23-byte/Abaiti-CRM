@@ -24642,6 +24642,15 @@ html[dir="rtl"]
   border-right-width: 1px !important;
 }
 
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d3,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d6,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d9,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d12,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d15,
+.admin-floor-map-canvas .admin-booth-map-tile.booth-d17 {
+  border-right-width: 1px !important;
+}
+
 .admin-unplaced-booths {
   margin-top: 14px;
   border: 1px solid #e2e8f0;
