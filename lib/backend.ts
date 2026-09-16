@@ -1128,23 +1128,9 @@ async function syncBoothCatalogFromRentalBooths() {
 }
 
 const newBoothCatalog = [
-  {number: "AA4", size: "6x4 m", status: "available"},
-  {number: "A4", size: "380x200 cm", status: "available"},
-  {number: "A5", size: "380x200 cm", status: "available"},
-  {number: "A6", size: "380x200 cm", status: "available"},
-  {number: "B4", size: "6x3 m", status: "available"},
-  {number: "B5", size: "6x3 m", status: "available"},
-  {number: "C12", size: "3x3 m", status: "available", category: "government"},
-  {number: "C13", size: "3x3 m", status: "available", category: "government"},
-  {number: "C14", size: "380x200 cm", status: "available"},
-  {number: "C15", size: "380x200 cm", status: "available"},
-  {number: "C16", size: "380x200 cm", status: "available"},
-  ...[1, 2, 3, 4, 17, 18, 19, 20, 21, 22, 23, 24, 37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48].map((number) => ({number: `D${number}`, size: "300x300 cm", status: "available"})),
-  {number: "D45", size: "300x300 cm", status: "reserved"},
-  {number: "RES_TOP_01", size: null, status: "reserved"},
-  {number: "RES_TOP_02", size: null, status: "reserved"},
-  ...Array.from({length: 8}, (_, index) => ({number: `RES_LEFT_${String(index + 1).padStart(2, "0")}`, size: null, status: "reserved"})),
-  ...Array.from({length: 8}, (_, index) => ({number: `RES_RIGHT_${String(index + 1).padStart(2, "0")}`, size: null, status: "reserved"})),
+  ...Array.from({length: 6}, (_, index) => ({number: `S${index + 1}`, size: "custom", status: "available", category: "S"})),
+  ...Array.from({length: 19}, (_, index) => ({number: `M${index + 1}`, size: "3x3m", status: "available", category: "M"})),
+  ...Array.from({length: 51}, (_, index) => ({number: `D${index + 1}`, size: "2x2m", status: "available", category: "D"})),
 ];
 
 async function seedDefaultBoothCatalog() {
