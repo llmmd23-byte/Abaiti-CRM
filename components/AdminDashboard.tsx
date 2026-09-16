@@ -4789,6 +4789,30 @@ export const NEW_BOOTH_LAYOUT = [
   ),
 ] as const;
 
+const NEW_BOOTH_GROUPS = [
+  ...[
+    {left: 7, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
+    {left: 22, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
+    {left: 37, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
+    {left: 52, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
+    {left: 67, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
+    {left: 82, top: 14, width: 9.2, height: 5.8, kind: "d-top"},
+    {left: 7, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
+    {left: 22, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
+    {left: 37, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
+    {left: 52, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
+    {left: 67, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
+    {left: 82, top: 32, width: 9.2, height: 12.8, kind: "d-middle"},
+  ] as const,
+  ...[
+    {left: 7, top: 48, width: 15, height: 18},
+    {left: 25, top: 48, width: 15, height: 18},
+    {left: 43, top: 48, width: 15, height: 18},
+    {left: 61, top: 48, width: 15, height: 18},
+    {left: 79, top: 48, width: 7, height: 18},
+  ].map((group) => ({...group, kind: "m" as const})),
+] as const;
+
 export const NEW_RESERVED_BOOTH_LAYOUT = [
   {id: "D45", left: 87, top: 86, width: 8, height: 8},
   {id: "RES_TOP_01", left: 4, top: 2, width: 19, height: 16},
@@ -5280,6 +5304,20 @@ function AdminBoothsSection({
                     <span>{isArabic ? "مخرج طوارئ" : "Emergency exit"}</span>
                   </div>
                 ))}
+                <div className="new-booth-groups-layer" aria-hidden="true">
+                  {NEW_BOOTH_GROUPS.map((group, index) => (
+                    <div
+                      className={`new-booth-group new-booth-group-${group.kind}`}
+                      key={`${group.kind}-${index}`}
+                      style={{
+                        left: `${group.left}%`,
+                        top: `${group.top}%`,
+                        width: `${group.width}%`,
+                        height: `${group.height}%`,
+                      }}
+                    />
+                  ))}
+                </div>
                 <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
                   {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}
                 </div>
