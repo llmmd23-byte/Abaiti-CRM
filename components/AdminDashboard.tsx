@@ -4747,18 +4747,18 @@ export const NEW_BOOTH_MAP_WIDTH = 100;
 export const NEW_BOOTH_MAP_HEIGHT = 100;
 
 const newDGroups = [
-  {ids: [18, 19, 20, 1, 2, 3], left: 8, top: 32},
-  {ids: [21, 22, 23, 4, 5, 6], left: 25, top: 32},
-  {ids: [24, 25, 26, 7, 8, 9], left: 42, top: 32},
-  {ids: [27, 28, 29, 10, 11, 12], left: 59, top: 32},
-  {ids: [30, 31, 32, 13, 14, 15], left: 76, top: 32},
-  {ids: [33, 34, 16, 17], left: 91, top: 32},
-  {ids: [35, 36, 37], left: 8, top: 14},
-  {ids: [38, 39, 40], left: 25, top: 14},
-  {ids: [41, 42, 43], left: 42, top: 14},
-  {ids: [44, 45, 46], left: 59, top: 14},
-  {ids: [47, 48, 49], left: 76, top: 14},
-  {ids: [50, 51], left: 91, top: 14},
+  {ids: [18, 19, 20, 1, 2, 3], left: 5, top: 32},
+  {ids: [21, 22, 23, 4, 5, 6], left: 22, top: 32},
+  {ids: [24, 25, 26, 7, 8, 9], left: 39, top: 32},
+  {ids: [27, 28, 29, 10, 11, 12], left: 56, top: 32},
+  {ids: [30, 31, 32, 13, 14, 15], left: 73, top: 32},
+  {ids: [33, 34, 16, 17], left: 88, top: 32},
+  {ids: [35, 36, 37], left: 5, top: 14},
+  {ids: [38, 39, 40], left: 22, top: 14},
+  {ids: [41, 42, 43], left: 39, top: 14},
+  {ids: [44, 45, 46], left: 56, top: 14},
+  {ids: [47, 48, 49], left: 73, top: 14},
+  {ids: [50, 51], left: 88, top: 14},
 ] as const;
 
 export const NEW_EMERGENCY_EXITS = [8, 25, 42, 59, 76, 91] as const;
@@ -4766,7 +4766,7 @@ export const NEW_EMERGENCY_EXITS = [8, 25, 42, 59, 76, 91] as const;
 export const NEW_BOOTH_LAYOUT = [
   ...Array.from({length: 6}, (_, index) => ({
     id: `S${index + 1}`,
-    left: 8 + index * 16.5,
+    left: 5 + index * 15.4,
     top: 78,
     width: 11,
     height: 14,
@@ -4777,7 +4777,7 @@ export const NEW_BOOTH_LAYOUT = [
     const rightColumn = group === 4;
     return {
       id: `M${index + 1}`,
-      left: (rightColumn ? 91 : 8 + group * 17) + (rightColumn ? 0 : slot % 2 ? 5.5 : 0),
+      left: (rightColumn ? 92 : 5 + group * 17) + (rightColumn ? 0 : slot % 2 ? 5.5 : 0),
       top: 56 + (slot < 2 ? 0 : 8),
       width: rightColumn ? 7 : 5.5,
       height: 7,
