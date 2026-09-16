@@ -4779,17 +4779,17 @@ export const NEW_BOOTH_LAYOUT = [
       id: `M${index + 1}`,
       left: (rightColumn ? 92 : 5 + group * 17) + (rightColumn ? 0 : slot % 2 ? 5.5 : 0),
       top: 56 + (slot < 2 ? 0 : 8),
-      width: rightColumn ? 7 : 5.5,
-      height: 7,
+      width: rightColumn ? 5.2 : 4.8,
+      height: 6.6,
     };
   }),
   ...newDGroups.flatMap((group) =>
     group.ids.map((id, index) => ({
       id: `D${id}`,
-      left: group.left + (index % 3) * 5.5,
+      left: group.left + (index % 3) * 5,
       top: group.top + (index >= 3 ? 7 : 0),
-      width: 5.5,
-      height: 6,
+      width: 4.5,
+      height: 5.8,
     })),
   ),
 ] as const;
