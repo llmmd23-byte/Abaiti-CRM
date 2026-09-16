@@ -4741,45 +4741,56 @@ export const REE_MAP_CONTENT_WIDTH = 76;
 export const REE_LAYOUT_HEIGHT = 110;
 const REE_FULL_MAP_SCALE = 1;
 
-// New exhibition plan: coordinates are normalized to a portrait canvas so the
-// same layout can be rendered by the admin map and the booking picker.
+// New exhibition plan: coordinates are normalized to a landscape canvas so the
+// admin map and the booking picker share the same engineering layout.
 export const NEW_BOOTH_MAP_WIDTH = 100;
-export const NEW_BOOTH_MAP_HEIGHT = 136;
+export const NEW_BOOTH_MAP_HEIGHT = 100;
 
 const newDGroups = [
-  {start: 1, count: 4, left: 4, top: 72, columns: 1, rowOffsets: [0, 9, 18, 32]},
-  {start: 17, count: 4, left: 29, top: 68, columns: 2},
-  {start: 21, count: 4, left: 58, top: 68, columns: 2},
-  {start: 37, count: 4, left: 29, top: 96, columns: 2},
-  {start: 41, count: 4, left: 58, top: 96, columns: 2},
-  {start: 46, count: 3, left: 87, top: 94, columns: 1, rowOffsets: [0, 8, 18]},
+  {ids: [18, 19, 20, 1, 2, 3], left: 8, top: 32},
+  {ids: [21, 22, 23, 4, 5, 6], left: 25, top: 32},
+  {ids: [24, 25, 26, 7, 8, 9], left: 42, top: 32},
+  {ids: [27, 28, 29, 10, 11, 12], left: 59, top: 32},
+  {ids: [30, 31, 32, 13, 14, 15], left: 76, top: 32},
+  {ids: [33, 34, 16, 17], left: 91, top: 32},
+  {ids: [35, 36, 37], left: 8, top: 14},
+  {ids: [38, 39, 40], left: 25, top: 14},
+  {ids: [41, 42, 43], left: 42, top: 14},
+  {ids: [44, 45, 46], left: 59, top: 14},
+  {ids: [47, 48, 49], left: 76, top: 14},
+  {ids: [50, 51], left: 91, top: 14},
 ] as const;
 
+export const NEW_EMERGENCY_EXITS = [8, 25, 42, 59, 76, 91] as const;
+
 export const NEW_BOOTH_LAYOUT = [
-  {id: "AA4", left: 58, top: 3, width: 16, height: 11},
-  {id: "A4", left: 87, top: 18, width: 8, height: 10},
-  {id: "A5", left: 87, top: 28, width: 8, height: 10},
-  {id: "A6", left: 87, top: 38, width: 8, height: 10},
-  {id: "B4", left: 29, top: 27, width: 16, height: 8},
-  {id: "B5", left: 58, top: 27, width: 16, height: 8},
-  {id: "C12", left: 58, top: 48, width: 8, height: 8},
-  {id: "C13", left: 66, top: 48, width: 8, height: 8},
-  {id: "C14", left: 87, top: 53, width: 8, height: 10},
-  {id: "C15", left: 87, top: 63, width: 8, height: 10},
-  {id: "C16", left: 87, top: 73, width: 8, height: 10},
-  ...newDGroups.flatMap((group) =>
-    Array.from({length: group.count}, (_, index) => {
-      const row = Math.floor(index / group.columns);
-      const column = index % group.columns;
-      const rowOffset = "rowOffsets" in group ? group.rowOffsets[index] : row * 8;
+  ...Array.from({length: 6}, (_, index) => ({
+    id: `S${index + 1}`,
+    left: 8 + index * 16.5,
+    top: 78,
+    width: 11,
+    height: 14,
+  })),
+  ...Array.from({length: 19}, (_, index) => {
+    const group = Math.floor(index / 4);
+    const slot = index % 4;
+    const rightColumn = group === 4;
     return {
-        id: `D${group.start + index}`,
-        left: group.left + column * 8,
-        top: group.top + rowOffset,
-        width: 8,
-        height: 8,
-      };
-    }),
+      id: `M${index + 1}`,
+      left: (rightColumn ? 91 : 8 + group * 17) + (rightColumn ? 0 : slot % 2 ? 5.5 : 0),
+      top: 56 + (slot < 2 ? 0 : 8),
+      width: rightColumn ? 7 : 5.5,
+      height: 7,
+    };
+  }),
+  ...newDGroups.flatMap((group) =>
+    group.ids.map((id, index) => ({
+      id: `D${id}`,
+      left: group.left + (index % 3) * 5.5,
+      top: group.top + (index >= 3 ? 7 : 0),
+      width: 5.5,
+      height: 6,
+    })),
   ),
 ] as const;
 
@@ -4804,18 +4815,9 @@ export const NEW_RESERVED_BOOTH_LAYOUT = [
 ] as const;
 
 export const NEW_BOOTH_DIMENSION_OVERRIDES: Record<string, string> = {
-  AA4: "6X4m",
-  A4: "380X200cm",
-  A5: "380X200cm",
-  A6: "380X200cm",
-  B4: "6X3m",
-  B5: "6X3m",
-  C12: "3X3m",
-  C13: "3X3m",
-  C14: "380X200cm",
-  C15: "380X200cm",
-  C16: "380X200cm",
-  ...Object.fromEntries(Array.from({length: 48}, (_, index) => [`D${index + 1}`, "300X300cm"])),
+  ...Object.fromEntries(Array.from({length: 6}, (_, index) => [`S${index + 1}`, "custom"])),
+  ...Object.fromEntries(Array.from({length: 19}, (_, index) => [`M${index + 1}`, "3X3m"])),
+  ...Object.fromEntries(Array.from({length: 51}, (_, index) => [`D${index + 1}`, "2X2m"])),
 };
 
 export const LEGACY_FLOOR_MAP_AREA_LABELS = [
@@ -4847,12 +4849,10 @@ export const LEGACY_REE_FLOOR_MAP_ZONES = [
 ] as const;
 
 export const FLOOR_MAP_ZONES = [
-  { key: "aa", labelAr: "AA", labelEn: "AA booth", left: 1, top: 1, width: 98, height: 18 },
-  { key: "d", labelAr: "D", labelEn: "D booths", left: 1, top: 58, width: 98, height: 42 },
+  { key: "s", labelAr: "S", labelEn: "S booths", left: 1, top: 76, width: 98, height: 24 },
+  { key: "m", labelAr: "M", labelEn: "M booths", left: 1, top: 52, width: 98, height: 24 },
+  { key: "d", labelAr: "D", labelEn: "D booths", left: 1, top: 10, width: 98, height: 42 },
   { key: "all", labelAr: "الكل", labelEn: "All zones", left: 0, top: 0, width: 0, height: 0 },
-  { key: "a", labelAr: "بوثات A", labelEn: "A booths", left: 1, top: 58, width: 98, height: 40 },
-  { key: "b", labelAr: "بوثات B", labelEn: "B booths", left: 1, top: 24, width: 98, height: 74 },
-  { key: "c", labelAr: "بوثات C", labelEn: "C booths", left: 1, top: 5, width: 98, height: 55 },
 ] as const;
 
 export function floorMapZoneForBooth(boothId: string) {
@@ -4862,6 +4862,8 @@ export function floorMapZoneForBooth(boothId: string) {
   if (normalized.startsWith("A")) return "a";
   if (normalized.startsWith("B")) return "b";
   if (normalized.startsWith("D")) return "d";
+  if (normalized.startsWith("S")) return "s";
+  if (normalized.startsWith("M")) return "m";
   return "all";
 }
 
@@ -5277,32 +5279,15 @@ function AdminBoothsSection({
                   />
                   <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
                 </svg>
-                <div className="new-government-booth-card" aria-label={isArabic ? "جهة حكومية" : "Government entity"}>
-                  <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
-                  <div>
-                    <img src="/contract-assets/government-security-logo.png" alt="" />
-                    <img src="/contract-assets/saudi-red-crescent-logo.png" alt="" />
-                  </div>
-                </div>
-                <div className="new-government-booth-card new-government-booth-card-left is-reserved" aria-label={isArabic ? "\u062c\u0647\u0629 \u062d\u0643\u0648\u0645\u064a\u0629 \u0645\u062d\u062c\u0648\u0632\u0629" : "Reserved government entity"}>
-                  <span>{isArabic ? "\u062c\u0647\u0629 \u062d\u0643\u0648\u0645\u064a\u0629" : "Government entity"}</span>
-                  <div>
-                    <img src="/contract-assets/government-security-logo.png" alt="" />
-                    <img src="/contract-assets/saudi-red-crescent-logo.png" alt="" />
-                  </div>
-                </div>
-                {NEW_RESERVED_BOOTH_LAYOUT.map((reserved) => (
+                {NEW_EMERGENCY_EXITS.map((left) => (
                   <div
-                    aria-label={isArabic ? "بوث محجوز" : "Reserved booth"}
-                    className="admin-booth-map-tile is-reserved"
-                    key={reserved.id}
-                    style={{
-                      left: `${reserved.left}%`,
-                      top: `${(reserved.top / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
-                      width: `${reserved.width}%`,
-                      height: `${(reserved.height / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
-                    }}
-                  />
+                    aria-label={isArabic ? "مخرج طوارئ" : "Emergency exit"}
+                    className="new-emergency-exit"
+                    key={left}
+                    style={{ left: `${left}%` }}
+                  >
+                    <span>{isArabic ? "مخرج طوارئ" : "Emergency exit"}</span>
+                  </div>
                 ))}
                 <div className="admin-floor-map-label top" dir={isArabic ? "rtl" : "ltr"}>
                   {isArabic ? "قاعة ما قبل الفعالية" : "Pre-Function Hall"}

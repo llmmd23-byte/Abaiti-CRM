@@ -7,7 +7,7 @@ import {
   NEW_BOOTH_DIMENSION_OVERRIDES,
   NEW_BOOTH_LAYOUT,
   NEW_BOOTH_MAP_HEIGHT,
-  NEW_RESERVED_BOOTH_LAYOUT,
+  NEW_EMERGENCY_EXITS,
   floorMapZoneForBooth,
 } from "@/components/AdminDashboard";
 import DashboardSelect from "@/components/DashboardSelect";
@@ -1434,32 +1434,10 @@ function BoothMapPicker({
                   <path className="ree-map-stepped-wall ree-map-inner-wall" d="M2 2 H53 M2 2 V94 H20 V110 H23 M53 2 V94 H41 V110 H38" />
                   <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
                 </svg>
-                <div className="new-government-booth-card" aria-label={isArabic ? "جهة حكومية" : "Government entity"}>
-                  <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
-                  <div>
-                    <img src="/contract-assets/government-security-logo.png" alt="" />
-                    <img src="/contract-assets/saudi-red-crescent-logo.png" alt="" />
+                {NEW_EMERGENCY_EXITS.map((left) => (
+                  <div className="new-emergency-exit" key={left} style={{ left: `${left}%` }}>
+                    <span>{isArabic ? "مخرج طوارئ" : "Emergency exit"}</span>
                   </div>
-                </div>
-                <div className="new-government-booth-card new-government-booth-card-left is-reserved" aria-label={isArabic ? "جهة حكومية محجوزة" : "Reserved government entity"}>
-                  <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
-                  <div>
-                    <img src="/contract-assets/government-security-logo.png" alt="" />
-                    <img src="/contract-assets/saudi-red-crescent-logo.png" alt="" />
-                  </div>
-                </div>
-                {NEW_RESERVED_BOOTH_LAYOUT.map((reserved) => (
-                  <div
-                    aria-label={isArabic ? "بوث محجوز" : "Reserved booth"}
-                    className="admin-booth-map-tile is-reserved"
-                    key={reserved.id}
-                    style={{
-                      left: `${reserved.left}%`,
-                      top: `${(reserved.top / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
-                      width: `${reserved.width}%`,
-                      height: `${(reserved.height / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
-                    }}
-                  />
                 ))}
                 {visibleBooths.map((booth) => {
                   const boothNumber = booth.id.toUpperCase();
@@ -4964,32 +4942,10 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                 </div>
                 <div className="rental-booth-modal-map">
                   <div className="admin-floor-map-canvas" dir="ltr">
-                    <div className="new-government-booth-card" aria-label={isArabic ? "جهة حكومية" : "Government entity"}>
-                      <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
-                      <div>
-                        <img src="/contract-assets/jazli-event-logo.png" alt="" />
-                        <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
+                    {NEW_EMERGENCY_EXITS.map((left) => (
+                      <div className="new-emergency-exit" key={left} style={{ left: `${left}%` }}>
+                        <span>{isArabic ? "مخرج طوارئ" : "Emergency exit"}</span>
                       </div>
-                    </div>
-                    <div className="new-government-booth-card new-government-booth-card-left is-reserved" aria-label={isArabic ? "جهة حكومية محجوزة" : "Reserved government entity"}>
-                      <span>{isArabic ? "جهة حكومية" : "Government entity"}</span>
-                      <div>
-                        <img src="/contract-assets/jazli-event-logo.png" alt="" />
-                        <img src="/contract-assets/jazli-netaq-logo.png" alt="" />
-                      </div>
-                    </div>
-                    {NEW_RESERVED_BOOTH_LAYOUT.map((reserved) => (
-                      <div
-                        aria-label={isArabic ? "بوث محجوز" : "Reserved booth"}
-                        className="admin-booth-map-tile is-reserved"
-                        key={reserved.id}
-                        style={{
-                          left: `${reserved.left}%`,
-                          top: `${(reserved.top / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
-                          width: `${reserved.width}%`,
-                          height: `${(reserved.height / NEW_BOOTH_MAP_HEIGHT) * 100}%`,
-                        }}
-                      />
                     ))}
                     {visibleBoothMapLayout.map((layoutBooth) => {
                       const normalizedBooth = layoutBooth.id.toUpperCase();

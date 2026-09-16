@@ -23352,10 +23352,10 @@ html[dir="rtl"]
   left: 0;
   min-width: 0;
   height: auto;
-  /* Match the SVG viewBox so the lower entrance is part of the viewport. */
-  aspect-ratio: 100 / 136;
-  min-height: 760px;
-  max-height: 1320px;
+  /* The new engineering plan is a square, landscape-friendly canvas. */
+  aspect-ratio: 100 / 100;
+  min-height: 620px;
+  max-height: 1000px;
   overflow: hidden;
   clip-path: inset(0 round 16px);
   padding: 0;
@@ -23385,8 +23385,8 @@ html[dir="rtl"]
   }
 
   .admin-floor-map-viewport {
-    aspect-ratio: 100 / 136;
-    min-height: 620px;
+    aspect-ratio: 100 / 100;
+    min-height: 420px;
   }
 
   .admin-floor-map-viewport {
@@ -24480,6 +24480,72 @@ html[dir="rtl"]
 /* Remove the corner status dot from booth cards. */
 .admin-floor-map-canvas .admin-booth-map-tile::after {
   display: none !important;
+}
+
+/* New exhibition plan palette: S beige, M purple, D yellow. */
+.admin-floor-map-canvas .admin-booth-map-tile.category-s {
+  background: #e7d3a5 !important;
+  border-color: #b79b62 !important;
+  color: #3d2f1b !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.category-m {
+  background: #b995e8 !important;
+  border-color: #7950ae !important;
+  color: #24133f !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.category-d {
+  background: #f7d65b !important;
+  border-color: #c49d17 !important;
+  color: #3f3210 !important;
+}
+
+.admin-floor-map-canvas .admin-booth-map-tile.category-s strong,
+.admin-floor-map-canvas .admin-booth-map-tile.category-s span,
+.admin-floor-map-canvas .admin-booth-map-tile.category-m strong,
+.admin-floor-map-canvas .admin-booth-map-tile.category-m span,
+.admin-floor-map-canvas .admin-booth-map-tile.category-d strong,
+.admin-floor-map-canvas .admin-booth-map-tile.category-d span {
+  color: inherit !important;
+}
+
+.new-emergency-exit {
+  position: absolute;
+  z-index: 8;
+  top: 1%;
+  width: 3.8%;
+  min-width: 26px;
+  height: 5%;
+  min-height: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #b42318;
+  border-radius: 5px;
+  background: #fff1f0;
+  color: #b42318;
+  box-shadow: 0 2px 7px rgba(180, 35, 24, 0.2);
+  pointer-events: none;
+}
+
+.new-emergency-exit::before {
+  content: "↗";
+  font-size: clamp(12px, 1.4vw, 20px);
+  font-weight: 900;
+}
+
+.new-emergency-exit span {
+  position: absolute;
+  top: calc(100% + 3px);
+  width: max-content;
+  max-width: 90px;
+  color: #991b1b;
+  font-size: clamp(6px, 0.65vw, 10px);
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
 }
 
 .admin-unplaced-booths {
