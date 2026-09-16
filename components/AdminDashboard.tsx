@@ -4747,18 +4747,18 @@ export const NEW_BOOTH_MAP_WIDTH = 100;
 export const NEW_BOOTH_MAP_HEIGHT = 100;
 
 const newDGroups = [
-  {ids: [18, 19, 20, 1, 2, 3], left: 5, top: 32},
-  {ids: [21, 22, 23, 4, 5, 6], left: 22, top: 32},
-  {ids: [24, 25, 26, 7, 8, 9], left: 39, top: 32},
-  {ids: [27, 28, 29, 10, 11, 12], left: 56, top: 32},
-  {ids: [30, 31, 32, 13, 14, 15], left: 73, top: 32},
-  {ids: [33, 34, 16, 17], left: 83, top: 32},
-  {ids: [35, 36, 37], left: 5, top: 14},
-  {ids: [38, 39, 40], left: 22, top: 14},
-  {ids: [41, 42, 43], left: 39, top: 14},
-  {ids: [44, 45, 46], left: 56, top: 14},
-  {ids: [47, 48, 49], left: 73, top: 14},
-  {ids: [50, 51], left: 88, top: 14},
+  {ids: [35, 36, 37], left: 8, top: 14},
+  {ids: [38, 39, 40], left: 21, top: 14},
+  {ids: [41, 42, 43], left: 34, top: 14},
+  {ids: [44, 45, 46], left: 47, top: 14},
+  {ids: [47, 48, 49], left: 60, top: 14},
+  {ids: [50, 51], left: 73, top: 14},
+  {ids: [18, 19, 20, 1, 2, 3], left: 8, top: 32},
+  {ids: [21, 22, 23, 4, 5, 6], left: 21, top: 32},
+  {ids: [24, 25, 26, 7, 8, 9], left: 34, top: 32},
+  {ids: [27, 28, 29, 10, 11, 12], left: 47, top: 32},
+  {ids: [30, 31, 32, 13, 14, 15], left: 60, top: 32},
+  {ids: [33, 34, 16, 17], left: 73, top: 32},
 ] as const;
 
 export const NEW_EMERGENCY_EXITS = [8, 25, 42, 59, 76, 91] as const;
@@ -4766,29 +4766,24 @@ export const NEW_EMERGENCY_EXITS = [8, 25, 42, 59, 76, 91] as const;
 export const NEW_BOOTH_LAYOUT = [
   ...Array.from({length: 6}, (_, index) => ({
     id: `S${index + 1}`,
-    left: 5 + index * 15.4,
+    left: 8 + index * 15,
     top: 78,
     width: 11,
     height: 14,
   })),
-  ...Array.from({length: 19}, (_, index) => {
-    const group = Math.floor(index / 4);
-    const slot = index % 4;
-    const rightColumn = group === 4;
-    return {
-      id: `M${index + 1}`,
-      left: rightColumn ? 92 : 5 + group * 17 + (slot % 2 ? 5.5 : 0),
-      top: rightColumn ? 56 + slot * 8 : 56 + (slot < 2 ? 0 : 8),
-      width: rightColumn ? 5.2 : 4.8,
-      height: 6.6,
-    };
-  }),
+  ...([
+    ["M10", 8, 50], ["M11", 13.5, 50], ["M1", 8, 58], ["M2", 13.5, 58],
+    ["M12", 23, 50], ["M13", 28.5, 50], ["M3", 23, 58], ["M4", 28.5, 58],
+    ["M14", 38, 50], ["M15", 43.5, 50], ["M5", 38, 58], ["M6", 43.5, 58],
+    ["M16", 53, 50], ["M17", 58.5, 50], ["M7", 53, 58], ["M8", 58.5, 58],
+    ["M18", 68, 50], ["M9", 68, 58],
+  ] as const).map(([id, left, top]) => ({id, left, top, width: 5, height: 7})),
   ...newDGroups.flatMap((group) =>
     group.ids.map((id, index) => ({
       id: `D${id}`,
-      left: group.left + (index % 3) * 5,
+      left: group.left + (index % 3) * 5.2,
       top: group.top + (index >= 3 ? 7 : 0),
-      width: 4.5,
+      width: 4.7,
       height: 5.8,
     })),
   ),
