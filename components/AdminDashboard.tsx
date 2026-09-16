@@ -5212,7 +5212,7 @@ function AdminBoothsSection({
         </div>
         <div className="admin-booth-zone-filter" role="listbox" aria-label={isArabic ? "فلترة الأقسام" : "Zone filter"}>
           {[...FLOOR_MAP_ZONES].sort((first, second) => {
-            const order = { aa: 0, a: 1, b: 2, c: 3, d: 4, all: 5 } as Record<string, number>;
+            const order = { s: 0, m: 1, d: 2, all: 3 } as Record<string, number>;
             return order[first.key] - order[second.key];
           }).map((zone) => (
             <button

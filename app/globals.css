@@ -23223,6 +23223,61 @@ html[dir="rtl"]
   box-shadow: 0 2px 8px rgba(71, 85, 105, 0.12);
 }
 
+/* Match the filter buttons to the engineering plan palette. */
+.admin-booth-zone-filter button.zone-s {
+  border-color: #d8c18e;
+  background: #f7ecd3;
+  color: #5b4523;
+}
+
+.admin-booth-zone-filter button.zone-m {
+  border-color: #b99bd7;
+  background: #eee4f8;
+  color: #5d3b7d;
+}
+
+.admin-booth-zone-filter button.zone-d {
+  border-color: #d9bd42;
+  background: #fff6ba;
+  color: #665313;
+}
+
+.admin-booth-zone-filter button.zone-s:hover,
+.admin-booth-zone-filter button.zone-s.active {
+  border-color: #b79b62;
+  background: #e7d3a5;
+  color: #3d2f1b;
+}
+
+.admin-booth-zone-filter button.zone-m:hover,
+.admin-booth-zone-filter button.zone-m.active {
+  border-color: #7950ae;
+  background: #b995e8;
+  color: #24133f;
+}
+
+.admin-booth-zone-filter button.zone-d:hover,
+.admin-booth-zone-filter button.zone-d.active {
+  border-color: #c49d17;
+  background: #f7d65b;
+  color: #3f3210;
+}
+
+.zone-filter-color.zone-s {
+  background: #e7d3a5;
+  border-color: #b79b62;
+}
+
+.zone-filter-color.zone-m {
+  background: #b995e8;
+  border-color: #7950ae;
+}
+
+.zone-filter-color.zone-d {
+  background: #f7d65b;
+  border-color: #c49d17;
+}
+
 .admin-booth-map-legend {
   display: inline-flex;
   align-items: center;
