@@ -4752,7 +4752,7 @@ const newDGroups = [
   {ids: [24, 25, 26, 7, 8, 9], left: 39, top: 32},
   {ids: [27, 28, 29, 10, 11, 12], left: 56, top: 32},
   {ids: [30, 31, 32, 13, 14, 15], left: 73, top: 32},
-  {ids: [33, 34, 16, 17], left: 88, top: 32},
+  {ids: [33, 34, 16, 17], left: 83, top: 32},
   {ids: [35, 36, 37], left: 5, top: 14},
   {ids: [38, 39, 40], left: 22, top: 14},
   {ids: [41, 42, 43], left: 39, top: 14},
@@ -4777,8 +4777,8 @@ export const NEW_BOOTH_LAYOUT = [
     const rightColumn = group === 4;
     return {
       id: `M${index + 1}`,
-      left: (rightColumn ? 92 : 5 + group * 17) + (rightColumn ? 0 : slot % 2 ? 5.5 : 0),
-      top: 56 + (slot < 2 ? 0 : 8),
+      left: rightColumn ? 92 : 5 + group * 17 + (slot % 2 ? 5.5 : 0),
+      top: rightColumn ? 56 + slot * 8 : 56 + (slot < 2 ? 0 : 8),
       width: rightColumn ? 5.2 : 4.8,
       height: 6.6,
     };
