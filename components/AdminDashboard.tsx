@@ -4761,7 +4761,7 @@ const newDGroups = [
   {ids: [33, 34, 16, 17], left: 82, top: 32},
 ] as const;
 
-export const NEW_EMERGENCY_EXITS = [8, 25, 42, 59, 76, 91] as const;
+export const NEW_EMERGENCY_EXITS = [13.5, 28.5, 43.5, 58.5, 73.5, 88.5] as const;
 
 export const NEW_BOOTH_LAYOUT = [
   ...Array.from({length: 6}, (_, index) => ({
@@ -4791,17 +4791,17 @@ export const NEW_BOOTH_LAYOUT = [
 
 const NEW_BOOTH_GROUPS = [
   ...[
-    {left: 7, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
-    {left: 22, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
-    {left: 37, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
-    {left: 52, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
-    {left: 67, top: 14, width: 12.2, height: 5.8, kind: "d-top"},
+    {left: 7, top: 14, width: 13.8, height: 5.8, kind: "d-top"},
+    {left: 22, top: 14, width: 13.8, height: 5.8, kind: "d-top"},
+    {left: 37, top: 14, width: 13.8, height: 5.8, kind: "d-top"},
+    {left: 52, top: 14, width: 13.8, height: 5.8, kind: "d-top"},
+    {left: 67, top: 14, width: 13.8, height: 5.8, kind: "d-top"},
     {left: 82, top: 14, width: 9.2, height: 5.8, kind: "d-top"},
-    {left: 7, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
-    {left: 22, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
-    {left: 37, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
-    {left: 52, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
-    {left: 67, top: 32, width: 12.2, height: 12.8, kind: "d-middle"},
+    {left: 7, top: 32, width: 13.8, height: 12.8, kind: "d-middle"},
+    {left: 22, top: 32, width: 13.8, height: 12.8, kind: "d-middle"},
+    {left: 37, top: 32, width: 13.8, height: 12.8, kind: "d-middle"},
+    {left: 52, top: 32, width: 13.8, height: 12.8, kind: "d-middle"},
+    {left: 67, top: 32, width: 13.8, height: 12.8, kind: "d-middle"},
     {left: 82, top: 32, width: 9.2, height: 12.8, kind: "d-middle"},
   ] as const,
   ...[
