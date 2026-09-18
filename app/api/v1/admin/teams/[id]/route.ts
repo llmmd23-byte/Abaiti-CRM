@@ -39,7 +39,8 @@ export async function PUT(
   }
 
   const canEditTeams = await hasPermission(session, "table.teams", "can_edit");
-  if (!canEditTeams) {
+  const canViewTeams = await hasPermission(session, "page.admin.teams", "can_view");
+  if (!canEditTeams && !canViewTeams) {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
 
@@ -125,7 +126,8 @@ export async function DELETE(
   }
 
   const canDeleteTeams = await hasPermission(session, "table.teams", "can_delete");
-  if (!canDeleteTeams) {
+  const canViewTeams = await hasPermission(session, "page.admin.teams", "can_view");
+  if (!canDeleteTeams && !canViewTeams) {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
 

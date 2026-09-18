@@ -1,13 +1,10 @@
 {
-  "name": "@llmmd23-byte/abaiti-crm",
+  "name": "affiliate-crm-platform-ui",
   "version": "1.0.0",
-  "private": false,
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
+  "private": true,
   "description": "A responsive UI concept for a marketing affiliate platform integrated with CRM.",
   "scripts": {
-    "dev": "next dev --webpack -p 5173",
+    "dev": "next dev -p 5173",
     "build": "next build --webpack",
     "start": "next start -p 5173",
     "preview": "next start -p 5173"

@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import type { RowDataPacket } from "mysql2";
 import { getSession, isAdminSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { hasPermission } from "@/lib/permissions";
+import { getDataScope, hasPermission } from "@/lib/permissions";
 
 type CountRow = RowDataPacket & { total: number };
 type ActivityRow = RowDataPacket & { day: string; total: number };
 
-function scopedUserClause(alias: string, hasCompany: boolean) {
+function scopedUserClause(alias: string, isGlobal: boolean, hasCompany: boolean) {
+  if (isGlobal) return "1=1";
   return hasCompany
     ? `(${alias}.CompanyID = ? OR ${alias}.id = ?)`
     : `${alias}.id = ?`;
@@ -82,10 +83,16 @@ export async function GET(request: Request) {
   );
   const adminCompanyId = adminRows[0]?.CompanyID ?? null;
   const adminUserId = Number(session.sub);
+  const dashboardScope = await getDataScope(session, "page.admin.dashboard");
+  const isGlobalDashboard = dashboardScope === "all";
   const hasCompany = adminCompanyId !== null && adminCompanyId !== undefined;
-  const scopeParams = hasCompany ? [adminCompanyId, adminUserId] : [adminUserId];
-  const userScope = scopedUserClause("u", hasCompany);
-  const saleUserScope = scopedUserClause("sale_user", hasCompany);
+  const scopeParams = isGlobalDashboard
+    ? []
+    : hasCompany
+      ? [adminCompanyId, adminUserId]
+      : [adminUserId];
+  const userScope = scopedUserClause("u", isGlobalDashboard, hasCompany);
+  const saleUserScope = scopedUserClause("sale_user", isGlobalDashboard, hasCompany);
   const selectedUserId =
     requestedUserId && /^\d+$/.test(requestedUserId)
       ? Number(requestedUserId)
@@ -101,28 +108,17 @@ export async function GET(request: Request) {
 
   const [summaryRows] = await db.execute<RowDataPacket[]>(
     `SELECT
-      (SELECT COUNT(*) FROM users u WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("u")}) users,
-      (SELECT COUNT(*) FROM leads l JOIN users u ON u.id=l.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("l")}) clients,
-      (SELECT COUNT(*) FROM demo_requests d JOIN users u ON u.id=d.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("d")}) demos,
-      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("q")}) quotes,
-      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${rangeConditionFor("s")}) sales,
-      (SELECT COUNT(*) FROM support_tickets t JOIN users u ON u.id=t.user_id WHERE ${userScope}${selectedUserScope} AND t.status IN ('open','in_progress') AND ${rangeConditionFor("t")}) openTickets,
-      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND q.status IN ('draft', 'sent', 'accepted') AND ${rangeConditionFor("q")}) openQuotes,
-      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND s.status = 'pending' AND ${rangeConditionFor("s")}) uncreatedSalesCommissions,
-      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${saleUserScope}${selectedSaleUserScope} AND c.status = 'pending' AND ${rangeConditionFor("c")}) invisibleCommissions,
-      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${saleUserScope}${selectedSaleUserScope} AND c.status <> 'paid' AND ${rangeConditionFor("c")}) unpaidCommissions`,
-    [
-      ...scopedParams(),
-      ...scopedParams(),
-      ...scopedParams(),
-      ...scopedParams(),
-      ...scopedParams(),
-      ...scopedParams(),
-      ...scopedParams(),
-      ...scopedParams(),
-      ...commissionParams(),
-      ...commissionParams(),
-    ],
+      (SELECT COUNT(*) FROM users u WHERE ${userScope}${selectedUserScope}) users,
+      (SELECT COUNT(*) FROM leads l JOIN users u ON u.id=l.affiliate_user_id WHERE ${userScope}${selectedUserScope}) clients,
+      (SELECT COUNT(*) FROM demo_requests d JOIN users u ON u.id=d.affiliate_user_id WHERE ${userScope}${selectedUserScope}) demos,
+      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope}) quotes,
+      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope}) sales,
+      (SELECT COUNT(*) FROM support_tickets t JOIN users u ON u.id=t.user_id WHERE ${userScope}${selectedUserScope} AND t.status IN ('open','in_progress')) openTickets,
+      (SELECT COUNT(*) FROM quotes q JOIN users u ON u.id=q.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND q.status IN ('draft', 'sent', 'accepted')) openQuotes,
+      (SELECT COUNT(*) FROM sales s JOIN users u ON u.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND s.status = 'pending') uncreatedSalesCommissions,
+      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${saleUserScope}${selectedSaleUserScope} AND c.status = 'pending') invisibleCommissions,
+      (SELECT COUNT(*) FROM commissions c JOIN users u ON u.id=c.affiliate_user_id JOIN sales s ON s.id=c.sale_id JOIN users sale_user ON sale_user.id=s.affiliate_user_id WHERE ${userScope}${selectedUserScope} AND ${saleUserScope}${selectedSaleUserScope} AND c.status <> 'paid') unpaidCommissions`,
+    [...scopedParams(), ...commissionParams()],
   );
   const summary = summaryRows[0] ?? {};
 

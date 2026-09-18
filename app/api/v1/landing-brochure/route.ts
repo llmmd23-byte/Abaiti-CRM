@@ -9,6 +9,12 @@ import {db} from "@/lib/db";
 import {getSessionUserCompanyId} from "@/lib/permissions";
 
 const INDUSTRY_SLUG = "events-exhibitions";
+const DEFAULT_BROCHURE_PATH = path.join(
+  process.cwd(),
+  "public",
+  "landing-pages",
+  "coffee-chocolate-expo-2026-v2.pdf",
+);
 
 function assetIdFromUrl(value: unknown) {
   const match = String(value ?? "").match(/\/api\/v1\/marketing-assets\/view\/(\d+)/);
@@ -130,7 +136,7 @@ async function assetBuffer(asset: RowDataPacket | null) {
     }
   }
 
-  return null;
+  return readFile(DEFAULT_BROCHURE_PATH);
 }
 
 function contentDispositionName(value: unknown) {
@@ -162,11 +168,8 @@ export async function GET() {
     const landingUrl = String(industries[0]?.landing_url ?? "");
     const asset = companyAsset ?? (await activeAssetFromLandingUrl(landingUrl));
     const buffer = await assetBuffer(asset ?? null);
-    if (!buffer) {
-      return NextResponse.json({error: "BROCHURE_NOT_AVAILABLE"}, {status: 404});
-    }
 
-    const fileName = asset?.original_name ?? "landing-brochure.pdf";
+    const fileName = asset?.original_name ?? "coffee-chocolate-expo-2026.pdf";
     return new Response(new Uint8Array(buffer), {
       headers: {
         "content-type": "application/pdf",
