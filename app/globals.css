@@ -24667,11 +24667,12 @@ html[dir="rtl"]
 }
 
 .new-booth-group-m {
-  z-index: 4;
-  border: 1px solid #b99bd7;
-  border-radius: 8px;
-  background: transparent;
-  box-shadow: none;
+  z-index: 2;
+  box-sizing: border-box;
+  border: 2px solid #8b5cc4;
+  border-radius: 10px;
+  background: rgba(233, 220, 250, 0.28);
+  box-shadow: 0 2px 6px rgba(117, 78, 165, 0.14);
 }
 
 .new-booth-group-s {
