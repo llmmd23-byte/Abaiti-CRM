@@ -6,6 +6,7 @@ import {
   FLOOR_MAP_ZONES,
   NEW_BOOTH_DIMENSION_OVERRIDES,
   NEW_BOOTH_LAYOUT,
+  NEW_BOOTH_GROUPS,
   NEW_BOOTH_MAP_HEIGHT,
   floorMapZoneForBooth,
 } from "@/components/AdminDashboard";
@@ -1432,6 +1433,20 @@ function BoothMapPicker({
                   <path className="ree-map-stepped-wall ree-map-inner-wall" d="M2 2 H53 M2 2 V94 H20 V110 H23 M53 2 V94 H41 V110 H38" />
                   <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
                 </svg>
+                <div className="new-booth-groups-layer" aria-hidden="true">
+                  {NEW_BOOTH_GROUPS.map((group, index) => (
+                    <div
+                      className={`new-booth-group new-booth-group-${group.kind}`}
+                      key={`${group.kind}-${index}`}
+                      style={{
+                        left: `${group.left}%`,
+                        top: `${group.top}%`,
+                        width: `${group.width}%`,
+                        height: `${group.height}%`,
+                      }}
+                    />
+                  ))}
+                </div>
                 {visibleBooths.map((booth) => {
                   const boothNumber = booth.id.toUpperCase();
                   const reservationStatus = reservationStatuses.get(boothNumber);
@@ -4935,6 +4950,20 @@ export function RentalContractsPanel({locale}: {locale: string}) {
                 </div>
                 <div className="rental-booth-modal-map">
                   <div className="admin-floor-map-canvas" dir="ltr">
+                    <div className="new-booth-groups-layer" aria-hidden="true">
+                      {NEW_BOOTH_GROUPS.map((group, index) => (
+                        <div
+                          className={`new-booth-group new-booth-group-${group.kind}`}
+                          key={`${group.kind}-${index}`}
+                          style={{
+                            left: `${group.left}%`,
+                            top: `${group.top}%`,
+                            width: `${group.width}%`,
+                            height: `${group.height}%`,
+                          }}
+                        />
+                      ))}
+                    </div>
                     {visibleBoothMapLayout.map((layoutBooth) => {
                       const normalizedBooth = layoutBooth.id.toUpperCase();
                       const catalogBooth = boothCatalogByNumber.get(normalizedBooth);

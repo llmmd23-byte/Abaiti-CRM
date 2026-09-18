@@ -4792,7 +4792,7 @@ export const NEW_BOOTH_LAYOUT = [
   ),
 ] as const;
 
-const NEW_BOOTH_GROUPS = [
+export const NEW_BOOTH_GROUPS = [
   ...[
     {left: 6.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
     {left: 21.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
