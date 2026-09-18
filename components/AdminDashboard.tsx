@@ -4761,8 +4761,6 @@ const newDGroups = [
   {ids: [33, 34, 16, 17], left: 72, top: 32},
 ] as const;
 
-export const NEW_EMERGENCY_EXITS = [13.3, 26.3, 39.3, 52.3, 65.3, 76.7] as const;
-
 export const NEW_BOOTH_LAYOUT = [
   ...Array.from({length: 6}, (_, index) => ({
     id: `S${index + 1}`,
@@ -5283,16 +5281,6 @@ function AdminBoothsSection({
                   />
                   <path className="ree-map-rotunda" d="M23 110.5 A7.5 7.5 0 0 1 38 110.5" />
                 </svg>
-                {NEW_EMERGENCY_EXITS.map((left) => (
-                  <div
-                    aria-label={isArabic ? "مخرج طوارئ" : "Emergency exit"}
-                    className="new-emergency-exit"
-                    key={left}
-                    style={{ left: `${left}%` }}
-                  >
-                    <span>{isArabic ? "مخرج طوارئ" : "Emergency exit"}</span>
-                  </div>
-                ))}
                 <div className="new-booth-groups-layer" aria-hidden="true">
                   {NEW_BOOTH_GROUPS.map((group, index) => (
                     <div
