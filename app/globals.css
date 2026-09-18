@@ -24664,6 +24664,7 @@ html[dir="rtl"]
 }
 
 .new-booth-group-m {
+  z-index: 4;
   border: 1px solid #b99bd7;
   border-radius: 8px;
   background: transparent;

@@ -4808,11 +4808,11 @@ const NEW_BOOTH_GROUPS = [
     {left: 81.6, top: 31.6, width: 9.2, height: 12.4, kind: "d-middle"},
   ] as const,
   ...[
-    {left: 6.6, top: 48.6, width: 15.8, height: 17.8},
-    {left: 24.6, top: 48.6, width: 15.8, height: 17.8},
-    {left: 42.6, top: 48.6, width: 15.8, height: 17.8},
-    {left: 60.6, top: 48.6, width: 15.8, height: 17.8},
-    {left: 78.6, top: 48.6, width: 7.8, height: 17.8},
+    {left: 7, top: 49, width: 14.5, height: 17},
+    {left: 25, top: 49, width: 14.5, height: 17},
+    {left: 43, top: 49, width: 14.5, height: 17},
+    {left: 61, top: 49, width: 14.5, height: 17},
+    {left: 79, top: 49, width: 7, height: 17},
   ].map((group) => ({...group, kind: "m" as const})),
   ...Array.from({length: 6}, (_, index) => ({
     left: 7.6 + index * 15,
