@@ -4774,7 +4774,7 @@ export const NEW_BOOTH_LAYOUT = [
     ["M12", 25, 49], ["M13", 32.5, 49], ["M3", 25, 58], ["M4", 32.5, 58],
     ["M14", 43, 49], ["M15", 50.5, 49], ["M5", 43, 58], ["M6", 50.5, 58],
     ["M16", 61, 49], ["M17", 68.5, 49], ["M7", 61, 58], ["M8", 68.5, 58],
-    ["M18", 86.5, 49], ["M9", 86.5, 57],
+    ["M18", 101, 19], ["M9", 101, 27],
   ] as const).map(([id, left, top]) => ({id, left, top, width: 7, height: 8})),
   ...newDGroups.flatMap((group) =>
     group.ids.map((id, index) => {
@@ -4812,7 +4812,7 @@ export const NEW_BOOTH_GROUPS = [
     {left: 25, top: 49, width: 14.5, height: 17},
     {left: 43, top: 49, width: 14.5, height: 17},
     {left: 61, top: 49, width: 14.5, height: 17},
-    {left: 86.5, top: 49, width: 7, height: 17},
+    {left: 100.5, top: 18.6, width: 7, height: 17},
   ].map((group) => ({...group, kind: "m" as const})),
   ...Array.from({length: 6}, (_, index) => ({
     left: 7.6 + index * 15,
