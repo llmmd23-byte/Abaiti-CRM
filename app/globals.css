@@ -24628,9 +24628,10 @@ html[dir="rtl"]
 }
 
 .admin-floor-map-canvas .admin-booth-map-tile.is-engineering-block {
+  box-sizing: border-box;
   border-radius: 0 !important;
   box-shadow: none !important;
-  border-width: 1px 0 1px 1px !important;
+  border: 1px solid #c49d17 !important;
 }
 
 .admin-floor-map-canvas .admin-booth-map-tile.booth-d37,
