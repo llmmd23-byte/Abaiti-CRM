@@ -23416,7 +23416,7 @@ html[dir="rtl"]
   justify-content: center;
   align-items: center;
   padding: 24px;
-  overflow: hidden;
+  overflow: visible;
   margin-inline: auto !important;
   box-shadow: none;
 }
@@ -23437,7 +23437,7 @@ html[dir="rtl"]
   --map-bottom-space: 0px;
   position: relative;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
   width: 100%;
   max-width: 100%;
@@ -23450,9 +23450,10 @@ html[dir="rtl"]
   aspect-ratio: 100 / 100;
   min-height: 620px;
   max-height: 1000px;
-  overflow: hidden;
-  clip-path: inset(0 round 16px);
-  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  clip-path: none;
+  padding: 0 16px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -23504,7 +23505,7 @@ html[dir="rtl"]
   box-sizing: border-box;
   height: calc(100% - var(--map-bottom-space));
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   border: 0;
   border-radius: 0;
   background: transparent;
