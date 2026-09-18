@@ -4765,7 +4765,7 @@ export const NEW_BOOTH_LAYOUT = [
   ...Array.from({length: 6}, (_, index) => ({
     id: `S${index + 1}`,
     left: 8 + index * 15,
-    top: 78,
+    top: 61.4,
     width: 11,
     height: 14,
   })),
@@ -4816,7 +4816,7 @@ export const NEW_BOOTH_GROUPS = [
   ].map((group) => ({...group, kind: "m" as const})),
   ...Array.from({length: 6}, (_, index) => ({
     left: 7.6 + index * 15,
-    top: 77.4,
+    top: 60.8,
     width: 11.8,
     height: 15.2,
     kind: "s" as const,
