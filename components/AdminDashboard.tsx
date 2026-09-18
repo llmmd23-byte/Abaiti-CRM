@@ -4747,18 +4747,18 @@ export const NEW_BOOTH_MAP_WIDTH = 100;
 export const NEW_BOOTH_MAP_HEIGHT = 100;
 
 const newDGroups = [
-  {ids: [35, 36, 37], left: -1.5, top: 14},
-  {ids: [38, 39, 40], left: 15.5, top: 14},
-  {ids: [41, 42, 43], left: 32.5, top: 14},
-  {ids: [44, 45, 46], left: 49.5, top: 14},
-  {ids: [47, 48, 49], left: 66.5, top: 14},
-  {ids: [50, 51], left: 83.5, top: 14},
-  {ids: [18, 19, 20, 1, 2, 3], left: -1.5, top: 27},
-  {ids: [21, 22, 23, 4, 5, 6], left: 15.5, top: 27},
-  {ids: [24, 25, 26, 7, 8, 9], left: 32.5, top: 27},
-  {ids: [27, 28, 29, 10, 11, 12], left: 49.5, top: 27},
-  {ids: [30, 31, 32, 13, 14, 15], left: 66.5, top: 27},
-  {ids: [33, 34, 16, 17], left: 83.5, top: 27},
+  {ids: [35, 36, 37], left: -1.5, top: 6},
+  {ids: [38, 39, 40], left: 15.5, top: 6},
+  {ids: [41, 42, 43], left: 32.5, top: 6},
+  {ids: [44, 45, 46], left: 49.5, top: 6},
+  {ids: [47, 48, 49], left: 66.5, top: 6},
+  {ids: [50, 51], left: 83.5, top: 6},
+  {ids: [18, 19, 20, 1, 2, 3], left: -1.5, top: 19},
+  {ids: [21, 22, 23, 4, 5, 6], left: 15.5, top: 19},
+  {ids: [24, 25, 26, 7, 8, 9], left: 32.5, top: 19},
+  {ids: [27, 28, 29, 10, 11, 12], left: 49.5, top: 19},
+  {ids: [30, 31, 32, 13, 14, 15], left: 66.5, top: 19},
+  {ids: [33, 34, 16, 17], left: 83.5, top: 19},
 ] as const;
 
 export const NEW_BOOTH_LAYOUT = [
@@ -4778,7 +4778,7 @@ export const NEW_BOOTH_LAYOUT = [
   ] as const).map(([id, left, top]) => ({id, left, top, width: 7, height: 8})),
   ...newDGroups.flatMap((group) =>
     group.ids.map((id, index) => {
-      const isLastMiddleGroup = group.ids.length === 4 && group.top === 27;
+      const isLastMiddleGroup = group.ids.length === 4 && group.top === 19;
       const column = isLastMiddleGroup ? index % 2 : index % 3;
       const row = isLastMiddleGroup ? Math.floor(index / 2) : Math.floor(index / 3);
       return {
@@ -4794,18 +4794,18 @@ export const NEW_BOOTH_LAYOUT = [
 
 export const NEW_BOOTH_GROUPS = [
   ...[
-    {left: -1.9, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 15.1, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 32.1, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 49.1, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 66.1, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 83.1, top: 13.6, width: 9.2, height: 6.6, kind: "d-top"},
-    {left: -1.9, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 15.1, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 32.1, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 49.1, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 66.1, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 83.1, top: 26.6, width: 9.2, height: 12.4, kind: "d-middle"},
+    {left: -1.9, top: 5.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 15.1, top: 5.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 32.1, top: 5.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 49.1, top: 5.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 66.1, top: 5.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 83.1, top: 5.6, width: 9.2, height: 6.6, kind: "d-top"},
+    {left: -1.9, top: 18.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 15.1, top: 18.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 32.1, top: 18.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 49.1, top: 18.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 66.1, top: 18.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 83.1, top: 18.6, width: 9.2, height: 12.4, kind: "d-middle"},
   ] as const,
   ...[
     {left: 7, top: 49, width: 14.5, height: 17},
@@ -5353,7 +5353,7 @@ function AdminBoothsSection({
                   const boothMapSizeLabel = boothMapSize.replace(/\s+/g, "").replace(/x/g, "X");
                   return (
                     <button
-                      className={`admin-booth-map-tile category-${boothCategory} booth-${layoutBooth.id.toLowerCase()} ${layoutBooth.top === 14 || layoutBooth.top === 27 ? "is-engineering-block" : ""} ${["A4", "A5", "A6", "C14"].includes(layoutBooth.id) ? "booth-gray" : ""} ${["C12", "C13"].includes(layoutBooth.id) ? "booth-gov" : ""} ${layoutBooth.id === "C15" ? "booth-c15" : ""} ${layoutBooth.id === "C16" ? "booth-c16" : ""} ${layoutBooth.width < 5 ? "is-narrow" : ""} ${isPolishedBooth ? "is-polished-booth" : ""} ${isFeatureArea ? "is-feature-area" : ""} ${hasSearch && !isSearchMatch ? "is-search-dimmed" : ""} ${hasSearch && isSearchMatch ? "is-search-match" : ""} ${activeZone !== "all" && activeZone !== layoutZone ? "is-zone-dimmed" : ""} ${activeZone === layoutZone ? "is-zone-focused" : ""} ${isPendingPayment ? "is-pending-payment" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
+                      className={`admin-booth-map-tile category-${boothCategory} booth-${layoutBooth.id.toLowerCase()} ${layoutBooth.top === 6 || layoutBooth.top === 19 ? "is-engineering-block" : ""} ${["A4", "A5", "A6", "C14"].includes(layoutBooth.id) ? "booth-gray" : ""} ${["C12", "C13"].includes(layoutBooth.id) ? "booth-gov" : ""} ${layoutBooth.id === "C15" ? "booth-c15" : ""} ${layoutBooth.id === "C16" ? "booth-c16" : ""} ${layoutBooth.width < 5 ? "is-narrow" : ""} ${isPolishedBooth ? "is-polished-booth" : ""} ${isFeatureArea ? "is-feature-area" : ""} ${hasSearch && !isSearchMatch ? "is-search-dimmed" : ""} ${hasSearch && isSearchMatch ? "is-search-match" : ""} ${activeZone !== "all" && activeZone !== layoutZone ? "is-zone-dimmed" : ""} ${activeZone === layoutZone ? "is-zone-focused" : ""} ${isPendingPayment ? "is-pending-payment" : ""} ${isBooked ? "is-booked" : ""} ${isInactive ? "is-inactive" : ""} ${isSelected ? "is-selected" : ""} ${isMissing ? "is-missing" : ""}`}
                       disabled={isMissing}
                       dir="ltr"
                       key={layoutBooth.id}
