@@ -4747,18 +4747,18 @@ export const NEW_BOOTH_MAP_WIDTH = 100;
 export const NEW_BOOTH_MAP_HEIGHT = 100;
 
 const newDGroups = [
-  {ids: [35, 36, 37], left: 5, top: 14},
-  {ids: [38, 39, 40], left: 21, top: 14},
-  {ids: [41, 42, 43], left: 37, top: 14},
-  {ids: [44, 45, 46], left: 53, top: 14},
-  {ids: [47, 48, 49], left: 69, top: 14},
-  {ids: [50, 51], left: 85, top: 14},
-  {ids: [18, 19, 20, 1, 2, 3], left: 5, top: 27},
-  {ids: [21, 22, 23, 4, 5, 6], left: 21, top: 27},
-  {ids: [24, 25, 26, 7, 8, 9], left: 37, top: 27},
-  {ids: [27, 28, 29, 10, 11, 12], left: 53, top: 27},
-  {ids: [30, 31, 32, 13, 14, 15], left: 69, top: 27},
-  {ids: [33, 34, 16, 17], left: 85, top: 27},
+  {ids: [35, 36, 37], left: 3, top: 14},
+  {ids: [38, 39, 40], left: 19, top: 14},
+  {ids: [41, 42, 43], left: 35, top: 14},
+  {ids: [44, 45, 46], left: 51, top: 14},
+  {ids: [47, 48, 49], left: 67, top: 14},
+  {ids: [50, 51], left: 83, top: 14},
+  {ids: [18, 19, 20, 1, 2, 3], left: 3, top: 27},
+  {ids: [21, 22, 23, 4, 5, 6], left: 19, top: 27},
+  {ids: [24, 25, 26, 7, 8, 9], left: 35, top: 27},
+  {ids: [27, 28, 29, 10, 11, 12], left: 51, top: 27},
+  {ids: [30, 31, 32, 13, 14, 15], left: 67, top: 27},
+  {ids: [33, 34, 16, 17], left: 83, top: 27},
 ] as const;
 
 export const NEW_BOOTH_LAYOUT = [
@@ -4794,18 +4794,18 @@ export const NEW_BOOTH_LAYOUT = [
 
 export const NEW_BOOTH_GROUPS = [
   ...[
-    {left: 4.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 20.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 36.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 52.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 68.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 84.6, top: 13.6, width: 9.2, height: 6.6, kind: "d-top"},
-    {left: 4.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 20.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 36.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 52.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 68.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 84.6, top: 26.6, width: 9.2, height: 12.4, kind: "d-middle"},
+    {left: 2.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 18.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 34.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 50.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 66.6, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
+    {left: 82.6, top: 13.6, width: 9.2, height: 6.6, kind: "d-top"},
+    {left: 2.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 18.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 34.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 50.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 66.6, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
+    {left: 82.6, top: 26.6, width: 9.2, height: 12.4, kind: "d-middle"},
   ] as const,
   ...[
     {left: 7, top: 49, width: 14.5, height: 17},
