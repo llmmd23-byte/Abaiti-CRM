@@ -5460,7 +5460,7 @@ function AdminBoothsSection({
                   {isArabic ? "إلغاء التعديل" : "Reset"}
                 </button>
                 <button className="primary" disabled={isSaving} onClick={() => void saveBooth()} type="button">
-                  {isSaving ? (isArabic ? "جاري الحفظ..." : "Saving...") : (isArabic ? "حفظ بيانات البوث" : "Save booth")}
+                  {isSaving ? (isArabic ? "جاري الحفظ..." : "Saving...") : (isArabic ? "حفظ" : "Save")}
                 </button>
               </div>
               ) : null}
