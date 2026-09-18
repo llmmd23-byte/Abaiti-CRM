@@ -4771,10 +4771,10 @@ export const NEW_BOOTH_LAYOUT = [
   })),
   ...([
     ["M10", 1, 37.4], ["M11", 9.4, 37.4], ["M1", 1, 45.4], ["M2", 9.4, 45.4],
-    ["M12", 22, 37.4], ["M13", 30.4, 37.4], ["M3", 22, 45.4], ["M4", 30.4, 45.4],
-    ["M14", 43, 37.4], ["M15", 51.4, 37.4], ["M5", 43, 45.4], ["M6", 51.4, 45.4],
-    ["M16", 64, 37.4], ["M17", 72.4, 37.4], ["M7", 64, 45.4], ["M8", 72.4, 45.4],
-    ["M18", 85, 37.4], ["M9", 85, 45.4],
+    ["M12", 23, 37.4], ["M13", 31.4, 37.4], ["M3", 23, 45.4], ["M4", 31.4, 45.4],
+    ["M14", 45, 37.4], ["M15", 53.4, 37.4], ["M5", 45, 45.4], ["M6", 53.4, 45.4],
+    ["M16", 67, 37.4], ["M17", 75.4, 37.4], ["M7", 67, 45.4], ["M8", 75.4, 45.4],
+    ["M18", 89, 37.4], ["M9", 89, 45.4],
   ] as const).map(([id, left, top]) => ({id, left, top, width: 8.4, height: 8})),
   ...newDGroups.flatMap((group) =>
     group.ids.map((id, index) => {
@@ -4809,10 +4809,10 @@ export const NEW_BOOTH_GROUPS = [
   ] as const,
   ...[
     {left: 1, top: 37.4, width: 18.4, height: 17},
-    {left: 22, top: 37.4, width: 18.4, height: 17},
-    {left: 43, top: 37.4, width: 18.4, height: 17},
-    {left: 64, top: 37.4, width: 18.4, height: 17},
-    {left: 85, top: 37.4, width: 9.2, height: 17},
+    {left: 23, top: 37.4, width: 18.4, height: 17},
+    {left: 45, top: 37.4, width: 18.4, height: 17},
+    {left: 67, top: 37.4, width: 18.4, height: 17},
+    {left: 89, top: 37.4, width: 9.2, height: 17},
   ].map((group) => ({...group, kind: "m" as const})),
   ...Array.from({length: 6}, (_, index) => ({
     left: 7.6 + index * 15,
