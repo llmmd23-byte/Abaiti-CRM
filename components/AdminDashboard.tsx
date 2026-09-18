@@ -5090,6 +5090,7 @@ function AdminBoothsSection({
   const totalBooked = bookings.filter((booking) => String(booking.status ?? "") === "booked").length;
   const totalPendingPayment = bookings.filter((booking) => String(booking.status ?? "") === "pending_payment").length;
   const totalInactive = booths.filter((booth) => String(booth.status ?? "available") === "inactive").length;
+  const totalAvailable = Math.max(0, booths.length - totalBooked - totalPendingPayment - totalInactive);
 
   function selectBooth(booth: AdminRow) {
     setSelectedBooth(booth);
@@ -5196,28 +5197,11 @@ function AdminBoothsSection({
           </p>
         </div>
         <div className="admin-booth-stats">
-          <span>{booths.length.toLocaleString(NUMBER_LOCALE)} {isArabic ? "بوث" : "booths"}</span>
-          <span className="booked">{totalBooked.toLocaleString(NUMBER_LOCALE)} {isArabic ? "محجوز" : "booked"}</span>
-          <span className="pending-payment">{totalPendingPayment.toLocaleString(NUMBER_LOCALE)} {isArabic ? "بانتظار الدفع" : "pending"}</span>
-          <span className="inactive">{totalInactive.toLocaleString(NUMBER_LOCALE)} {isArabic ? "غير نشط" : "inactive"}</span>
-          <div className="admin-booth-map-legend" aria-label={isArabic ? "دليل ألوان البوثات" : "Booth color legend"}>
-            <span>
-              {isArabic ? "مختار" : "Selected"}
-              <i className="selected" aria-hidden="true" />
-            </span>
-            <span>
-              {isArabic ? "متاح" : "Available"}
-              <i className="available" aria-hidden="true" />
-            </span>
-            <span>
-              {isArabic ? "بانتظار الدفع" : "Pending payment"}
-              <i className="pending-payment" aria-hidden="true" />
-            </span>
-            <span>
-              {isArabic ? "محجوز" : "Booked"}
-              <i className="booked" aria-hidden="true" />
-            </span>
-          </div>
+          <span className="total"><i className="status-dot total-dot" aria-hidden="true" />{booths.length.toLocaleString(NUMBER_LOCALE)} {isArabic ? "بوث" : "booths"}</span>
+          <span className="available"><i className="status-dot available-dot" aria-hidden="true" />{totalAvailable.toLocaleString(NUMBER_LOCALE)} {isArabic ? "متاح" : "available"}</span>
+          <span className="booked"><i className="status-dot booked-dot" aria-hidden="true" />{totalBooked.toLocaleString(NUMBER_LOCALE)} {isArabic ? "محجوز" : "booked"}</span>
+          <span className="pending-payment"><i className="status-dot pending-dot" aria-hidden="true" />{totalPendingPayment.toLocaleString(NUMBER_LOCALE)} {isArabic ? "بانتظار الدفع" : "pending"}</span>
+          <span className="inactive"><i className="status-dot inactive-dot" aria-hidden="true" />{totalInactive.toLocaleString(NUMBER_LOCALE)} {isArabic ? "غير نشط" : "inactive"}</span>
         </div>
       </div>
 
