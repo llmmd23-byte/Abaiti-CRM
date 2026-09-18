@@ -1128,7 +1128,7 @@ async function syncBoothCatalogFromRentalBooths() {
 }
 
 const newBoothCatalog = [
-  ...Array.from({length: 6}, (_, index) => ({number: `S${index + 1}`, size: "custom", status: "available", category: "S"})),
+  ...Array.from({length: 6}, (_, index) => ({number: `S${index + 1}`, size: "4x4m", status: "available", category: "S"})),
   ...Array.from({length: 19}, (_, index) => ({number: `M${index + 1}`, size: "3x3m", status: "available", category: "M"})),
   ...Array.from({length: 51}, (_, index) => ({number: `D${index + 1}`, size: "2x2m", status: "available", category: "D"})),
 ];

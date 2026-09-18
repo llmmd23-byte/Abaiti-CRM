@@ -4839,7 +4839,7 @@ export const NEW_RESERVED_BOOTH_LAYOUT = [
 ] as const;
 
 export const NEW_BOOTH_DIMENSION_OVERRIDES: Record<string, string> = {
-  ...Object.fromEntries(Array.from({length: 6}, (_, index) => [`S${index + 1}`, "custom"])),
+  ...Object.fromEntries(Array.from({length: 6}, (_, index) => [`S${index + 1}`, "4X4m"])),
   ...Object.fromEntries(Array.from({length: 19}, (_, index) => [`M${index + 1}`, "3X3m"])),
   ...Object.fromEntries(Array.from({length: 51}, (_, index) => [`D${index + 1}`, "2X2m"])),
 };
