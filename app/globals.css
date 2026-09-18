@@ -24644,7 +24644,7 @@ html[dir="rtl"]
 
 .new-booth-groups-layer {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   inset: 0;
   pointer-events: none;
 }
@@ -24664,10 +24664,10 @@ html[dir="rtl"]
 }
 
 .new-booth-group-m {
-  border: 1px solid rgba(121, 80, 174, 0.52);
-  border-radius: 10px;
-  background: rgba(245, 238, 252, 0.45);
-  box-shadow: 0 2px 5px rgba(121, 80, 174, 0.1);
+  border: 1px solid #b99bd7;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
 }
 
 .new-booth-group-s {
