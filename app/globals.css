@@ -24666,6 +24666,12 @@ html[dir="rtl"]
   background: rgba(185, 149, 232, 0.1);
 }
 
+.new-booth-group-s {
+  border: 1px solid rgba(183, 155, 98, 0.42);
+  border-radius: 4px;
+  background: rgba(231, 211, 165, 0.1);
+}
+
 .admin-floor-map-canvas .admin-booth-map-tile.is-engineering-block {
   box-sizing: border-box;
   border-radius: 0 !important;
