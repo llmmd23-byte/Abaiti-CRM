@@ -24657,6 +24657,8 @@ html[dir="rtl"]
 
 .new-booth-group-d-top,
 .new-booth-group-d-middle {
+  z-index: 2;
+  box-sizing: border-box;
   border: 1px solid rgba(196, 157, 23, 0.58);
   border-radius: 7px;
   background: rgba(255, 247, 214, 0.42);
