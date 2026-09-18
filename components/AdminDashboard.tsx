@@ -4794,20 +4794,6 @@ export const NEW_BOOTH_LAYOUT = [
 
 export const NEW_BOOTH_GROUPS = [
   ...[
-    {left: -1.9, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 15.1, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 32.1, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 49.1, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 66.1, top: 13.6, width: 13.4, height: 6.6, kind: "d-top"},
-    {left: 83.1, top: 13.6, width: 9.2, height: 6.6, kind: "d-top"},
-    {left: -1.9, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 15.1, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 32.1, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 49.1, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 66.1, top: 26.6, width: 13.4, height: 12.4, kind: "d-middle"},
-    {left: 83.1, top: 26.6, width: 9.2, height: 12.4, kind: "d-middle"},
-  ] as const,
-  ...[
     {left: 7, top: 49, width: 14.5, height: 17},
     {left: 25, top: 49, width: 14.5, height: 17},
     {left: 43, top: 49, width: 14.5, height: 17},
