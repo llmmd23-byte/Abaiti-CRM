@@ -4779,13 +4779,18 @@ export const NEW_BOOTH_LAYOUT = [
     ["M18", 79, 49], ["M9", 79, 58],
   ] as const).map(([id, left, top]) => ({id, left, top, width: 7, height: 8})),
   ...newDGroups.flatMap((group) =>
-    group.ids.map((id, index) => ({
-      id: `D${id}`,
-      left: group.left + (index % 3) * 4.2,
-      top: group.top + (index >= 3 ? 5.8 : 0),
-      width: 4.2,
-      height: 5.8,
-    })),
+    group.ids.map((id, index) => {
+      const isLastMiddleGroup = group.ids.length === 4 && group.top === 32;
+      const column = isLastMiddleGroup ? index % 2 : index % 3;
+      const row = isLastMiddleGroup ? Math.floor(index / 2) : Math.floor(index / 3);
+      return {
+        id: `D${id}`,
+        left: group.left + column * 4.2,
+        top: group.top + row * 5.8,
+        width: 4.2,
+        height: 5.8,
+      };
+    }),
   ),
 ] as const;
 
