@@ -23172,9 +23172,10 @@ html[dir="rtl"]
 }
 
 .admin-booths-toolbar .admin-record-search-bar {
-  flex: 0 1 560px;
-  width: 560px;
-  max-width: 560px;
+  flex: 1 1 auto;
+  width: auto;
+  max-width: none;
+  min-width: 280px;
   min-height: 64px;
   padding: 9px 16px;
   order: 0;
