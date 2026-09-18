@@ -23408,8 +23408,8 @@ html[dir="rtl"]
   max-width: min(100%, 1000px);
   box-sizing: border-box;
   min-width: 0;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
+  border: 0;
+  border-radius: 0;
   background: #ffffff;
   display: flex;
   flex-direction: column;
@@ -23418,7 +23418,7 @@ html[dir="rtl"]
   padding: 24px;
   overflow: hidden;
   margin-inline: auto !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 /* Keep the loading state full-width until the map and booth editor are ready. */
