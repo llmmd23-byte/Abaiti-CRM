@@ -24657,13 +24657,24 @@ html[dir="rtl"]
 
 .new-booth-group-d-top,
 .new-booth-group-d-middle {
-  border: 1px solid rgba(196, 157, 23, 0.28);
-  background: rgba(247, 214, 91, 0.08);
+  border: 1px solid rgba(196, 157, 23, 0.58);
+  border-radius: 7px;
+  background: rgba(255, 247, 214, 0.42);
+  box-shadow: 0 2px 5px rgba(180, 130, 0, 0.08);
 }
 
 .new-booth-group-m {
-  border: 1px solid rgba(121, 80, 174, 0.3);
-  background: rgba(185, 149, 232, 0.1);
+  border: 1px solid rgba(121, 80, 174, 0.52);
+  border-radius: 10px;
+  background: rgba(245, 238, 252, 0.45);
+  box-shadow: 0 2px 5px rgba(121, 80, 174, 0.1);
+}
+
+.new-booth-group-s {
+  border: 1px solid rgba(183, 155, 98, 0.58);
+  border-radius: 7px;
+  background: rgba(255, 248, 232, 0.42);
+  box-shadow: 0 2px 5px rgba(183, 155, 98, 0.1);
 }
 
 .admin-floor-map-canvas .admin-booth-map-tile.is-engineering-block {
