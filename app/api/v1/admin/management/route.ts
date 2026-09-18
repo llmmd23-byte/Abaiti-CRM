@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { RowDataPacket } from "mysql2";
 import { getSession, isAdminSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getDataScope, hasPermission } from "@/lib/permissions";
+import { hasPermission } from "@/lib/permissions";
 
 const globalForAdminManagement = globalThis as typeof globalThis & {
   adminManagementSchemaReady?: Promise<void>;
@@ -259,22 +259,14 @@ async function ensureTagTables() {
     "tag_id",
     "ALTER TABLE lead_tag_assignments ADD COLUMN tag_id BIGINT UNSIGNED NULL AFTER lead_id",
   );
-  const [tagTypeAffiliateColumns] = await db.execute<RowDataPacket[]>(
-    `SELECT COLUMN_NAME
-       FROM information_schema.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-        AND TABLE_NAME = 'tag_types'
-        AND COLUMN_NAME = 'affiliate_user_id'
-      LIMIT 1`,
-  );
-  if (tagTypeAffiliateColumns.length) {
-    await db.execute(
-      `UPDATE tag_types tt
-        JOIN users u ON u.id = tt.affiliate_user_id
-         SET tt.company_id = COALESCE(u.CompanyID, u.id)
-       WHERE tt.company_id IS NULL`,
-    );
-  }
+  await db.execute(
+    `UPDATE tag_types tt
+      JOIN users u ON u.id = tt.affiliate_user_id
+       SET tt.company_id = COALESCE(u.CompanyID, u.id)
+     WHERE tt.company_id IS NULL`,
+  ).catch((error) => {
+    if ((error as { code?: string }).code !== "ER_BAD_FIELD_ERROR") throw error;
+  });
   await db.execute("UPDATE tag_types SET company_id = 0 WHERE company_id IS NULL");
   await db.execute("ALTER TABLE tag_types MODIFY company_id BIGINT UNSIGNED NOT NULL");
 
@@ -348,7 +340,15 @@ async function ensureTagTables() {
     );
   }
 
-  if (tagTypeAffiliateColumns.length) {
+  const [affiliateColumns] = await db.execute<RowDataPacket[]>(
+    `SELECT COLUMN_NAME
+       FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'tag_types'
+        AND COLUMN_NAME = 'affiliate_user_id'
+      LIMIT 1`,
+  );
+  if (affiliateColumns.length) {
     await db.execute("ALTER TABLE tag_types DROP COLUMN affiliate_user_id");
   }
 
@@ -522,33 +522,19 @@ export async function GET() {
   );
   const adminCompanyId = adminRows[0]?.CompanyID ?? null;
   const adminUserId = Number(session.sub);
-  const dashboardScope = await getDataScope(session, "page.admin.dashboard");
-  const isGlobalDashboard = dashboardScope === "all";
-  const hasCompany = adminCompanyId !== null && adminCompanyId !== undefined;
   const scopedCompanyId = Number(adminCompanyId ?? adminUserId);
+  if (adminCompanyId === null || adminCompanyId === undefined) {
+    await db.execute("UPDATE users SET CompanyID = ? WHERE id = ?", [
+      scopedCompanyId,
+      adminUserId,
+    ]);
+  }
+  await db.execute("UPDATE users SET CompanyID = ? WHERE CompanyID IS NULL", [
+    scopedCompanyId,
+  ]);
   const userScopeClause = (alias: string) =>
-    isGlobalDashboard
-      ? "1=1"
-      : hasCompany
-        ? `(${alias}.CompanyID = ? OR ${alias}.id = ?)`
-        : `${alias}.id = ?`;
-  const userScopeParams = isGlobalDashboard
-    ? []
-    : hasCompany
-      ? [scopedCompanyId, adminUserId]
-      : [adminUserId];
-  const [leadWebsiteColumns] = await db.execute<RowDataPacket[]>(
-    `SELECT COLUMN_NAME
-       FROM information_schema.COLUMNS
-      WHERE TABLE_SCHEMA = DATABASE()
-        AND TABLE_NAME = 'leads'
-        AND COLUMN_NAME IN ('website', 'place_url', 'requirements')`,
-  );
-  const leadColumns = new Set(
-    leadWebsiteColumns.map((row) => String(row.COLUMN_NAME)),
-  );
-  const leadSelect = (column: string) =>
-    leadColumns.has(column) ? `l.${column}` : `NULL ${column}`;
+    `(${alias}.CompanyID = ? OR ${alias}.id = ? OR ${alias}.CompanyID IS NULL)`;
+  const userScopeParams = [scopedCompanyId, adminUserId];
   const teamNamePrefixAr = "\u0641\u0631\u064a\u0642 ";
   await ensureSupportTicketTypesTable(scopedCompanyId);
   await db.execute(
@@ -658,7 +644,7 @@ export async function GET() {
     "SELECT id,name,name_en,slug,landing_url,external_url,description,status,created_at FROM industries ORDER BY created_at DESC LIMIT 250",
   );
   const [clients] = await db.execute<RowDataPacket[]>(
-    `SELECT l.id,l.name,l.company_name,l.phone,l.email,${leadSelect("website")},${leadSelect("place_url")},l.stage,l.industry_id,l.address,${leadSelect("requirements")},l.created_at,l.affiliate_user_id,
+    `SELECT l.id,l.name,l.company_name,l.phone,l.email,l.website,l.place_url,l.stage,l.industry_id,l.address,l.requirements,l.created_at,l.affiliate_user_id,
               i.name industry_name,i.name_en industry_name_en,
               COALESCE(NULLIF(u.name, ''), NULLIF(u.email, ''), 'Admin') affiliate_user_name,
               (SELECT GROUP_CONCAT(DISTINCT t.tag_type_id)
@@ -700,7 +686,7 @@ export async function GET() {
     userScopeParams,
   );
   const [sales] = await db.execute<RowDataPacket[]>(
-    `SELECT s.id,s.sales_invoice_number,s.sale_amount,s.currency,s.status,s.receipt_url,s.sold_at,s.created_at,s.affiliate_user_id,c.id commission_id,c.status commission_status,l.name customer_name,p.name product_name,p.name_en product_name_en,
+    `SELECT s.id,s.sales_invoice_number,s.sale_amount,s.currency,s.status,s.receipt_url,s.sold_at,s.created_at,s.affiliate_user_id,c.id commission_id,l.name customer_name,p.name product_name,p.name_en product_name_en,
                COALESCE(NULLIF(u.name, ''), NULLIF(u.email, '')) affiliate_user_name,u.level affiliate_user_level,COALESCE(u.comission_percentage,20) affiliate_comission_percentage,COALESCE(sc.sale_count,0) affiliate_sales_count,q.quote_number
          FROM sales s
          LEFT JOIN leads l ON l.id=s.lead_id

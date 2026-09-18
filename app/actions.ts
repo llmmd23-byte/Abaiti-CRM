@@ -9,7 +9,6 @@ export type LeadCaptureState = {success?: boolean; error?: string};
 
 export async function captureAffiliateLead(_state: LeadCaptureState, formData: FormData): Promise<LeadCaptureState> {
   const affiliateUsername = String(formData.get("affiliateUsername") || "unknown");
-  const referralCode = String(formData.get("referralCode") || affiliateUsername).trim();
   const affiliateId = String(formData.get("affiliateId") || affiliateUsername);
   const propertyName = String(formData.get("propertyName") || "").trim();
   const businessType = String(formData.get("businessType") || "").trim();
@@ -27,7 +26,6 @@ export async function captureAffiliateLead(_state: LeadCaptureState, formData: F
   await pushAffiliateLeadToCrm({
     affiliateId,
     affiliateUsername,
-    referralCode,
     fullName: String(formData.get("fullName") || ""),
     email: String(formData.get("email") || ""),
     phone: String(formData.get("phone") || ""),

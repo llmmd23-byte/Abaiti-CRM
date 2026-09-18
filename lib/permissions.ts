@@ -74,13 +74,8 @@ export const pagePermissions = [
   "page.user.customers",
   "page.user.stores",
   "page.user.quotes",
-  "page.user.participation_contracts",
-  "page.user.sponsorship_contracts",
   "page.user.sales_orders",
   "page.user.rental_contracts",
-  "page.user.sales",
-  "page.user.activation",
-  "page.user.education",
   "page.user.support",
   "page.user.accounts",
   "page.user.settings",
@@ -102,8 +97,6 @@ export const tablePermissions = [
   "table.stock",
   "table.demo_requests",
   "table.quotes",
-  "table.participation_contracts",
-  "table.sponsorship_contracts",
   "table.rental_contracts",
   "table.rental_booths",
   "table.booths",
@@ -153,8 +146,6 @@ export const adminPermissionKeys = allPermissionKeys.filter(
     key === "table.industries" ||
     key === "table.booths" ||
     key === "table.rental_booths" ||
-    key === "table.participation_contracts" ||
-    key === "table.sponsorship_contracts" ||
     key === "table.rental_contracts" ||
     key === "table.sales_orders" ||
     key === "table.marketing_assets" ||
@@ -219,8 +210,6 @@ const userTableScopes = new Set([
   "table.lead_tag_assignments",
   "table.store",
   "table.stock",
-  "table.participation_contracts",
-  "table.sponsorship_contracts",
   "table.rental_contracts",
   "table.rental_booths",
   "table.booths",
@@ -239,8 +228,6 @@ const userWritableTables = new Set([
   "table.lead_tag_assignments",
   "table.store",
   "table.stock",
-  "table.participation_contracts",
-  "table.sponsorship_contracts",
   "table.rental_contracts",
   "table.rental_booths",
   "table.booths",
@@ -279,8 +266,6 @@ const affiliatePermissionSeeds: PermissionSeed[] = [
       key === "table.lead_tag_assignments" ||
       key === "table.store" ||
       key === "table.stock" ||
-      key === "table.participation_contracts" ||
-      key === "table.sponsorship_contracts" ||
       key === "table.rental_contracts" ||
       key === "table.sales_orders" ||
       key === "table.payout_methods",
@@ -426,8 +411,6 @@ function defaultSeedForRoleType(roleType: RoleType, key: string): PermissionSeed
       key === "table.lead_tag_assignments" ||
       key === "table.store" ||
       key === "table.stock" ||
-      key === "table.participation_contracts" ||
-      key === "table.sponsorship_contracts" ||
       key === "table.rental_contracts" ||
       key === "table.sales_orders" ||
       key === "table.payout_methods",

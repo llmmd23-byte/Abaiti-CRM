@@ -6,13 +6,7 @@ const intlMiddleware = createMiddleware(routing);
 
 export default function proxy(request: NextRequest) {
   if (request.nextUrl.pathname === "/") {
-    return NextResponse.redirect(new URL("/ar/signin", request.url));
-  }
-
-  if (request.nextUrl.pathname.replace(/\/$/, "") === "/landpaga") {
-    const landpagaUrl = request.nextUrl.clone();
-    landpagaUrl.pathname = "/ar/landpaga";
-    return NextResponse.rewrite(landpagaUrl);
+    return NextResponse.redirect(new URL("/ar", request.url));
   }
 
   return intlMiddleware(request);

@@ -34,8 +34,7 @@ export async function POST(request: Request) {
   }
 
   const canCreateTeams = await hasPermission(session, "table.teams", "can_create");
-  const canViewTeams = await hasPermission(session, "page.admin.teams", "can_view");
-  if (!canCreateTeams && !canViewTeams) {
+  if (!canCreateTeams) {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
 
